@@ -1,3 +1,4 @@
+import {memoryAttributionCollector,collectMemoryAttribution,memoryAttributionSnapshot,finishMemoryAttribution} from './recording_memory_attribution.mjs';
 import {catalogHolderSummary} from './recording_latency_trace.mjs';
 import {resourceTraceCollector,collectResourceTrace,currentResourceTrace,finishResourceTrace} from './recording_resource_trace.mjs';
 // 파일 용도: 기존 혼합 실행기에 인증된 A 확인·저장 부하만 연결한 제한 관측. 짧은 준비 실행은 장시간/자원/UI PASS가 아니다.
@@ -24,7 +25,8 @@ const repo=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../..');
 const root=process.argv[2],args=process.argv.slice(3),short=args.length===1&&args[0]==='--app-observe';
 const stateDiagnose=args.length===1&&args[0]==='--state-diagnostic';
 const contentionDiagnose=args.length===1&&args[0]==='--contention-diagnostic';
-const diagnose=contentionDiagnose||stateDiagnose||(args.length===1&&args[0]==='--frame-diagnostic');
+const memoryDiagnose=args.length===1&&args[0]==='--memory-attribution-diagnostic';
+const diagnose=memoryDiagnose||contentionDiagnose||stateDiagnose||(args.length===1&&args[0]==='--frame-diagnostic');
 const frameTraceMode='bounded';
 const preparationContract=mixedPreparationContract(args);
 const fixtureProfile=mixedRecordingProfile('continuous-r114');
@@ -80,7 +82,8 @@ function environment(http,rtsp,stun){const env={PATH:process.env.PATH,HOME:proce
     VA_REVIEW_ENABLED:1,VA_REVIEW_LOCAL_ENDPOINT:'http://127.0.0.1:1',VISUAL_SEARCH_ENABLED:1,VISUAL_SEARCH_MODEL_DIRECTORY:path.join(repo,'models/v430-siglip2'),VISUAL_SEARCH_SCAN_SECONDS:1,VISUAL_SEARCH_SAMPLE_SECONDS:1,EVIDENCE_ENABLED:1,RECORDING_ENABLED:1,RECORDING_STORAGE_ROOT:path.join(root,'recordings'),RECORDING_SEGMENT_DURATION_SECONDS:2,RECORDING_RESERVED_FREE_BYTES:0,RECORDING_RETENTION_INTERVAL_MS:1000,
     VERIFY_RECORDING_STATE_TRACE:1,VERIFY_CATALOG_HOLDER_TRACE:diagnose&&!stateDiagnose?1:0,VERIFY_VISUAL_REQUEST_TRACE:1,VERIFY_RECORDING_SEARCH_TRACE:1,VERIFY_VISUAL_LATENCY_TRACE:short?1:0,VERIFY_RECORDING_RESOURCE_TRACE:1,VERIFY_FRAME_TRACE:frameTraceMode,VERIFY_RECORDING_LATENCY_TRACE:1,VERIFY_RECORDING_LATENCY_SLOW_ONLY:1,
     GST_CACHE_DIR:path.join(root,'gst-cache'),GST_PLUGIN_PROFILE:'headless',WEBRTC_STUN_SERVER:`stun://127.0.0.1:${stun}`,WEBRTC_TURN_SERVER:''};
-  if(contentionDiagnose)values.VERIFY_CATALOG_HOLDER_WHOLE_REQUESTS='slow-first';
+  if(memoryDiagnose){values.VERIFY_MEMORY_ATTRIBUTION=1;values.VERIFY_CATALOG_SUBCOSTS=1;}
+  if(contentionDiagnose||memoryDiagnose)values.VERIFY_CATALOG_HOLDER_WHOLE_REQUESTS='slow-first';
   for(const [k,v] of Object.entries(values))env['MEDIA_SERVER_'+k]=String(v);return env;
 }
 async function request(app,method,route,body,observeStatus=false){const begin=performance.now();budget();console.log('[request-budget] '+JSON.stringify({elapsedMs:Math.round(performance.now()-begin)}));
@@ -158,10 +161,10 @@ async function launch(stun,requiresFrameTrace=true){const http=await reservePort
   const child=spawn(path.join(repo,'server.sh'),['foreground'],{cwd:repo,env:childEnv,stdio:['ignore','pipe','pipe']});
   console.log('[decoder-trace-settings] '+JSON.stringify({pid:child.pid,generatedMode:childEnv.MEDIA_SERVER_VERIFY_FRAME_TRACE,expectedMode:frameTraceMode,observationMs:duration}));
   const log=path.join(root,`server-${processes.length+1}.private.log`),logFd=fs.openSync(log,'wx',0o600);
-  const app={child,http,rtsp,base:`http://127.0.0.1:${http}`,bytes:0,log,logFd,requiresFrameTrace,resourceTrace:resourceTraceCollector(child.pid)};processes.push(app);
+  const app={child,http,rtsp,base:`http://127.0.0.1:${http}`,bytes:0,log,logFd,requiresFrameTrace,memoryTrace:memoryAttributionCollector(child.pid),resourceTrace:resourceTraceCollector(child.pid)};processes.push(app);
   app.cleanup=createProcessCleanup({child,ports:[{kind:'http',port:http},{kind:'rtsp',port:rtsp}],stopServer,assertPortClosed});
   child.on('error',()=>{app.error=true;});child.on('close',()=>{app.closed=true;});
-  for(const stream of [child.stdout,child.stderr])stream.on('data',chunk=>{captureBoundedProcessLog(app,chunk,bytes=>fs.writeSync(app.logFd,bytes),()=>child.kill('SIGTERM'));if(stream===child.stderr)collectResourceTrace(app.resourceTrace,chunk);if(app.resourceTrace.error)child.kill('SIGTERM');});
+  for(const stream of [child.stdout,child.stderr])stream.on('data',chunk=>{captureBoundedProcessLog(app,chunk,bytes=>fs.writeSync(app.logFd,bytes),()=>child.kill('SIGTERM'));if(stream===child.stderr){collectResourceTrace(app.resourceTrace,chunk);if(memoryDiagnose)collectMemoryAttribution(app.memoryTrace,chunk);}if(app.resourceTrace.error||(memoryDiagnose&&app.memoryTrace.error))child.kill('SIGTERM');});
   await until(async()=>{if(app.closed||app.error)throw Error('server-start-failed');try{return !!await request(app,'GET','/health');}catch{return false;}});
   if(!auth)auth=await bootstrapRecordingUiAuth(app.base,passwords);
   else{const response=await fetch(app.base+'/login',{method:'POST',body:new URLSearchParams({username:'admin',password:passwords[0]}),redirect:'manual',signal:AbortSignal.timeout(5000)});check(response.status===302,'A restart authenticated login');auth.cookies[0]=response.headers.getSetCookie().map(v=>v.split(';',1)[0]).join('; ');await response.arrayBuffer();}
@@ -174,12 +177,13 @@ async function settings(app,enabled){const registry=await request(app,'GET','/op
   const r=await request(app,'PUT','/ops/api/sources/'+id,body);check(r.source?.recording?.enabled===enabled&&r.source.recording.revision===body.recording.revision,'LP26-O05 setting '+id+' '+enabled);}
   assertMixedRecordingRegistry(await request(app,'GET','/ops/api/sources'),fixtureProfile.name,enabled);}
 async function drain(now){let result;for(let i=0;i<128;i++){result=await observer.pollAsync();for(const row of result.rows)if(row.segment?.continuous&&['9101','9201'].includes(row.segment.channel)&&BigInt(row.segment.sizeBytes)>BigInt(fixtureProfile.segmentBytes))throw Error('mixed-fixture-segment-bound');for(const d of progress.consume(result.rows,now)){const file=path.resolve(root,'recordings',d.mediaRelpath);check(file.startsWith(path.join(root,'recordings')+path.sep)&&mediaAbsent(()=>fs.lstatSync(file)),'LP26-O03 deleted media absent');}if(!result.backlog)return result;}throw Error('observer-backlog-cap');}
-async function sample(app){const begin=performance.now();let metricsMs=null,drainMs=null,storageMs=null;
-  try{const m=await collectProcess(collector,app.child.pid);metricsMs=performance.now()-begin;if(m.valid!==true||m.error!==null)throw Error('process-metrics-invalid');check(m.rssBytes<=4*1024**3,'V440 peak RSS budget');const phaseAt=performance.now();
+async function sample(app){const sampleStartNs=Number(process.hrtime.bigint());const begin=performance.now();let metricsMs=null,drainMs=null,storageMs=null;
+  try{const m=await collectProcess(collector,app.child.pid);const processCapturedNs=Number(process.hrtime.bigint());metricsMs=performance.now()-begin;if(m.valid!==true||m.error!==null)throw Error('process-metrics-invalid');check(m.rssBytes<=4*1024**3,'V440 peak RSS budget');const phaseAt=performance.now();
   if(samples.length>=10000)throw Error('sample-cap');const cpu=spawnSync('ps',['-axo','pid=,ppid=,pcpu='],{encoding:'utf8',timeout:3000,maxBuffer:1024*1024});if(cpu.status!==0)throw Error('cpu-observation');const rows=cpu.stdout.trim().split('\n').map(x=>x.trim().split(/\s+/).map(Number)),own=rows.find(x=>x[0]===app.child.pid);if(!own||!Number.isFinite(own[2]))throw Error('cpu-observation');const children=new Set();let more=true;while(more){more=false;for(const row of rows)if((row[1]===app.child.pid||children.has(row[1]))&&!children.has(row[0])){children.add(row[0]);more=true;}}const previous=samples.at(-1),point={...m,cpuPercent:own[2],childPids:[...children],footprintBytes:m.footprintBytes,productOwner:{...currentResourceTrace(app.resourceTrace),receivedAt:app.resourceTrace.receivedAt},measurementStartedAt:begin,measurementCompletedAt:begin+metricsMs,phaseAt,mutationCount:observer.prefix.length};samples.push(point);
   assertSampleStep(previous,point,observationStart,app.child.pid);
   const drainStart=performance.now();let r;try{r=await drain(phaseAt);point.mutationCount=r.mutationCount;}finally{drainMs=performance.now()-drainStart;}
   const storageStart=performance.now();try{const storage=rootDiagnostic('sample');
+    if(memoryDiagnose)console.log('[memory-attribution-cycle] '+JSON.stringify({sampleStartNs,owner:memoryAttributionSnapshot(app.memoryTrace),processCapturedNs,sampleEndNs:Number(process.hrtime.bigint()),metrics:m,workspace:{variableBytes:storage.variableBytes,totalBytes:storage.totalBytes},mutationCount:r.mutationCount,typeCounts:r.typeCounts}));
     admitWorkspaceSnapshot({storage,baseline:workspace??{fixedBytes:0,capBytes:448*1024*1024},metrics:point,
       expectedPid:app.child.pid,expectedStart:previous?.pid===app.child.pid?previous.startIdentity:null,
       context:{kind:'sample',sampleIndex:samples.length,runStartedAt:start,drainStartedAt:drainStart,drainCompletedAt:storageStart,productOwner:point.productOwner}},workspaceFailure);
@@ -313,10 +317,14 @@ try{
     const sleepMs=nextSampleDelay(samples.at(-1).phaseAt,performance.now(),begin+duration);
     if(sleepMs>0)await pause(sleepMs);cadence();}
   await aLoad.finish(first);if(!short)requireMixedWindows(mixed.windows);
-  check(mixed.cycles>0&&mixed.createComplete>0&&mixed.searchSuccessByClient.every(n=>n>0)&&mixed.visualResults>0&&mixed.visualCreated>0,"V440 actual mixed work occurred");const orderedLatencies=[...mixed.searchLatencyMs].sort((a,b)=>a-b);check(orderedLatencies.at(Math.ceil(orderedLatencies.length*.95)-1)<=2000&&orderedLatencies.at(-1)<=5000,"V440 successful search latency");await sample(first);const end=performance.now();check(sampleContinuity(samples,begin,end,first.child.pid,samples[0].startIdentity),'LP26-O04 sample coverage');
+  check(mixed.cycles>0&&mixed.createComplete>0&&mixed.searchSuccessByClient.every(n=>n>0)&&mixed.visualResults>0&&mixed.visualCreated>0,"V440 actual mixed work occurred");const orderedLatencies=[...mixed.searchLatencyMs].sort((a,b)=>a-b);if(!memoryDiagnose)check(orderedLatencies.at(Math.ceil(orderedLatencies.length*.95)-1)<=2000&&orderedLatencies.at(-1)<=5000,"V440 successful search latency");else console.log('[memory-latency-diagnostic] '+JSON.stringify({count:orderedLatencies.length,p95:orderedLatencies.at(Math.ceil(orderedLatencies.length*.95)-1),max:orderedLatencies.at(-1),gate:false}));await sample(first);const end=performance.now();check(sampleContinuity(samples,begin,end,first.child.pid,samples[0].startIdentity),'LP26-O04 sample coverage');
   phaseResult=progress.status(end);if(!short&&!diagnose)check(phaseResult.elapsedMs>=7200000,"V440 actual120 duration");
   check(Object.values(phaseResult.channels).every(c=>c.finalized>0&&(!preparationContract.requiresDeletion||c.deleted>0)),'LP26-O05 both channels retained and progressed');
-  summary=summarizeCurrentSamples(samples);observationStart=null;if(!diagnose)await aLoad.controls(first,passwords[1]);progress.setActive(performance.now(),false);await settings(first,false);await stop(first);
+  summary=summarizeCurrentSamples(samples);observationStart=null;if(!diagnose)await aLoad.controls(first,passwords[1]);progress.setActive(performance.now(),false);
+  if(memoryDiagnose)console.log('[memory-attribution-boundary] '+JSON.stringify({phase:'before-disable',atNs:Number(process.hrtime.bigint()),nearestOwner:memoryAttributionSnapshot(first.memoryTrace)}));
+  await settings(first,false);
+  if(memoryDiagnose)console.log('[memory-attribution-boundary] '+JSON.stringify({phase:'after-disable',atNs:Number(process.hrtime.bigint()),nearestOwner:memoryAttributionSnapshot(first.memoryTrace)}));
+  await stop(first);
   const tail=await drain(performance.now());check(closedJournalComplete(tail),'LP26-O02 closed journal no partial tail');
   if(!diagnose){const before=await snapshot();
   const second=await launch(stun,false);const s=await request(second,'GET','/ops/api/recordings/status');
@@ -340,9 +348,10 @@ finally{
     console.log('[server-diagnostic] '+JSON.stringify({pid:app.child.pid,bytes:app.bytes,capturedBytes:Buffer.byteLength(text),sha256:fileHash(app.log),overflow:!!app.overflow,captureError:app.captureError??null,categories,rawBodyPublished:false,privateCaptureDisposition:blocked?'preserved-with-owned-root':'eligible-for-wrapper-cleanup'}));
     if(!processLogCaptureComplete(app,Buffer.byteLength(text))){failed++;console.log('[fail] process-log-collection');}
     console.log('[resource-trace-summary] '+JSON.stringify(finishResourceTrace(app.resourceTrace)));
+    if(memoryDiagnose)console.log('[memory-attribution-summary] '+JSON.stringify(finishMemoryAttribution(app.memoryTrace)));
     const searchFailure=searchFailureSummary(text,app.requiresFrameTrace);console.log('[search-failure-summary] '+JSON.stringify(searchFailure));
     if(searchFailure.status==='incomplete'){failed++;console.log('[fail] structured-failure-collection');}
-    if(diagnose&&!stateDiagnose){const holders=catalogHolderSummary(text,app.requiresFrameTrace,contentionDiagnose?'slow-first':null);fs.writeFileSync(path.join(root,`catalog-holders-${app.child.pid}.json`),JSON.stringify(holders),{flag:'wx',mode:0o600});if(holders.status==='incomplete'){failed++;console.log('[fail] catalog-holder-collection '+holders.code);}}
+    if(diagnose&&!stateDiagnose){const holders=catalogHolderSummary(text,app.requiresFrameTrace,contentionDiagnose||memoryDiagnose?'slow-first':null);fs.writeFileSync(path.join(root,`catalog-holders-${app.child.pid}.json`),JSON.stringify(holders),{flag:'wx',mode:0o600});if(holders.status==='incomplete'){failed++;console.log('[fail] catalog-holder-collection '+holders.code);}}
     const requests=visualRequestSummary(text,app.requiresFrameTrace);console.log('[visual-request-summary] '+JSON.stringify(requests));if(requests.status==='incomplete'){failed++;console.log('[fail] visual-request-collection');}
     const frameTrace=frameTraceSummary(text,frameTraceMode,app.requiresFrameTrace);console.log('[frame-trace-summary] '+JSON.stringify(frameTrace));
     if(frameTrace.status!=='captured'&&!(frameTrace.status==='not-observed'&&!app.requiresFrameTrace)){failed++;console.log('[fail] frame-trace-incomplete');}
@@ -353,8 +362,8 @@ finally{
   try{if(observer)await observer.closeAsync();}catch{failed++;try{fs.writeFileSync(path.join(root,'cleanup-blocked'),'observer transport cleanup unresolved\n',{mode:0o600});}catch{}}if(udp)try{await new Promise(r=>udp.close(r));udpClosed=true;}catch{failed++;}else udpClosed=true;
   if(!udpClosed||processes.some(p=>!p.result?.archiveSafe)){fs.writeFileSync(path.join(root,'cleanup-blocked'),'process or port safety unresolved\n',{mode:0o600});failed++;}
   try{workspaceFailure.close();}catch{failed++;console.log('[fail] workspace-evidence-close');}
-  const final={workspaceFailure:workspaceFailure.summary(),decoderTraceMode:frameTraceMode,preparationContract,mode:short?'v450-startup-preparation-v2':contentionDiagnose?'v450-contention-diagnostic':stateDiagnose?'v450-state-diagnostic':diagnose?'v450-frame-diagnostic':'v450-recording-search-evidence-A-mixed-120',passed,failed,elapsedMs:Math.round(performance.now()-start),verifiedDurationMs:phaseResult?.elapsedMs??null,
-    longrunObservationCompleted:!short&&!diagnose&&failed===0&&!!phaseResult,shortPreparationPass:false,startupPreparationPass:short&&failed===0,cyclicRecoveryStatus:short?'not-run-in-this-process':null,contentionDiagnosticPass:contentionDiagnose&&failed===0&&!!phaseResult,frameDiagnosticPass:diagnose&&!stateDiagnose&&!contentionDiagnose&&failed===0&&!!phaseResult,stateDiagnosticPass:stateDiagnose&&failed===0&&!!phaseResult,fixtureProfile,resourceTrendPass:false,reviewRequired:true,uiFulltestPass:false,
+  const final={workspaceFailure:workspaceFailure.summary(),decoderTraceMode:frameTraceMode,preparationContract,mode:memoryDiagnose?'v450-memory-attribution-diagnostic':short?'v450-startup-preparation-v2':contentionDiagnose?'v450-contention-diagnostic':stateDiagnose?'v450-state-diagnostic':diagnose?'v450-frame-diagnostic':'v450-recording-search-evidence-A-mixed-120',passed,failed,elapsedMs:Math.round(performance.now()-start),verifiedDurationMs:phaseResult?.elapsedMs??null,
+    longrunObservationCompleted:!short&&!diagnose&&failed===0&&!!phaseResult,shortPreparationPass:false,startupPreparationPass:short&&failed===0,cyclicRecoveryStatus:short?'not-run-in-this-process':null,contentionDiagnosticPass:contentionDiagnose&&failed===0&&!!phaseResult,memoryAttributionDiagnosticCompleted:memoryDiagnose&&failed===0&&!!phaseResult,frameDiagnosticPass:diagnose&&!memoryDiagnose&&!stateDiagnose&&!contentionDiagnose&&failed===0&&!!phaseResult,stateDiagnosticPass:stateDiagnose&&failed===0&&!!phaseResult,fixtureProfile,resourceTrendPass:false,reviewRequired:true,uiFulltestPass:false,
     recordingStatusFailure:statusCapture.failure(),evidenceLoad:mixed,aLoad:aLoad?.report()??null,phase:phaseResult??null,resources:summary??null,processCount:processes.length,processesClosed:processes.every(p=>p.result?.normalShutdownPass),udpClosed,
     footprintState:samples.every(s=>Number.isSafeInteger(s.footprintBytes))?'proc-pid-rusage':'partially-or-not-measured',cpu:{maxPercent:samples.length?Math.max(...samples.map(s=>s.cpuPercent)):null},tokenStart:null,tokenEnd:null,tokenConsumed:null,tokenSource:'전용 집계 없음'};artifacts.checkpoint({...final,status:failed?'FAIL':'PASS',exit:failed?1:0});console.log(JSON.stringify(final));process.exitCode=failed?1:0;
 }

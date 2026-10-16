@@ -118,7 +118,7 @@ bool RecordingSearchReader::Refresh(const std::vector<std::string>& channels,
     }
     if (!catalog_.ValidateSearchSource(batch, error)) {
         if(retry_capture&&!include_observations&&batch.rebuild&&error&&*error=="search-source-changed")
-            *retry_capture=std::move(batch);
+            {batch.memory.DiagnosticCategory(SearchModelResidency::Category::RetryBatch);*retry_capture=std::move(batch);}
         return false;
     }
     if (!batch.rebuild && previous && batch.delta.upserts.empty() && batch.delta.removed_ids.empty()) {
@@ -157,7 +157,7 @@ bool RecordingSearchReader::Refresh(const std::vector<std::string>& channels,
                     ++found->second.count;
                 }
             }
-            *retry_capture=std::move(batch);
+            {batch.memory.DiagnosticCategory(SearchModelResidency::Category::RetryBatch);*retry_capture=std::move(batch);}
         }
         return false;
     }
@@ -169,7 +169,7 @@ bool RecordingSearchReader::WithEventFacts(const RecordingSearchModel& source,
     if (!output) {if(error)*error="search-invalid-output";return false;}
     if(!limits.residency)limits.residency=source.residency();
     try {
-        auto workspace=limits.residency?limits.residency->Reserve(limits.max_bytes):std::shared_ptr<void>{};
+        auto workspace=limits.residency?limits.residency->Reserve(limits.max_bytes,SearchModelResidency::Category::Preparation):std::shared_ptr<void>{};
         if(limits.residency&&!workspace){if(error)*error="search-capacity-exceeded";return false;}
         RecordingSearchMatches candidates;
         if(query) {
@@ -196,7 +196,7 @@ bool RecordingSearchReader::WithEventFacts(const RecordingSearchModel& source,
         for(const auto& channel:channels) {
             // QueryEventRecords의 기존8MiB facts envelope와 adapter의 이동 전 배열을
             // 같은 공유 owner에 먼저 예약한다. 정렬 조회로 별도 by_id 전체 사본을 없앤다.
-            auto facts_memory=limits.residency?limits.residency->Reserve(2*8*1024*1024):std::shared_ptr<void>{};
+            auto facts_memory=limits.residency?limits.residency->Reserve(2*8*1024*1024,SearchModelResidency::Category::Preparation):std::shared_ptr<void>{};
             if(limits.residency&&!facts_memory){if(error)*error="search-capacity-exceeded";return false;}
             std::vector<ingress::EventSearchApplicationFact> facts;
             if(!ingress::ReadEventSearchFactsForApplication(channel.first,&facts,error))return false;
@@ -308,8 +308,8 @@ struct RecordingSearchReader::PreparedSource::Impl {
     struct stat verified{};
     std::shared_ptr<ResolvedRecordingMedia> media;
 };
-RecordingSearchReader::PreparedSource::PreparedSource(std::unique_ptr<Impl> value):impl_(std::move(value)){}
-RecordingSearchReader::PreparedSource::~PreparedSource()=default;
+RecordingSearchReader::PreparedSource::PreparedSource(std::unique_ptr<Impl> value):impl_(std::move(value)){memory_diagnostic::Add(memory_diagnostic::PreparedReaders,1);diagnostic_bytes_=memory_diagnostic::Enabled()?retained_bytes():0;memory_diagnostic::Add(memory_diagnostic::PreparedBytes,diagnostic_bytes_);}
+RecordingSearchReader::PreparedSource::~PreparedSource(){memory_diagnostic::Add(memory_diagnostic::PreparedBytes,-std::int64_t(diagnostic_bytes_));memory_diagnostic::Add(memory_diagnostic::PreparedReaders,-1);}
 std::shared_ptr<const ResolvedRecordingMedia> RecordingSearchReader::PreparedSource::Hold() const{return impl_->media;}
 bool RecordingSearchReader::PreparedSource::Matches(const std::string& channel,const std::string& segment,const std::string& sha) const {
     return impl_->segment.channel_id==channel&&impl_->segment.segment_id==segment&&impl_->segment.checksum_sha256==sha;
@@ -404,7 +404,7 @@ std::unique_ptr<RecordingSearchReader::PreparedSource> RecordingSearchReader::Pr
         // Full source/file validation has completed. Later seeks need only this
         // exact native table; current raw authentication retains its own proof.
         const auto& evidence=*binding->file_evidence;
-        auto reservation=catalog_.SearchResidency()->ReserveOwned(sizeof(PreparedSource::Impl)+evidence.samples.size()*sizeof(PreparedSource::Impl::NativeSample));
+        auto reservation=catalog_.SearchResidency()->ReserveOwned(sizeof(PreparedSource::Impl)+evidence.samples.size()*sizeof(PreparedSource::Impl::NativeSample),SearchModelResidency::Category::PreparedNative);
         if(!reservation)return fail("recording-resource-unavailable");
         proof->native_memory=std::move(*reservation);
         proof->native.samples.reserve(evidence.samples.size());
@@ -418,6 +418,7 @@ std::unique_ptr<RecordingSearchReader::PreparedSource> RecordingSearchReader::Pr
         auto context_memory=proof->context.memory.Split(sizeof(RecordingCatalog::SourceBindingReadContext)+8192);
         std::string{}.swap(proof->context.segment_json);
         proof->context.memory=std::move(context_memory);
+        proof->context.memory.DiagnosticCategory(SearchModelResidency::Category::RetainedRaw);
         proof->context.retained_bytes=sizeof(RecordingCatalog::SourceBindingReadContext)+8192+128;
     }
     auto result=std::unique_ptr<PreparedSource>(new PreparedSource(std::move(proof)));
@@ -524,7 +525,7 @@ bool RecordingSearchReader::WithPlaybackImpl(const RecordingSearchModel& model,c
         SearchDiagnostic::CostRow("PlaybackReuse",SearchDiagnostic::Tick(),SearchDiagnostic::Tick());
         *output=*shared_source;if(error)error->clear();return true;
     }
-    auto workspace=limits.residency->Reserve(limits.max_bytes);
+    auto workspace=limits.residency->Reserve(limits.max_bytes,SearchModelResidency::Category::Preparation);
     if(!workspace){if(error)*error="search-capacity-exceeded";return false;}
     SearchDiagnostic::Phase preparation_cost("PlaybackDocuments");
     try {
@@ -558,7 +559,7 @@ bool RecordingSearchReader::WithPlaybackImpl(const RecordingSearchModel& model,c
                 candidate_text>(SIZE_MAX-1024)/4||temporary_bytes>(SIZE_MAX-1024-4*candidate_text)/4){if(error)*error="search-capacity-exceeded";return false;}
             // document + part + 이동 전 인자: 준비 vector와 별도 수명.
             // SelectSearchPlayback의 slices/positions는 살아 있는 proof workspace도 유지한다.
-            auto temporary=limits.residency->Reserve(4*temporary_bytes+4*candidate_text+1024);
+            auto temporary=limits.residency->Reserve(4*temporary_bytes+4*candidate_text+1024,SearchModelResidency::Category::Preparation);
             if(!temporary){if(error)*error="search-capacity-exceeded";return false;}
             auto document=input;document.playback_segment_id=document.segment_id;
             document.playback_event_id.clear();document.playback_job_id.clear();

@@ -48,6 +48,7 @@ RecordingSearchSnapshots::~RecordingSearchSnapshots(){
     {std::lock_guard<std::mutex> lock(mutex_);stopping_=true;}
     expiry_changed_.notify_all();
     if(expiry_worker_.joinable())expiry_worker_.join();
+    memory_diagnostic::RemovePool(diagnostic_key_);
 }
 void RecordingSearchSnapshots::RunExpiry(){
     std::unique_lock<std::mutex> lock(mutex_);
@@ -71,9 +72,21 @@ bool RecordingSearchSnapshots::Mac(const std::string& value,std::string* result)
     (void)value;(void)result;return false;
 #endif
 }
+void RecordingSearchSnapshots::DiagnosticLocked(unsigned reason){
+    if(!memory_diagnostic::Enabled())return;
+    memory_diagnostic::Pool p;p.key=diagnostic_key_;p.entries=entries_.size();p.bytes=bytes_;p.references=entries_.size();
+    std::array<std::uint64_t,8> unique{};std::size_t at=0;
+    for(const auto& entry:entries_){const auto id=entry.model->diagnostic_identity();p.matchBytes+=entry.matches.positions.capacity()*sizeof(std::size_t);
+        const auto expiry=std::chrono::duration_cast<std::chrono::nanoseconds>(entry.expires.time_since_epoch()).count();
+        if(!p.oldestExpiryNs||std::uint64_t(expiry)<p.oldestExpiryNs)p.oldestExpiryNs=expiry;p.newestExpiryNs=std::max(p.newestExpiryNs,std::uint64_t(expiry));
+        if(at<p.models.size())p.models[at++]=id;else p.incomplete=true;
+        if(id&&std::find(unique.begin(),unique.end(),id)==unique.end()){auto slot=std::find(unique.begin(),unique.end(),0);if(slot!=unique.end()){*slot=id;++p.uniqueModels;p.uniqueBytes+=entry.model->accounted_bytes();}else p.incomplete=true;}
+    }
+    memory_diagnostic::UpdatePool(p,reason);
+}
 void RecordingSearchSnapshots::Expire(Clock::time_point now){
     for(auto it=entries_.begin();it!=entries_.end();) {
-        if(now>=it->expires){bytes_-=it->bytes;it=entries_.erase(it);}else ++it;
+        if(now>=it->expires){bytes_-=it->bytes;it=entries_.erase(it);DiagnosticLocked(1);}else ++it;
     }
 }
 bool RecordingSearchSnapshots::Page(const Entry& entry,std::size_t offset,RecordingSearchPage* output,std::string* error) const {
@@ -81,7 +94,7 @@ bool RecordingSearchSnapshots::Page(const Entry& entry,std::size_t offset,Record
     if(entry.model->residency()) {
         const auto count=std::min(entry.limit,entry.matches.positions.size()-offset);
         if(count>(SIZE_MAX-1024)/(2*sizeof(std::size_t)))return Fail(error,"search-capacity-exceeded");
-        auto charge=entry.model->residency()->ReserveOwned(1024+count*2*sizeof(std::size_t));
+        auto charge=entry.model->residency()->ReserveOwned(1024+count*2*sizeof(std::size_t),SearchModelResidency::Category::Page);
         if(!charge)return Fail(error,"search-capacity-exceeded");
         page.memory=std::move(*charge);
     }
@@ -126,9 +139,11 @@ bool RecordingSearchSnapshots::Begin(std::shared_ptr<const RecordingSearchModel>
         // 삽입이 성공한 뒤에만 기존 snapshot을 축출한다.
         entries_.push_back(std::move(entry));
         while(entries_.size()>limits_.max_snapshots || bytes_>limits_.max_bytes-entries_.back().bytes){
+            const auto reason=entries_.size()>limits_.max_snapshots?2U:3U;
             bytes_-=entries_.front().bytes;entries_.pop_front();
+            if(memory_diagnostic::Enabled()){auto& d=memory_diagnostic::Data();std::lock_guard diagnostic_lock(d.mutex);if(reason==2)++d.evicted;else ++d.byteEvicted;}
         }
-        bytes_+=entries_.back().bytes;
+        bytes_+=entries_.back().bytes;DiagnosticLocked();
         expiry_changed_.notify_one();
         *output=std::move(page);if(error)error->clear();return true;
     }catch(const std::bad_alloc&){return Fail(error,"search-snapshot-capacity");}

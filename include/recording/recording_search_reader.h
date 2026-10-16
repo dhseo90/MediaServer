@@ -47,6 +47,7 @@ public:
         struct Impl;
         explicit PreparedSource(std::unique_ptr<Impl>);
         std::unique_ptr<Impl> impl_;
+        std::size_t diagnostic_bytes_{0};
     };
     std::unique_ptr<PreparedSource> PrepareSource(const std::string& channel,const std::string& segment,
         std::string* error,const std::function<bool()>& cancelled = {},

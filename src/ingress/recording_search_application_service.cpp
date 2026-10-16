@@ -16,6 +16,7 @@ namespace ingress {
 struct RecordingApplicationService::SearchState {
     // 기존 단일 준비 실행 한도를 유지한다. cursor/seek/evidence는 준비 완료를
     // 기다리지 않고 불변 snapshot을 읽도록 서비스 상태 접근 잠금과 분리한다.
+    ~SearchState(){if(source)recording::memory_diagnostic::Current(source->diagnostic_identity(),0);}
     std::mutex preparation_mutex;
     std::shared_ptr<const recording::RecordingSearchModel> source;
     recording::RecordingSearchSnapshots snapshots{{},true};
@@ -101,6 +102,7 @@ std::string Url(const std::string& id){return recording::ValidateOpaqueId(id,nul
 }
 ApplicationServiceResult RecordingApplicationService::Search(const Query& raw,const std::string& principal,
     const std::string& scope,const ChannelAuthorizer& authorize) const {
+    recording::memory_diagnostic::Activity request_activity(recording::memory_diagnostic::StructuredRequests);
     recording::SearchDiagnostic diagnostic(catalog_.SearchResidency().get());
     try {
         recording::SearchDiagnostic::Stage("parse");
@@ -117,6 +119,7 @@ ApplicationServiceResult RecordingApplicationService::Search(const Query& raw,co
         recording::RecordingSearchPage page;std::string error;const auto cursor=Get(raw,"cursor");
         if(!cursor.empty()) {recording::SearchDiagnostic::Stage("snapshot-resume");if(!state->snapshots.Resume(cursor,query,principal,scope,&page,&error))return Failure(error);}
         else {
+            recording::memory_diagnostic::Activity preparation_activity(recording::memory_diagnostic::Preparations);
             SearchLock lock(state->preparation_mutex,"preparation-wait","preparation-hold");recording::RecordingSearchReader search(catalog_,reader_);
             // 여러 채널의 확정이 준비 구간과 겹칠 수 있다. 원본 변경만 유한하게 재시도하며
             // 각 시도의 동일한 revision/재생 검증을 통과한 모델만 한 번 게시한다.
@@ -126,7 +129,9 @@ ApplicationServiceResult RecordingApplicationService::Search(const Query& raw,co
             bool prepared=false;
             for(unsigned attempt=0;attempt<3;++attempt){
                 diagnostic.attempt=attempt;recording::SearchDiagnostic::Stage("refresh");
+                const auto prior_model=state->source?state->source->diagnostic_identity():0;
                 bool refreshed=false;{recording::SearchDiagnostic::Phase cost("Refresh");refreshed=search.Refresh(query.channels,state->source,&state->source,&error,{},observations,&retry_capture);}
+                recording::memory_diagnostic::Current(prior_model,state->source?state->source->diagnostic_identity():0);
                 if(!refreshed){
                     if(error=="search-source-changed"){recording::SearchDiagnostic::Reason(error);recording::latency::VisualPhase phase("structured-source-changed");continue;}
                     return Failure(error);
@@ -150,7 +155,7 @@ ApplicationServiceResult RecordingApplicationService::Search(const Query& raw,co
         // wire body coexist. Reserve before serialization; move to transport owner.
         recording::SearchDiagnostic::Stage("currentness-json");
         recording::SearchDiagnostic::Phase response_cost("CurrentnessJson");
-        auto response_memory=catalog_.SearchResidency()->ReserveOwned(4ULL*4*1024*1024);
+        auto response_memory=catalog_.SearchResidency()->ReserveOwned(4ULL*4*1024*1024,recording::SearchModelResidency::Category::Response);
         if(!response_memory)return Failure("search-capacity-exceeded");
         std::map<std::string,bool> availability;
         const auto available=[&](const std::string& channel,const std::string& id){

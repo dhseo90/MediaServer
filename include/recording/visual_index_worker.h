@@ -2,6 +2,7 @@
 #pragma once
 #include "recording/visual_index_store.h"
 #include <atomic>
+#include "recording/recording_memory_diagnostic.h"
 #include <chrono>
 #include <condition_variable>
 #include <mutex>
@@ -19,6 +20,7 @@ struct VisualIndexWorkerStatus {
 };
 // 세대는 이 worker instance 안에서만 비교한다. cache 복구 시 원 게시 시각/세대는 미확인이다.
 struct VisualIndexPublication {
+    memory_diagnostic::Activity diagnostic_lifetime{memory_diagnostic::VisualPublications};
     std::string instance_id,origin;
     std::optional<std::uint64_t> generation;
     std::optional<std::int64_t> published_at_ms;
@@ -52,6 +54,7 @@ public:
     bool Start();
     void Stop();
     void RequestRebuild();
+    void ObserveMemory() const;
     std::shared_ptr<const VisualSearchIndex> Snapshot() const;
     VisualIndexWorkerStatus Status() const;
     VisualIndexReadView ReadView() const;

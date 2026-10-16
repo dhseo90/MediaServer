@@ -2,6 +2,7 @@
 #pragma once
 #include "recording/recording_scratch_reservation.h"
 #include <chrono>
+#include "recording/recording_memory_diagnostic_output.h"
 #include <cstdio>
 #include <cstring>
 #include <unistd.h>
@@ -17,6 +18,7 @@ public:
         if(!memory||!scratch||scratch->memory()!=memory||memory_)return valid_=false;
         memory_=memory;scratch_=scratch;return Emit("opened");
     }
+    bool Due() const {return enabled_&&Clock::now()-last_>=std::chrono::seconds(5);}
     bool Poll(){
         if(!enabled_)return valid_;
         const auto now=Clock::now();
@@ -36,6 +38,7 @@ public:
             U(usage.disk_bytes),U(peak.disk_bytes),U(limits.disk_bytes),U(usage.file_descriptors),U(peak.file_descriptors),U(limits.file_descriptors),
             U(usage.ram_bytes),U(scratch_->preserved_disk_bytes()),U(scratch_->preserved_fds()),scratch_->ReaderCleanupHealthy()?"true":"false");
         if(n<=0||n>=static_cast<int>(sizeof(line))||!sink_(line,static_cast<std::size_t>(n)))return valid_=false;
+        if(!memory_diagnostic::Emit(*memory_,phase,sink_))return valid_=false;
         ++sequence_;last_=now;return true;
     }
     ~RecordingResourceTrace(){if(enabled_&&memory_)(void)Emit("after-storage-destruction");}

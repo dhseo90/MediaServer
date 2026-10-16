@@ -129,14 +129,14 @@ bool RecordingCatalog::CaptureSearchSourceImpl(const std::vector<std::string>& c
         }
         SearchSourceBatch batch;batch.channels=channels;
         if(!limits.residency)limits.residency=SearchResidency();
-        auto charge=limits.residency->ReserveOwned(limits.max_bytes);
+        auto charge=limits.residency->ReserveOwned(limits.max_bytes,SearchModelResidency::Category::SourceBatch);
         if(!charge){SearchCapacityReject("shared-reservation",0,limits.max_bytes);return Fail(error,"search-capacity-exceeded");}
         batch.memory=std::move(*charge);
         // Valid SearchDocument의17개4096-byte text, 세64-entry 목록,64개3-text facts.
         // source adapter의 단일 DTO/복사 임시값은 vector envelope와 별도 예약한다.
         constexpr std::size_t temporary_bound=2*(sizeof(SearchDocument)+17*8192+
             3*64*(sizeof(std::string)+8192)+64*(sizeof(SearchEventFact)+3*8192));
-        auto temporary=limits.residency->Reserve(temporary_bound);
+        auto temporary=limits.residency->Reserve(temporary_bound,SearchModelResidency::Category::Preparation);
         if(!temporary){SearchCapacityReject("shared-temporary",0,temporary_bound);return Fail(error,"search-capacity-exceeded");}
         batch.catalog_instance = search_instance_;batch.resolution_revision = source_snapshot_revision_;
         batch.delta.source_instance = SearchSourceIdentity(search_instance_, channels);
@@ -257,6 +257,7 @@ bool RecordingCatalog::CaptureSearchSourceImpl(const std::vector<std::string>& c
             // use the original locked traversal and its unchanged admission.
             struct CutRow {SearchModelResidency::Reservation key_memory;std::string id;RecordingColdRow raw;RecordingLifecycle lifecycle;};
             SearchModelResidency::Reservation cut_memory;
+            memory_diagnostic::Gauge diagnostic_cut_rows(memory_diagnostic::SourceCutRows);
             std::vector<CutRow> cut;
             std::optional<decltype(segments_v2_)> view;
             std::size_t cut_bytes=0;
@@ -267,7 +268,7 @@ bool RecordingCatalog::CaptureSearchSourceImpl(const std::vector<std::string>& c
                     const auto meta=count*sizeof(CutRow);
                     const auto used=limits.residency->used();
                     if(used<=limits.residency->limit()&&meta<=limits.residency->limit()-used){
-                        auto ticket=limits.residency->ReserveOwned(meta);
+                        auto ticket=limits.residency->ReserveOwned(meta,SearchModelResidency::Category::SourceCut);
                         if(ticket){
                             cut_memory=std::move(*ticket);cut.reserve(count);cut_bytes=meta;
                             const auto read_begin=costs.enabled?latency::Now():0;
@@ -279,15 +280,16 @@ bool RecordingCatalog::CaptureSearchSourceImpl(const std::vector<std::string>& c
                                 // Row workspace is already larger than raw + bounded ID.
                                 auto key_owner=row.memory.Split(key);
                                 auto owned=row.memory.Split(retained);
+                                key_owner.DiagnosticCategory(SearchModelResidency::Category::SourceCut);owned.DiagnosticCategory(SearchModelResidency::Category::SourceCut);
                                 row.memory=std::move(owned);
                                 cut_bytes+=retained+key;costs.raw_bytes+=row.bytes.size();
                                 const auto lifecycle=EffectiveLifecycleV2Locked(id,true);
-                                cut.push_back({std::move(key_owner),id,std::move(row),lifecycle});
+                                cut.push_back({std::move(key_owner),id,std::move(row),lifecycle});diagnostic_cut_rows.Set(cut.size());
                                 return true;
                             }); } catch(const RecordingResourceUnavailable&) { detached=false; }
                             costs.read_ns+=costs.enabled?latency::Now()-read_begin:0;
                             if(detached){optional_cut_owned=true;view.emplace(segments_v2_.ColdReadView());costs.cut_rows=cut.size();costs.cut_charge=cut_bytes;}
-                            else {std::vector<CutRow>{}.swap(cut);cut_memory={};cut_bytes=0;}
+                            else {std::vector<CutRow>{}.swap(cut);diagnostic_cut_rows.Set(0);cut_memory={};cut_bytes=0;}
                         }
                     }
                 }

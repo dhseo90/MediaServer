@@ -20,6 +20,7 @@ public:
     using Query = std::unordered_map<std::string,std::string>;
     VisualSearchApplicationService(recording::RecordingCatalog&,recording::RecordingReadService&,Options,Channels);
     ~VisualSearchApplicationService();
+    void ObserveMemory() const; // 비공개 opt-in 숫자 진단; HTTP route 없음
     void Stop(); // HTTP 요청 drain 뒤 호출. Start/Stop 제어는 application thread 소유.
     ApplicationServiceResult Status(const Authorize&) const;
     ApplicationServiceResult Search(const Query&,const Authorize&);

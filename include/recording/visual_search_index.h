@@ -1,6 +1,7 @@
 // 파일 용도: 모델 공간이 고정된 불변 영상 벡터 색인과 exact cosine 조회 계약.
 #pragma once
 #include <cstdint>
+#include "recording/recording_memory_diagnostic.h"
 #include <functional>
 #include <memory>
 #include <optional>

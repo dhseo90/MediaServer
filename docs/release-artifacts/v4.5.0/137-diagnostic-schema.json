@@ -1,0 +1,180 @@
+{
+  "schema": "media-server.v450.r137.diagnostic-contract.v1",
+  "scope": "opt-in bounded owner attribution; not feature900 or memory leak certification",
+  "baseline": "7cfea7a9f4e70ed22e8e9cc283b5eed72d787853",
+  "plan": {
+    "externalRuns": 1,
+    "observationSeconds": 600,
+    "totalBudgetSeconds": 780,
+    "sampleCadenceSeconds": 5,
+    "binsSeconds": [
+      [
+        0,
+        300
+      ],
+      [
+        300,
+        600
+      ]
+    ],
+    "profile": "continuous-r114",
+    "workload": "existing mixed search/evidence/A/writer cadence; no input or limit changes",
+    "latency": "diagnostic distribution only; original non-memory mode gate unchanged"
+  },
+  "ledger": {
+    "domain": "actual shared SearchModelResidency tickets",
+    "categories": [
+      "unattributed",
+      "model",
+      "sourceBatch",
+      "retryBatch",
+      "sourceCut",
+      "preparation",
+      "matches",
+      "page",
+      "response",
+      "preparedNative",
+      "retainedRaw",
+      "catalogRow",
+      "scratch"
+    ],
+    "ticketValue": [
+      "actualChargedBytes",
+      "liveTicketCount"
+    ],
+    "attributed": "sum categories except unattributed; no use_count multiplier",
+    "unattributed": "used-attributed; unknown callsites stay unknown; negative or category sum mismatch is invalid",
+    "overlap": "roles below describe the same tickets and must not be added to ledger; visual index is outside ledger"
+  },
+  "models": [
+    "opaqueProcessId",
+    "accountedBytes",
+    "documents",
+    "revision",
+    "current",
+    "snapshotReferences",
+    "publishedOnce"
+  ],
+  "modelsLimits": {
+    "liveSlots": 128,
+    "overflow": "loss=true and collection fails",
+    "address": "internal lookup only; detached before free; never emitted",
+    "destroy": "opaque identity destruction event after object delete and ticket release",
+    "registration": "Complete models register after successful Build. During Build a model ticket may exist before registry identity; ledger bytes remain fully counted, completed-model count is not all construction objects."
+  },
+  "snapshotPools": [
+    "opaquePoolId",
+    "entries",
+    "productBytesIncludingRepeatedModelAccounting",
+    "matchesCapacityBytes",
+    "modelReferences",
+    "uniqueModels",
+    "uniqueModelBytes",
+    "oldestExpirySteadyNs",
+    "newestExpirySteadyNs",
+    "incomplete"
+  ],
+  "snapshotLimits": {
+    "pools": 16,
+    "entriesPerPool": 8,
+    "ttlSeconds": 300,
+    "expiryRemaining": "expirySteadyNs-rolesCapturedNs; expired/count/byte evicted separate",
+    "middleState": "no export between inserted entry and bytes update"
+  },
+  "liveAndPeak": [
+    "structuredRequests",
+    "preparationsIncludingMutexWaiters",
+    "requestMediaCachesIncludingEncode",
+    "requestMediaEntries",
+    "requestMediaRetainedEnvelopeBytes",
+    "responseHoldCount",
+    "preparedReaders",
+    "preparedRetainedEnvelopeBytes",
+    "visualRequests",
+    "visualPublications",
+    "visualIndices",
+    "visualIndexLogicalBytes",
+    "sourceCutRetainedRows",
+    "actualResolvedMediaFDs"
+  ],
+  "totals": [
+    "modelsCreated",
+    "modelsDestroyed",
+    "publishedCurrent",
+    "noLongerCurrent",
+    "snapshotRetained",
+    "ttlExpiredEntries",
+    "countEvictedEntries",
+    "byteEvictedEntries",
+    "eventSequence",
+    "lastPreparedReaderReleaseNs",
+    "finalPhaseReprepare",
+    "visualGeneration",
+    "visualCurrentDocs",
+    "visualCurrentLogicalBytes",
+    "visualRetiredLogicalBytes",
+    "visualCurrentUseCountReferenceOnly",
+    "visualRetiredUseCountExcludingDiagnosticHandle",
+    "visualCapturedNs",
+    "aggregateCapturedNs",
+    "peakSimultaneousModels"
+  ],
+  "recentEvents": {
+    "width": [
+      "steadyNs",
+      "opaqueModelIdOrZeroForVisual",
+      "kind",
+      "accountedOrLogicalBytes",
+      "documents",
+      "revisionOrGeneration"
+    ],
+    "kinds": {
+      "1": "model-created",
+      "2": "model-published-current",
+      "3": "model-retained-by-snapshot",
+      "4": "model-no-longer-current",
+      "5": "model-destroyed",
+      "6": "visual-publication"
+    },
+    "capacity": 32,
+    "interpretation": "recent ring only; eventSequence reveals overwritten prefix. TTL/count/byte events have cumulative counters, not exact individual timestamp; do not reconstruct unobserved lifetime causality."
+  },
+  "clock": {
+    "internal": [
+      "sampleStartNs",
+      "ownerCapturedNs",
+      "rolesCapturedNs",
+      "processCapturedNs",
+      "sampleEndNs"
+    ],
+    "internalProcess": "proc_pid_rusage RSS and footprint; domain ledger and role registry sampled sequentially, not atomic",
+    "externalCycle": "latest internal owner + receivedNs, external observer FD/anonymous/workspace/mutations and monotonic timestamps; preserve age/skew; never sum nonsimultaneous peaks",
+    "disableBoundary": "nearest owner row plus actual boundary monotonic timestamp; not forced fresh product read",
+    "phaseOrder": [
+      "opened",
+      "sample",
+      "before-Finish",
+      "after-Finish",
+      "after-storage-destruction"
+    ]
+  },
+  "diagnosticOverhead": {
+    "bounded": "128 model scalar slots + pointer keys,16 pools,32 recent events,14 counters; per-domain13 category totals/ticket views; stack16KiB formatting and fixed copied arrays. No strong observer model ownership. Existing log cap unchanged.",
+    "layout": "Reservation/model/matches/document/visualIndex admission sizeof unchanged vs baseline (mac arm64 24/176/64/600/112B). Small diagnostics-only pool key, PreparedSource byte gauge, RequestMedia gauges and publication activity fields are observability overhead, not product owner bytes.",
+    "timing": "opt-in ledger/registry mutex and scalar updates add cost; measured execution is instrumented, not R136 equivalent timing",
+    "noPurge": true
+  },
+  "collector": "strict numeric schema, same pid, increasing times, bounded lines/count, phase completeness, no incomplete diagnostic tail, final ticket/models/pools/live all zero; late failure propagates",
+  "classification": [
+    "PASS_ATTRIBUTED_BOUNDED",
+    "FAIL_CONFIRMED_OWNER_GROWTH",
+    "HOLD_ATTRIBUTION_INSUFFICIENT"
+  ],
+  "notClaimed": [
+    "TTL expiration in mixed load if max8 eviction occurs first",
+    "whole heap no leak from logical zero",
+    "RSS-logical difference equals live allocations",
+    "atomic heap capture",
+    "new900/45/120 PASS"
+  ]
+}

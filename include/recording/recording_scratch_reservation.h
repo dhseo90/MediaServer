@@ -80,7 +80,7 @@ public:
         :limits_(limits),ram_(std::move(ram)),device_(device){domains_[0]={device,block?block:1,limits.disk_bytes,0};}
     std::optional<Reservation> Reserve(Usage amount,std::size_t domain=0){
         if(!ram_||amount.ram_bytes>std::numeric_limits<std::size_t>::max())return std::nullopt;
-        auto ram=ram_->ReserveOwned(static_cast<std::size_t>(amount.ram_bytes));
+        auto ram=ram_->ReserveOwned(static_cast<std::size_t>(amount.ram_bytes),SearchModelResidency::Category::Scratch);
         if(!ram)return std::nullopt;
         std::lock_guard<std::mutex> lock(mu_);
         if(domain>=domain_count_||amount.disk_bytes>domains_[domain].limit-domains_[domain].used||amount.disk_bytes>UINT64_MAX-used_.disk_bytes||

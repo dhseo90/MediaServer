@@ -55,6 +55,8 @@ private:
     bool Mac(const std::string&, std::string*) const;
     void Expire(Clock::time_point);
     void RunExpiry();
+    void DiagnosticLocked(unsigned reason=0);
+    const std::uint64_t diagnostic_key_{memory_diagnostic::NextIdentity()};
     SearchSnapshotLimits limits_;
     std::array<unsigned char,32> secret_{};
     bool ready_{false};

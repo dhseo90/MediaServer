@@ -378,33 +378,33 @@ std::size_t RecordingRetainedBytes(const RecordingConsumerReferenceV1& value);
 std::size_t RecordingRetainedBytes(const ReferencedObservationV1& value);
 std::size_t RecordingRetainedBytes(const RecordingTombstoneV2& value);
 inline void BindRecordingRowMemory(RecordingSegmentV1& value,SearchModelResidency::Reservation& work,std::size_t) {
-    value.memory=work.Split(RecordingRetainedBytes(value));
+    value.memory=work.Split(RecordingRetainedBytes(value));value.memory.DiagnosticCategory(SearchModelResidency::Category::CatalogRow);
 }
 inline void BindRecordingRowMemory(RecordingSegmentV2& value,SearchModelResidency::Reservation& work,std::size_t) {
-    value.memory=work.Split(RecordingRetainedBytes(value));
+    value.memory=work.Split(RecordingRetainedBytes(value));value.memory.DiagnosticCategory(SearchModelResidency::Category::CatalogRow);
 }
 inline void BindRecordingRowMemory(RecordingSegmentStateV2& value,SearchModelResidency::Reservation& work,std::size_t) {
-    value.memory=work.Split(RecordingRetainedBytes(value));
+    value.memory=work.Split(RecordingRetainedBytes(value));value.memory.DiagnosticCategory(SearchModelResidency::Category::CatalogRow);
 }
 inline void BindRecordingRowMemory(RecordingTombstoneV1& value,SearchModelResidency::Reservation& work,std::size_t) {
-    value.memory=work.Split(RecordingRetainedBytes(value));
+    value.memory=work.Split(RecordingRetainedBytes(value));value.memory.DiagnosticCategory(SearchModelResidency::Category::CatalogRow);
 }
 inline void BindRecordingRowMemory(AnalysisObservationV1& value,SearchModelResidency::Reservation& work,std::size_t) {
-    value.memory=work.Split(RecordingRetainedBytes(value));
+    value.memory=work.Split(RecordingRetainedBytes(value));value.memory.DiagnosticCategory(SearchModelResidency::Category::CatalogRow);
 }
 inline void BindRecordingRowMemory(AnalysisObservationV2& value,SearchModelResidency::Reservation& work,std::size_t) {
-    value.memory=work.Split(RecordingRetainedBytes(value));
+    value.memory=work.Split(RecordingRetainedBytes(value));value.memory.DiagnosticCategory(SearchModelResidency::Category::CatalogRow);
 }
 inline void BindRecordingRowMemory(RecordingConsumerReferenceV1& value,SearchModelResidency::Reservation& work,std::size_t) {
-    value.memory=work.Split(RecordingRetainedBytes(value));
+    value.memory=work.Split(RecordingRetainedBytes(value));value.memory.DiagnosticCategory(SearchModelResidency::Category::CatalogRow);
 }
 inline void BindRecordingRowMemory(ReferencedObservationV1& value,SearchModelResidency::Reservation& work,std::size_t bytes) {
-    value.memory=work.Split(RecordingRetainedBytes(value));
+    value.memory=work.Split(RecordingRetainedBytes(value));value.memory.DiagnosticCategory(SearchModelResidency::Category::CatalogRow);
     BindRecordingRowMemory(value.observation,work,bytes);
     BindRecordingRowMemory(value.reference,work,bytes);
 }
 inline void BindRecordingRowMemory(RecordingTombstoneV2& value,SearchModelResidency::Reservation& work,std::size_t bytes) {
-    value.memory=work.Split(RecordingRetainedBytes(value));
+    value.memory=work.Split(RecordingRetainedBytes(value));value.memory.DiagnosticCategory(SearchModelResidency::Category::CatalogRow);
     BindRecordingRowMemory(value.segment,work,bytes);
 }
 }  // namespace recording

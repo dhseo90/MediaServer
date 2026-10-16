@@ -101,6 +101,8 @@ class RequestMedia {
     const recording::RecordingVisualSource& source_;
     std::function<bool()> cancelled_;
     std::chrono::steady_clock::time_point deadline_;
+    recording::memory_diagnostic::Activity request_activity_{recording::memory_diagnostic::RequestMedia};
+    recording::memory_diagnostic::Gauge diagnostic_entries_{recording::memory_diagnostic::RequestMediaEntries},diagnostic_bytes_{recording::memory_diagnostic::RequestMediaBytes};
     std::map<Key,Entry> entries_;
     std::size_t bytes_{0},peak_bytes_{0};std::uint64_t sequence_{0},prepared_{0},reused_{0};
     const std::uint64_t started_{recording::RecordingReadService::TracePreparationStarted()};
@@ -163,6 +165,7 @@ private:
                 if(!temporary)++preparation_[8];
             }
             if(!temporary)return nullptr;
+            if(recording::memory_diagnostic::Enabled()&&final_results_&&seen){auto& d=recording::memory_diagnostic::Data();std::lock_guard lock(d.mutex);++d.finalReprepare;}
             if(combined)*resolved=true;++prepared_;recording::latency::VisualRequestSummary::Count(0);
             const auto cost=temporary->retained_bytes();
             if(observe_preparation_){preparation_[9]+=cost;preparation_[10]=std::max<std::uint64_t>(preparation_[10],cost);if(cost>capacity)++preparation_[11];}
@@ -178,6 +181,7 @@ private:
                 found=entries_.emplace(key,Entry{std::move(temporary),cost,++sequence_,RemainingResults(key)}).first;proof=found->second.proof.get();
             } else proof=temporary.get(); // 단일 큰 증명도 기존 지원 범위에서 검증하며 cache에 쌓지 않는다.
         }
+        diagnostic_entries_.Set(entries_.size());diagnostic_bytes_.Set(bytes_);
         return proof;
     }
 public:
@@ -278,6 +282,7 @@ VisualSearchApplicationService::VisualSearchApplicationService(recording::Record
     } catch(const std::exception&) { worker_.reset(); encoder_.reset(); }
 }
 VisualSearchApplicationService::~VisualSearchApplicationService(){Stop();}
+void VisualSearchApplicationService::ObserveMemory() const {if(worker_)worker_->ObserveMemory();}
 void VisualSearchApplicationService::Stop(){stopped_=true;if(worker_)worker_->Stop();}
 ApplicationServiceResult VisualSearchApplicationService::Status(const Authorize& authorize)const{
     if(!options_.enabled)return {200,"OK","{\"enabled\":false,\"state\":\"disabled\",\"channels\":[]}"};
@@ -306,6 +311,7 @@ ApplicationServiceResult VisualSearchApplicationService::Search(const Query& raw
         for(const auto& channel:query.channels)if(!authorize||!authorize(channel))return Error(403,"recording-channel-forbidden");
         if(!worker_||stopped_)return Error(503,"visual-search-unavailable");
         Flight flight(requests_);if(!flight.admitted)return Error(503,"visual-search-busy");
+        recording::memory_diagnostic::Activity visual_request(recording::memory_diagnostic::VisualRequests);
         std::vector<std::string> current;if(!channels_(&current))return Error(503,"visual-search-unavailable");
         for(const auto& channel:query.channels)if(std::find(current.begin(),current.end(),channel)==current.end())return Error(410,"visual-channel-unavailable");
         const auto index_state=worker_->Status().state;
@@ -353,12 +359,13 @@ ApplicationServiceResult VisualSearchApplicationService::Search(const Query& raw
             <<",\"threshold\":"<<query.threshold<<",\"limit\":"<<query.top_k<<"},\"items\":[";
         media_cache.FinalResults(hits,index->documents());
         recording::latency::VisualPhase final_phase("final-source-json");
+        recording::memory_diagnostic::Gauge response_hold_count(recording::memory_diagnostic::ResponseHolds);
         std::vector<std::shared_ptr<const recording::ResolvedRecordingMedia>> response_holds;response_holds.reserve(hits.size());
         bool comma=false;for(const auto& hit:hits){const auto& d=index->documents()[hit.document_index];
             if(stopped_||std::chrono::steady_clock::now()>=deadline)return Error(503,"visual-search-busy");
             recording::SearchSeekTarget seek;std::shared_ptr<const recording::ResolvedRecordingMedia> media;
             if(!authorize(d.channel_id)||!media_cache.Resolve(d,&seek,&media,&error))return Error(503,"visual-source-changed");
-            response_holds.push_back(std::move(media));
+            response_holds.push_back(std::move(media));response_hold_count.Set(response_holds.size());
             if(comma)out<<',';
             comma=true;out<<"{\"id\":"<<Quote(d.id)<<",\"kind\":"<<Quote(d.event_id.empty()?"representative-frame":"event-snapshot")<<",\"channelId\":"<<Quote(d.channel_id)<<",\"score\":"<<hit.score<<",\"timeNs\":"<<(d.utc_ns?Quote(std::to_string(*d.utc_ns)):"null")<<','<<Playback(d,seek)<<'}';}
         if(expired())return Error(503,"visual-search-busy");
@@ -380,6 +387,7 @@ ApplicationServiceResult VisualSearchApplicationService::Seek(const Query& raw,c
         const auto channel=Get(raw,"channelId");if(!authorize||!authorize(channel))return Error(403,"recording-channel-forbidden");
         if(!worker_||stopped_)return Error(503,"visual-search-unavailable");
         Flight flight(requests_);if(!flight.admitted)return Error(503,"visual-search-busy");
+        recording::memory_diagnostic::Activity visual_request(recording::memory_diagnostic::VisualRequests);
         std::vector<std::string> current;if(!channels_(&current))return Error(503,"visual-search-unavailable");
         if(std::find(current.begin(),current.end(),channel)==current.end())return Error(410,"visual-channel-unavailable");
         const auto index=worker_->Snapshot();if(!index)return Error(503,"visual-index-not-ready");
@@ -405,6 +413,7 @@ ApplicationServiceResult VisualSearchApplicationService::Evidence(const Query& r
         const auto channel=Get(raw,"channelId");if(!authorize||!authorize(channel))return Error(403,"recording-channel-forbidden");
         if(!worker_||stopped_)return Error(503,"visual-search-unavailable");
         Flight flight(requests_);if(!flight.admitted)return Error(503,"visual-search-busy");
+        recording::memory_diagnostic::Activity visual_request(recording::memory_diagnostic::VisualRequests);
         std::vector<std::string> current;if(!channels_(&current))return Error(503,"visual-search-unavailable");
         if(std::find(current.begin(),current.end(),channel)==current.end())return Error(410,"visual-channel-unavailable");
         const auto index=worker_->Snapshot();if(!index)return Error(503,"visual-index-not-ready");

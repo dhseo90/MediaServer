@@ -96,6 +96,7 @@ class RecordingSearchModel {
     friend class RecordingSearchReader;
 public:
     RecordingSearchModel()=default;
+    std::uint64_t diagnostic_identity() const noexcept{return memory_diagnostic::ModelIdentity(this);}
     RecordingSearchModel(const RecordingSearchModel&)=delete;
     RecordingSearchModel& operator=(const RecordingSearchModel&)=delete;
     static bool Build(const std::vector<SearchDocument>& documents,

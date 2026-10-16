@@ -159,7 +159,7 @@ public:
         }
         while(decoded_bytes_>decoded_limit_-charge)EvictDecodedOne();
         if(owner->used()>owner->limit()||charge>owner->limit()-owner->used())return;
-        auto ticket=owner->ReserveOwned(charge);if(!ticket)return;
+        auto ticket=owner->ReserveOwned(charge,SearchModelResidency::Category::RetainedRaw);if(!ticket)return;
         try {segment_classes_.emplace(id,SegmentClass{std::move(*ticket),digest,segment.channel_id,segment.retention_class,raw.size(),charge});decoded_bytes_+=charge;}
         catch(const std::bad_alloc&) {} // optional scalar memo never replaces strict reading
     }
@@ -190,7 +190,7 @@ public:
         // Optional memoization shares the existing owner cap; it may reduce the
         // remaining headroom, but never changes that cap or the cold row oracle.
         const auto used=owner->used();if(used>owner->limit()||extra>owner->limit()-used)return;
-        auto memory=owner->ReserveOwned(extra);if(!memory)return;
+        auto memory=owner->ReserveOwned(extra,SearchModelResidency::Category::RetainedRaw);if(!memory)return;
         try {
             decoded_recency_.push_back(id);
             try {
@@ -415,7 +415,7 @@ private:
             }
         }
         const auto bytes=RecordingColdDecodeWorkspaceBytes<T>(value.bytes);
-        auto ticket=store_->MemoryOwner()->ReserveOwned(bytes);
+        auto ticket=store_->MemoryOwner()->ReserveOwned(bytes,SearchModelResidency::Category::RetainedRaw);
         if(!ticket)throw RecordingResourceUnavailable();
         auto shaped=std::move(*ticket);auto* work=&shaped;
         T parsed;std::string error;

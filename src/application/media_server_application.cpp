@@ -620,6 +620,7 @@ int RunMediaServerApplication(int argc, char** argv) {
     // signal handler에서는 플래그만 바꾸고 실제 Stop은 main thread에서 순서대로 수행한다.
     bool recording_resource_trace_ok=true;
     while (g_running.load()) {
+        if(recording::memory_diagnostic::Enabled()&&recording_resource_trace.Due())visual_search.ObserveMemory();
         if(!recording_resource_trace.Poll()){recording_resource_trace_ok=false;break;}
         std::this_thread::sleep_for(std::chrono::seconds(1));
     }
@@ -628,6 +629,7 @@ int RunMediaServerApplication(int argc, char** argv) {
     va_reviews.Stop();
     webrtc_http_server.Stop();
     visual_search.Stop();
+    if(recording::memory_diagnostic::Enabled())visual_search.ObserveMemory();
     gst_rtsp_server.Stop();
     if(event_recording_bridge)event_recording_bridge->StopAndDrain();
     recording_supervisor.Stop();

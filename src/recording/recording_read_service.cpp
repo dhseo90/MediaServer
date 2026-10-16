@@ -368,7 +368,7 @@ std::filesystem::path RelativeLocator(const std::filesystem::path& root,
 }  // namespace
 
 ResolvedRecordingMedia::~ResolvedRecordingMedia() {
-    if (fd_ >= 0) ::close(fd_);
+    if (fd_ >= 0) {::close(fd_);memory_diagnostic::Add(memory_diagnostic::ResolvedMediaFDs,-1);}
     if (catalog_) catalog_->AdjustHoldCount(segment_id_, -1, nullptr);
 }
 
@@ -417,6 +417,7 @@ std::unique_ptr<ResolvedRecordingMedia> RecordingReadService::ResolveOriginalMed
     if(!catalog_.AcquireMediaV2(channel,id,&current,&location,acquisition_error))return {};
     media->catalog_=&catalog_;
     media->fd_=OpenMedia(location.first,location.second);
+    if(media->fd_>=0)memory_diagnostic::Add(memory_diagnostic::ResolvedMediaFDs,1);
     const auto inspected=InspectRecordingPhysicalMediaFd(media->fd_,{
         current.container,current.video_codecs,current.size_bytes,current.checksum_sha256,current.retention_class},options);
     if(inspected.state!=MediaInspectionState::Healthy||expired()||!catalog_.ValidateMediaV2(current,location))return {};
@@ -465,6 +466,7 @@ std::unique_ptr<ResolvedRecordingMedia> RecordingReadService::ResolveMediaWithCo
         if(!catalog_.AcquireMediaWithContext(channel_id,segment_id,&current,&location,&error,context))return {};
         media->catalog_=&catalog_;media->segment_id_=segment_id;
         media->fd_=OpenMedia(location.first,location.second);
+    if(media->fd_>=0)memory_diagnostic::Add(memory_diagnostic::ResolvedMediaFDs,1);
         const auto inspected=InspectRecordingPhysicalMediaFd(media->fd_,{
             current.container,current.video_codecs,current.size_bytes,
             current.checksum_sha256,current.retention_class},options);
@@ -481,6 +483,7 @@ std::unique_ptr<ResolvedRecordingMedia> RecordingReadService::ResolveMediaWithCo
         if (derived || fallback->channel_id != channel_id || !fallback->fallback_media_locator) return {};
         auto manifest = std::unique_ptr<ResolvedRecordingMedia>(new ResolvedRecordingMedia);
         manifest->fd_ = OpenMedia(event_root_, RelativeLocator(event_root_, *fallback->fallback_media_locator));
+    if(manifest->fd_>=0)memory_diagnostic::Add(memory_diagnostic::ResolvedMediaFDs,1);
         struct stat info {};
         if (manifest->fd_ < 0 || ::fstat(manifest->fd_, &info) != 0 || !S_ISREG(info.st_mode) ||
             info.st_size <= 0 || info.st_size > 65536) return {};
@@ -524,6 +527,7 @@ std::unique_ptr<ResolvedRecordingMedia> RecordingReadService::ResolveMediaWithCo
         if (parsed.ec != std::errc{} || parsed.ptr != size->raw.data() + size->raw.size() || bytes == 0) return {};
         auto media = std::unique_ptr<ResolvedRecordingMedia>(new ResolvedRecordingMedia);
         media->fd_ = OpenMedia(event_root_, RelativeLocator(event_root_, *path));
+    if(media->fd_>=0)memory_diagnostic::Add(memory_diagnostic::ResolvedMediaFDs,1);
         if (media->fd_ < 0 || ::fstat(media->fd_, &info) != 0 || !S_ISREG(info.st_mode) ||
             info.st_size <= 0 || static_cast<std::uint64_t>(info.st_size) != bytes) return {};
         media->size_bytes_ = bytes;
@@ -545,6 +549,7 @@ std::unique_ptr<ResolvedRecordingMedia> RecordingReadService::ResolveMediaWithCo
     const auto location = catalog_.FindSegmentMediaLocation(segment_id);
     if (!location) return {};
     media->fd_ = OpenMedia(location->first, location->second);
+    if(media->fd_>=0)memory_diagnostic::Add(memory_diagnostic::ResolvedMediaFDs,1);
     struct stat info {};
     if (media->fd_ < 0 || ::fstat(media->fd_, &info) != 0 || !S_ISREG(info.st_mode) ||
         info.st_size <= 0 || static_cast<std::uint64_t>(info.st_size) != segment->size_bytes) return {};

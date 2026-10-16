@@ -40,12 +40,20 @@ int main(int argc,char**argv){
         VisualIndexWorker worker(VisualIndexStore(argv[1]),source,encode,1h);
         Check(worker.Start()&&!worker.Start(),"single start");
         Check(Wait([&]{return worker.Status().generation==1;}),"initial publication");
+        worker.ObserveMemory();
+        if(memory_diagnostic::Enabled()){auto& d=memory_diagnostic::Data();std::lock_guard lock(d.mutex);Check(d.visualDocs==1&&d.retiredBytes==0,"diagnostic current only");}
         auto oldest=worker.Snapshot();Check(oldest&&oldest->documents().size()==1&&encodes==1,"initial embedding");
         worker.RequestRebuild();Check(Wait([&]{return worker.Status().generation==2;}),"second publication");
+        worker.ObserveMemory();
+        if(memory_diagnostic::Enabled()){auto& d=memory_diagnostic::Data();std::lock_guard lock(d.mutex);Check(d.retiredBytes==oldest->logical_bytes()&&d.retiredReferences>=1,"diagnostic retired reader alive");}
         Check(encodes==1,"unchanged reference reused");
         const int before=sources;mode=1;worker.RequestRebuild();std::this_thread::sleep_for(80ms);
         Check(sources==before&&worker.Status().generation==2,"old reader blocks third allocation");
-        oldest.reset();Check(Wait([&]{return worker.Status().generation==3;}),"old reader release resumes build");
+        oldest.reset();const bool resumed=Wait([&]{return worker.Status().generation==3;});
+        if(!resumed){const auto status=worker.Status();std::cerr<<"worker-after-release generation="<<status.generation<<" state="<<status.state<<" error="<<status.error<<" sourceCalls="<<sources<<" encodes="<<encodes<<'\n';}
+        Check(resumed,"old reader release resumes build");
+        worker.ObserveMemory();
+        if(memory_diagnostic::Enabled()){auto& d=memory_diagnostic::Data();std::lock_guard lock(d.mutex);Check(d.retiredBytes==0,"diagnostic retired expires without observer retention");}
         Check(encodes==2&&worker.Snapshot()->documents().size()==2,"only added frame encoded");
         auto preserved=worker.Snapshot();mode=2;worker.RequestRebuild();
         Check(Wait([&]{return worker.Status().state=="degraded"&&!worker.Status().error.empty();}),"encode failure visible");

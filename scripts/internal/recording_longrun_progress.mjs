@@ -315,8 +315,8 @@ export function visualRequestSummary(text,required=true,requireJournalCost=false
 // R99: 실행 길이와 삭제 책임을 구분한다. 장시간 모드는 기존 삭제 gate를 유지한다.
 export function mixedPreparationContract(args){
   const mode=args.join(' ');
-  if(!['--app-observe','--frame-diagnostic','--state-diagnostic','--contention-diagnostic','--duration-minutes 120'].includes(mode))throw Error('mixed-mode');
-  return Object.freeze({version:2,startupOnly:mode==='--app-observe',requiresDeletion:mode!=='--app-observe'&&mode!=='--contention-diagnostic'});
+  if(!['--memory-attribution-diagnostic','--app-observe','--frame-diagnostic','--state-diagnostic','--contention-diagnostic','--duration-minutes 120'].includes(mode))throw Error('mixed-mode');
+  return Object.freeze({version:2,startupOnly:mode==='--app-observe',requiresDeletion:mode!=='--app-observe'&&mode!=='--contention-diagnostic'&&mode!=='--memory-attribution-diagnostic'});
 }
 export function mixedPreparationBundle({startup='not-run',cyclicRecovery='not-run',space='not-run'}){
   const states=[startup,cyclicRecovery,space];if(states.some(x=>!['PASS','FAIL','not-run'].includes(x)))throw Error('preparation-state');

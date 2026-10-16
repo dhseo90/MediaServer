@@ -46,7 +46,7 @@ VisualIndexWorker::VisualIndexWorker(VisualIndexStore store,SourceWithCoverage s
     if(!source_||!encode_factory_||interval_.count()<=0||!limits_.max_documents||limits_.max_documents>20000||
         !limits_.max_bytes||limits_.max_bytes>96ULL*1024*1024)throw std::invalid_argument("visual-worker-invalid-config");
 }
-VisualIndexWorker::~VisualIndexWorker(){Stop();}
+VisualIndexWorker::~VisualIndexWorker(){Stop();if(memory_diagnostic::Enabled()){auto& s=memory_diagnostic::Data();std::lock_guard lock(s.mutex);s.visualBytes=0;s.visualDocs=0;s.retiredBytes=0;s.visualReferences=0;s.retiredReferences=0;s.visualCapturedNs=memory_diagnostic::Now();}}
 bool VisualIndexWorker::Start(){
     std::lock_guard lock(mutex_);if(worker_.joinable())return false;
     stopping_=false;requested_=true;status_.state="starting";status_.error.clear();
@@ -57,6 +57,14 @@ void VisualIndexWorker::Stop(){
     if(worker_.joinable())worker_.join();
     std::lock_guard lock(mutex_);status_.state="stopped";
     if(status_.attempt_state=="running"){status_.attempt_state="cancelled";status_.attempt_finished_ms=NowMs();}
+}
+void VisualIndexWorker::ObserveMemory() const {
+    if(!memory_diagnostic::Enabled())return;
+    std::uint64_t generation=0,docs=0,bytes=0,retired_bytes=0,refs=0,retired_refs=0;
+    {std::lock_guard lock(mutex_);generation=status_.generation;if(current_){docs=current_->documents().size();bytes=current_->logical_bytes();refs=current_.use_count();}
+        // This handle dies before unlocking the worker; no diagnostic reader retained.
+        if(const auto previous=retired_.lock()){retired_bytes=previous->logical_bytes();retired_refs=previous.use_count()-1;}}
+    auto& s=memory_diagnostic::Data();std::lock_guard lock(s.mutex);s.visualGeneration=generation;s.visualDocs=docs;s.visualBytes=bytes;s.retiredBytes=retired_bytes;s.visualReferences=refs;s.retiredReferences=retired_refs;s.visualCapturedNs=memory_diagnostic::Now();
 }
 void VisualIndexWorker::RequestRebuild(){std::lock_guard lock(mutex_);requested_=true;changed_.notify_all();}
 std::shared_ptr<const VisualSearchIndex> VisualIndexWorker::Snapshot()const{std::lock_guard lock(mutex_);return current_;}
@@ -160,6 +168,10 @@ bool VisualIndexWorker::Rebuild(const Cancelled& cancelled,std::string* error){
         status_.unsupported_segments.clear();status_.unsupported_snapshots.clear();
         for(const auto& entry:unsupported_segments)++status_.unsupported_segments[entry.first];
         for(const auto& entry:unsupported_snapshots)++status_.unsupported_snapshots[entry.first];}
+    if(memory_diagnostic::Enabled()){
+        ObserveMemory();auto& d=memory_diagnostic::Data();std::lock_guard diagnostic_lock(d.mutex);
+        memory_diagnostic::EventLocked(d,6,{0,d.visualBytes,d.visualDocs,d.visualGeneration,false,0,true});
+    }
     failure_trace.succeeded=true;
     return true;
 }

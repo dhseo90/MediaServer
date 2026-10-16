@@ -107,7 +107,7 @@ check('malformed provided edge collection cannot be captured',()=>{
 // 실제 실행기의 환경/launch/종료 요약을 실행한다. 제품 서버는 명시적인 Node 자식 대역이다.
 const mixedSource=fs.readFileSync(new URL('./v450_recording_a_mixed.mjs',import.meta.url),'utf8');
 function mixedBoundary(source=mixedSource,diagnose=true){
-  const context=vm.createContext({path,process,repo:'/owned-repo',root:'/owned-run',diagnose,stateDiagnose:false,contentionDiagnose:false,
+  const context=vm.createContext({path,process,repo:'/owned-repo',root:'/owned-run',diagnose,stateDiagnose:false,memoryDiagnose:false,contentionDiagnose:false,
     http:61001,rtsp:61002,stun:61003,frameTraceSummary,assertMixedFrameTraceMode,parseLongrunArgs,
     short:false,args:diagnose?['--frame-diagnostic']:['--duration-minutes','120'],console:{log(){}}});
   const declaration=(source.match(/^const frameTraceMode=.*;$/m)?.[0]??'')+'\n'+source.match(/^const duration=.*;$/m)[0];
@@ -180,7 +180,7 @@ check('state diagnostic preserves120 workspace accounting and excludes disabled 
  const workspaceLine=mixedSource.split('\n').find(s=>s.includes('workspace=freezeCurrentWorkspace(root)'));
  const holderLine=mixedSource.split('\n').find(s=>s.includes('const holders=catalogHolderSummary'));
  for(const [diagnose,stateDiagnose,expected] of [[true,true,true],[true,false,false],[false,false,true]]){
-  let calls=0;const c=vm.createContext({diagnose,stateDiagnose,contentionDiagnose:false,workspace:null,root:'/owned',console:{log(){}},freezeCurrentWorkspace(){calls++;return {};}});
+  let calls=0;const c=vm.createContext({diagnose,stateDiagnose,memoryDiagnose:false,contentionDiagnose:false,workspace:null,root:'/owned',console:{log(){}},freezeCurrentWorkspace(){calls++;return {};}});
   vm.runInContext(workspaceLine,c);assert.equal(calls,Number(expected));
  }
  const c=vm.createContext({diagnose:true,stateDiagnose:true,catalogHolderSummary(){throw Error('disabled holder collector');}});vm.runInContext(holderLine,c);

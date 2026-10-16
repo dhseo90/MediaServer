@@ -156,7 +156,7 @@ bool RecordingSearchModel::QueryImpl(const RecordingSearchQuery& input, Recordin
         RecordingSearchMatches result;
         if(residency_) {
             if(documents_.size()>(SIZE_MAX-sizeof(result))/(2*sizeof(std::size_t)))return Fail(error,"search-capacity-exceeded");
-            auto charge=residency_->ReserveOwned(sizeof(result)+2*sizeof(std::size_t)*documents_.size());
+            auto charge=residency_->ReserveOwned(sizeof(result)+2*sizeof(std::size_t)*documents_.size(),SearchModelResidency::Category::Matches);
             if(!charge)return Fail(error,"search-capacity-exceeded");
             result.memory=std::move(*charge);
         }
@@ -248,12 +248,15 @@ bool RecordingSearchModel::Build(const std::vector<SearchDocument>& documents,
         if (!Account(d, &bytes, limits.max_bytes)) return Fail(error, "search-capacity-exceeded");
     }
     try {
-        auto lease=limits.residency?limits.residency->Reserve(bytes):std::shared_ptr<void>{};
+        auto lease=limits.residency?limits.residency->Reserve(bytes,SearchModelResidency::Category::Model):std::shared_ptr<void>{};
         if(limits.residency&&!lease) {
             SearchCapacityReject("shared-reservation",0,bytes);
             return Fail(error,"search-capacity-exceeded");
         }
-        auto model = std::make_shared<RecordingSearchModel>();
+        auto model = memory_diagnostic::Enabled()
+            ? std::shared_ptr<RecordingSearchModel>(new RecordingSearchModel,[](auto* value){
+                const auto id=memory_diagnostic::RetireModelKey(value);delete value;memory_diagnostic::DestroyModel(id);
+              }) : std::make_shared<RecordingSearchModel>();
         model->residency_=limits.residency;model->residency_lease_=std::move(lease);
         model->source_instance_ = source_instance;
         model->revision_ = revision;
@@ -274,6 +277,7 @@ bool RecordingSearchModel::Build(const std::vector<SearchDocument>& documents,
             if (!model->ids_.emplace(d.id, i).second) return Fail(error, "search-duplicate-id");
             model->channels_[d.channel_id].push_back(i);
         }
+        memory_diagnostic::CreateModel(model->accounted_bytes_,model->documents_.size(),model->revision_,model.get());
         *output = std::move(model);
         if (error) error->clear();
         return true;
@@ -314,12 +318,15 @@ bool RecordingSearchModel::BuildOwned(std::vector<SearchDocument>&& documents,
             !AccountOwned(d, &bytes, limits.max_bytes)) return Fail(error, "search-capacity-exceeded");
     }
     try {
-        auto lease=limits.residency?limits.residency->Reserve(bytes):std::shared_ptr<void>{};
+        auto lease=limits.residency?limits.residency->Reserve(bytes,SearchModelResidency::Category::Model):std::shared_ptr<void>{};
         if(limits.residency&&!lease) {
             SearchCapacityReject("shared-reservation",0,bytes);
             return Fail(error,"search-capacity-exceeded");
         }
-        auto model = std::make_shared<RecordingSearchModel>();
+        auto model = memory_diagnostic::Enabled()
+            ? std::shared_ptr<RecordingSearchModel>(new RecordingSearchModel,[](auto* value){
+                const auto id=memory_diagnostic::RetireModelKey(value);delete value;memory_diagnostic::DestroyModel(id);
+              }) : std::make_shared<RecordingSearchModel>();
         model->residency_=limits.residency;model->residency_lease_=std::move(lease);
         model->source_instance_ = source_instance;
         model->revision_ = revision;
@@ -340,6 +347,7 @@ bool RecordingSearchModel::BuildOwned(std::vector<SearchDocument>&& documents,
             if (!model->ids_.emplace(d.id, i).second) return Fail(error, "search-duplicate-id");
             model->channels_[d.channel_id].push_back(i);
         }
+        memory_diagnostic::CreateModel(model->accounted_bytes_,model->documents_.size(),model->revision_,model.get());
         *output = std::move(model);
         if (error) error->clear();
         return true;
@@ -367,7 +375,7 @@ bool RecordingSearchModel::ApplyDelta(const RecordingSearchModel& base, const Se
         return Fail(error, "search-capacity-exceeded");
     if(!limits.residency)limits.residency=base.residency_;
     try {
-        auto workspace=limits.residency?limits.residency->Reserve(limits.max_bytes):std::shared_ptr<void>{};
+        auto workspace=limits.residency?limits.residency->Reserve(limits.max_bytes,SearchModelResidency::Category::Preparation):std::shared_ptr<void>{};
         if(limits.residency&&!workspace)return Fail(error,"search-capacity-exceeded");
         std::unordered_set<std::string> changed;
         std::size_t change_bytes = 0;

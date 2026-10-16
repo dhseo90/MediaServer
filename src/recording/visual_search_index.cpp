@@ -73,8 +73,14 @@ bool VisualSearchIndex::Build(const VisualEmbeddingContract& contract,
             if (!ids.insert(d.id).second) return Fail(error, "visual-duplicate-id");
         }
         std::sort(docs.begin(), docs.end(), [](const auto& a, const auto& b) { return a.id < b.id; });
-        auto index = std::shared_ptr<VisualSearchIndex>(new VisualSearchIndex);
-        index->contract_ = contract; index->documents_ = std::move(docs); index->logical_bytes_ = bytes;
+        auto* raw_index=new VisualSearchIndex;
+        memory_diagnostic::Add(memory_diagnostic::VisualIndices,1);
+        auto index = std::shared_ptr<VisualSearchIndex>(raw_index,[](auto* value){
+            const auto bytes=value->logical_bytes();delete value;
+            memory_diagnostic::Add(memory_diagnostic::VisualIndices,-1);
+            memory_diagnostic::Add(memory_diagnostic::VisualIndexBytes,-std::int64_t(bytes));
+        });
+        index->contract_ = contract; index->documents_ = std::move(docs); index->logical_bytes_ = bytes;memory_diagnostic::Add(memory_diagnostic::VisualIndexBytes,bytes);
         *output = std::move(index);
         if (error) error->clear();
         return true;
