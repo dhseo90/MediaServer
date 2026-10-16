@@ -1,9 +1,149 @@
 {
   "schema": "media-server.v450.r135.closure.v1",
-  "state": "pending-remote-byte-verification-and-owned-root-cleanup",
-  "processGroupsPortsContainers": "absent verified after runs; evidence in archive records/post-stop-process.json",
-  "ownedRootRemoved": false,
-  "remoteBytesVerified": false,
+  "state": "remote-verified-owned-cleanup-complete",
+  "evidenceCommit": "22e05333080ff87b9518066136c65929ba3bdfc5",
+  "remoteEvidenceCommit": "22e05333080ff87b9518066136c65929ba3bdfc5",
+  "remoteBytesVerified": true,
+  "remoteFiles": [
+    {
+      "path": "docs/development-backlog.md",
+      "blob": "d02e30865e0af1304fb4b27d0db8f86d58b646dd",
+      "bytes": 60580,
+      "sha256": "2fc41d593b12f3ce5fbdc6bf57fe2b18721f8f733e5a4a6aa33eca394b755695",
+      "match": true
+    },
+    {
+      "path": "docs/project-feature-test-inventory.md",
+      "blob": "7c09022dcd710b08b76faefd49f01e2cd0e1f075",
+      "bytes": 1074539,
+      "sha256": "5c6375918e71f3278a703072662d68f33253d5596d1b97356373b9ecb9b705f9",
+      "match": true
+    },
+    {
+      "path": "docs/release-artifacts/v4.5.0/135-binding.json",
+      "blob": "b070c5a2253e8cae0eff0c978b72e17d0786db8a",
+      "bytes": 1378,
+      "sha256": "02aeef667d4dd8bc1d5b61aea4674dbef9b4fa9befeff43cbc0e766e4df5a8ad",
+      "match": true
+    },
+    {
+      "path": "docs/release-artifacts/v4.5.0/135-closure.json",
+      "blob": "38c79d11153720378962686793a63d729bc8d140",
+      "bytes": 344,
+      "sha256": "9314e2104964301e26f3e550e7c283eb193ab5abaae3bfcc815130efbedb3c87",
+      "match": true
+    },
+    {
+      "path": "docs/release-artifacts/v4.5.0/135-execution.tar.gz",
+      "blob": "fc0109ed50659f6f57fdc681b71f498f12ae53ca",
+      "bytes": 13539766,
+      "sha256": "d916d84e73629be312133dff330eff2d3afea0c8638dcd3a7193748b7c6a80ce",
+      "match": true
+    },
+    {
+      "path": "docs/release-artifacts/v4.5.0/135-independent-review.json",
+      "blob": "b4530ea85060a7f45dd89a17947849d02607690c",
+      "bytes": 3913,
+      "sha256": "786024d8c958d6df2c69d5e99c910e0d8ae9d581b15cc0f7103a391715d75565",
+      "match": true
+    },
+    {
+      "path": "docs/release-artifacts/v4.5.0/135-validation.json",
+      "blob": "443495681caa390a5dc558c955a8c7819ffd5197",
+      "bytes": 61465,
+      "sha256": "51ee09e377b24a2de6c7250c1b00001baf44a5081a48c4b3ff9eae8a13d36c09",
+      "match": true
+    },
+    {
+      "path": "scripts/internal/recording_current_observer.mjs",
+      "blob": "ef4e91d97fe10ada1eff5f0497b719e61afefee1",
+      "bytes": 52848,
+      "sha256": "74af90b6e9903533619cfb4ea08437fe746a43ed6934d00e5f470b2796752f13",
+      "match": true
+    },
+    {
+      "path": "scripts/internal/recording_current_root_storage.test.mjs",
+      "blob": "3e631f9ecb8329fd016741e36c613ae69694f809",
+      "bytes": 33824,
+      "sha256": "aeaca3f80dc646c56ce6dcc4b7717404e54375ae262c6dae291ba030f5298ffb",
+      "match": true
+    },
+    {
+      "path": "scripts/internal/recording_publication_observer_smoke.cpp",
+      "blob": "265f173d7787876d063eb5f2ac73773a49b6b32b",
+      "bytes": 2774,
+      "sha256": "3f9ce34bf5dd80588120a50a8567eebe6068f4a2a5a3fe961fa7486d3e944348",
+      "match": true
+    },
+    {
+      "path": "scripts/internal/recording_publication_observer_smoke.mjs",
+      "blob": "c88eea5f6c6d82618c096b668a14df6ab998a495",
+      "bytes": 3433,
+      "sha256": "fd1b6caf0c1fc70e7d211e7172630b1bc2218c334e7c490ef43b802c4ee3df6e",
+      "match": true
+    },
+    {
+      "path": "scripts/internal/recording_visual_contention_contract_test.py",
+      "blob": "6a171463a8421c9aa2497fd6af5b5eb9e3ede344",
+      "bytes": 5670,
+      "sha256": "77768708958fcd828fcea974bf47ce7020bb0395c4cde342cd9fef07119d73be",
+      "match": true
+    },
+    {
+      "path": "scripts/internal/recording_visual_contention_observer.mjs",
+      "blob": "421c1496f97b3b448760a9f168eb092a0582bf97",
+      "bytes": 3214,
+      "sha256": "9e2ec91489897e36fe1492b598b752157a620757a0d3fda0a239a58ce3926398",
+      "match": true
+    },
+    {
+      "path": "test/fixtures/project_feature_implementation_evidence.json",
+      "blob": "c6aebd9f9a40dc2e8dce9a2675cf79d7e2162757",
+      "bytes": 26350232,
+      "sha256": "3bf0d0e8d6ebb3394c199f1ec9429a78dbd19aa8f8c1e8fd86909402f0dc3a3f",
+      "match": true
+    }
+  ],
+  "cleanup": {
+    "rootIdentity": {
+      "dev": 16777232,
+      "ino": 175468202,
+      "uid": 501
+    },
+    "canonicalOwnedRoot": true,
+    "fdSafeRmtree": true,
+    "ownedRootRemoved": true,
+    "markerRemoved": true,
+    "processGroupsPortsContainers": {
+      "warm": {
+        "pid": 42331,
+        "groupAbsent": true,
+        "ports": [
+          {
+            "port": 55125,
+            "connectEx": 61,
+            "closed": true
+          }
+        ]
+      },
+      "cold": {
+        "pid": 42932,
+        "groupAbsent": true,
+        "ports": [
+          {
+            "port": 55380,
+            "connectEx": 61,
+            "closed": true
+          }
+        ]
+      },
+      "ownedContainersAbsent": true,
+      "linuxImage": "sha256:ce72c8a15363984da642e9964189957896812061c6af1d0ef67e87b38ad5a588"
+    },
+    "userSettingsPrivateBackupsModelsSDK": "excluded; untouched"
+  },
+  "completedAtUtc": "2026-10-16T14:18:26.440974+00:00",
   "releaseHold": true,
-  "memoryP0": "open"
+  "memoryP0": "open",
+  "scope": "collector and warm1/cold1 direct only; no900/45/120; historical134FAIL unchanged"
 }
