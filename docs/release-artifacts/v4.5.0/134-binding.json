@@ -1,0 +1,64 @@
+{
+  "schema": "media-server.v450.r134.binding.v1",
+  "decision": "PASS_ORDERED_BINDING_NOT_RUNTIME_QUALIFICATION",
+  "steps": [
+    {
+      "name": "producer",
+      "exit": 0,
+      "argv": [
+        "node",
+        "scripts/internal/verify_v390_review4_feature_semantic_source_audit.mjs",
+        "--apply-approved-manifest"
+      ],
+      "completionConfirmedBeforeNext": true,
+      "bytes": 12812,
+      "sha256": "d044f8ac77f4e3e0a7ee0672c9d63381151b9f522393a0aa536f910913ef258f",
+      "log": "134-execution.tar.gz:records/binding-producer.log",
+      "summary": [
+        "- unresolvedCandidates: 0",
+        "- pass: 51",
+        "- fail: 0"
+      ]
+    },
+    {
+      "name": "readback",
+      "exit": 0,
+      "argv": [
+        "node",
+        "scripts/internal/verify_feature_implementation_evidence.mjs"
+      ],
+      "completionConfirmedBeforeNext": true,
+      "bytes": 1141,
+      "sha256": "f004e8a145e0b287322992e5f2f9c356c12a495834505e9ea79a414fd1f6b6f7",
+      "log": "134-execution.tar.gz:records/binding-readback.log",
+      "summary": [
+        "- validationErrors: 0",
+        "- negativeFixtures: 15/15",
+        "- executionEvidenceStatus: not-execution-evidence"
+      ]
+    },
+    {
+      "name": "coverage",
+      "exit": 0,
+      "argv": [
+        "node",
+        "scripts/internal/verify_feature_inventory_coverage.mjs"
+      ],
+      "completionConfirmedBeforeNext": true,
+      "bytes": 604,
+      "sha256": "f3dd9d2ec3cd35ce7a806a391b6918dddd2c2377ca3039afa624f484985f9bce",
+      "log": "134-execution.tar.gz:records/binding-coverage.log",
+      "summary": [
+        "- featureRows: 986",
+        "- covered: 986",
+        "- missing: 0",
+        "- pass: 9",
+        "- fail: 0"
+      ]
+    }
+  ],
+  "prettyFormatting": "parsed value unchanged after ordered checks",
+  "scope": "test/inventory changes; 986 unchanged review proof rows reused, not a new full code review",
+  "independentReview": "134-independent-review.json",
+  "manifestSha256": "43d6f5123e48266f78ab0e59c1ad03137fd630589b6cef642c17969b816cb58e"
+}

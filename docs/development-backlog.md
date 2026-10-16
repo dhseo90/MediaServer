@@ -17,6 +17,10 @@
 
 ## v4.5.0 잔여 개발과 릴리즈 순서
 
+[134 UTC 독립 exact-public oracle](release-artifacts/v4.5.0/134-validation.json)은 **검사 교정·focused 검증 완료, warm 단회 수집 FAIL**이다. 모든 fresh의 current binding을 확인하고 UTC·score·broad 응답과 독립적으로 `(channelId,id)` 첫 representative를 선택해 기존 공개 seek를 호출하도록 했다. broad200/5초/ranking은 그대로이며 known-UTC bucket은 해당 문서가 있을 때의 추가 검사다. 제품 소스는 132와 동일하다.
+동일 warm은 약44.901초에 수집기 `root-unsafe-file`로 중단됐다. 중단 전 원래12개 실제HTTP200과 관측 p95/max1987.96ms는 유지하되 최종 latency assertion PASS가 아니다. aux200·새 publication/fresh target·공개 seek·Recorder 최종 수용·정상 Finish·닫힌 journal·최종 논리 소유 검사는 미도달이며 cold는 실행하지 않았다.
+최초 offending 경로/type/nlink는 미보존이다. fixture `recording/`과 관측기 `recordings/` 관리 분류 차이는 코드상 확인되지만 이번 오류의 직접 원인으로 확정하지 않는다. wrapper SIGTERM·process group 회수와 정상 제품 해제를 구분한다. [독립 검토](release-artifacts/v4.5.0/134-independent-review.json)와 원출력을 보존하고, 수집 거부의 정확한 피연산자/경로 진단 및 새 실행은 별도 재개 대상이다. 132/133 역사적 FAIL·장시간·메모리P0·출시 보류는 유지한다.
+
 [133 공개 fresh oracle 교정](release-artifacts/v4.5.0/133-validation.json)은 **검사 교정 완료, warm 단회 전체 FAIL**이다. 제품 소스·ranking·query·limit·자원 한도는 불변이다. broad top200 fresh 진입은 보장되지 않으므로 기존 200항목/5초/정렬 검사를 유지하면서, 모든 fresh binding 확인 후 알려진 UTC의 첫 적격 1ms bucket을 선택하는 별도 공개 조회 검사를 추가했다.
 같은 warm에서 원래12개 실제200 p95/max1989.14ms, broad 실제200/200항목/4635.40ms, Recorder2499/2499/drop0/42파일과 generation2/docs3794/fresh48을 확인했다. 그러나 fresh48 모두 UTC unknown으로 사전 고정 target을 만들 수 없어 `public-fresh oracle not constructible`로 실패했다. broad fresh2는 별도 targeted 검사의 대체 PASS가 아니다.
 예외 Stop/Finish·최종 논리owner0과 정상 성공 경로 Finish·final result·닫힌 journal 미실행을 구분한다. cold는 실행하지 않았다. 다음 결정은 UTC unknown fresh의 공개 조회를 검증할 사전 고정 oracle이며 UTC 생성·fixture 변경·ranking 보정은 자동 적용하지 않는다. [독립 검토](release-artifacts/v4.5.0/133-independent-review.json)와 최초 실패를 보존한다. 132 역사적 FAIL, 장시간·메모리P0·출시 보류는 유지한다.

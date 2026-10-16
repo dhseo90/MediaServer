@@ -1,0 +1,52 @@
+{
+  "reviewer": "/root/independent_r134",
+  "requestedModel": "gpt-6-astra",
+  "requestedEffort": "high",
+  "toolAccepted": true,
+  "runtimeModel": null,
+  "runtimeEffort": null,
+  "participation": "read-only; no writing, execution or delegation",
+  "result": "no blocking findings",
+  "findings": [],
+  "scope": [
+    "existing public exact hit API and source validation",
+    "deterministic UTC/score independent selection",
+    "all fresh binding",
+    "exact native seek oracle",
+    "optional bucket and unchanged broad",
+    "wire/trace counts and Finish/owner checks",
+    "R133 historical FAIL unchanged"
+  ],
+  "warmResultsReviewed": true,
+  "resultReview": {
+    "decision": "FAIL_COLLECTION_COLD_INELIGIBLE",
+    "firstFailure": "root-unsafe-file, monitor1, wrapper terminates helperSIGTERM",
+    "original12": "12 actual200; observed p95/max1987.96; formal final gate not reached",
+    "later": "broad, fresh, exact target, Recorder final, normal Finish, closed journal, owners not reached",
+    "qualification": "secondary missing final result",
+    "processCleanup": "cleanupError null and groupAbsent true; not normal Finish/storage/owner proof",
+    "observedStaticMismatch": {
+      "fixture": "recording/",
+      "observerManagedCategories": "recordings/",
+      "effect": "fixture recording files counted as other; managed generation/media two-link transition handling not applied",
+      "causality": "not proven for this failure; offending path/stat not preserved",
+      "reference": "scripts/internal/recording_current_observer.mjs:88-135"
+    },
+    "historical": "product/R133FAIL unchanged",
+    "preservationAndFinalCleanup": "not reviewed at this point"
+  },
+  "runtimeExecutionByReviewer": false,
+  "schema": "media-server.v450.r134.independent-review.v1",
+  "testCommit": "042f59629cfbb529af00d7ee09b26b9f99ad3589",
+  "artifactReview": {
+    "decision": "no blocking result/preservation finding after payload/manifest count clarification",
+    "correction": "archive total67 =66 payload+manifest; validation distinguishes actual hash-readback scope; archive bytes unchanged",
+    "confirmed": [
+      "FAIL/not-run separation",
+      "root cause unconfirmed",
+      "normal cleanup vs product Finish",
+      "remote verification/cleanup still pending"
+    ],
+    "archiveSnapshot": "archived preliminary review predates this artifact review; standalone JSON records latest actual review"
+  }
+}

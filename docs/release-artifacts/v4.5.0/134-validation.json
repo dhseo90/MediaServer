@@ -1,0 +1,629 @@
+{
+  "schema": "media-server.v450.r134.validation.v1",
+  "decision": "FAIL_COLLECTION_ROOT_UNSAFE_FILE",
+  "baseline": "0c7fe6064c790e89da2b17203548d64770924711",
+  "testCommit": "042f59629cfbb529af00d7ee09b26b9f99ad3589",
+  "productCommit": "c438911431c631d239580367eee4a2c7e22045de",
+  "productUnchanged": true,
+  "settings": {
+    "requestedMain": "gpt-6-astra/high",
+    "mainToolAccepted": null,
+    "mainActualModel": null,
+    "mainActualEffort": null,
+    "requestedReview": "gpt-6-astra/high",
+    "reviewToolAccepted": true,
+    "reviewActualModel": null,
+    "reviewActualEffort": null
+  },
+  "historical": "R132/R133 FAIL and all prior partial results unchanged; no retrospective PASS",
+  "oracle": {
+    "purpose": "immutable publication membership, exact public accessibility, text discovery ranking separate",
+    "target": "all fresh exact current binding; first representative(channel,id); UTC/score/broad-independent",
+    "publicSeek": "existing published exact hit lookup without prior text search token; unchanged authorization/current source/media/native seek",
+    "expected": "HTTP200/full receive/exact hit/media/playback/seek/native1ns duration; before-after same immutable publication",
+    "bucket": "known representative present: existing deterministic1ms/count<=200; none: N/A; this aborted run did not evaluate either",
+    "broad": "unchanged ball/channels9101,9201/threshold-1/limit200/5s/order/currentness; fresh count not gate",
+    "actualTarget": null,
+    "actualPublicSeek": "not-run"
+  },
+  "focused": {
+    "cpp": "26 checks PASS",
+    "python": "7 methods including negative subcases PASS",
+    "runtimeQualification": "not supplied by synthetic tests"
+  },
+  "warm": {
+    "decision": "FAIL_COLLECTION_ROOT_UNSAFE_FILE",
+    "externalWarmRuns": 1,
+    "coldRuns": 0,
+    "elapsedSeconds": 44.90136912511662,
+    "firstFailure": "[R101-space-failure] root-unsafe-file",
+    "causeLimit": "offending path/type/nlink not logged; observed predicate can reject nonregular or disallowed nlink; no specific entry/transient race/unsafe hardlink proved",
+    "postStopInspection": {
+      "unsafeEntries": [],
+      "entriesRegular": 2930,
+      "meaning": "read-only lstat after process stopped; cannot recover failure-time state",
+      "ports": [
+        {
+          "port": 54120,
+          "connectExAfterStop": 1,
+          "meaning": "sandbox connectEx EPERM(1): not proof of port absence"
+        }
+      ]
+    },
+    "original12": {
+      "actual200": 12,
+      "latenciesMs": [
+        1106.99,
+        1089.1,
+        1984.95,
+        1987.96,
+        1250.39,
+        1198.12,
+        1597.05,
+        1601.49,
+        1335.7,
+        1355.44,
+        540.601,
+        1586.29
+      ],
+      "p95Ms": 1987.96,
+      "maxMs": 1987.96,
+      "observedTimingPass": true,
+      "formalHelperFinalLatencyGate": "not-run",
+      "wire": [
+        {
+          "id": 1,
+          "scope": "original12",
+          "route": "/ops/api/recordings/visual-search?channelIds=9101,9201&text=ball&limit=20&threshold=-1",
+          "beginNs": 1463243645129708,
+          "endNs": 1463244734241708,
+          "bytes": 9543,
+          "headers": true,
+          "status": 200,
+          "errno": 0,
+          "failure": "none",
+          "headerNs": 1463244734216333,
+          "receiveEndNs": 1463244734230041,
+          "validationEndNs": null,
+          "bindingEndNs": null,
+          "outputEndNs": null,
+          "bindingNs": 0,
+          "bindingCalls": 0
+        },
+        {
+          "id": 0,
+          "scope": "original12",
+          "route": "/ops/api/recordings/visual-search?channelIds=9101,9201&text=ball&limit=20&threshold=-1",
+          "beginNs": 1463243645112166,
+          "endNs": 1463244752113500,
+          "bytes": 9543,
+          "headers": true,
+          "status": 200,
+          "errno": 0,
+          "failure": "none",
+          "headerNs": 1463244752091166,
+          "receiveEndNs": 1463244752103208,
+          "validationEndNs": null,
+          "bindingEndNs": null,
+          "outputEndNs": null,
+          "bindingNs": 0,
+          "bindingCalls": 0
+        },
+        {
+          "id": 2,
+          "scope": "original12",
+          "route": "/ops/api/recordings/search?channelIds=9101&startTimeMs=1792000000000&endTimeMs=1792100000000&limit=20&includeUnplaced=true",
+          "beginNs": 1463243645138208,
+          "endNs": 1463245630102833,
+          "bytes": 11955,
+          "headers": true,
+          "status": 200,
+          "errno": 0,
+          "failure": "none",
+          "headerNs": 1463245630075875,
+          "receiveEndNs": 1463245630090041,
+          "validationEndNs": null,
+          "bindingEndNs": null,
+          "outputEndNs": null,
+          "bindingNs": 0,
+          "bindingCalls": 0
+        },
+        {
+          "id": 3,
+          "scope": "original12",
+          "route": "/ops/api/recordings/search?channelIds=9101&startTimeMs=1792000000000&endTimeMs=1792100000000&limit=20&includeUnplaced=true",
+          "beginNs": 1463243645146458,
+          "endNs": 1463245633109000,
+          "bytes": 11955,
+          "headers": true,
+          "status": 200,
+          "errno": 0,
+          "failure": "none",
+          "headerNs": 1463245633097666,
+          "receiveEndNs": 1463245633103958,
+          "validationEndNs": null,
+          "bindingEndNs": null,
+          "outputEndNs": null,
+          "bindingNs": 0,
+          "bindingCalls": 0
+        },
+        {
+          "id": 5,
+          "scope": "original12",
+          "route": "/ops/api/recordings/visual-search?channelIds=9101,9201&text=ball&limit=20&threshold=-1",
+          "beginNs": 1463245638299708,
+          "endNs": 1463246836426125,
+          "bytes": 9543,
+          "headers": true,
+          "status": 200,
+          "errno": 0,
+          "failure": "none",
+          "headerNs": 1463246836413708,
+          "receiveEndNs": 1463246836421083,
+          "validationEndNs": null,
+          "bindingEndNs": null,
+          "outputEndNs": null,
+          "bindingNs": 0,
+          "bindingCalls": 0
+        },
+        {
+          "id": 4,
+          "scope": "original12",
+          "route": "/ops/api/recordings/visual-search?channelIds=9101,9201&text=ball&limit=20&threshold=-1",
+          "beginNs": 1463245638278916,
+          "endNs": 1463246888678500,
+          "bytes": 9543,
+          "headers": true,
+          "status": 200,
+          "errno": 0,
+          "failure": "none",
+          "headerNs": 1463246888652625,
+          "receiveEndNs": 1463246888672083,
+          "validationEndNs": null,
+          "bindingEndNs": null,
+          "outputEndNs": null,
+          "bindingNs": 0,
+          "bindingCalls": 0
+        },
+        {
+          "id": 6,
+          "scope": "original12",
+          "route": "/ops/api/recordings/search?channelIds=9101&startTimeMs=1792000000000&endTimeMs=1792100000000&limit=20&includeUnplaced=true",
+          "beginNs": 1463245638315750,
+          "endNs": 1463247235376083,
+          "bytes": 11955,
+          "headers": true,
+          "status": 200,
+          "errno": 0,
+          "failure": "none",
+          "headerNs": 1463247235361541,
+          "receiveEndNs": 1463247235368625,
+          "validationEndNs": null,
+          "bindingEndNs": null,
+          "outputEndNs": null,
+          "bindingNs": 0,
+          "bindingCalls": 0
+        },
+        {
+          "id": 7,
+          "scope": "original12",
+          "route": "/ops/api/recordings/search?channelIds=9101&startTimeMs=1792000000000&endTimeMs=1792100000000&limit=20&includeUnplaced=true",
+          "beginNs": 1463245638323916,
+          "endNs": 1463247239814083,
+          "bytes": 11955,
+          "headers": true,
+          "status": 200,
+          "errno": 0,
+          "failure": "none",
+          "headerNs": 1463247239802291,
+          "receiveEndNs": 1463247239809041,
+          "validationEndNs": null,
+          "bindingEndNs": null,
+          "outputEndNs": null,
+          "bindingNs": 0,
+          "bindingCalls": 0
+        },
+        {
+          "id": 10,
+          "scope": "original12",
+          "route": "/ops/api/recordings/search?channelIds=9101&startTimeMs=1792000000000&endTimeMs=1792100000000&limit=20&includeUnplaced=true",
+          "beginNs": 1463247646605000,
+          "endNs": 1463248187216458,
+          "bytes": 11955,
+          "headers": true,
+          "status": 200,
+          "errno": 0,
+          "failure": "none",
+          "headerNs": 1463248187193250,
+          "receiveEndNs": 1463248187205625,
+          "validationEndNs": null,
+          "bindingEndNs": null,
+          "outputEndNs": null,
+          "bindingNs": 0,
+          "bindingCalls": 0
+        },
+        {
+          "id": 8,
+          "scope": "original12",
+          "route": "/ops/api/recordings/visual-search?channelIds=9101,9201&text=ball&limit=20&threshold=-1",
+          "beginNs": 1463247646570250,
+          "endNs": 1463248982277208,
+          "bytes": 9543,
+          "headers": true,
+          "status": 200,
+          "errno": 0,
+          "failure": "none",
+          "headerNs": 1463248982249916,
+          "receiveEndNs": 1463248982270750,
+          "validationEndNs": null,
+          "bindingEndNs": null,
+          "outputEndNs": null,
+          "bindingNs": 0,
+          "bindingCalls": 0
+        },
+        {
+          "id": 9,
+          "scope": "original12",
+          "route": "/ops/api/recordings/visual-search?channelIds=9101,9201&text=ball&limit=20&threshold=-1",
+          "beginNs": 1463247646592750,
+          "endNs": 1463249002042041,
+          "bytes": 9543,
+          "headers": true,
+          "status": 200,
+          "errno": 0,
+          "failure": "none",
+          "headerNs": 1463249002022625,
+          "receiveEndNs": 1463249002032000,
+          "validationEndNs": null,
+          "bindingEndNs": null,
+          "outputEndNs": null,
+          "bindingNs": 0,
+          "bindingCalls": 0
+        },
+        {
+          "id": 11,
+          "scope": "original12",
+          "route": "/ops/api/recordings/search?channelIds=9101&startTimeMs=1792000000000&endTimeMs=1792100000000&limit=20&includeUnplaced=true",
+          "beginNs": 1463247646615541,
+          "endNs": 1463249232915458,
+          "bytes": 11955,
+          "headers": true,
+          "status": 200,
+          "errno": 0,
+          "failure": "none",
+          "headerNs": 1463249232900208,
+          "receiveEndNs": 1463249232907625,
+          "validationEndNs": null,
+          "bindingEndNs": null,
+          "outputEndNs": null,
+          "bindingNs": 0,
+          "bindingCalls": 0
+        }
+      ],
+      "qualifierPrefix": "response parsing, original request set and p95 passed before missing final R107-result assertion; overall qualification FAIL"
+    },
+    "initialPublication": {
+      "origin": "cache",
+      "generation": null,
+      "channels": [
+        {
+          "channelId": "9101",
+          "indexedFrames": 1851,
+          "unknownTimeFrames": 1229,
+          "firstSampleTimeNs": "1792100930310588000",
+          "lastSampleTimeNs": "1792102409765536000",
+          "sourceCountsState": "unknown",
+          "examinedSegments": null,
+          "unsupportedSegments": null,
+          "examinedSnapshots": null,
+          "unsupportedSnapshots": null
+        },
+        {
+          "channelId": "9201",
+          "indexedFrames": 1848,
+          "unknownTimeFrames": 1227,
+          "firstSampleTimeNs": "1792100930333826000",
+          "lastSampleTimeNs": "1792102408815542000",
+          "sourceCountsState": "unknown",
+          "examinedSegments": null,
+          "unsupportedSegments": null,
+          "examinedSnapshots": null,
+          "unsupportedSnapshots": null
+        }
+      ],
+      "meaning": "existing policy-matched warm cache publication, not cold rebuild"
+    },
+    "aux200": "not-run",
+    "freshPublicationCheck": "not-run",
+    "exactPublicFresh": {
+      "status": "not-run",
+      "target": null,
+      "channel": null,
+      "utc": null
+    },
+    "optionalKnownUtcBucket": "not-run; fresh set not observed, not N/A",
+    "recorder": {
+      "expected": null,
+      "accepted": null,
+      "queueDrop": null,
+      "files": null,
+      "status": "final acceptance not-run; partial writer completion logs retained"
+    },
+    "normalFinish": "not-run",
+    "exceptionFinish": "not observed; wrapper SIGTERM",
+    "closedJournal": "not-run",
+    "finalLogicalOwners": "not observed; OS process reclamation not product release proof",
+    "resourceSamples": {
+      "count": 44,
+      "byPhase": {
+        "initial": 24,
+        "model": 4,
+        "live": 16
+      },
+      "metrics": {
+        "rssBytes": {
+          "first": 32768,
+          "last": 1849032704,
+          "max": 3374383104,
+          "samples": 44
+        },
+        "footprintBytes": {
+          "first": 81992,
+          "last": 1747651032,
+          "max": 3322367408,
+          "samples": 44
+        },
+        "fdCount": {
+          "first": 4,
+          "last": 23,
+          "max": 155,
+          "samples": 44
+        },
+        "anonymousFileBytes": {
+          "first": 0,
+          "last": 175372800,
+          "max": 1110512128,
+          "samples": 44
+        },
+        "anonymousAllocatedBytes": {
+          "first": 0,
+          "last": 177135616,
+          "max": 1117876224,
+          "samples": 44
+        }
+      },
+      "last": {
+        "sequence": 43,
+        "phase": "live",
+        "completedPhase": "live",
+        "metrics": {
+          "pid": 38026,
+          "startIdentity": "macos:1792155981:251486",
+          "rssBytes": 1849032704,
+          "threadCount": 31,
+          "fdCount": 23,
+          "anonymousFileBytes": 175372800,
+          "anonymousAllocatedBytes": 177135616,
+          "anonymousFiles": 7,
+          "footprintBytes": 1747651032,
+          "sampledAt": 1792156025089,
+          "valid": true,
+          "error": null,
+          "fdObservation": {
+            "scope": "complete-round-sequential-v1",
+            "complete": true,
+            "startIdentity": "macos:1792155981:251486",
+            "startedAt": 1792156025089,
+            "completedAt": 1792156025089,
+            "roundStartedAt": 1792156025089,
+            "roundCompletedAt": 1792156025089,
+            "rounds": 1,
+            "capacityRetries": 0,
+            "closedRetries": 0,
+            "detailCalls": 15,
+            "failures": []
+          }
+        },
+        "storage": {
+          "totalBytes": 137335517,
+          "capBytes": 469762048,
+          "capExceeded": false,
+          "entries": 2938,
+          "categories": {
+            "input": {
+              "bytes": 67929,
+              "files": 1
+            },
+            "media": {
+              "bytes": 0,
+              "files": 0
+            },
+            "mediaPartial": {
+              "bytes": 0,
+              "files": 0
+            },
+            "journal": {
+              "bytes": 0,
+              "files": 0
+            },
+            "checkpoint": {
+              "bytes": 0,
+              "files": 0
+            },
+            "generationSnapshot": {
+              "bytes": 0,
+              "files": 0
+            },
+            "generationIdentity": {
+              "bytes": 0,
+              "files": 0
+            },
+            "generationEvidence": {
+              "bytes": 0,
+              "files": 0
+            },
+            "generationManifest": {
+              "bytes": 0,
+              "files": 0
+            },
+            "generationTransaction": {
+              "bytes": 0,
+              "files": 0
+            },
+            "sqlite": {
+              "bytes": 0,
+              "files": 0
+            },
+            "wal": {
+              "bytes": 0,
+              "files": 0
+            },
+            "sqliteAux": {
+              "bytes": 0,
+              "files": 0
+            },
+            "tmp": {
+              "bytes": 0,
+              "files": 0
+            },
+            "log": {
+              "bytes": 0,
+              "files": 0
+            },
+            "state": {
+              "bytes": 0,
+              "files": 0
+            },
+            "events": {
+              "bytes": 0,
+              "files": 0
+            },
+            "cache": {
+              "bytes": 1509944,
+              "files": 1
+            },
+            "tools": {
+              "bytes": 0,
+              "files": 0
+            },
+            "recordingsOther": {
+              "bytes": 0,
+              "files": 0
+            },
+            "other": {
+              "bytes": 135757644,
+              "files": 2922
+            }
+          },
+          "ownership": {
+            "productRecording": {
+              "bytes": 0,
+              "files": 0
+            },
+            "fixtureInput": {
+              "bytes": 67929,
+              "files": 1
+            },
+            "observerTools": {
+              "bytes": 0,
+              "files": 0
+            },
+            "cache": {
+              "bytes": 1509944,
+              "files": 1
+            },
+            "temporary": {
+              "bytes": 0,
+              "files": 0
+            },
+            "runtimeSupport": {
+              "bytes": 0,
+              "files": 0
+            },
+            "other": {
+              "bytes": 135757644,
+              "files": 2922
+            }
+          },
+          "transientJournalMisses": 0,
+          "measurement": "logical-file-bytes-nonatomic",
+          "rawPathsPublished": false,
+          "transientTreeRetries": 0
+        },
+        "bounds": {
+          "fixedBytes": 0,
+          "variableBytes": 314471133,
+          "copyBytes": 0,
+          "totalBytes": 314471133,
+          "combinedBytes": 314471133,
+          "rootCapBytes": 469762048,
+          "combinedCapBytes": 939524096
+        }
+      },
+      "logicalOwnerLines": [
+        "[recording-resource] {\"pid\":38026,\"seq\":0,\"phase\":\"opened\",\"elapsedMs\":21607,\"ram\":2892682,\"ramPeak\":3403127,\"ramLimit\":671088640,\"ramRejected\":0,\"scratchDisk\":100192256,\"scratchDiskPeak\":122531840,\"scratchDiskLimit\":159516504064,\"scratchFd\":4,\"scratchFdPeak\":6,\"scratchFdLimit\":1048571,\"scratchRam\":1188864,\"preservedDisk\":0,\"preservedFd\":0,\"readerCleanupHealthy\":true}",
+        "[recording-resource] {\"pid\":38026,\"seq\":1,\"phase\":\"ready\",\"elapsedMs\":26364,\"ram\":2892682,\"ramPeak\":3403127,\"ramLimit\":671088640,\"ramRejected\":0,\"scratchDisk\":100192256,\"scratchDiskPeak\":122531840,\"scratchDiskLimit\":159516504064,\"scratchFd\":4,\"scratchFdPeak\":6,\"scratchFdLimit\":1048571,\"scratchRam\":1188864,\"preservedDisk\":0,\"preservedFd\":0,\"readerCleanupHealthy\":true}",
+        "[recording-resource] {\"pid\":38026,\"seq\":2,\"phase\":\"wave\",\"elapsedMs\":30531,\"ram\":86224248,\"ramPeak\":232588632,\"ramLimit\":671088640,\"ramRejected\":0,\"scratchDisk\":155906048,\"scratchDiskPeak\":322433024,\"scratchDiskLimit\":159516504064,\"scratchFd\":5,\"scratchFdPeak\":9,\"scratchFdLimit\":1048571,\"scratchRam\":1486080,\"preservedDisk\":0,\"preservedFd\":0,\"readerCleanupHealthy\":true}",
+        "[recording-resource] {\"pid\":38026,\"seq\":3,\"phase\":\"wave\",\"elapsedMs\":32137,\"ram\":110576698,\"ramPeak\":244243905,\"ramLimit\":671088640,\"ramRejected\":0,\"scratchDisk\":100360192,\"scratchDiskPeak\":322433024,\"scratchDiskLimit\":159516504064,\"scratchFd\":4,\"scratchFdPeak\":9,\"scratchFdLimit\":1048571,\"scratchRam\":1188864,\"preservedDisk\":0,\"preservedFd\":0,\"readerCleanupHealthy\":true}",
+        "[recording-resource] {\"pid\":38026,\"seq\":4,\"phase\":\"wave\",\"elapsedMs\":34131,\"ram\":110719681,\"ramPeak\":267981806,\"ramLimit\":671088640,\"ramRejected\":0,\"scratchDisk\":100433920,\"scratchDiskPeak\":322433024,\"scratchDiskLimit\":159516504064,\"scratchFd\":4,\"scratchFdPeak\":9,\"scratchFdLimit\":1048571,\"scratchRam\":1188864,\"preservedDisk\":0,\"preservedFd\":0,\"readerCleanupHealthy\":true}"
+      ],
+      "limit": "partial sequential non-atomic observations; maxima not simultaneous or wholeheap proof"
+    },
+    "collection": {
+      "receivedBytes": 264796,
+      "savedBytes": 264796,
+      "collectionError": "resource observer failed",
+      "runnerError": null,
+      "qualificationError": "AssertionError:all statuses/result",
+      "cleanupError": null,
+      "signal": 15,
+      "exit": -15,
+      "monitorExit": 1,
+      "groupAbsent": true,
+      "timeout": false,
+      "overflow": false
+    },
+    "cold": "not-run warm incomplete",
+    "next": "read-only failure inputs preserved; separate authorization needed for collector cause instrumentation/correction and a new final run; do not rerun this candidate",
+    "historical": "R132/R133 FAIL and their partial results unchanged",
+    "collectorPathContract": {
+      "fixture": "recording/",
+      "observerManagedCategories": "recordings/",
+      "effect": "fixture recording files counted as other; managed generation/media two-link transition handling not applied",
+      "causality": "not proven for this failure; offending path/stat not preserved",
+      "reference": "scripts/internal/recording_current_observer.mjs:88-135"
+    },
+    "postStopProcess": {
+      "pid": 38026,
+      "port": 54120,
+      "pidAbsent": true,
+      "connectEx": 61,
+      "portConnectionRefused": true
+    }
+  },
+  "cold": "not-run, warm incomplete",
+  "input": "same exact warm file hash maps as133; 125+130delta-minus-snapshot16, same software cache; reopened not historical live state",
+  "platform": "macOS focused native compile and single partial warm; product unchanged, prior macOS/Linux evidence reused unchanged scope; no new Linux run",
+  "binding": "134-binding.json ordered producer/readback/coverage only; not runtime qualification",
+  "preservation": {
+    "archive": "134-execution.tar.gz",
+    "bytes": 3864226,
+    "sha256": "bac1eb742ea9c2b38f08e7ab58fca4212534ad8d376adcc15d4d0f9c76d6b6ad",
+    "members": 67,
+    "recordingDeltaFiles": 22,
+    "localReadback": "66 payload members hash checked; manifest parsed; entire archive digest bound",
+    "binaryRuntime": "source/build/hash provenance; no duplicate bytes",
+    "cleanup": "134-closure.json after remote bytes verified",
+    "payloadMembers": 66
+  },
+  "next": "separately diagnose collector path/type/nlink at rejection and recording vs recordings classification; no cause proved, no collector fix or rerun in134",
+  "remaining": [
+    "actual exact public fresh seek",
+    "broad/new publication/Recorder final",
+    "normal success Finish/finalresult/closedjournal/final logical owners",
+    "cold",
+    "900/45/120",
+    "memoryP0",
+    "release hold"
+  ]
+}
