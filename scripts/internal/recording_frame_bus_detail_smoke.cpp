@@ -16,6 +16,8 @@ int main(){
         problem=g_error_new_literal(GST_RESOURCE_ERROR,GST_RESOURCE_ERROR_READ,"second error");message=gst_message_new_error(GST_OBJECT(element),problem,"second debug");g_error_free(problem);
         recording::DecodeTrace::Bus(nullptr,message,&trace);gst_message_unref(message);
         pass=pass&&trace.bus.a==GST_STREAM_ERROR&&trace.bus.b==GST_STREAM_ERROR_DECODE&&error=="unchanged-product-error";
+        if(trace.private_fd>=0){pass=pass&&std::string(trace.raw_message).find("SECRET")==0&&std::string(trace.raw_debug)=="SECRET debug path";
+            std::ostringstream json;recording::DecodeTrace::Json(json,"line\nquote\"\\");pass=pass&&json.str()=="\"line\\u000aquote\\\"\\\\\"";}
         trace.null_done=true;
     }
     {
@@ -25,6 +27,15 @@ int main(){
         recording::DecodeTrace::Bus(nullptr,message,&trace);gst_message_unref(message);
         pass=pass&&std::string(trace.bus_domain)=="other-domain-redacted"&&!trace.first.load()&&trace.bus.c==1;
         trace.null_done=true;
+    }
+    {
+        recording::DecodeTrace trace(-1,0,0,5000,&error);trace.succeeded=true;trace.closing=true;
+        // Exhaust public success sampling; private cleanup errors must still be saved.
+        for(int i=0;i<5;++i)trace.SuccessSample();
+        const std::string large(3000,'x');auto* problem=g_error_new_literal(GST_STREAM_ERROR,GST_STREAM_ERROR_DECODE,large.c_str());
+        auto* message=gst_message_new_error(GST_OBJECT(element),problem,large.c_str());g_error_free(problem);
+        recording::DecodeTrace::Bus(nullptr,message,&trace);gst_message_unref(message);trace.null_done=true;
+        if(trace.private_fd>=0)pass=pass&&trace.message_truncated&&trace.debug_truncated&&std::strlen(trace.raw_message)==1023&&std::strlen(trace.raw_debug)==2047;
     }
     gst_object_unref(element);std::cout<<"bus-detail-unit pass="<<pass<<" decoderCalls=0\n";return pass?0:1;
 }

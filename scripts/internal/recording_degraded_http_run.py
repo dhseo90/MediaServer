@@ -41,7 +41,7 @@ if a.action=='run':
  (root/'preparation-budget.json').write_text(json.dumps({'costs':costs,'fixtureBytes':binary.stat().st_size,'fixedBytes':fixed,'temporaryModelReserve':1129352764,'capBytes':8*1024**3}))
  (root/'resource-phase').write_text('initial')
 (root/'execution.json').write_text(json.dumps(record,indent=2));t=time.monotonic()
-child=None;monitor=None;sel=selectors.DefaultSelector();stop_at=None;ready=False;line_buffers={'child':b'','monitor':b''};phases=[]
+private_bus=None;child=None;monitor=None;sel=selectors.DefaultSelector();stop_at=None;ready=False;line_buffers={'child':b'','monitor':b''};phases=[]
 record.update(collectionError=None,runnerError=None,qualificationError=None,cleanupError=None,signal=None,monitorExit=None,observerReady=False,groupAbsent=False)
 record['dependencies']={str(p.relative_to(repo)):hashlib.sha256(p.read_bytes()).hexdigest() for p in (pathlib.Path(__file__),pathlib.Path(__file__).with_name('recording_degraded_http_qualification.py'),repo/'scripts/internal/recording_native_isolation.py',repo/'scripts/internal/recording_visual_contention_contract.py')}
 def terminate(proc,sig):
@@ -49,7 +49,11 @@ def terminate(proc,sig):
  try:os.killpg(proc.pid,sig)
  except ProcessLookupError:pass
 try:
- child=subprocess.Popen(command,cwd=root,env=env,stdin=subprocess.PIPE,stdout=subprocess.PIPE,stderr=subprocess.STDOUT,start_new_session=True);record['pid']=child.pid
+ private_fds=()
+ if a.action=='run':
+  private_bus=os.open(root/'private-bus.jsonl',os.O_WRONLY|os.O_CREAT|os.O_EXCL|os.O_APPEND,0o600)
+  env['MEDIA_SERVER_VERIFY_FRAME_PRIVATE_FD']=str(private_bus);private_fds=(private_bus,)
+ child=subprocess.Popen(command,pass_fds=private_fds,cwd=root,env=env,stdin=subprocess.PIPE,stdout=subprocess.PIPE,stderr=subprocess.STDOUT,start_new_session=True);record['pid']=child.pid
  sel.register(child.stdout,selectors.EVENT_READ,'child')
  if a.action=='run':
   collector=parent/'process-metrics';assert collector.is_file()
@@ -68,7 +72,7 @@ try:
     b=os.read(key.fileobj.fileno(),65536)
     if not b:sel.unregister(key.fileobj);continue
     record['receivedBytes']+=len(b)
-    if record['savedBytes']+len(b)>cap:
+    if record['savedBytes']+len(b)>cap-(65536 if private_bus is not None else 0):
      record['overflow']=True
      if stop_at is None:stop_at=time.monotonic();terminate(child,signal.SIGTERM)
     else:
@@ -77,6 +81,9 @@ try:
     line_buffers[key.data]+=b
     while b'\n' in line_buffers[key.data]:
      line,line_buffers[key.data]=line_buffers[key.data].split(b'\n',1)
+     if line in (b'[visual-frame] private-bus-output-failed',b'[visual-frame] trace-config-invalid',b'[visual-frame] trace-output-failed'):
+      record['collectionError']='decoder diagnostic collection failed'
+      if stop_at is None:stop_at=time.monotonic();terminate(child,signal.SIGTERM)
      if line==b'[R101-space-ready]':
       assert key.data=='monitor' and not ready
       child.stdin.write(b'continue\n');child.stdin.flush();ready=True;record['observerReady']=True
@@ -113,6 +120,9 @@ finally:
    try:
     if stream and not stream.closed:stream.close()
    except Exception as error:cleanup_errors.append(label+' pipe:'+type(error).__name__+':'+str(error))
+ if private_bus is not None:
+  record['privateBusBytes']=os.fstat(private_bus).st_size;os.close(private_bus)
+  if record['privateBusBytes']>65536 or record['savedBytes']+record['privateBusBytes']>cap:record['overflow']=True
  record['cleanupError']='; '.join(cleanup_errors) or None
  record['exit']=child.poll() if child else None
  record['signal']=-record['exit'] if record['exit'] is not None and record['exit']<0 else None

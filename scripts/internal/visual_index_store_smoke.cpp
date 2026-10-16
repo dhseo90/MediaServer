@@ -95,6 +95,17 @@ int main(int argc,char**argv){
         std::filesystem::remove(cache);std::filesystem::rename(outside,cache);
         Check(store.Save(*empty,&error)&&store.Load(contract,&loaded,&error)&&loaded->documents().empty()&&published->documents().size()==1,"atomic empty replacement and existing readers");
         Check(store.Save(*index,&error)&&store.Load(contract,&loaded,&error)&&loaded->documents().size()==1,"rebuild after replacement");
+        VisualIndexStore software(root/"cache",VisualDecodePolicy::SoftwareOnly);const auto old_reader=loaded;
+        Check(!software.Load(contract,&loaded,&error)&&error=="visual-cache-missing"&&loaded==old_reader,"policy mismatch cannot reuse Automatic embedding");
+        Check(software.Save(*empty,&error)&&software.Load(contract,&loaded,&error)&&loaded->documents().empty(),"SoftwareOnly cache same-policy roundtrip");
+        Check(store.Load(contract,&loaded,&error)&&loaded->documents().size()==1&&Read(cache)==original&&old_reader->documents().size()==1,"legacy cache and old reader preserved");
+        std::filesystem::path software_file;
+        for(const auto& e:std::filesystem::directory_iterator(root/"cache"))if(e.path().filename().string().rfind("visual-software-v1-",0)==0)software_file=e.path();
+        Check(!software_file.empty(),"policy namespace exists");const auto software_bytes=Read(software_file);Write(software_file,original);
+        Check(!software.Load(contract,&loaded,&error)&&error=="visual-cache-invalid","renamed legacy bytes cannot masquerade as SoftwareOnly");Write(software_file,software_bytes);
+        ::setenv("V430_VISUAL_STORE_FAIL_BEFORE_RENAME","1",1);
+        Check(!software.Save(*index,&error)&&Read(software_file)==software_bytes&&old_reader->documents().size()==1,"policy publication failure preserves both readers and prior cache");
+        ::unsetenv("V430_VISUAL_STORE_FAIL_BEFORE_RENAME");
 #endif
         std::cout<<"PASS visual store checks="<<checks<<"\n";return 0;
     }catch(const std::exception& e){std::cerr<<"FAIL "<<e.what()<<" checks="<<checks<<"\n";return 1;}

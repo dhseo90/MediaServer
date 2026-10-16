@@ -5242,3 +5242,7 @@ ID/시간/유효 재생 target을 대조한다. 비ns 변환·관측 혼합·eve
 ### V450-MEM129 — 동일 프로세스의 초기 게시 및 병행 재개
 
 기존 source-parallel 외부1회에서 초기 ready500초를 첫 결과로 판정하고 통과한 같은 프로세스의 원래12응답·aux200·새 게시·Recorder·Finish를 이어간다. 전체630초·기존입력/cache배치·Automatic·한도·gate는 불변이다. 초기 게시나 과거 bus 원인 해결을 실행 전 별도 PASS로 요구하지 않는다. opt-in 최초 bus의 정제 domain/canonical description(원문/debug 미수집·길이 제한)과 실패 후보/시간축만 연결하며 선택/반환/fallback은 불변이다. 합성 bus 단위검사에서 raw 경로/URI 미출력·첫 오류 보존·JSON/cleanup 형식을 확인한다. 실제 worker 실패/이전 게시본 보존은 관련 기존 worker focused 검사로 확인하며 Linux128 불변 범위는 재사용한다. 최초 실패와 내부시도·후처리·정리 오류를 분리하고 외부 재시도·900/45/120분은 금지한다.
+
+### V450-MEM130 — 저장 영상 색인 정책 후보와 private 최초 오류
+
+비공개 opt-in FD에서 최초 실제 GError/message/debug를 고정 길이로 보존한다. callback I/O 없이 NULL 뒤 출력하며 일반 로그에는 원문을 남기지 않는다. 합성 오류의 JSON escape/truncation/첫 오류/cleanup 분리와 전체 수집 한도를 확인한다. 동일 보존 원본·target·순서의 Automatic/SoftwareOnly 다중 파일 직접 대조는 실제 factory·RGB 형상/시각·FD/원본 불변을 기록한다. 정책 후보는 macOS 저장 MP4 색인에 한정하며 Linux/실시간/증거 정책은 불변이다. 정책별 파생 cache 분리·같은 정책 재사용·이전 게시본/reader·실패 미게시·현재성/cancel/Stop을 관련 focused 검사로 확인한다. 적격 후보만 기존 source-parallel 외부1회(ready500/전체630)로 초기 게시와 같은 프로세스 후속12응답/aux200/Recorder/게시/Finish를 각각 판정한다. 실패 뒤 재실행·900/45/120분은 하지 않는다.

@@ -24,7 +24,7 @@ class Process:
         return self.code
 
 class WrapperOutcomeTest(unittest.TestCase):
-    def outcome(self, proc, qualification_error=False, group_remains=False):
+    def outcome(self, proc, qualification_error=False, group_remains=False, private_bytes=None):
         tree = ast.parse(SOURCE.read_text())
         cleanup = next(n.finalbody for n in tree.body if isinstance(n, ast.Try) and n.finalbody)
         code = compile(ast.fix_missing_locations(ast.Module(body=cleanup, type_ignores=[])), str(SOURCE), 'exec')
@@ -37,10 +37,10 @@ class WrapperOutcomeTest(unittest.TestCase):
             return {'unitOnly': True}
         with tempfile.TemporaryDirectory(prefix='media-server-wrapper-unit-') as tmp:
             record = dict(runnerError='original runner failure', collectionError='original observer failure',
-                          qualificationError=None, cleanupError=None, groupAbsent=False, monitorExit=None)
-            context = dict(record=record, child=proc, monitor=None,
+                          qualificationError=None, cleanupError=None, groupAbsent=False, monitorExit=None, savedBytes=4*1024*1024-65536, overflow=False)
+            context = dict(record=record, child=proc, monitor=None, private_bus=3 if private_bytes is not None else None, cap=4*1024*1024,
                            sel=types.SimpleNamespace(close=lambda: None), terminate=lambda *args: None,
-                           os=types.SimpleNamespace(killpg=killpg), signal=signal,
+                           os=types.SimpleNamespace(killpg=killpg,fstat=lambda fd:types.SimpleNamespace(st_size=private_bytes),close=lambda fd:None), signal=signal,
                            subprocess=types.SimpleNamespace(TimeoutExpired=TimeoutError),
                            a=types.SimpleNamespace(action='run', mode='parallel'), qualify=qualify,
                            root=pathlib.Path(tmp), repo=SOURCE.parent, time=types.SimpleNamespace(monotonic=lambda: 2), t=1, json=json)
@@ -63,6 +63,17 @@ class WrapperOutcomeTest(unittest.TestCase):
         r=self.outcome(Process(0),group_remains=True)
         self.assertIn('group remained',r['cleanupError'])
         self.assertFalse(r['groupAbsent'])
+
+    def test_private_bytes_final_cap(self):
+        self.assertFalse(self.outcome(Process(0),private_bytes=65536)['overflow'])
+        self.assertTrue(self.outcome(Process(0),private_bytes=65537)['overflow'])
+    def test_private_failure_is_collection_failure(self):
+        tree=ast.parse(SOURCE.read_text())
+        node=next(n for n in ast.walk(tree) if isinstance(n,ast.If) and isinstance(n.test,ast.Compare) and "private-bus-output-failed" in ast.unparse(n.test))
+        calls=[];context=dict(line=b'[visual-frame] private-bus-output-failed',record={},stop_at=None,time=types.SimpleNamespace(monotonic=lambda:12),terminate=lambda *a:calls.append(a),child='child',signal=signal)
+        exec(compile(ast.fix_missing_locations(ast.Module(body=[node],type_ignores=[])),str(SOURCE),'exec'),context)
+        self.assertEqual(context['record']['collectionError'],'decoder diagnostic collection failed')
+        self.assertEqual(context['stop_at'],12);self.assertEqual(len(calls),1)
 
 if __name__=='__main__':
     unittest.main()
