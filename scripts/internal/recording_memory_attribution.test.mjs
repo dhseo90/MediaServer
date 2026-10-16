@@ -20,3 +20,9 @@ const late=complete();send(late,{...row,live:[]});assert.throws(()=>finishMemory
 const repeat=complete();send(repeat,repeat.last);assert.throws(()=>finishMemoryAttribution(repeat),/reversal/);
 const reverse=memoryAttributionCollector(42);send(reverse,{...row,phase:'sample'});assert.throws(()=>finishMemoryAttribution(reverse),/open/);
 console.log('[pass] R137 schema, late failure, final owners, phases and tail');
+
+const witness={peak:100,peakNs:2,atPeak:[100,...Array(14).fill(0)],unknownPeak:[20,2,100,1],atUnknownPeak:[20,...Array(14).fill(0)],unknownLive:[20,...Array(14).fill(0)],sites:Array.from({length:15},(_,i)=>i===0?[100,1,1,0,100,2,100,1,100,2,0,0,0]:Array(13).fill(0)),allocator:[true,true,4,5,100,200,300,1]};
+validateMemoryAttribution({...row,ticketWitness:witness},42);
+for(const change of [{peak:99},{unknownLive:Array(15).fill(0)},{atUnknownPeak:Array(15).fill(0)},{sites:[...witness.sites,witness.sites[0]]},{path:'/private/secret'},{allocator:[false,true,4,5,0,0,0,0]}])assert.throws(()=>validateMemoryAttribution({...row,ticketWitness:{...witness,...change}},42));
+const cap=memoryAttributionCollector(42);collectMemoryAttribution(cap,Buffer.from('[memory-attribution] '+ ' '.repeat(16385)+'\n'));assert.match(cap.error,/cap/);
+console.log('[pass] R138 witness same-domain sums, duplicate/unknown/coverage/privacy shape and unchanged output cap');

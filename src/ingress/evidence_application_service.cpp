@@ -35,7 +35,7 @@ EvidenceApplicationService::EvidenceApplicationService(recording::RecordingCatal
 ApplicationServiceResult EvidenceApplicationService::Create(const recording::SearchDocument& hit,
     const std::string& kind,const std::string& expected,const Authorize& authorize,bool observations){
     if(!authorize||!authorize(hit.channel_id))return Error(403,"recording-channel-forbidden");
-    auto response_memory=catalog_.SearchResidency()->ReserveOwned(8*1024*1024);
+    auto response_memory=catalog_.SearchResidency()->ReserveOwned(8*1024*1024,recording::SearchModelResidency::Category::Unattributed,recording::SearchModelResidency::Site::EvidenceResponse);
     if(!response_memory)return Error(503,"evidence-store-unavailable");
     if(!enabled_||stopped_)return Error(503,"evidence-disabled");
     if(!ready_)return Error(503,"evidence-store-unavailable");
@@ -67,7 +67,7 @@ ApplicationServiceResult EvidenceApplicationService::List(const Query& query,con
         (query.count("after")&&!recording::EvidencePackageStore::ValidId(Value(query,"after"))))return Error(400,"evidence-invalid-query");
     const auto channel=Value(query,"channelId");
     if(!authorize||!authorize(channel))return Error(403,"recording-channel-forbidden");
-    auto response_memory=catalog_.SearchResidency()->ReserveOwned(8*1024*1024);
+    auto response_memory=catalog_.SearchResidency()->ReserveOwned(8*1024*1024,recording::SearchModelResidency::Category::Unattributed,recording::SearchModelResidency::Site::EvidenceResponse);
     if(!response_memory)return Error(503,"evidence-store-unavailable");
     if(!enabled_||stopped_)return Error(503,"evidence-disabled");
     if(!ready_)return Error(503,"evidence-store-unavailable");
@@ -101,7 +101,7 @@ ApplicationServiceResult EvidenceApplicationService::Get(const std::string& id,c
     if(!file)return Error(error=="evidence-not-found"?404:503,"evidence-unavailable");
     const auto& manifest=file->manifest();
     if(!authorize||!authorize(manifest.channel_id))return Error(403,"recording-channel-forbidden");
-    auto response_memory=catalog_.SearchResidency()->ReserveOwned(8*1024*1024);
+    auto response_memory=catalog_.SearchResidency()->ReserveOwned(8*1024*1024,recording::SearchModelResidency::Category::Unattributed,recording::SearchModelResidency::Site::EvidenceResponse);
     if(!response_memory)return Error(503,"evidence-store-unavailable");
     if(manifest.schema!="media-server.evidence-package.v1")return Error(404,"evidence-unavailable");
     std::string current="[";bool comma=false;

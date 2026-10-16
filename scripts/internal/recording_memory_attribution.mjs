@@ -14,6 +14,13 @@ export function validateMemoryAttribution(row,pid){
  if(!row.tickets||Object.keys(row.tickets).length!==13||Object.values(row.tickets).some(a=>!Array.isArray(a)||a.length!==2||a.some(n=>!Number.isSafeInteger(n)||n<0)))throw Error('memory-attribution-tickets');
  const sum=Object.values(row.tickets).reduce((n,a)=>n+a[0],0);if(sum!==row.residencyUsed||row.tickets.unattributed[0]!==row.unattributedSearchBytes)throw Error('memory-attribution-ticket-sum');
  for(const [key,max,width] of [['models',128,7],['snapshotPools',16,10],['recentEvents',32,6]])if(!Array.isArray(row[key])||row[key].length>max||row[key].some(a=>!Array.isArray(a)||a.length!==width||a.some(n=>typeof n!=='boolean'&&(!Number.isSafeInteger(n)||n<0))))throw Error('memory-attribution-shape');
+ if(row.ticketWitness!==undefined){
+  const w=row.ticketWitness, num=n=>Number.isSafeInteger(n)&&n>=0, vec=(v,n)=>Array.isArray(v)&&v.length===n&&v.every(num), sum=v=>v.reduce((a,b)=>a+b,0);
+  if(Object.keys(w).sort().join(',')!=='allocator,atPeak,atUnknownPeak,peak,peakNs,sites,unknownLive,unknownPeak'||!num(w.peak)||!num(w.peakNs)||!vec(w.atPeak,15)||!vec(w.atUnknownPeak,15)||!vec(w.unknownLive,15)||!vec(w.unknownPeak,4)||!Array.isArray(w.sites)||w.sites.length!==15||w.sites.some(v=>!vec(v,13)))throw Error('memory-ticket-witness-shape');
+  if(sum(w.atPeak)!==w.peak||sum(w.atUnknownPeak)!==w.unknownPeak[0]||sum(w.unknownLive)!==row.unattributedSearchBytes||sum(w.sites.map(v=>v[0]))!==row.residencyUsed||w.unknownPeak[0]<row.unattributedSearchBytes||w.peak<row.residencyUsed||w.sites.some((v,i)=>v[0]<w.unknownLive[i]||v[0]>v[4]||v[8]>v[4]||v[2]+v[12]!==v[3]+v[1]))throw Error('memory-ticket-witness-sum');
+  const a=w.allocator;
+  if(!Array.isArray(a)||a.length!==8||typeof a[0]!=='boolean'||typeof a[1]!=='boolean'||!a.slice(2).every(num)||a[1]&&!a[0]||a[2]<row.processCapturedNs||a[3]<a[2]||a[3]>row.sampleEndNs)throw Error('memory-allocator-coverage');
+ }
  if(row.snapshotPools.some(p=>p[9]))throw Error('memory-attribution-pool-overflow');
  return row;
 }

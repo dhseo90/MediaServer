@@ -1,6 +1,7 @@
 // 파일 용도: bounded 숫자 귀속 표본. 원문/주소/질의/권한 문자열을 출력하지 않는다.
 #pragma once
 #include "recording/recording_memory_reservation.h"
+#include "recording/recording_allocator_diagnostic.h"
 #include <cstdarg>
 #include <cstdio>
 #include <unistd.h>
@@ -20,11 +21,20 @@ inline bool Emit(const SearchModelResidency& owner,const char* phase,bool(*sink)
 #if defined(__APPLE__)
     rusage_info_v4 usage{};if(proc_pid_rusage(getpid(),RUSAGE_INFO_V4,reinterpret_cast<rusage_info_t*>(&usage))==0){rss=usage.ri_resident_size;footprint=usage.ri_phys_footprint;}
 #endif
-    const auto process_at=Now();char line[16384];std::size_t offset=0;bool complete=true;
+    const auto process_at=Now();const auto allocator=AllocatorStatistics();char line[16384];std::size_t offset=0;bool complete=true;
     const auto add=[&](const char* format,auto... args){if(!complete)return;int n=0;if constexpr(sizeof...(args)==0)n=std::snprintf(line+offset,sizeof(line)-offset,"%s",format);else n=std::snprintf(line+offset,sizeof(line)-offset,format,args...);if(n<0||std::size_t(n)>=sizeof(line)-offset){complete=false;return;}offset+=n;};
     const auto u=[](std::uint64_t n){return static_cast<unsigned long long>(n);};
     add("[memory-attribution] {\"pid\":%d,\"phase\":\"%s\",\"sampleStartNs\":%llu,\"ownerCapturedNs\":%llu,\"rolesCapturedNs\":%llu,\"processCapturedNs\":%llu,\"rssBytes\":%lld,\"footprintBytes\":%lld,\"residencyUsed\":%llu,\"attributedSearchBytes\":%llu,\"unattributedSearchBytes\":%llu,\"valid\":%s,\"loss\":%s,\"tickets\":{",getpid(),phase,u(begin),u(ledger.capturedNs),u(roles_at),u(process_at),rss,footprint,u(ledger.used),u(ledger.attributed),u(ledger.unattributed),ledger.valid?"true":"false",loss?"true":"false");
     for(unsigned i=0;i<Names.size();++i)add("%s\"%s\":[%llu,%llu]",i?",":"",Names[i],u(ledger.bytes[i]),u(ledger.tickets[i]));
+    add("},\"ticketWitness\":{\"peak\":%llu,\"peakNs\":%llu,\"atPeak\":[",u(ledger.ticketPeak),u(ledger.ticketPeakNs));
+    for(unsigned i=0;i<ledger.atPeak.size();++i)add("%s%llu",i?",":"",u(ledger.atPeak[i]));
+    add("],\"sites\":[");
+    for(unsigned i=0;i<ledger.sites.size();++i){const auto& w=ledger.sites[i];
+        add("%s[%llu,%llu,%llu,%llu,%llu,%llu,%llu,%llu,%llu,%llu,%llu,%llu,%llu]",i?",":"",u(w.live),u(w.tickets),u(w.acquires),u(w.releases),u(w.peak),u(w.peakNs),u(w.peakTotal),u(w.peakTickets),u(w.largest),u(w.largestNs),u(w.lastReleaseNs),u(w.zeroNs),u(w.splits));}
+    add("],\"unknownPeak\":[%llu,%llu,%llu,%llu],\"atUnknownPeak\":[",u(ledger.unknownPeak),u(ledger.unknownPeakNs),u(ledger.unknownPeakTotal),u(ledger.unknownPeakTickets));
+    for(unsigned i=0;i<ledger.atUnknownPeak.size();++i)add("%s%llu",i?",":"",u(ledger.atUnknownPeak[i]));
+    add("],\"unknownLive\":[");for(unsigned i=0;i<ledger.unknownLive.size();++i)add("%s%llu",i?",":"",u(ledger.unknownLive[i]));
+    add("],\"allocator\":[%s,%s,%llu,%llu,%llu,%llu,%llu,%llu]",allocator.supported?"true":"false",allocator.called?"true":"false",u(allocator.beginNs),u(allocator.endNs),u(allocator.sizeInUse),u(allocator.sizeAllocated),u(allocator.maxSizeInUse),u(allocator.blocksInUse));
     add("},\"models\":[");bool first=true;for(const auto& m:models)if(m.id){add("%s[%llu,%llu,%llu,%llu,%s,%llu,%s]",first?"":",",u(m.id),u(m.bytes),u(m.documents),u(m.revision),m.current?"true":"false",u(m.snapshotReferences),m.publishedOnce?"true":"false");first=false;}
     add("],\"snapshotPools\":[");first=true;for(const auto& p:pools)if(p.key){add("%s[%llu,%llu,%llu,%llu,%llu,%llu,%llu,%llu,%llu,%s]",first?"":",",u(p.key),u(p.entries),u(p.bytes),u(p.matchBytes),u(p.references),u(p.uniqueModels),u(p.uniqueBytes),u(p.oldestExpiryNs),u(p.newestExpiryNs),p.incomplete?"true":"false");first=false;}
     add("],\"live\":[");for(unsigned i=0;i<live.size();++i)add("%s%llu",i?",":"",u(live[i]));add("],\"peak\":[");for(unsigned i=0;i<peak.size();++i)add("%s%llu",i?",":"",u(peak[i]));

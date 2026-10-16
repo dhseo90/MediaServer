@@ -116,7 +116,7 @@ bool EvidenceFrameExtractor::ExtractMedia(const std::string& channel, const std:
     // live image buffers (RGB, filtered rows, compressed IDAT, final PNG).
     constexpr std::size_t raw_max=(4096ULL*3+1)*2160;
     const auto image_budget=4096ULL*2160*3+raw_max+3*compressBound(raw_max)+64*1024;
-    auto image_memory=catalog_.SearchResidency()->ReserveOwned(image_budget);
+    auto image_memory=catalog_.SearchResidency()->ReserveOwned(image_budget,recording::SearchModelResidency::Category::Unattributed,recording::SearchModelResidency::Site::EvidenceImage);
     if(!image_memory)return Fail(error,"evidence-resource-unavailable");
     VisualRgbFrame decoded;
     // macOS 증거 요청은 처음부터 software-only다. 색인/실시간 경로의 기본 선택은 유지한다.

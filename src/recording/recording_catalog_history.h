@@ -78,7 +78,7 @@ public:
             if(!ReadChunks(kind,id,bytes,[&](std::string_view chunk,std::string* e){return split.Append(chunk,e);},error)||!split.Finish(error))return false;
             row.bytes=std::move(split.compact);row.memory=split.TakeMemory();row.event_reason=split.reason();*found=true;
         }else{
-            auto charge=MemoryOwner()->ReserveOwned(RecordingColdWorkspaceBytes(bytes,kind));
+            auto charge=MemoryOwner()->ReserveOwned(RecordingColdWorkspaceBytes(bytes,kind),SearchModelResidency::Category::Unattributed,SearchModelResidency::Site::HistoryRaw);
             if(!charge)throw RecordingResourceUnavailable();
             row.memory=std::move(*charge);
             if(!ReadValue(kind,id,bytes,exists,&row.bytes,found,error))return false;
@@ -254,7 +254,7 @@ public:
                 else {
                     // Plain visitors include snapshot export and summary parsing.
                     // Their raw row is still charged separately until callback return.
-                    auto work=MemoryOwner()->ReserveOwned(VisitorWorkspace(kind,value));
+                    auto work=MemoryOwner()->ReserveOwned(VisitorWorkspace(kind,value),SearchModelResidency::Category::Unattributed,SearchModelResidency::Site::HistoryVisitor);
                     if(!work)throw RecordingResourceUnavailable();
                     accepted=visitor(current,value,detail);
                 }
@@ -269,7 +269,7 @@ public:
             if(suffix=="m") {
                 if(!flush(detail))return false;
                 if(!ParseMeta(chunk,&bytes,&capacity,detail))return false;
-                auto ticket=MemoryOwner()->ReserveOwned(RecordingColdWorkspaceBytes(bytes,kind));
+                auto ticket=MemoryOwner()->ReserveOwned(RecordingColdWorkspaceBytes(bytes,kind),SearchModelResidency::Category::Unattributed,SearchModelResidency::Site::HistoryRaw);
                 if(!ticket){consumer_exception=std::make_exception_ptr(RecordingResourceUnavailable());return false;}
                 std::string replacement(static_cast<std::size_t>(bytes),'\0');
                 value.swap(replacement);raw_memory.swap(*ticket);

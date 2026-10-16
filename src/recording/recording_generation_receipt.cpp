@@ -236,7 +236,7 @@ bool ParseRecordingGenerationReceipt(const std::string& bytes,std::uint64_t admi
     if(!out||!admission||bytes.size()>admission)return Fail(error,"generation receipt admission/output invalid");
     SearchModelResidency::Reservation workspace;
     if(const auto& owner=RecordingScratchResidency::Current()){
-        auto reserved=owner->memory()->ReserveOwned(ingress::StrictJsonWorkspaceBytes(bytes,12,sizeof(RecordingGenerationOwnedFile),false));
+        auto reserved=owner->memory()->ReserveOwned(ingress::StrictJsonWorkspaceBytes(bytes,12,sizeof(RecordingGenerationOwnedFile),false),SearchModelResidency::Category::Unattributed,SearchModelResidency::Site::GenerationParse);
         if(!reserved)return Fail(error,"recording-resource-unavailable");
         workspace=std::move(*reserved);
     }

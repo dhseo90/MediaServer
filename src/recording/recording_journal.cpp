@@ -2121,7 +2121,7 @@ bool RecordingJournal::AcquireMutationLinkWithProof(const RecordingMutationLink&
                     if(field->size()>(SIZE_MAX-4096)/24-bytes)return Fail(error,"recording-resource-unavailable");
                     bytes+=field->size();
                 }
-                auto work=memory_->ReserveOwned(24*bytes+4096);
+                auto work=memory_->ReserveOwned(24*bytes+4096,SearchModelResidency::Category::Unattributed,SearchModelResidency::Site::JournalIdentity);
                 if(!work)return Fail(error,"recording-resource-unavailable");
                 *digest=SourceReadEnvelopeIdentity(mutation);
                 return !digest->empty()||Fail(error,"source proof identity unavailable");
@@ -2158,7 +2158,7 @@ bool RecordingJournal::AcquireMutationLinkWithProof(const RecordingMutationLink&
                        !GenerationStatSame(saved->active_binding,state.active_binding))proof->reset();
                     else {
                         if(row.length>(SIZE_MAX-131072)/2)return Fail(error,"recording-resource-unavailable");
-                        auto work=memory_->ReserveOwned(2*static_cast<std::size_t>(row.length)+131072);
+                        auto work=memory_->ReserveOwned(2*static_cast<std::size_t>(row.length)+131072,SearchModelResidency::Category::Unattributed,SearchModelResidency::Site::JournalProof);
                         if(!work)return Fail(error,"recording-resource-unavailable");
                         std::string raw;
                         try {raw.resize(static_cast<std::size_t>(row.length));}catch(...){proof->reset();}
@@ -2199,7 +2199,7 @@ bool RecordingJournal::AcquireMutationLinkWithProof(const RecordingMutationLink&
                 // and 64 KiB sequential hash buffer remain in the shared owner domain.
                 const auto length=row.length;
                 if(length>(SIZE_MAX-131072)/2)return Fail(error,"recording-resource-unavailable");
-                auto work=memory_->ReserveOwned(2*static_cast<std::size_t>(length)+131072);
+                auto work=memory_->ReserveOwned(2*static_cast<std::size_t>(length)+131072,SearchModelResidency::Category::Unattributed,SearchModelResidency::Site::JournalProof);
                 if(!work)return Fail(error,"recording-resource-unavailable");
                 const auto accepted=*location.first;
                 const auto manifest=state.active.manifest;
@@ -2256,7 +2256,7 @@ bool RecordingJournal::AcquireMutationLinkWithProof(const RecordingMutationLink&
                 const auto& row=state.active.rows[location.slot];
                 // active도 매번 현재 관리 FD에서 원문을 읽고 SHA를 검증한다.
                 if(row.length>(SIZE_MAX-131072)/2)return Fail(error,"recording-resource-unavailable");
-                auto work=memory_->ReserveOwned(2*static_cast<std::size_t>(row.length)+131072);
+                auto work=memory_->ReserveOwned(2*static_cast<std::size_t>(row.length)+131072,SearchModelResidency::Category::Unattributed,SearchModelResidency::Site::JournalProof);
                 if(!work)return Fail(error,"recording-resource-unavailable");
                 std::string current_identity;
                 if(compact_identity&&proof&&*proof&&!source_identity(row.mutation,&current_identity))return false;

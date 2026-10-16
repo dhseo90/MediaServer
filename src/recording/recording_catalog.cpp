@@ -372,7 +372,7 @@ std::optional<RecordingRetiredV2Receipt> RecordingCatalog::RetiredLocked(const s
     RecordingColdRow owned;const auto& bytes=owned.bytes;std::string error;bool found=false;
     if(!completed_history_->GetOwned("retired-v2",id,&owned,&found,&error)){derived_job_state_authoritative_=false;throw CatalogHistoryError(error);}
     if(!found)return {};
-    auto work=completed_history_->MemoryOwner()->ReserveOwned(ingress::StrictJsonWorkspaceBytes(bytes,7,sizeof(std::string),true));
+    auto work=completed_history_->MemoryOwner()->ReserveOwned(ingress::StrictJsonWorkspaceBytes(bytes,7,sizeof(std::string),true),SearchModelResidency::Category::Unattributed,SearchModelResidency::Site::CatalogSummary);
     if(!work)throw RecordingResourceUnavailable();
     RecordingRetiredV2Receipt value;if(!ParseRecordingRetiredV2Receipt(bytes,&value,&error)||value.segment_id!=id){derived_job_state_authoritative_=false;throw CatalogHistoryError("retired history domain mismatch");}
     BindRecordingRowMemory(value,*work,bytes.size());return value;
@@ -397,7 +397,7 @@ std::optional<RecordingCatalog::SourceBindingEntry> RecordingCatalog::SourceEntr
     if(!completed_history_)return {};
     RecordingColdRow owned;const auto& bytes=owned.bytes;std::string error;bool found=false;if(!completed_history_->GetOwned("source-binding",id,&owned,&found,&error)){derived_job_state_authoritative_=false;throw CatalogHistoryError(error);}
     if(!found)return {};
-    auto work=completed_history_->MemoryOwner()->ReserveOwned(ingress::StrictJsonWorkspaceBytes(bytes,7,sizeof(std::string),true));
+    auto work=completed_history_->MemoryOwner()->ReserveOwned(ingress::StrictJsonWorkspaceBytes(bytes,7,sizeof(std::string),true),SearchModelResidency::Category::Unattributed,SearchModelResidency::Site::CatalogSummary);
     if(!work)throw RecordingResourceUnavailable();
     RecordingCatalogSourceSummary value;SourceBindingEntry entry;
     if(!ParseRecordingCatalogSourceSummary(bytes,&value,&error)||value.id!=id||!journal_.MakeGenerationMutationLink(value.latest_mutation_id,&entry.mutation,&error)){
@@ -428,7 +428,7 @@ std::optional<RecordingCatalog::DerivedJobEntry> RecordingCatalog::JobEntryLocke
     RecordingColdRow owned;const auto& bytes=owned.bytes;std::string error;bool found=false;
     if(!completed_history_->GetOwned("derived-job",id,&owned,&found,&error)){derived_job_state_authoritative_=false;throw CatalogHistoryError(error);}
     if(!found)return {};
-    auto work=completed_history_->MemoryOwner()->ReserveOwned(ingress::StrictJsonWorkspaceBytes(bytes,7,sizeof(std::string),true));
+    auto work=completed_history_->MemoryOwner()->ReserveOwned(ingress::StrictJsonWorkspaceBytes(bytes,7,sizeof(std::string),true),SearchModelResidency::Category::Unattributed,SearchModelResidency::Site::CatalogSummary);
     if(!work)throw RecordingResourceUnavailable();
     RecordingCatalogJobSummary value;DerivedJobEntry entry;
     if(!ParseRecordingCatalogJobSummary(bytes,&value,&error)||value.id!=id||
@@ -4346,12 +4346,12 @@ RetentionSnapshot RecordingCatalog::RetentionCandidatesFromCut(RetentionSnapshot
     // rows carry their own tickets; paths/reasons receive a separate ticket.
     const auto count=selection==RetentionSnapshotSelection::Candidate?2:segments_.size()+segments_v2_.size()+1024;
     if(count>SIZE_MAX/(2*sizeof(RetentionCandidate)))throw RecordingResourceUnavailable();
-    auto memory=search_residency_->ReserveOwned(2*sizeof(RetentionCandidate)*count);
+    auto memory=search_residency_->ReserveOwned(2*sizeof(RetentionCandidate)*count,SearchModelResidency::Category::Unattributed,SearchModelResidency::Site::RetentionSlots);
     if(!memory)throw RecordingResourceUnavailable();
     snapshot.container_memory=std::move(*memory);snapshot.candidates.reserve(count);
     const auto reason_copy=[&](RetentionCandidate& candidate,const std::string& reason){
         if(reason.size()>(SIZE_MAX-512)/4)throw RecordingResourceUnavailable();
-        auto charge=search_residency_->ReserveOwned(512+4*reason.size());
+        auto charge=search_residency_->ReserveOwned(512+4*reason.size(),SearchModelResidency::Category::Unattributed,SearchModelResidency::Site::RetentionAuxiliary);
         if(!charge)throw RecordingResourceUnavailable();
         candidate.auxiliary_memory=std::move(*charge);candidate.deletion_reason=reason;
     };
@@ -4359,7 +4359,7 @@ RetentionSnapshot RecordingCatalog::RetentionCandidatesFromCut(RetentionSnapshot
         const auto path_bytes=options_.media_root.native().size()+relative.size()+2;
         if(path_bytes>(SIZE_MAX-512)/4||candidate.deletion_reason.size()>(SIZE_MAX-512-4*path_bytes)/4)
             throw RecordingResourceUnavailable();
-        auto charge=search_residency_->ReserveOwned(512+4*path_bytes+4*candidate.deletion_reason.size());
+        auto charge=search_residency_->ReserveOwned(512+4*path_bytes+4*candidate.deletion_reason.size(),SearchModelResidency::Category::Unattributed,SearchModelResidency::Site::RetentionAuxiliary);
         if(!charge)throw RecordingResourceUnavailable();
         candidate.auxiliary_memory=std::move(*charge);
         candidate.media_path=options_.media_root/std::filesystem::path(relative);

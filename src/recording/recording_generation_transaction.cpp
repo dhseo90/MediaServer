@@ -58,7 +58,7 @@ bool Read(int dir,const std::string& name,RecordingGenerationOwnedFile* out,unsi
     if(bytes){
         const auto& owner=RecordingScratchResidency::Current();
         if(!owner||!raw_charge||static_cast<std::uint64_t>(before.st_size)>SIZE_MAX-65)return false;
-        auto reserved=owner->memory()->ReserveOwned(static_cast<std::size_t>(before.st_size)+65);
+        auto reserved=owner->memory()->ReserveOwned(static_cast<std::size_t>(before.st_size)+65,SearchModelResidency::Category::Unattributed,SearchModelResidency::Site::GenerationRead);
         if(!reserved)throw RecordingResourceUnavailable();
         ticket=std::move(*reserved);
     }
@@ -143,7 +143,7 @@ struct RecordingGenerationTransaction::State {
         if(!encoded)return Fail(error,"recording-resource-unavailable");
         SearchModelResidency::Reservation copy_charge;
         if(!value.memory.bytes()){
-            auto ticket=resources->memory()->ReserveOwned(RecordingGenerationReceiptMemoryBytes(value));
+            auto ticket=resources->memory()->ReserveOwned(RecordingGenerationReceiptMemoryBytes(value),SearchModelResidency::Category::Unattributed,SearchModelResidency::Site::GenerationCopy);
             if(!ticket)return Fail(error,"recording-resource-unavailable");
             copy_charge=std::move(*ticket);
         }
@@ -436,7 +436,7 @@ bool RecordingGenerationTransaction::Cleanup(bool committed,std::string* error)t
         RecordingScratchResidency::Scope scope(s.resources);
         const auto bound=RecordingGenerationReceiptSerializationBytes(s.receipt);
         if(bound>(SIZE_MAX-65536)/4)return Fail(error,"recording-resource-unavailable");
-        auto encoded=s.resources->memory()->ReserveOwned(4*bound+65536);
+        auto encoded=s.resources->memory()->ReserveOwned(4*bound+65536,SearchModelResidency::Category::Unattributed,SearchModelResidency::Site::GenerationCleanup);
         if(!encoded)return Fail(error,"recording-resource-unavailable");
         SearchModelResidency::Reservation raw_charge;
         std::string expected,actual;RecordingGenerationOwnedFile manifest;
