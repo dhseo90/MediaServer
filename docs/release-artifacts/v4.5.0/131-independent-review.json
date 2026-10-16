@@ -1,0 +1,54 @@
+{
+  "schema": "media-server.v450.r131.independent-review.v1",
+  "reviewer": {
+    "agent": "/root/independent_r131",
+    "requested": "gpt-6-astra/high",
+    "toolAccepted": "gpt-6-astra/high",
+    "actualModel": null,
+    "actualEffort": null,
+    "independence": "read-only source/results; no implementation/test authoring/execution/subdelegation"
+  },
+  "decision": "SCOPED_SAFETY_AND_COST_IMPROVEMENT_SUPPORTED_FULL_DIRECT_FAIL_COLD_NOT_QUALIFIED",
+  "resolvedFindings": [
+    "optional retry span metadata must not consume vector slack or create new capacity reject: discard optional spans before document capacity",
+    "legacy scope/source fixtures did not enter cold raw reuse: added actual generation/cold direct fixture and reusedSegments>0 oracle",
+    "prior batch must be consumed once, including partial move failure; current lifecycle rechecked before reuse"
+  ],
+  "product": "No unresolved safety blocker in reviewed scoped diff. Periodic preparation retains current policy/free/reservation/Apply under admission; raw digest reuse still authenticates entire current raw. No increased budgets/queue/fallback.",
+  "focused": {
+    "mac": "actualgeneration retry22, legacy source69/scope26, periodic policy boundaries, retention, continuity/readback",
+    "linux": "native owned/tmp all related results exit0; GStreamerON ORT/SigLIP2OFF; host-bind permission failure separately retained",
+    "limits": "cold retry synthetic file-evidence warnings are not decoder proof; focused Finish with live batches is not last-owner0 proof"
+  },
+  "result": {
+    "original12": "12 HTTP200; p953086.13ms FAIL vs2000; max3086.13 within5000 (max criterion passes)",
+    "Recorder": "2498/2498,queue0,42files; shortwarm acceptance only; callbacks still multi-second",
+    "publication": "generation2/docs3798/new52 and current binding observed",
+    "aux": "client5.002077s/0B/noheaders/errno35; separate server5.215690s/503visual-source-changed; no complete publicfresh result",
+    "termination": "exception guard Stop/Finishok1; final storage destruction logicalRAM/scratch/FD0; not normal successful gate or wholeheap proof",
+    "collection": "exit1/81.174s; no runner/collection/cleanup error; groupAbsent",
+    "notRun": [
+      "closedjournal followup",
+      "finalcold",
+      "900/45/120"
+    ],
+    "historical": "R129 cause unknown and R130 complete concurrent FAIL retained"
+  },
+  "cost": "preBuild retry1253reused/decode1/parse0,Capture1.008->0.580s; postBuild currentness retry remains Capture/Build repeated,2.640s preparationhold. Nested costs not summed; all response problems not solved.",
+  "bindingDecision": "producer then readback then coverage allowed; canonical986/digest8977e9b6ac618c7e0233823f6acb6ab1fcf7461206ee5d8b2a4149a643519e3a unchanged, not product performance qualification",
+  "preservation": {
+    "decision": "no preservation blocker",
+    "archiveBytes": 68542583,
+    "archiveSha256": "09c8bf98a2106e17cc0a8890a1b2de37b55563a33d968c922b5d19a00ade17d1",
+    "regularMembers": 497,
+    "payloadsVerified": 496,
+    "checks": "all saved/source size/hash and sanitizer transform match; no duplicates/missing members; four binary bindings, final runtime+18source match; four delta maps46/44/45/45 and emptydeletedlists match;125/130/supplementreference bytes match",
+    "limits": "producer/readback/coverage subsequent results in131-binding.json, not this execution archive"
+  },
+  "remaining": [
+    "full direct latency/aux/closedjournal",
+    "longrun Recorder gaps",
+    "memoryP0/releasehold"
+  ],
+  "bindingDiffReview": "Read-only verified exactly7scalar changes: inventoryhash1, MEDIA-012 currentSharedStreamhash4, deriveddigest2; no change to old approvals/times/flows/candidate."
+}

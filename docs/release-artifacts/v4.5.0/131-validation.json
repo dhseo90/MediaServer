@@ -1,0 +1,713 @@
+{
+  "schema": "media-server.v450.r131.validation.v1",
+  "status": "SCOPED_PERIODIC_PREPARATION_AND_RETRY_COST_IMPROVEMENT_WARM_RECORDER_PASS_FULL_DIRECT_FAIL",
+  "baseline": "9de8f1945091c7c81ef1a9c8897d7e4e1708d655",
+  "model": {
+    "mainRequested": "gpt-6-astra/high",
+    "mainToolAccepted": null,
+    "mainActualModel": null,
+    "mainActualEffort": null,
+    "reviewRequested": "gpt-6-astra/high",
+    "reviewToolAccepted": "gpt-6-astra/high",
+    "reviewActualModel": null,
+    "reviewActualEffort": null
+  },
+  "entry": "clean v4.5.0, local/remote baseline equal; no user changes overwritten",
+  "scope": {
+    "changes": [
+      "RunPeriodic uses existing authenticated private All preparation outside admission_mu_; current pending/recovery/policy/reservations/free/Apply still under admission at final cut",
+      "existing16MiB parsed segment cache owns SHA256+length instead of duplicate raw string; every lookup still authenticates entire current raw and mismatches strict-parse",
+      "request-local recordings-only preBuild source-changed retry moves authenticated matching segment document spans after current raw/lifecycle checks; same existing3attempts, both batches and metadata charged, optional metadata yields to document capacity",
+      "bounded periodic/Recorder/writer timing; warm publication wait requires actual fresh immutable membership within unchanged30s"
+    ],
+    "unchanged": [
+      "130 macOS software index/cache policy",
+      "Linux/realtime/evidence policies",
+      "640MiB/64MiB/16MiB and all queue/cache/time/quota limits",
+      "current raw/permission/source/hold/delete/ready/fsync/durable semantics",
+      "cold ready500/total630 and original12+aux200 gates"
+    ]
+  },
+  "input": {
+    "mode": "warm diagnostic, source-parallel; not cold final qualification",
+    "reconstruction": "125 original +13053delta -snapshot-16.jsonl per130-preservation-supplement; 2900files and same-policy cache3699; reopened not historical live readers",
+    "binding": "131-execution.tar.gz:records/input-binding.json maps.warm",
+    "preparationCorrection": "first2runs inherited archive0644 writer lock: Save refused; only owned laterseed lock changed0600; bytes unchanged, old failures retained",
+    "profile": "continuous-r114/108MiB channel/S71237/default64MiB; existing preparation/live space policies",
+    "plan": "before1 then one after each real product change; no samebinary success-seeking repeat; compilation/other tests not concurrent with performance"
+  },
+  "executions": [
+    {
+      "name": "r131before-run",
+      "elapsedSeconds": 79.29643754195422,
+      "exit": 1,
+      "p95Ms": 2876.7,
+      "source": [
+        {
+          "expected": 2472,
+          "accepted": 2296,
+          "files": 44,
+          "fullAcceptance": 0
+        }
+      ],
+      "queueDrops": 107,
+      "membership": [],
+      "failure": [
+        "[R107-fail] normal-source-acceptance"
+      ],
+      "explicitFinish": [
+        {
+          "ok": 1
+        }
+      ],
+      "bindingPresent": true,
+      "rawAndAnalysis": "archive/warm/r131before-run/output.log and analysis/r131before-run.json"
+    },
+    {
+      "name": "r131after-run",
+      "elapsedSeconds": 82.04082937492058,
+      "exit": 1,
+      "p95Ms": 3946.04,
+      "source": [
+        {
+          "expected": 2504,
+          "accepted": 2504,
+          "files": 42,
+          "fullAcceptance": 1
+        }
+      ],
+      "queueDrops": 0,
+      "membership": [],
+      "failure": [
+        "[R107-fail] publication-failed"
+      ],
+      "explicitFinish": [
+        {
+          "ok": 1
+        }
+      ],
+      "bindingPresent": false,
+      "rawAndAnalysis": "archive/warm/r131after-run/output.log and analysis/r131after-run.json"
+    },
+    {
+      "name": "r131identity-run",
+      "elapsedSeconds": 71.94938829098828,
+      "exit": 1,
+      "p95Ms": 3945.92,
+      "source": [
+        {
+          "expected": 2505,
+          "accepted": 2505,
+          "files": 42,
+          "fullAcceptance": 1
+        }
+      ],
+      "queueDrops": 0,
+      "membership": [
+        {
+          "generation": 1,
+          "documents": 3746,
+          "newDocuments": 0,
+          "instance": "9767ad0d41e573cdf2a94c9c3d7374ed"
+        }
+      ],
+      "failure": [
+        "[R107-fail] published new document membership"
+      ],
+      "explicitFinish": [
+        {
+          "ok": 1
+        }
+      ],
+      "bindingPresent": true,
+      "rawAndAnalysis": "archive/warm/r131identity-run/output.log and analysis/r131identity-run.json"
+    },
+    {
+      "name": "r131retryverified-run",
+      "elapsedSeconds": 81.17357970797457,
+      "exit": 1,
+      "p95Ms": 3086.13,
+      "source": [
+        {
+          "expected": 2498,
+          "accepted": 2498,
+          "files": 42,
+          "fullAcceptance": 1
+        }
+      ],
+      "queueDrops": 0,
+      "membership": [
+        {
+          "generation": 2,
+          "documents": 3798,
+          "newDocuments": 52,
+          "instance": "5304483c4ad15b1ead28437d77f52745"
+        }
+      ],
+      "failure": [
+        "[R107-fail] client receive failed"
+      ],
+      "explicitFinish": [
+        {
+          "ok": 1
+        }
+      ],
+      "bindingPresent": true,
+      "rawAndAnalysis": "archive/warm/r131retryverified-run/output.log and analysis/r131retryverified-run.json"
+    }
+  ],
+  "causality": {
+    "baseline": "first Open/admission3.058/3.083s; periodic private snapshot2011.108ms under admission; wait1740.294/1776.863ms overlaps observed periodic lock interval. Finalize maxima69.6/78.8ms; R130 historical3.5sFinalize not reproduced by this baseline",
+    "latestCommonBoundary": "selected complete holder interval CaptureSearchSource[24747277876,25755609251]ns holds1008.331ms; writer ValidateBoundFinalizeRecoveryV2 waits997.551/997.833ms and visual ReadVisualSource waits1008.004ms overlapping same hold. Writer maxcallbacks ordinal61 include this durable-commit wait plus nextOpen, not admission alone",
+    "retryBenefit": "first request Capture1.008338s; existing retry reuse1253segments,decode1,parse0,Capture0.580317s (includes lock wait). Matching raw and current lifecycle maintained. No independent sum of nested phases",
+    "remaining": "third structured request postBuild currentness failure is outside preBuild batch reuse: Capture0.986702+Build0.425311, then Capture0.850237+Build0.280156; preparationhold2.640351s. Same wave visual Catalogwait2.522/2.542s, but selected holder windows do not cover those requests. Current source captures remain long Catalog work; unknown CPU/I/O remainder not assigned",
+    "noHistoricalReconstruction": "R130 residual155 and pastbus cause remain unknown; selected windows and maxima are not full traces",
+    "comparisonLimits": "First two warm runs had cache writer mode preparation failure; later runs restored required0600 only in owned seed. Baseline vs final is not a single-variable publication or overall latency improvement: baselinep952876.70, final3086.13. Retry phase1.008->0.580 is successive source revisions of one request, not an independent fixed-state A/B."
+  },
+  "latest": {
+    "initialPublication": {
+      "origin": "cache",
+      "documents": 3699,
+      "generation": null,
+      "meaning": "warm ready, not new cold rebuild proof"
+    },
+    "newPublication": {
+      "generation": 2,
+      "documents": 3798,
+      "newDocuments": 52,
+      "instance": "5304483c4ad15b1ead28437d77f52745"
+    },
+    "httpOriginal12": {
+      "count": 12,
+      "wireStatus200": 12,
+      "p95Ms": 3086.13,
+      "maxMs": 3086.13,
+      "qualifier": "FAIL p95",
+      "helperFinalLatencyAssertion": "not-run after aux receive failure"
+    },
+    "auxiliary200": {
+      "client": {
+        "id": 100,
+        "scope": "auxiliary200",
+        "route": "/ops/api/recordings/visual-search?channelIds=9101,9201&text=ball&limit=200&threshold=-1",
+        "beginNs": 1439975287796666,
+        "endNs": 1439980289873625,
+        "bytes": 0,
+        "headers": false,
+        "status": 0,
+        "errno": 35,
+        "failure": "recv",
+        "headerNs": null,
+        "receiveEndNs": null,
+        "validationEndNs": null,
+        "bindingEndNs": null,
+        "outputEndNs": null,
+        "bindingNs": 0,
+        "bindingCalls": 0
+      },
+      "clientElapsedMs": 5002.076959,
+      "server": {
+        "id": 7,
+        "status": 503,
+        "code": "visual-source-changed",
+        "startNs": 69466477334,
+        "elapsedNs": 5215690042,
+        "generation": 2,
+        "documents": 3798,
+        "phases": [
+          [
+            1,
+            5215689625
+          ],
+          [
+            1,
+            667
+          ],
+          [
+            1,
+            40716000
+          ],
+          [
+            2,
+            166
+          ],
+          [
+            2,
+            40714542
+          ],
+          [
+            1,
+            1416
+          ],
+          [
+            1,
+            40692792
+          ],
+          [
+            1,
+            4458402333
+          ],
+          [
+            401,
+            4812495871
+          ],
+          [
+            480,
+            136185551
+          ],
+          [
+            401,
+            2594048712
+          ],
+          [
+            401,
+            1017166458
+          ],
+          [
+            79,
+            135953460
+          ],
+          [
+            1,
+            502125292
+          ],
+          [
+            3798,
+            6294791
+          ],
+          [
+            421,
+            4450313418
+          ],
+          [
+            401,
+            206732914
+          ]
+        ],
+        "counters": [
+          401,
+          79,
+          203,
+          421,
+          3798,
+          0
+        ],
+        "locks": [
+          [
+            3846,
+            1449803956,
+            2120784028
+          ],
+          [
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0
+          ]
+        ],
+        "journalCostNs": [
+          55825671,
+          706054658,
+          27015248,
+          621962068
+        ],
+        "catalogRowCost": [
+          4247,
+          305688260,
+          0,
+          0,
+          3044,
+          85927822,
+          3846,
+          51586648,
+          3846,
+          53697924,
+          11538,
+          164410269
+        ],
+        "segmentDecodeCost": [
+          4247,
+          3834,
+          155808795,
+          93793
+        ],
+        "historyNodeReads": 683787
+      },
+      "meaning": "client had no headers/0B/errno35 at5.002s; later server503visual-source-changed at5.216s was not received; error name alone does not prove external source modification; public new-result check not-run"
+    },
+    "recorder": {
+      "expected": 2498,
+      "accepted": 2498,
+      "files": 42,
+      "fullAcceptance": 1
+    },
+    "queue": [
+      {
+        "enqueued": 1249,
+        "dequeued": 1249,
+        "dropped": 0,
+        "payloadBytes": 692752,
+        "maxDepth": 72,
+        "maxBytes": 38969,
+        "firstNs": 22739742751,
+        "lastNs": 64408427959,
+        "minInputGapNs": 23284167,
+        "maxInputGapNs": 43424625,
+        "queueWaitNs": 740320475929,
+        "maxQueueWaitNs": 2392787375,
+        "callbackNs": 31787674085,
+        "maxCallbackNs": 2426196708,
+        "firstDepth64Ns": 26884840334,
+        "firstDropNs": 0,
+        "maxCallbackBeginNs": 24749712626,
+        "maxCallbackOrdinal": 61
+      },
+      {
+        "enqueued": 1249,
+        "dequeued": 1249,
+        "dropped": 0,
+        "payloadBytes": 692752,
+        "maxDepth": 73,
+        "maxBytes": 39482,
+        "firstNs": 22745049417,
+        "lastNs": 64419839251,
+        "minInputGapNs": 23384458,
+        "maxInputGapNs": 50867833,
+        "queueWaitNs": 787028594957,
+        "maxQueueWaitNs": 2432248083,
+        "callbackNs": 32469680683,
+        "maxCallbackNs": 2467370209,
+        "firstDepth64Ns": 26889282001,
+        "firstDropNs": 0,
+        "maxCallbackBeginNs": 24746619167,
+        "maxCallbackOrdinal": 61
+      }
+    ],
+    "finish": {
+      "explicitStopFinish": "exception guard serverStop+visualStop+Finishok1",
+      "normalSuccessPath": false,
+      "closedJournal": "not-run because wrapper qualifier fails first",
+      "finalOwner": {
+        "pid": 19994,
+        "seq": 6,
+        "phase": "after-storage-destruction",
+        "elapsedMs": 78610,
+        "ram": 0,
+        "ramPeak": 295904634,
+        "ramLimit": 671088640,
+        "ramRejected": 0,
+        "scratchDisk": 0,
+        "scratchDiskPeak": 271855616,
+        "scratchDiskLimit": 161059553280,
+        "scratchFd": 0,
+        "scratchFdPeak": 8,
+        "scratchFdLimit": 1048571,
+        "scratchRam": 0,
+        "preservedDisk": 0,
+        "preservedFd": 0,
+        "readerCleanupHealthy": true
+      },
+      "finishedOwner": {
+        "pid": 19994,
+        "seq": 5,
+        "phase": "finished",
+        "elapsedMs": 78561,
+        "ram": 90939664,
+        "ramPeak": 295904634,
+        "ramLimit": 671088640,
+        "ramRejected": 0,
+        "scratchDisk": 0,
+        "scratchDiskPeak": 271855616,
+        "scratchDiskLimit": 161059553280,
+        "scratchFd": 0,
+        "scratchFdPeak": 8,
+        "scratchFdLimit": 1048571,
+        "scratchRam": 0,
+        "preservedDisk": 0,
+        "preservedFd": 0,
+        "readerCleanupHealthy": true
+      }
+    },
+    "resource": {
+      "sampleCount": 80,
+      "statistics": {
+        "rssBytes": {
+          "min": 32768,
+          "max": 3076669440,
+          "last": 1994440704
+        },
+        "footprintBytes": {
+          "min": 81992,
+          "max": 3467300368,
+          "last": 1963297408
+        },
+        "fdCount": {
+          "min": 4,
+          "max": 412,
+          "last": 411
+        },
+        "anonymousFileBytes": {
+          "min": 0,
+          "max": 1168183808,
+          "last": 70320128
+        },
+        "anonymousAllocatedBytes": {
+          "min": 0,
+          "max": 1183297536,
+          "last": 72855552
+        }
+      },
+      "logicalPeak": {
+        "pid": 19994,
+        "seq": 6,
+        "phase": "after-storage-destruction",
+        "elapsedMs": 78610,
+        "ram": 0,
+        "ramPeak": 295904634,
+        "ramLimit": 671088640,
+        "ramRejected": 0,
+        "scratchDisk": 0,
+        "scratchDiskPeak": 271855616,
+        "scratchDiskLimit": 161059553280,
+        "scratchFd": 0,
+        "scratchFdPeak": 8,
+        "scratchFdLimit": 1048571,
+        "scratchRam": 0,
+        "preservedDisk": 0,
+        "preservedFd": 0,
+        "readerCleanupHealthy": true
+      },
+      "limits": "Phase summary retained: RSS maximum occurred in live, anonymous-file maximum in model preparation. Existing preparation/live accounting differs; logical640MiB is not RSS cap. No sum of asynchronous maxima. Final logical0 does not prove heap/OS leak freedom.",
+      "collection": [
+        {
+          "samples": 80,
+          "endedObserved": true
+        }
+      ],
+      "holder": [
+        {
+          "version": 2,
+          "records": 3054,
+          "loss": false,
+          "inflight": 0,
+          "endNs": 74743705626,
+          "requests": [
+            1,
+            2,
+            3
+          ],
+          "windows": [
+            24746918251,
+            24746934542,
+            27469527501
+          ],
+          "ends": [
+            27469091751,
+            27458269001,
+            29421398209
+          ]
+        }
+      ],
+      "phaseSummary": {
+        "initial": {
+          "count": 23,
+          "rssMax": 55558144,
+          "footprintMax": 33292936,
+          "anonymousAllocatedMax": 86241280,
+          "rootTotalMax": 222642304,
+          "rootCaps": [
+            469762048
+          ],
+          "combinedMax": 222642304,
+          "combinedCaps": [
+            939524096
+          ],
+          "validComplete": true,
+          "capExceededSamples": 0
+        },
+        "live": {
+          "count": 53,
+          "rssMax": 3076669440,
+          "footprintMax": 3467300368,
+          "anonymousAllocatedMax": 180207616,
+          "rootTotalMax": 319317934,
+          "rootCaps": [
+            469762048
+          ],
+          "combinedMax": 319317934,
+          "combinedCaps": [
+            939524096
+          ],
+          "validComplete": true,
+          "capExceededSamples": 0
+        },
+        "model": {
+          "count": 4,
+          "rssMax": 511754240,
+          "footprintMax": 472417384,
+          "anonymousAllocatedMax": 1183297536,
+          "rootTotalMax": 136428876,
+          "rootCaps": [
+            469762048
+          ],
+          "combinedMax": 136428876,
+          "combinedCaps": [
+            939524096
+          ],
+          "validComplete": true,
+          "capExceededSamples": 0
+        }
+      }
+    },
+    "collection": "normal no timeout/overflow/collection/runner/cleanup error; monitor0 groupAbsent",
+    "actualInput": [
+      {
+        "enqueued": 1249,
+        "elapsedNs": 41668685208,
+        "endpointPacketRate": 29.950549045891076,
+        "minInputGapNs": 23284167,
+        "maxInputGapNs": 43424625,
+        "meaning": "observed enqueue arrivals per subscriber; endpoint average not proof against short bursts"
+      },
+      {
+        "enqueued": 1249,
+        "elapsedNs": 41674789834,
+        "endpointPacketRate": 29.94616181559794,
+        "minInputGapNs": 23384458,
+        "maxInputGapNs": 50867833,
+        "meaning": "observed enqueue arrivals per subscriber; endpoint average not proof against short bursts"
+      }
+    ]
+  },
+  "focused": {
+    "macOS": [
+      "retention65/0",
+      "actual generation request-proof policy/quota/hold/completion/parallel/exception/unlink cases",
+      "continuity normal120/120 and forced310/257/drop53/accepted251 plus separate readback",
+      "legacy source69 and scope26",
+      "actual generation/cold retry22/0 with reusedSegments>0 and no-reuse independent full-document comparison"
+    ],
+    "Linux": {
+      "image": "mediaserver-v450-verify:rc58-arm64",
+      "imageId": "sha256:ce72c8a15363984da642e9964189957896812061c6af1d0ef67e87b38ad5a588",
+      "isolation": "uid501:20 networknone cap-dropALL no-new-privileges; repository read-only; owned native/tmp cases",
+      "results": "all native-results/results.json commands exit0; retention65/0 in verified results",
+      "scope": "GStreamerON ORT/SigLIP2OFF; not macOS embedding/HTTP equivalence"
+    },
+    "preservedFailures": [
+      "first strictC++17 build structured-binding capture warning; corrected ordinary loop variable",
+      "Linux missing continuity CLI arguments; corrected invocation",
+      "Linux misleading-indentation Werror; formatting corrected",
+      "host bind copy_file permission failure before source execution; native owned /tmp identical input passed, underlying host permission cause not generalized"
+    ],
+    "limitations": [
+      "synthetic cold retry file-evidence profile/bound warning is not decoder success proof",
+      "legacy tests did not execute authenticated cold raw reuse; new actualgeneration fixture does",
+      "focused Finish with live batches not last-owner0 proof; actual warm final destruction separately observed"
+    ]
+  },
+  "independentReview": "131-independent-review.json",
+  "binding": {
+    "executionHead": "9de8f1945091c7c81ef1a9c8897d7e4e1708d655",
+    "latest": {
+      "baseline": "9de8f1945091c7c81ef1a9c8897d7e4e1708d655",
+      "sourceFiles": {
+        "docs/project-feature-test-inventory.md": "6b8fd47069bfb5025b615a2c0718283d5db02f56f6fab70ee4e3596acea126fb",
+        "include/core/shared_stream.h": "f94da9e706e2401c7cf9f5df14b6f318ec1d07c2928fb6ddb5a4fec05be6dd7d",
+        "include/recording/recording_catalog.h": "4e9252dc0ad0601093a4f113ad4e446282d14056214a67507a4d16c61fad6734",
+        "include/recording/recording_retained_rows.h": "f70ae10a73830f26d65f0669c425e1f3e37b61bc31efe6665eb1331471772eee",
+        "include/recording/recording_search_reader.h": "ab8ff33197f5ae1a929b58a0a5889b7b0f60f487d81ca9aa21a15038ea3f5c61",
+        "include/recording/recording_search_source.h": "850bccfe04f48608688227c462a465dabaebb6eb3c2669151838457c4a445516",
+        "include/recording/retention_coordinator.h": "e518893b5e00a8ea103ac3aa8a45a7787f15639a993e14fd8881a616fc31c231",
+        "scripts/internal/recording_degraded_http_smoke.cpp": "d1cd8984807964792c5cebc5247091a0dc5481b0f374d5d4b0386eba676b94c7",
+        "scripts/internal/recording_generation_request_proof_smoke.cpp": "cec79f982515eba14c42bd0b4c8b84b7128f56c45f2a2cfa63ef032e8f6a175f",
+        "scripts/internal/recording_search_retry_smoke.cpp": "027a67cabb1248074bd10edcf84400cbfb201a70ccae59103c36b9d6b298df1e",
+        "scripts/internal/recording_search_scope_smoke.cpp": "ac0798e7a3c2935b4dfd327d93e992065fcbc6221b45773d7366958864e04d5f",
+        "scripts/internal/recording_search_source_smoke.cpp": "265036146fab95bb240c52d34a2d8ec523464ffc81ab8c254f9bda4843b17c01",
+        "src/core/shared_stream.cpp": "aa5dda0352235b39233ee4833f5b452969ee6c7eae64c2b7aedfd211c1fd57bc",
+        "src/ingress/recording_search_application_service.cpp": "81c67f6a7778c5420bb0cb55460381eb7587c787937439384373609f0d660f07",
+        "src/recording/gstreamer_segment_writer.cpp": "7cf504decbf738b7fa829c570f1746ca73088d69e04454b8ffcad8d62acbeb9d",
+        "src/recording/recording_search_reader.cpp": "fedc1d029377e7f2fc46d49b5a65b101a59f86bf365d98e0515a8f7a93ee3b6f",
+        "src/recording/recording_search_source.cpp": "c850072516b7b62bb3abb30409ffd8213a3ce0ba24763b861fe9a1a3e6d054ac",
+        "src/recording/retention_coordinator.cpp": "efa95aaa3309426476bfcba2ee850eefee9be7f1f1220eedcbec0c48458e055d"
+      },
+      "linkedRuntimeSha256": "037edfc598850bcac8a21d2138ff295ed3f2a058c9b2d4f66b564bba06a771bb",
+      "binarySha256": "d84e11c430f9e133bc26b946b047a845dd58b99acaeb77a20014a620ec901859",
+      "buildRecord": "warm/r131retryverified-build/execution.json",
+      "scope": "R131 periodic + current-raw parsed memo + request-local retry; warm diagnostic only"
+    },
+    "priorLimit": "r131after execution buildBinding=null preserved; separate original build command/result and binary hash exist, not retroactively replaced with final source binding",
+    "canonicalCandidateDigest": "8977e9b6ac618c7e0233823f6acb6ab1fcf7461206ee5d8b2a4149a643519e3a",
+    "candidateItems": 986,
+    "producerReadbackCoverage": {
+      "result": "PASS",
+      "producer": "51/0",
+      "readback": "validationErrors0/review4GlobalErrors0/negative15of15",
+      "coverage": "9/0;986covered/0missing",
+      "record": "131-binding.json",
+      "meaning": "not product performance qualification"
+    }
+  },
+  "notRun": [
+    "final cold source-parallel (warm HTTP/aux conditions not met)",
+    "900s",
+    "45min",
+    "120min",
+    "full acceptance",
+    "full UI",
+    "release"
+  ],
+  "remaining": [
+    "next narrow boundary: whole current Capture under Catalog and postBuild currentness invalidation; aux401preparations/351unique/50reprepare with Catalogwait1.450s/hold2.121s. Preserve raw authentication and bounded ownership rather than expanding limits.",
+    "normal accumulated original12p95 and auxiliary200 complete5s response",
+    "same successful run publicfresh result/closedjournal",
+    "multi-second callback still observed although short normal acceptance passed",
+    "longrun Recorder gaps/searchlatency",
+    "historical Automaticbus rootcause",
+    "memoryP0/releasehold"
+  ],
+  "cleanup": {
+    "status": "pending remote preservation and owned-only cleanup"
+  },
+  "archive": {
+    "path": "docs/release-artifacts/v4.5.0/131-execution.tar.gz",
+    "bytes": 68542583,
+    "sha256": "09c8bf98a2106e17cc0a8890a1b2de37b55563a33d968c922b5d19a00ade17d1",
+    "members": 497,
+    "payloadReadback": "PASS",
+    "references": {
+      "docs/release-artifacts/v4.5.0/125-execution.tar.gz": {
+        "bytes": 58516159,
+        "sha256": "39eeb7708486378f919c10c82e4a3ba059d0c82f7874a1617559e7beb95eb83b"
+      },
+      "docs/release-artifacts/v4.5.0/130-execution.tar.gz": {
+        "bytes": 18917815,
+        "sha256": "7ec0f4531532810eaa29905512ae328d7ba167fa1b48627576afd2897a897b2f"
+      },
+      "docs/release-artifacts/v4.5.0/130-preservation-supplement.json": {
+        "bytes": 1505,
+        "sha256": "3b31f6b54289deff57c86442352f1979d67372c8e7f763b44ad8a850083c3c68"
+      }
+    }
+  },
+  "independentPreservation": "497 members and all496payload/source/sanitizer bytes independently verified; no preservation blocker",
+  "commits": {
+    "product": "b38aad0a350f9e8a9df33462ed17893b66f143ab",
+    "testsAndBinding": "61e338f82e2c8cda41c5d44c17226eef4216adee",
+    "execution": "baseline HEAD9de8f1945091c7c81ef1a9c8897d7e4e1708d655 plus exact bound worktree source files; commits created after execution, not claimed as execution HEAD"
+  }
+}

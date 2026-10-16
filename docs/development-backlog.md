@@ -17,6 +17,12 @@
 
 ## v4.5.0 잔여 개발과 릴리즈 순서
 
+[131 주기 준비·검색 재준비 비용 보완](release-artifacts/v4.5.0/131-validation.json)은 **한정 개선·warm 정상 Recorder 수용 확인, 전체 병행 직접 FAIL**이다.
+주기 retention의 긴 인증 준비를 admission 잠금 밖으로 분리하되 최종 정책·예약·실제 공간·삭제 판단을 유지했다. 현재 raw 인증을 유지한 parsed row 소유 축소와 동일 HTTP의 preBuild 재시도 문서 재사용을 연결했다.
+같은 R130 종료 상태의 warm 비교에서 baseline2472중2296수용/queue drop107에서 최종2498/2498·drop0·42파일로 개선됐다. 현재 새 게시generation2/3798문서/new52와 예외 경로 Stop/Finish·최종 논리owner0은 확인했다. 이는 지속 무손실·전체 heap 수렴의 증명이 아니다.
+원래12개HTTP200의p95/max3086.13ms로 FAIL이며, 보조200은5.002초·0B·헤더없음·errno35 후 서버의 늦은503과 구분한다. 정상 성공 경로의 공개 새 결과·닫힌 원장 검증은 미완료다. 전체 Catalog Capture와 Build 후 현재성 재준비가 검색/확정의 공통 대기 경계로 남았다.
+[독립 판단](release-artifacts/v4.5.0/131-independent-review.json)과 macOS/비특권 Linux 영향 회귀를 보존한다. 최종cold 진입 조건 미충족으로 실행하지 않았으며 새900/45/120분·전체 직접·메모리P0·출시 완료로 확대하지 않는다.
+
 [130 macOS 저장 영상 색인 정책 대조](release-artifacts/v4.5.0/130-validation.json)는 **정책·초기 게시 한정 PASS, 전체 병행 직접 FAIL**이다.
 동일 원본321후보의 Automatic/SoftwareOnly 대조는 모두 정확히 성공했고 해당 RGB도 일치했다. 실제 대표 factory는 vtdec_hw와 avdec_h264(max-threads1)이며 과거 bus 내부 원인은 미확정이다. macOS 저장 MP4 색인만 SoftwareOnly를 적용하고 파생 cache의 정책별 이름/형식/임시 파일을 분리했다. Linux·실시간·증거 정책과 한도는 유지한다.
 최종 외부1회는 실제 rebuild generation1/3675문서를480.243초에 게시했다. 원래12개는 모두HTTP200이나 p95/max2811.34ms이고, Recorder2468기대/1701수용·queue drop612·추가미귀속155로 실패했다. 보조200·새 membership·닫힌 원장 관측은 not-run이다. 예외 guard의 실제 Stop/Finish와 마지막 논리 소유0은 별도 확인했다.
