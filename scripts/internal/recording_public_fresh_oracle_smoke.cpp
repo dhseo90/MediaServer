@@ -22,5 +22,14 @@ int main(){unsigned pass=0;auto check=[&](bool ok,const char* s){if(!ok)throw st
  using recording_public_fresh_oracle::ExpectedSeek;
  auto seek=ExpectedSeek(frame,binding);check(seek&&seek->ticks==0&&seek->timescale==3000&&seek->duration==100,"independent exact sample seek");
  frame.media_pts=1;check(!ExpectedSeek(frame,binding),"stale fresh PTS rejected");frame.media_pts=0;frame.frame_sha256="changed";check(!ExpectedSeek(frame,binding),"stale fresh AU hash rejected");frame.frame_sha256="frame";binding.file_evidence->samples.push_back(Sample{});check(!ExpectedSeek(frame,binding),"ambiguous sample rejected");binding.file_evidence.reset();check(!ExpectedSeek(frame,binding),"missing evidence rejected");
+ using recording_public_fresh_oracle::SelectExact;
+ d={Doc("z","new",{})};check(SelectExact(d,old,yes).index==0,"unknown single exact selectable");
+ d={Doc("z","new",{}),Doc("a","new",{}),Doc("0","new",{})};d[2].channel_id="9201";
+ check(SelectExact(d,old,yes).index==1,"unknown multiple channel ID first");d[0].utc_ns=1;check(SelectExact(d,old,yes).index==1,"known unknown same exact rule");
+ d[0].embedding={1};d[1].embedding={-1};check(SelectExact(d,old,yes).index==1,"broad score result cannot select exact target");
+ check(rejects([&]{SelectExact(d,old,[](const auto& x){return x.id!="z";});}),"nonselected invalid binding fails exact selection");
+ d={Doc("a","old",{})};check(rejects([&]{SelectExact(d,old,yes);}),"fresh0 exact fails");
+ d={Doc("","new",{})};check(rejects([&]{SelectExact(d,old,yes);}),"empty exact ID fails");d[0].id="a";d[0].channel_id.clear();check(rejects([&]{SelectExact(d,old,yes);}),"empty exact channel fails");
+ check(recording_public_fresh_oracle::QueryEscape("frame:36:a&b") == "frame%3A36%3Aa%26b","exact query escaped");
  std::cout<<"pass="<<pass<<" fail=0\n";
 }

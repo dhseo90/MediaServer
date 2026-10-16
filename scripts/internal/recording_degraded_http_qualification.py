@@ -1,4 +1,5 @@
 import json,math,re,subprocess
+from urllib.parse import parse_qs,urlsplit
 
 def visual_response(body, channels, start=None, end=None, exact_count=None):
  q=body['appliedQuery'];items=body['items']
@@ -31,6 +32,25 @@ def public_fresh(body,target):
  assert int(target['durationTicks'])>0 and abs(x['frameDurationSeconds']-int(target['durationTicks'])/target['seekTimescale'])<=1e-9,'public-fresh frame duration'
  return True
 
+def exact_public_fresh(body,target,publication,wire):
+ assert target['id'] and target['channel'] and target['freshCount']>0
+ q=parse_qs(urlsplit(wire['route']).query)
+ assert urlsplit(wire['route']).path=='/ops/api/recordings/visual-search/seek'
+ assert q=={'channelId':[target['channel']],'hitId':[target['id']]},'exact request binding'
+ assert wire['status']==200,'exact HTTP status'
+ assert body['hitId']==target['id'] and body['playable'] is True and body['seekAvailable'] is True
+ assert body['playbackUrl']=='/ops/api/recordings/media/'+target['segment']
+ assert body['timeBasis']=='verified-native-file-presentation'
+ assert math.isfinite(body['targetSeconds']) and body['targetSeconds']>=0
+ assert math.isfinite(body['frameDurationSeconds']) and body['frameDurationSeconds']>0
+ assert target['seekTimescale']>0 and int(target['seekTicks'])>=0 and int(target['durationTicks'])>0
+ assert abs(body['targetSeconds']-int(target['seekTicks'])/target['seekTimescale'])<=1e-9
+ assert abs(body['frameDurationSeconds']-int(target['durationTicks'])/target['seekTimescale'])<=1e-9
+ assert publication['sameIndex'] is True and publication['samePublication'] is True
+ for phase in ('before','after'):
+  assert publication[phase+'Instance']==target['instanceId'] and publication[phase+'Generation']==target['generation'],'exact publication changed'
+ return True
+
 def qualify(root,repo,mode):
  clients=1 if mode=='single' else 2 if mode=='visual-pair' else 4
  text=(root/'output.log').read_text();requests=[];bodies=[]
@@ -59,13 +79,17 @@ def qualify(root,repo,mode):
  if mode.startswith('source-'):
   broad=[json.loads(x.split(' response=',1)[1]) for x in text.splitlines() if x.startswith('[R118-publication] ')];assert len(broad)==1
   visual_response(broad[0],['9101','9201'],exact_count=200)
-  targets=rows('[R133-target] ');fresh=[json.loads(x.split('response=',1)[1]) for x in text.splitlines() if x.startswith('[R133-public-fresh] ')];assert len(targets)==len(fresh)==1
-  public_fresh(fresh[0],targets[0])
+  targets=rows('[R133-target] ');fresh=[json.loads(x.split('response=',1)[1]) for x in text.splitlines() if x.startswith('[R133-public-fresh] ')];assert len(targets)==len(fresh) and len(targets)<=1
+  bucket=len(targets)==1
+  if bucket:public_fresh(fresh[0],targets[0])
+  else:assert not fresh and '[R134-bucket] not-applicable no-known-UTC-representative-fresh' in text
   wires=rows('[R119-http-wire] ')
-  for scope,count in [('original12',3*clients),('auxiliary200',1),('publicFresh',1)]:
+  target=rows('[R134-target] ');publication=rows('[R134-exact-publication] ');exact=[json.loads(x.split('response=',1)[1]) for x in text.splitlines() if x.startswith('[R134-public-exact] ')];exactwire=[x for x in wires if x['scope']=='publicExact'];assert len(target)==len(publication)==len(exact)==len(exactwire)==1
+  exact_public_fresh(exact[0],target[0],publication[0],exactwire[0])
+  for scope,count in [('original12',3*clients),('auxiliary200',1),('publicExact',1),('bucketFresh',int(bucket))]:
    selected=[x for x in wires if x['scope']==scope];assert len(selected)==count
    assert all(x['status']==200 and x['headers'] and x['bytes']>0 and x['failure']=='none' and x['errno']==0 and 0<=x['endNs']-x['beginNs']<=5000000000 for x in selected),'actual wire/deadline'
-  assert '[R133-finish-success]' in text and '[R119-stop] server=1' in text and '[R119-stop] visual=1' in text and '[R119-finish] ok=1 error=' in text
+  assert '[R134-finish-success]' in text and '[R119-stop] server=1' in text and '[R119-stop] visual=1' in text and '[R119-finish] ok=1 error=' in text
  owners=rows('[recording-resource] ');last=[x for x in owners if x['phase']=='after-storage-destruction'];assert len(last)==1
  assert last[0]['readerCleanupHealthy'] and all(last[0][k]==0 for k in ('ram','scratchDisk','scratchFd','scratchRam','preservedDisk','preservedFd')),'final owner'
  space=rows('[R101-space] ');end=rows('[R101-space-end] ');assert len(end)==1 and end[0]['samples']==len(space) and end[0]['endedObserved']
@@ -73,7 +97,7 @@ def qualify(root,repo,mode):
  for s in space:
   m=s['metrics'];f=m['fdObservation'];assert m['valid'] and f['complete'] and f['scope']=='complete-round-sequential-v1' and f['startIdentity']==m['startIdentity']
  js='''import fs from 'node:fs';import {catalogHolderSummary} from './scripts/internal/recording_latency_trace.mjs';import {visualRequestSummary} from './scripts/internal/recording_longrun_progress.mjs';const t=fs.readFileSync(process.argv[1],'utf8');const h=catalogHolderSummary(t,true,[1,2,3],'journal-wait,managed-authority,identity-lookup,cold-read-inclusive'),v=visualRequestSummary(t,true,true,true);console.log(JSON.stringify({holder:h,requests:v}));if(h.status!=='captured'||v.status!=='captured'||v.rows.length!==Number(process.argv[2]))process.exitCode=1;'''
- completed=subprocess.run(['node','--input-type=module','-e',js,str(root/'output.log'),str(3*min(clients,2)+(2 if mode.startswith("source-") else 0))],cwd=repo,capture_output=True,text=True,timeout=15)
+ completed=subprocess.run(['node','--input-type=module','-e',js,str(root/'output.log'),str(3*min(clients,2)+(1+int(bucket) if mode.startswith("source-") else 0))],cwd=repo,capture_output=True,text=True,timeout=15)
  (root/'trace-analysis.json').write_text(completed.stdout);assert completed.returncode==0,'trace completeness/basis'
  (root/'http-bodies.json').write_text(json.dumps(bodies,indent=2)+'\n')
  return {'requests':len(requests),'p95Ms':times[math.ceil(len(times)*.95)-1],'maxMs':max(times),'spaceSamples':len(space),'scope':'actual HTTP/writer/index/retention; no evidence-A continuous mixed load; shape/order/seek metadata not exhaustive topk oracle','ownerFinal':last[0]}

@@ -154,23 +154,41 @@ int main(int argc,char** argv){
  const auto bound=[&](const auto& d){const auto b=catalog.FindSourceBinding(d.segment_id);return b&&recording_public_fresh_oracle::ExpectedSeek(d,*b).has_value();};
  std::size_t fresh_known=0,fresh_unknown=0,fresh_representative=0;for(const auto& x:view.index->documents())if(!original_segments.count(x.segment_id)){if(x.utc_ns)++fresh_known;else ++fresh_unknown;if(x.event_id.empty()&&x.utc_ns)++fresh_representative;}
  std::cout<<"[R133-selection] fresh="<<fresh<<" known="<<fresh_known<<" unknown="<<fresh_unknown<<" representativeKnown="<<fresh_representative<<std::endl;
+ const auto quote=[](const auto& value){return recording::EvidenceJsonQuote(value);};
+ {
+ const auto exact=recording_public_fresh_oracle::SelectExact(view.index->documents(),original_segments,bound);
+ const auto& d=view.index->documents()[exact.index];const auto binding=catalog.FindSourceBinding(d.segment_id);NeedHttp(binding.has_value(),"exact-public binding");const auto seek=recording_public_fresh_oracle::ExpectedSeek(d,*binding);NeedHttp(seek.has_value(),"exact-public sample");
+ std::cout<<"[R134-target] {\"id\":"<<quote(d.id)<<",\"channel\":"<<quote(d.channel_id)<<",\"segment\":"<<quote(d.segment_id)<<",\"utcNs\":"<<(d.utc_ns?quote(std::to_string(*d.utc_ns)):"null")<<",\"seekTicks\":"<<quote(std::to_string(seek->ticks))<<",\"durationTicks\":"<<quote(std::to_string(seek->duration))<<",\"seekTimescale\":"<<seek->timescale<<",\"freshCount\":"<<exact.fresh_count<<",\"instanceId\":"<<quote(view.publication->instance_id)<<",\"generation\":"<<view.publication->generation.value_or(0)<<"}"<<std::endl;
+ const auto before=VisualSearchPublicationTestProbe::View(visual);NeedHttp(before.index==view.index&&before.publication==view.publication,"exact-public publication before changed");
+ const auto begin=Clock::now();const std::string route="/ops/api/recordings/visual-search/seek?channelId="+recording_public_fresh_oracle::QueryEscape(d.channel_id)+"&hitId="+recording_public_fresh_oracle::QueryEscape(d.id);
+ HttpObservation observation{102,"publicExact",route,begin};Socket socket;socket.fd=Request(port,route);const auto wire=Drain(socket.fd,begin+std::chrono::seconds(5),observation);
+ const auto body=wire.substr(wire.find("\r\n\r\n")+4);std::cout<<"[R134-public-exact] response="<<body<<std::endl;
+ NeedHttp(wire.rfind("HTTP/1.1 200",0)==0,"exact-public HTTP status");StrictJsonObjectDocument doc;NeedHttp(ParseStrictJsonObjectDocument(body,&doc,&error),"exact-public JSON");
+ NeedHttp(StrictJsonStringField(doc,"hitId")==std::optional<std::string>(d.id)&&StrictJsonBoolField(doc,"playable")==std::optional<bool>(true)&&StrictJsonBoolField(doc,"seekAvailable")==std::optional<bool>(true)&&StrictJsonStringField(doc,"playbackUrl")==std::optional<std::string>("/ops/api/recordings/media/"+d.segment_id)&&StrictJsonStringField(doc,"timeBasis")==std::optional<std::string>("verified-native-file-presentation"),"exact-public shape");
+ const auto number=[&](const char* key){const auto* v=doc.Find(key);NeedHttp(v&&v->type==StrictJsonType::Number,"exact-public numeric shape");const double n=std::stod(v->raw);NeedHttp(std::isfinite(n)&&n>=0,"exact-public numeric range");return n;};
+ NeedHttp(std::abs(number("targetSeconds")-double(seek->ticks)/seek->timescale)<=1e-9&&std::abs(number("frameDurationSeconds")-double(seek->duration)/seek->timescale)<=1e-9,"exact-public independent seek");NeedHttp(bound(d),"exact-public final binding");
+ const auto after=VisualSearchPublicationTestProbe::View(visual);
+ std::cout<<"[R134-exact-publication] {\"beforeInstance\":"<<quote(before.publication->instance_id)<<",\"beforeGeneration\":"<<before.publication->generation.value_or(0)<<",\"afterInstance\":"<<(after.publication?quote(after.publication->instance_id):"null")<<",\"afterGeneration\":"<<(after.publication?after.publication->generation.value_or(0):0)<<",\"sameIndex\":"<<(after.index==view.index?"true":"false")<<",\"samePublication\":"<<(after.publication==view.publication?"true":"false")<<"}"<<std::endl;
+ NeedHttp(after.index==view.index&&after.publication==view.publication,"exact-public publication after changed");HttpObservation::Mark(observation.validationEndNs);HttpObservation::Mark(observation.outputEndNs);
+ }
+ if(fresh_representative){
  const auto target=recording_public_fresh_oracle::Select(view.index->documents(),original_segments,bound);
  const auto& d=view.index->documents()[target.index];
  const auto target_binding=catalog.FindSourceBinding(d.segment_id);NeedHttp(target_binding.has_value(),"public-fresh target binding");const auto expected_seek=recording_public_fresh_oracle::ExpectedSeek(d,*target_binding);NeedHttp(expected_seek.has_value(),"public-fresh target sample");
- const auto quote=[](const auto& value){return recording::EvidenceJsonQuote(value);};
  std::cout<<"[R133-target] {\"id\":"<<quote(d.id)<<",\"channel\":"<<quote(d.channel_id)<<",\"segment\":"<<quote(d.segment_id)<<",\"utcNs\":"<<quote(std::to_string(*d.utc_ns))<<",\"startMs\":"<<target.start_ms<<",\"endMs\":"<<target.end_ms<<",\"seekTicks\":"<<quote(std::to_string(expected_seek->ticks))<<",\"seekTimescale\":"<<expected_seek->timescale<<",\"durationTicks\":"<<quote(std::to_string(expected_seek->duration))<<",\"bucketCount\":"<<target.bucket_count<<",\"freshCount\":"<<target.fresh_count<<",\"instanceId\":"<<quote(view.publication->instance_id)<<",\"generation\":"<<view.publication->generation.value_or(0)<<"}"<<std::endl;
  {
  const auto begin=Clock::now();const std::string route="/ops/api/recordings/visual-search?channelIds="+d.channel_id+"&text=ball&limit=200&threshold=-1&startTimeMs="+std::to_string(target.start_ms)+"&endTimeMs="+std::to_string(target.end_ms);
- HttpObservation observation{101,"publicFresh",route,begin};Socket socket;socket.fd=Request(port,route);const auto wire=Drain(socket.fd,begin+std::chrono::seconds(5),observation);NeedHttp(wire.rfind("HTTP/1.1 200",0)==0,"public-fresh HTTP status");
+ HttpObservation observation{101,"bucketFresh",route,begin};Socket socket;socket.fd=Request(port,route);const auto wire=Drain(socket.fd,begin+std::chrono::seconds(5),observation);NeedHttp(wire.rfind("HTTP/1.1 200",0)==0,"public-fresh HTTP status");
  const auto body=wire.substr(wire.find("\r\n\r\n")+4);StrictJsonObjectDocument doc;bool found=false;
  NeedHttp(ParseStrictJsonObjectDocumentObjectArray(body,"items",&doc,[&](const auto& item){if(StrictJsonStringField(item,"id")==std::optional<std::string>(d.id)){found=true;return StrictJsonStringField(item,"channelId")==std::optional<std::string>(d.channel_id)&&StrictJsonStringField(item,"timeNs")==std::optional<std::string>(std::to_string(*d.utc_ns))&&item.Find("playable")&&item.Find("playable")->bool_value&&item.Find("seekAvailable")&&item.Find("seekAvailable")->bool_value;}return true;},&error),"public-fresh item shape");
  HttpObservation::Mark(observation.validationEndNs);std::cout<<"[R133-public-fresh] response="<<body<<std::endl;HttpObservation::Mark(observation.outputEndNs);
  NeedHttp(found,"public-fresh target missing");NeedHttp(bound(d),"public-fresh final binding");
  const auto current=VisualSearchPublicationTestProbe::View(visual);NeedHttp(current.index==view.index&&current.publication==view.publication,"public-fresh publication changed");
  }
+ }else std::cout<<"[R134-bucket] not-applicable no-known-UTC-representative-fresh"<<std::endl;
  }
 
- NeedHttp(finish.Run(),"explicit finish failed");std::cout<<"[R133-finish-success]"<<std::endl;
+ NeedHttp(finish.Run(),"explicit finish failed");std::cout<<"[R134-finish-success]"<<std::endl;
  std::sort(elapsed.begin(),elapsed.end());std::cout<<"[R107-result] failures="<<failures<<" count="<<elapsed.size()<<" p95="<<elapsed[std::size_t(std::ceil(elapsed.size()*.95))-1]<<" max="<<elapsed.back()<<std::endl;
  NeedHttp(source_mode?writes>=6:writes==6,"durable writer completions");NeedHttp(elapsed[std::size_t(std::ceil(elapsed.size()*.95))-1]<=2000&&elapsed.back()<=5000,"original latency criteria");return failures?1:0;
  }catch(const std::exception& e){std::cerr<<"[R107-fail] "<<e.what()<<std::endl;return 1;}

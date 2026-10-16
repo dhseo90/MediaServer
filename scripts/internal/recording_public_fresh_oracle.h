@@ -24,6 +24,25 @@ std::optional<Seek> ExpectedSeek(
  }
  if(count!=1)return {};return Seek{ticks,duration,e.timescale};
 }
+// Exact public accessibility is independent of UTC and text ranking.
+struct ExactTarget {std::size_t index,fresh_count;};
+template<class CurrentBinding>
+ExactTarget SelectExact(const std::vector<recording::VisualSearchDocument>& docs,
+ const std::set<std::string>& original,CurrentBinding current_binding) {
+ std::optional<std::size_t> first;std::size_t fresh=0;
+ for(std::size_t i=0;i<docs.size();++i){const auto& d=docs[i];if(original.count(d.segment_id))continue;
+  ++fresh;if(!current_binding(d))throw std::runtime_error("public-fresh current binding");
+  if(!d.event_id.empty()||d.channel_id.empty()||d.id.empty())continue;
+  if(!first||std::tie(d.channel_id,d.id)<std::tie(docs[*first].channel_id,docs[*first].id))first=i;
+ }
+ if(!fresh)throw std::runtime_error("public-fresh publication empty");
+ if(!first)throw std::runtime_error("public-fresh exact target not constructible");
+ return {*first,fresh};
+}
+inline std::string QueryEscape(const std::string& value){
+ const char* hex="0123456789ABCDEF";std::string out;
+ for(unsigned char c:value){if((c>='a'&&c<='z')||(c>='A'&&c<='Z')||(c>='0'&&c<='9')||c=='-'||c=='_'||c=='.'||c=='~')out+=char(c);else{out+='%';out+=hex[c>>4];out+=hex[c&15];}}return out;
+}
 template<class CurrentBinding>
 Target Select(const std::vector<recording::VisualSearchDocument>& docs,
               const std::set<std::string>& original,CurrentBinding current_binding) {
