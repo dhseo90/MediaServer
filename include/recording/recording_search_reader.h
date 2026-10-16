@@ -21,6 +21,9 @@ public:
                  std::string* error, SearchModelLimits limits = {}, bool include_observations = true) const;
     bool WithPlayback(const RecordingSearchModel&, const RecordingSearchQuery&,
         std::shared_ptr<const RecordingSearchModel>*, std::string* error, SearchModelLimits limits = {}) const;
+    // 무후보이며 이미 원본 ns 축인 recording-only 모델은 같은 불변 소유권을 게시한다.
+    bool WithPlayback(const std::shared_ptr<const RecordingSearchModel>&, const RecordingSearchQuery&,
+        std::shared_ptr<const RecordingSearchModel>*, std::string* error, SearchModelLimits limits = {}) const;
     bool DerivedSeek(const std::string& channel, const std::string& job,
         const std::string& original_segment, const std::string& output_segment,
         std::int64_t original_ns, SearchSeekTarget*, std::string* error) const;
@@ -65,6 +68,9 @@ public:
         std::shared_ptr<const RecordingSearchModel>* output, std::string* error,
         SearchModelLimits limits = {}, const RecordingSearchQuery* query = nullptr);
 private:
+    bool WithPlaybackImpl(const RecordingSearchModel&, const RecordingSearchQuery&,
+        std::shared_ptr<const RecordingSearchModel>*, std::string*, SearchModelLimits,
+        const std::shared_ptr<const RecordingSearchModel>*) const;
     std::unique_ptr<PreparedSource> PrepareSourceImpl(const std::string&,const std::string&,std::string*,
         const std::function<bool()>&,std::chrono::steady_clock::time_point,
         const std::string*,std::int64_t,const std::string*,SearchSeekTarget*) const;

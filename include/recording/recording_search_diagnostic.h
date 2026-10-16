@@ -1,6 +1,8 @@
 // 파일 용도: 검증 모드의 요청별 bounded 검색 실패 사유. 공개 응답/원문 payload와 독립이다.
 #pragma once
 #include <array>
+#include <chrono>
+#include "recording/recording_latency_trace.h"
 #include "recording/recording_memory_reservation.h"
 #include <atomic>
 #include <cstdio>
@@ -32,6 +34,17 @@ inline void SearchCapacityReject(const char* condition,std::size_t before,std::s
 struct SearchDiagnostic {
     struct Attempt {const char* stage="start";const char* reason="none";std::uint64_t instance=0,current_instance=0,captured=0,current=0,documents=0,references=0;bool rebuild=false,authority=false;};
     std::array<Attempt,3> attempts{};
+    struct Cost {const char* name;std::uint64_t begin,end;};
+    std::array<Cost,40> costs{};unsigned cost_count=0;bool cost_loss=false;
+    static inline std::atomic<unsigned> sequence{0};
+    unsigned id=0;std::uint64_t entered=0;
+    static std::uint64_t Tick() noexcept {return std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::steady_clock::now().time_since_epoch()).count();}
+    static void CostRow(const char* name,std::uint64_t begin,std::uint64_t end) noexcept {
+        if(!active||!active->id)return;
+        if(active->cost_count==active->costs.size()){active->cost_loss=true;return;}
+        active->costs[active->cost_count++]={name,begin,end};
+    }
+    struct Phase {const char* name;std::uint64_t begin;explicit Phase(const char* value):name(value),begin(active&&active->id?Tick():0){}~Phase(){if(begin)CostRow(name,begin,Tick());}};
     unsigned attempt=0,channels=0;int status=503;const char* exception="none";
     const SearchModelResidency* resources=nullptr;std::size_t rejection_start=0;
     SearchDiagnostic* previous=nullptr;
@@ -45,6 +58,7 @@ struct SearchDiagnostic {
     }
     explicit SearchDiagnostic(const SearchModelResidency* value=nullptr) noexcept : resources(value),rejection_start(value?value->rejected():0) {
         previous=active;active=this;search_capacity_diagnostic={};
+        if(Enabled()){id=++sequence;entered=Tick();if(id>128)id=0;}
         if(Enabled()){static std::atomic<bool> probe{false};if(!probe.exchange(true))
             {constexpr char probe_line[]="[search-failure-probe] {\"version\":1,\"attempts\":3}\n";Write(probe_line,sizeof(probe_line)-1);}}
     }
@@ -63,6 +77,11 @@ struct SearchDiagnostic {
     }
     ~SearchDiagnostic() noexcept {
         active=previous;
+        if(id) {
+            char line[6144];int n=std::snprintf(line,sizeof(line),"[search-request-cost] {\"id\":%u,\"thread\":%u,\"startNs\":%llu,\"endNs\":%llu,\"status\":%d,\"loss\":%s,\"phases\":[",id,latency::local.thread,(unsigned long long)entered,(unsigned long long)Tick(),status,cost_loss?"true":"false");
+            for(unsigned i=0;i<cost_count&&n>0&&n<int(sizeof(line));++i){const auto& c=costs[i];n+=std::snprintf(line+n,sizeof(line)-n,"%s[\"%s\",%llu,%llu]",i?",":"",c.name,(unsigned long long)c.begin,(unsigned long long)c.end);}
+            if(n>0&&n+4<int(sizeof(line))){std::memcpy(line+n,"]}\n",3);n+=3;Write(line,static_cast<std::size_t>(n));}else Write("[search-cost-loss]\n",18);
+        }
         if(!Enabled()||status<500)return;
         const auto& c=search_capacity_diagnostic;
         if(std::strcmp(c.condition,"none")) {

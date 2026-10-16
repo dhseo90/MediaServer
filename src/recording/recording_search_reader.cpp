@@ -89,7 +89,7 @@ bool RecordingSearchReader::Refresh(const std::vector<std::string>& channels,
     if (!output) {if(error)*error="search-invalid-output";return false;}
     if(!limits.residency)limits.residency=catalog_.SearchResidency();
     SearchSourceBatch batch;
-    if (!catalog_.CaptureSearchSource(channels, previous.get(), &batch, error, limits, include_observations)) return false;
+    {SearchDiagnostic::Phase cost("Capture");if (!catalog_.CaptureSearchSource(channels, previous.get(), &batch, error, limits, include_observations)) return false;}
 #ifdef RECORDING_SEARCH_TESTING
     if(search_after_capture_test)search_after_capture_test();
 #endif
@@ -116,10 +116,11 @@ bool RecordingSearchReader::Refresh(const std::vector<std::string>& channels,
     }
     if (!catalog_.ValidateSearchSource(batch, error)) return false;
     if (!batch.rebuild && previous && batch.delta.upserts.empty() && batch.delta.removed_ids.empty()) {
-        *output = previous;if(error)error->clear();return true;
+        SearchDiagnostic::CostRow("RefreshReuse",SearchDiagnostic::Tick(),SearchDiagnostic::Tick());*output = previous;if(error)error->clear();return true;
     }
     std::shared_ptr<const RecordingSearchModel> next;
     SearchDiagnostic::Stage(batch.rebuild?"model-build":"model-delta");
+    SearchDiagnostic::Phase build_cost(batch.rebuild?"BuildOwned":"ApplyDelta");
     const bool built = batch.rebuild ? RecordingSearchModel::BuildOwned(std::move(batch.delta.upserts),
         batch.delta.source_instance, batch.delta.revision, &next, error, limits) :
         RecordingSearchModel::ApplyDelta(*previous, batch.delta, &next, error, limits);
@@ -456,12 +457,40 @@ bool RecordingSearchReader::DerivedSeek(const std::string& channel,const std::st
 }
 bool RecordingSearchReader::WithPlayback(const RecordingSearchModel& model,const RecordingSearchQuery& query,
     std::shared_ptr<const RecordingSearchModel>* output,std::string* error,SearchModelLimits limits) const {
+    return WithPlaybackImpl(model,query,output,error,std::move(limits),nullptr);
+}
+bool RecordingSearchReader::WithPlayback(const std::shared_ptr<const RecordingSearchModel>& model,const RecordingSearchQuery& query,
+    std::shared_ptr<const RecordingSearchModel>* output,std::string* error,SearchModelLimits limits) const {
+    if(!model){if(error)*error="search-invalid-output";return false;}
+    return WithPlaybackImpl(*model,query,output,error,std::move(limits),&model);
+}
+bool RecordingSearchReader::WithPlaybackImpl(const RecordingSearchModel& model,const RecordingSearchQuery& query,
+    std::shared_ptr<const RecordingSearchModel>* output,std::string* error,SearchModelLimits limits,
+    const std::shared_ptr<const RecordingSearchModel>* shared_source) const {
     if(!output){if(error)*error="search-invalid-output";return false;}
     if(!limits.residency)limits.residency=model.residency()?model.residency():catalog_.SearchResidency();
+    SearchSourceBatch proof;
+    std::vector<SearchPlaybackCandidate> candidates;{SearchDiagnostic::Phase cost("PlaybackCandidates");if(!PlaybackCandidates(model,query,&candidates,error,&proof))return false;}
+    if(candidates.empty())SearchDiagnostic::CostRow("PlaybackNoCandidates",SearchDiagnostic::Tick(),SearchDiagnostic::Tick());
+    const bool metadata=!query.objects.empty()||!query.tracks.empty()||!query.events.empty()||
+        !query.zones.empty()||!query.rules.empty()||!query.behaviours.empty();
+    // 빈 playback target은 모든 snapshot 소비자가 원본 segment로 해석한다.
+    // 그 외 DTO 값은 기존 무후보 분할 결과와 같아야 하므로 관측/비ns 축/이전
+    // 이벤트 선택은 이 경로에서 제외한다. 새 질의마다 후보 및 현재성 검증은 수행한다.
+    if(shared_source&&!metadata&&candidates.empty()&&limits.residency==model.residency()&&
+       std::all_of(model.documents().begin(),model.documents().end(),[](const auto& d){
+           return d.kind==SearchDocumentKind::Recording&&d.time_base_num==1&&d.time_base_den==1000000000&&
+               (d.playback_segment_id.empty()||d.playback_segment_id==d.segment_id)&&
+               d.playback_event_id.empty()&&d.playback_job_id.empty();
+       })) {
+        if(model.documents().size()>limits.max_documents||model.accounted_bytes()>limits.max_bytes){if(error)*error="search-capacity-exceeded";return false;}
+        if(!catalog_.ValidateSearchSource(proof,error))return false;
+        SearchDiagnostic::CostRow("PlaybackReuse",SearchDiagnostic::Tick(),SearchDiagnostic::Tick());
+        *output=*shared_source;if(error)error->clear();return true;
+    }
     auto workspace=limits.residency->Reserve(limits.max_bytes);
     if(!workspace){if(error)*error="search-capacity-exceeded";return false;}
-    SearchSourceBatch proof;
-    std::vector<SearchPlaybackCandidate> candidates;if(!PlaybackCandidates(model,query,&candidates,error,&proof))return false;
+    SearchDiagnostic::Phase preparation_cost("PlaybackDocuments");
     try {
         std::vector<SearchDocument> documents;std::set<std::string> replaced_outputs;std::size_t bytes=0;
         const auto add=[&](SearchDocument document){
@@ -475,8 +504,6 @@ bool RecordingSearchReader::WithPlayback(const RecordingSearchModel& model,const
         };
         SearchModelResidency::Reservation positions_memory;
         std::vector<std::size_t> positions;
-        const bool metadata=!query.objects.empty()||!query.tracks.empty()||!query.events.empty()||
-            !query.zones.empty()||!query.rules.empty()||!query.behaviours.empty();
         if(metadata) {
             RecordingSearchMatches matches;if(!model.Query(query,&matches,error))return false;
             positions_memory=std::move(matches.memory);
@@ -528,6 +555,7 @@ bool RecordingSearchReader::WithPlayback(const RecordingSearchModel& model,const
         }),documents.end());
         SearchDiagnostic::Stage("playback-model-build");
         std::shared_ptr<const RecordingSearchModel> next;
+        SearchDiagnostic::Phase cost("PlaybackBuildOwned");
         if(!RecordingSearchModel::BuildOwned(std::move(documents),model.source_instance(),model.revision(),&next,error,limits)||
            !catalog_.ValidateSearchSource(proof,error))return false;
         *output=std::move(next);return true;

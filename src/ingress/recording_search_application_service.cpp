@@ -14,10 +14,19 @@
 #include <string_view>
 namespace ingress {
 struct RecordingApplicationService::SearchState {
+    // 기존 단일 준비 실행 한도를 유지한다. cursor/seek/evidence는 준비 완료를
+    // 기다리지 않고 불변 snapshot을 읽도록 서비스 상태 접근 잠금과 분리한다.
+    std::mutex preparation_mutex;
     std::shared_ptr<const recording::RecordingSearchModel> source;
     recording::RecordingSearchSnapshots snapshots{{},true};
 };
 namespace {
+// Record only fixed timestamps under the service mutex; emit at request exit after unlock.
+struct SearchLock {
+    const char* name;const char* held_name;std::uint64_t before,acquired;std::unique_lock<std::mutex> lock;
+    SearchLock(std::mutex& mutex,const char* value,const char* held="service-hold"):name(value),held_name(held),before(recording::SearchDiagnostic::Tick()),lock(mutex){acquired=recording::SearchDiagnostic::Tick();}
+    ~SearchLock(){const auto end=recording::SearchDiagnostic::Tick();lock.unlock();recording::SearchDiagnostic::CostRow(name,before,acquired);recording::SearchDiagnostic::CostRow(held_name,acquired,end);}
+};
 using Query=std::unordered_map<std::string,std::string>;
 std::string Get(const Query& q,const char* key){const auto it=q.find(key);return it==q.end()?"":it->second;}
 std::string Quote(const std::string& value){
@@ -100,7 +109,7 @@ ApplicationServiceResult RecordingApplicationService::Search(const Query& raw,co
         if(!enabled_)return Error(503,"recording-search-unavailable");
         std::shared_ptr<SearchState> state;
         {
-            std::lock_guard<std::mutex> lock(search_mutex_);
+            SearchLock lock(search_mutex_,"service-wait");
             if(!search_state_)search_state_=std::make_shared<SearchState>();
             state=search_state_;
         }
@@ -108,7 +117,7 @@ ApplicationServiceResult RecordingApplicationService::Search(const Query& raw,co
         recording::RecordingSearchPage page;std::string error;const auto cursor=Get(raw,"cursor");
         if(!cursor.empty()) {recording::SearchDiagnostic::Stage("snapshot-resume");if(!state->snapshots.Resume(cursor,query,principal,scope,&page,&error))return Failure(error);}
         else {
-            std::lock_guard<std::mutex> lock(search_mutex_);recording::RecordingSearchReader search(catalog_,reader_);
+            SearchLock lock(state->preparation_mutex,"preparation-wait","preparation-hold");recording::RecordingSearchReader search(catalog_,reader_);
             // 여러 채널의 확정이 준비 구간과 겹칠 수 있다. 원본 변경만 유한하게 재시도하며
             // 각 시도의 동일한 revision/재생 검증을 통과한 모델만 한 번 게시한다.
             const bool observations=!query.objects.empty()||!query.tracks.empty()||!query.events.empty()||
@@ -116,7 +125,8 @@ ApplicationServiceResult RecordingApplicationService::Search(const Query& raw,co
             bool prepared=false;
             for(unsigned attempt=0;attempt<3;++attempt){
                 diagnostic.attempt=attempt;recording::SearchDiagnostic::Stage("refresh");
-                if(!search.Refresh(query.channels,state->source,&state->source,&error,{},observations)){
+                bool refreshed=false;{recording::SearchDiagnostic::Phase cost("Refresh");refreshed=search.Refresh(query.channels,state->source,&state->source,&error,{},observations);}
+                if(!refreshed){
                     if(error=="search-source-changed"){recording::SearchDiagnostic::Reason(error);recording::latency::VisualPhase phase("structured-source-changed");continue;}
                     return Failure(error);
                 }
@@ -124,12 +134,13 @@ ApplicationServiceResult RecordingApplicationService::Search(const Query& raw,co
                 recording::SearchDiagnostic::Stage("event-facts");
                 if(!query.behaviours.empty()&&!recording::RecordingSearchReader::WithEventFacts(*model,&model,&error,{},&query))return Failure(error);
                 recording::SearchDiagnostic::Stage("with-playback");
-                if(!search.WithPlayback(*model,query,&model,&error)){
+                bool playback=false;{recording::SearchDiagnostic::Phase cost("WithPlayback");playback=search.WithPlayback(model,query,&model,&error);}
+                if(!playback){
                     if(error=="search-source-changed"){recording::SearchDiagnostic::Reason(error);recording::latency::VisualPhase phase("structured-source-changed");continue;}
                     return Failure(error);
                 }
                 recording::SearchDiagnostic::Stage("snapshot-begin");
-                if(!state->snapshots.Begin(model,query,principal,scope,&page,&error))return Failure(error);
+                {recording::SearchDiagnostic::Phase cost("SnapshotBegin");if(!state->snapshots.Begin(model,query,principal,scope,&page,&error))return Failure(error);}
                 prepared=true;break;
             }
             if(!prepared){recording::latency::VisualPhase phase("structured-retries-exhausted");return Failure(error);}
@@ -137,6 +148,7 @@ ApplicationServiceResult RecordingApplicationService::Search(const Query& raw,co
         // Existing 4MiB JSON admission: original body + growth/field temporary +
         // wire body coexist. Reserve before serialization; move to transport owner.
         recording::SearchDiagnostic::Stage("currentness-json");
+        recording::SearchDiagnostic::Phase response_cost("CurrentnessJson");
         auto response_memory=catalog_.SearchResidency()->ReserveOwned(4ULL*4*1024*1024);
         if(!response_memory)return Failure("search-capacity-exceeded");
         std::map<std::string,bool> availability;
@@ -194,7 +206,7 @@ ApplicationServiceResult RecordingApplicationService::SearchSeek(const Query& ra
         if(!enabled_)return Error(503,"recording-search-unavailable");
         std::shared_ptr<SearchState> state;
         {
-            std::lock_guard<std::mutex> lock(search_mutex_);
+            SearchLock lock(search_mutex_,"service-wait");
             if(!search_state_)search_state_=std::make_shared<SearchState>();
             state=search_state_;
         }
@@ -230,7 +242,7 @@ ApplicationServiceResult RecordingApplicationService::SearchEvidence(const Query
         if(!enabled_||!evidence_)return EvidenceUnavailable();
         stage="search-snapshot";
         std::shared_ptr<SearchState> state;
-        {std::lock_guard<std::mutex> lock(search_mutex_);state=search_state_;}
+        {SearchLock lock(search_mutex_,"service-wait");state=search_state_;}
         if(!state)return Error(410,"search-snapshot-expired");
         std::shared_ptr<const recording::RecordingSearchModel> model;std::size_t position=0;std::string error;
         if(!state->snapshots.ResolveHit(Get(raw,"snapshotId"),Get(raw,"hitId"),query,principal,scope,&model,&position,&error))
