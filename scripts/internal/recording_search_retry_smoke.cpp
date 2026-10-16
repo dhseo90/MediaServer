@@ -2,6 +2,8 @@
 #define main RetryWriterFixtureMain
 #include "recording_managed_writer_smoke.cpp"
 #undef main
+#include "recording/recording_search_reader.h"
+#include "recording/recording_search_diagnostic.h"
 namespace recording {
 struct RecordingSearchRetryTestProbe {
  static std::size_t Spans(const SearchSourceBatch& b){return b.segment_spans_.size();}
@@ -44,6 +46,10 @@ int main(int argc,char** argv){
   need(catalog.CaptureSearchSource({"channel-1"},nullptr,&bounded,&error,{100000,peak},false,&empty)&&
     same(bounded.delta.upserts,fresh.delta.upserts)&&RecordingSearchRetryTestProbe::Spans(bounded)==0,
     "cold optional spans yield to exact document and vector capacity envelope");
+  std::shared_ptr<const RecordingSearchModel> compact_model;
+  need(RecordingSearchModel::BuildOwned(std::move(fresh.delta.upserts),fresh.delta.source_instance,fresh.delta.revision,&compact_model,&error),
+    "R132 allocation hint does not survive as model index slack");
+  need(catalog.CaptureSearchSource({"channel-1"},nullptr,&fresh,&error,{},false),"R132 independent source restored after model ownership transfer");
   const auto id=second.delta.upserts.front().segment_id;
   need(catalog.MarkSegmentCorrupt(id,"container-invalid",&error),"separate lifecycle changed without segment raw change");
   SearchSourceBatch current;
@@ -58,7 +64,51 @@ int main(int argc,char** argv){
   write("third");SearchSourceBatch unchanged;unchanged.delta.source_instance="sentinel";
   need(!catalog.CaptureSearchSource({"channel-1"},nullptr,&unchanged,&error,exact,false,&prior)&&error=="search-capacity-exceeded"&&
     prior.memory.bytes()==0&&unchanged.delta.source_instance=="sentinel","cold growth rejection consumes prior once and preserves output");
+#ifdef RECORDING_SEARCH_TESTING
+  RecordingReadService reads(catalog);RecordingSearchReader reader(catalog,reads);
+  std::shared_ptr<const RecordingSearchModel> prior_model,post_model,oracle;
+  need(reader.Refresh({"channel-1"},{},&prior_model,&error,{},false),"R132 initial immutable model");
+  SearchSourceBatch post_retry;
+  unsigned post_calls=0;
+  search_after_build_test=[&]{++post_calls;write("post-build-new");};
+  need(!reader.Refresh({"channel-1"},{},&post_model,&error,{},false,&post_retry)&&
+    error=="search-source-changed"&&!post_model&&post_retry.memory.bytes()>0&&
+    RecordingSearchRetryTestProbe::Spans(post_retry)>0&&post_calls==1,
+    "R132 real postBuild finalization retains unpublished source only");
+  search_after_build_test={};
+  need(reader.Refresh({"channel-1"},{},&post_model,&error,{},false,&post_retry)&&post_retry.memory.bytes()==0,
+    "R132 postBuild retry succeeds with current new source");
+  need(reader.Refresh({"channel-1"},{},&oracle,&error,{},false)&&same(post_model->documents(),oracle->documents())&&
+    prior_model->documents().size()<post_model->documents().size(),
+    "R132 postBuild IDs order counts fields match independent full model and prior unchanged");
+  const auto live=std::find_if(oracle->documents().begin(),oracle->documents().end(),[&](const auto& d){return d.segment_id!=id;});
+  need(live!=oracle->documents().end(),"R132 independent live segment for detached lifecycle race");
+  const auto live_id=live->segment_id;
+  bool outside=false;
+  search_outside_raw_cut_test=[&]{outside=true;need(catalog.MarkSegmentCorrupt(live_id,"container-invalid",&error),"R132 callback may acquire Catalog outside raw cut");};
+  SearchSourceBatch old_cut;
+  need(catalog.CaptureSearchSource({"channel-1"},nullptr,&old_cut,&error,{},false)&&outside,
+    "R132 actual cold cut runs outside Catalog with owned raw");
+  search_outside_raw_cut_test={};
+  need(!catalog.ValidateSearchSource(old_cut,&error)&&error=="search-source-changed",
+    "R132 real detached lifecycle change rejects old currentness");
+  // Resource failure in optional detached processing must retry strictly, once,
+  // after releasing the cut. It must not publish partially moved documents.
+  unsigned refused=0;
+  search_outside_raw_cut_test=[&]{++refused;throw RecordingResourceUnavailable();};
+  SearchSourceBatch fallback;
+  need(catalog.CaptureSearchSource({"channel-1"},nullptr,&fallback,&error,{},false)&&refused==1,
+    "R132 detached reservation exception falls back once to locked full authentication");
+  search_outside_raw_cut_test={};
+  SearchSourceBatch fallback_oracle;
+  need(catalog.CaptureSearchSource({"channel-1"},nullptr,&fallback_oracle,&error,{},false)&&same(fallback.delta.upserts,fallback_oracle.delta.upserts),
+    "R132 optional cut failure preserves exact full source result");
+#endif
   need(runtime.Finish(&error),"explicit generation Finish");
   std::cout<<"[search-retry] pass="<<passed<<" fail=0"<<std::endl;return 0;
- }catch(const std::exception& e){std::cerr<<"[search-retry] FAIL "<<e.what()<<std::endl;return 1;}
+ }catch(const std::exception& e){
+#ifdef RECORDING_SEARCH_TESTING
+ search_after_build_test={};search_outside_raw_cut_test={};
+#endif
+ std::cerr<<"[search-retry] FAIL "<<e.what()<<std::endl;return 1;}
 }

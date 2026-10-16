@@ -60,6 +60,18 @@ struct RecordingGenerationRequestProofProbe {
         std::vector<RecordingCatalog::VisualSourceKey> keys;std::map<std::string,std::size_t> legacy;
         Need(c.CaptureVisualSourceKeys({"channel"},&keys,&legacy,&error,fused));return legacy["channel"];
     }
+    static std::string VisualCut(RecordingCatalog& c,bool prepared,bool* ok){
+        std::vector<RecordingCatalog::VisualSourceKey> keys;std::map<std::string,std::size_t> legacy;
+        std::string detail;
+        if(prepared)*ok=c.CaptureVisualSourceKeys({"channel"},&keys,&legacy,&detail,true);
+        else {std::lock_guard lock(c.mu_);const std::set<std::string> channels{"channel"};
+            RecordingCatalog::VisualSourceScan scan{channels,keys,legacy};
+            *ok=c.RetentionSnapshotLocked(RetentionSnapshotSelection::All,{},nullptr,&scan).authoritative;}
+        if(!*ok)return {};
+        std::string result;for(const auto& k:keys)result+=k.id+"|"+k.channel+"|"+k.epoch+"|"+std::to_string(k.start)+"\n";
+        for(const auto& [key,count]:legacy)result+=key+"="+std::to_string(count)+"\n";
+        return result;
+    }
     static bool FusedFailureUnpublished(RecordingCatalog& c){
         std::vector<RecordingCatalog::VisualSourceKey> keys(1);keys.front().id="sentinel";std::map<std::string,std::size_t> legacy{{"sentinel",7}};
         return !c.CaptureVisualSourceKeys({"channel"},&keys,&legacy,&error,true)&&keys.size()==1&&keys.front().id=="sentinel"&&legacy.at("sentinel")==7;
@@ -382,6 +394,47 @@ void FusedVisualCases(const std::filesystem::path& root){
     Check("R111-C02",ProofProbe::VisualLegacy(legacy,true)==count&&ProofProbe::VisualLegacy(legacy,false)==count,
           "legacy finalized unsupported count survives missing path in fused scan");
     Need(old.Finish(&error));
+}
+void PreparedVisualCases(const std::filesystem::path& root){
+    for(const std::string mode:{"same","hold","delete","corrupt","new","other","legacy","finish","raw","resource","exception"}){
+        const auto path=root/mode;std::filesystem::create_directories(path);CompleteFixture(path);
+        RecordingJournal journal(Options(path));Need(journal.Open(&error));auto opts=ReadOptions(path);opts.enable_generation_writes=true;
+        RecordingCatalog catalog(journal,opts);Need(catalog.Open(&error));
+        std::promise<void> entered,resume;auto ready=entered.get_future();auto released=resume.get_future().share();
+        std::string actual;bool ok=false;std::exception_ptr failure;
+        std::thread reader([&]{try{ProofProbe::RetentionHook([&]{ProofProbe::RetentionHook({});entered.set_value();released.wait();
+                if(mode=="resource")throw RecordingResourceUnavailable();
+                if(mode=="exception")throw std::runtime_error("visual prepared exception");});
+            actual=ProofProbe::VisualCut(catalog,true,&ok);
+        }catch(...){failure=std::current_exception();}ProofProbe::RetentionHook({});});
+        struct Guard {std::promise<void>& resume;std::thread& thread;bool sent=false;void Release(){if(!sent){resume.set_value();sent=true;}}
+            ~Guard(){Release();if(thread.joinable())thread.join();}} guard{resume,reader};
+        Need(ready.wait_for(std::chrono::seconds(3))==std::future_status::ready);
+        if(mode=="hold")Need(catalog.AdjustHoldCount("segment",1,&error));
+        if(mode=="delete")Need(catalog.RequestDeletion("segment","continuous-capacity",&error));
+        if(mode=="corrupt")Need(catalog.MarkSegmentCorrupt("segment","checksum-mismatch",&error));
+        if(mode=="new"||mode=="other"){
+            auto segment=CompleteInput().source.segment;segment.segment_id="new-segment";segment.order_request_id="new-order";
+            if(mode=="other")segment.channel_id="other";
+            RecordingOrderReservationV1 order;Need(catalog.ReserveRecordingOrder("store",segment.order_request_id,segment.segment_id,segment.channel_id,&order,&error));
+            segment.order_sequence=order.sequence;const std::string media="new-fixture!";segment.size_bytes=media.size();segment.checksum_sha256=Hash(media);
+            Write(path/"new.mp4",media);Need(catalog.FinalizeSegmentV2(segment,(path/"new.mp4").string(),&error));
+        }
+        if(mode=="legacy"){
+            Write(path/"legacy.mp4",std::string(12,'x'));Need(catalog.FinalizeSegment(ProjectionV1(),(path/"legacy.mp4").string(),&error));
+        }
+        if(mode=="finish")Need(journal.Finish(&error));
+        if(mode=="raw")ProofProbe::DamageRetentionValue(catalog);
+        const bool denied=mode=="finish"||mode=="raw"||mode=="resource"||mode=="exception";
+        bool expected_ok=false;std::string expected;if(!denied)expected=ProofProbe::VisualCut(catalog,false,&expected_ok);
+        const auto descriptors=OpenDescriptors()-1;
+        guard.Release();reader.join();if(failure)std::rethrow_exception(failure);
+        Check("R132-P02",denied?!ok:ok&&expected_ok&&actual==expected,
+            (mode+": prepared visual keys/legacy counts match complete current locked oracle or reject").c_str());
+        Check("R132-P02",OpenDescriptors()==descriptors,"visual private cut releases scratch FD before return");
+        if(mode=="hold")Need(catalog.AdjustHoldCount("segment",-1,&error));
+        if(mode!="finish")Need(journal.Finish(&error));
+    }
 }
 void RetentionSharedDecodeCase(){
     using Rows=RecordingRetainedRows<RecordingSegmentV2,ParseRecordingSegmentV2,SerializeRecordingSegmentV2>;
@@ -821,7 +874,7 @@ int main(int argc,char** argv){
 #endif
 #if MEDIA_SERVER_USE_OPENSSL && MEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND
         ColdReadProgressCases(root/"cold-read-progress");SourceReadCases(root/"source-read");SharedSourceReadCases(root/"shared-source-read");
-        VerifiedDecodeCases();DecodeRecencyCase();EventCandidateClassificationCases();SearchChannelClassificationCases();FusedVisualCases(root/"fused-visual");
+        VerifiedDecodeCases();DecodeRecencyCase();EventCandidateClassificationCases();SearchChannelClassificationCases();FusedVisualCases(root/"fused-visual");PreparedVisualCases(root/"prepared-visual");
         RetentionSharedDecodeCase();
         RetentionPreparedCases(root/"retention-prepared");
         AdmissionPreparedCases(root/"admission-prepared");
