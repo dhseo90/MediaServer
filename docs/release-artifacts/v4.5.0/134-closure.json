@@ -1,0 +1,77 @@
+{
+  "schema": "media-server.v450.r134.closure.v1",
+  "decision": "FAIL_WARM_COLLECTION_PRESERVED_AND_OWNED_CLEANUP_COMPLETE",
+  "remoteEvidence": {
+    "remoteSha": "5bd0205a8994ede7d33b526e787dbe26885cb5fe",
+    "localSha": "5bd0205a8994ede7d33b526e787dbe26885cb5fe",
+    "method": "actual ls-remote + GitHub git/blobs base64 bytes for commit blob IDs",
+    "files": [
+      {
+        "path": "docs/release-artifacts/v4.5.0/134-validation.json",
+        "gitBlob": "56ffab5ac4d67f83ac172ac952c55099b97fefee",
+        "bytes": 22555,
+        "sha256": "cf745b32723bd3e5b5947c0458e96234e5ff687dde2b14d6286c8caf44cc6db8",
+        "remoteBytesMatch": true
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/134-independent-review.json",
+        "gitBlob": "c9e230c01630f54547af2b76f8acf0bfd03fcb45",
+        "bytes": 2424,
+        "sha256": "aaac208db66b59c3046fca5964e78931a505b7b16f838068b9fdf3768c399887",
+        "remoteBytesMatch": true
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/134-binding.json",
+        "gitBlob": "602cc0377a830e4ebc440310d404528dea0acb24",
+        "bytes": 2052,
+        "sha256": "87b3c7e9ed0b8549f549aa0264dfdf3b8c7b576c0407ca946c2ec3b49fc9a9c4",
+        "remoteBytesMatch": true
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/134-execution.tar.gz",
+        "gitBlob": "5cd374aad3623b83634222e2c985ca11a4071836",
+        "bytes": 3864226,
+        "sha256": "bac1eb742ea9c2b38f08e7ab58fca4212534ad8d376adcc15d4d0f9c76d6b6ad",
+        "remoteBytesMatch": true
+      },
+      {
+        "path": "docs/development-backlog.md",
+        "gitBlob": "528fe5801b780b734949b7f8156a748ccd05537b",
+        "bytes": 59032,
+        "sha256": "045ad628e8611c7e52facc720583cc37e84065ef40beb28a5febf355ecd8340f",
+        "remoteBytesMatch": true
+      },
+      {
+        "path": "test/fixtures/project_feature_implementation_evidence.json",
+        "gitBlob": "694060b4c6254091a791d62b4378e07ca2179023",
+        "bytes": 26350232,
+        "sha256": "43d6f5123e48266f78ab0e59c1ad03137fd630589b6cef642c17969b816cb58e",
+        "remoteBytesMatch": true
+      }
+    ]
+  },
+  "testCommit": "042f59629cfbb529af00d7ee09b26b9f99ad3589",
+  "cleanup": {
+    "root": "<RUN_ROOT>",
+    "identity": {
+      "dev": 16777232,
+      "ino": 175448103,
+      "uid": 501
+    },
+    "method": "fd-safe shutil.rmtree after exact realpath/uid/dev/inode and remote bytes verification",
+    "pid": 38026,
+    "pidAbsent": true,
+    "wrapperGroupAbsent": true,
+    "wrapperCleanupError": null,
+    "port": 54120,
+    "connectEx": 61,
+    "productNormalFinish": "not-run; process absence not product release proof",
+    "containersCreated": 0,
+    "excludes": "user settings/private backup/models/SDK; only exact R134 owned root and matching marker",
+    "rootAbsent": true,
+    "markerAbsent": true
+  },
+  "historical": "R132/R133 FAIL unchanged",
+  "furtherRuns": "none; warm1/cold0; no900/45/120",
+  "memoryP0": "open; final logical owners not observed"
+}
