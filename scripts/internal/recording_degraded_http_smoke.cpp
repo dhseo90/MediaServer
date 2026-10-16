@@ -1,4 +1,6 @@
 #include "recording_http_observation.h"
+#include "recording_public_fresh_oracle.h"
+#include "recording/evidence_package.h"
 // R107: exact closed original copy, real HTTP and actual source/writer/index consumers.
 #define main ManagedInputFixtureMain
 #include "recording_managed_writer_smoke.cpp"
@@ -145,10 +147,30 @@ int main(int argc,char** argv){
  NeedHttp(published,"new index publication after writer");
  std::cout<<"[R107-background] writes="<<writes<<" removed="<<removed<<" status="<<visual.Status(authorize).body<<std::endl;
  if(source_mode){
- {const auto view=VisualSearchPublicationTestProbe::View(visual);NeedHttp(view.index&&view.publication,"current publication");std::size_t fresh=0;for(const auto& d:view.index->documents())if(!original_segments.count(d.segment_id)){NeedHttp(catalog.FindSourceBinding(d.segment_id).has_value(),"published current binding");++fresh;}
- std::cout<<"[R119-membership] generation="<<view.publication->generation.value_or(0)<<" documents="<<view.index->documents().size()<<" newDocuments="<<fresh<<" instance="<<view.publication->instance_id<<std::endl;NeedHttp(fresh>0,"published new document membership");}
- const auto begin=Clock::now();const std::string route="/ops/api/recordings/visual-search?channelIds=9101,9201&text=ball&limit=200&threshold=-1";HttpObservation observation{100,"auxiliary200",route,begin};Socket socket;socket.fd=Request(port,route);const auto wire=Drain(socket.fd,begin+std::chrono::seconds(5),observation);NeedHttp(wire.rfind("HTTP/1.1 200",0)==0,"publication HTTP status");const auto body=wire.substr(wire.find("\r\n\r\n")+4);StrictJsonObjectDocument doc;std::size_t fresh=0;NeedHttp(ParseStrictJsonObjectDocumentObjectArray(body,"items",&doc,[&](const auto& item){const auto url=StrictJsonStringField(item,"playbackUrl");if(!url)return false;const auto id=std::filesystem::path(*url).filename().string();if(!original_segments.count(id)){const auto binding_begin=SourceHttpSteadyNs();const bool bound=catalog.FindSourceBinding(id).has_value();observation.BindingComplete(binding_begin);NeedHttp(bound,"new published source binding");++fresh;}return true;},&error),error.c_str());HttpObservation::Mark(observation.validationEndNs);std::cout<<"[R118-publication] newDocuments="<<fresh<<" response="<<body<<std::endl;HttpObservation::Mark(observation.outputEndNs);NeedHttp(fresh>0,"new writer document live publication");}
- NeedHttp(finish.Run(),"explicit finish failed");
+ const auto view=VisualSearchPublicationTestProbe::View(visual);NeedHttp(view.index&&view.publication,"current publication");std::size_t fresh=0;for(const auto& d:view.index->documents())if(!original_segments.count(d.segment_id)){NeedHttp(catalog.FindSourceBinding(d.segment_id).has_value(),"published current binding");++fresh;}
+ std::cout<<"[R119-membership] generation="<<view.publication->generation.value_or(0)<<" documents="<<view.index->documents().size()<<" newDocuments="<<fresh<<" instance="<<view.publication->instance_id<<std::endl;NeedHttp(fresh>0,"published new document membership");
+ {
+ const auto begin=Clock::now();const std::string route="/ops/api/recordings/visual-search?channelIds=9101,9201&text=ball&limit=200&threshold=-1";HttpObservation observation{100,"auxiliary200",route,begin};Socket socket;socket.fd=Request(port,route);const auto wire=Drain(socket.fd,begin+std::chrono::seconds(5),observation);NeedHttp(wire.rfind("HTTP/1.1 200",0)==0,"publication HTTP status");const auto body=wire.substr(wire.find("\r\n\r\n")+4);StrictJsonObjectDocument doc;std::size_t fresh=0;NeedHttp(ParseStrictJsonObjectDocumentObjectArray(body,"items",&doc,[&](const auto& item){const auto url=StrictJsonStringField(item,"playbackUrl");if(!url)return false;const auto id=std::filesystem::path(*url).filename().string();if(!original_segments.count(id)){const auto binding_begin=SourceHttpSteadyNs();const bool bound=catalog.FindSourceBinding(id).has_value();observation.BindingComplete(binding_begin);NeedHttp(bound,"new published source binding");++fresh;}return true;},&error),error.c_str());HttpObservation::Mark(observation.validationEndNs);std::cout<<"[R118-publication] newDocuments="<<fresh<<" response="<<body<<std::endl;HttpObservation::Mark(observation.outputEndNs);}
+ const auto bound=[&](const auto& d){const auto b=catalog.FindSourceBinding(d.segment_id);return b&&recording_public_fresh_oracle::ExpectedSeek(d,*b).has_value();};
+ std::size_t fresh_known=0,fresh_unknown=0,fresh_representative=0;for(const auto& x:view.index->documents())if(!original_segments.count(x.segment_id)){if(x.utc_ns)++fresh_known;else ++fresh_unknown;if(x.event_id.empty()&&x.utc_ns)++fresh_representative;}
+ std::cout<<"[R133-selection] fresh="<<fresh<<" known="<<fresh_known<<" unknown="<<fresh_unknown<<" representativeKnown="<<fresh_representative<<std::endl;
+ const auto target=recording_public_fresh_oracle::Select(view.index->documents(),original_segments,bound);
+ const auto& d=view.index->documents()[target.index];
+ const auto target_binding=catalog.FindSourceBinding(d.segment_id);NeedHttp(target_binding.has_value(),"public-fresh target binding");const auto expected_seek=recording_public_fresh_oracle::ExpectedSeek(d,*target_binding);NeedHttp(expected_seek.has_value(),"public-fresh target sample");
+ const auto quote=[](const auto& value){return recording::EvidenceJsonQuote(value);};
+ std::cout<<"[R133-target] {\"id\":"<<quote(d.id)<<",\"channel\":"<<quote(d.channel_id)<<",\"segment\":"<<quote(d.segment_id)<<",\"utcNs\":"<<quote(std::to_string(*d.utc_ns))<<",\"startMs\":"<<target.start_ms<<",\"endMs\":"<<target.end_ms<<",\"seekTicks\":"<<quote(std::to_string(expected_seek->ticks))<<",\"seekTimescale\":"<<expected_seek->timescale<<",\"durationTicks\":"<<quote(std::to_string(expected_seek->duration))<<",\"bucketCount\":"<<target.bucket_count<<",\"freshCount\":"<<target.fresh_count<<",\"instanceId\":"<<quote(view.publication->instance_id)<<",\"generation\":"<<view.publication->generation.value_or(0)<<"}"<<std::endl;
+ {
+ const auto begin=Clock::now();const std::string route="/ops/api/recordings/visual-search?channelIds="+d.channel_id+"&text=ball&limit=200&threshold=-1&startTimeMs="+std::to_string(target.start_ms)+"&endTimeMs="+std::to_string(target.end_ms);
+ HttpObservation observation{101,"publicFresh",route,begin};Socket socket;socket.fd=Request(port,route);const auto wire=Drain(socket.fd,begin+std::chrono::seconds(5),observation);NeedHttp(wire.rfind("HTTP/1.1 200",0)==0,"public-fresh HTTP status");
+ const auto body=wire.substr(wire.find("\r\n\r\n")+4);StrictJsonObjectDocument doc;bool found=false;
+ NeedHttp(ParseStrictJsonObjectDocumentObjectArray(body,"items",&doc,[&](const auto& item){if(StrictJsonStringField(item,"id")==std::optional<std::string>(d.id)){found=true;return StrictJsonStringField(item,"channelId")==std::optional<std::string>(d.channel_id)&&StrictJsonStringField(item,"timeNs")==std::optional<std::string>(std::to_string(*d.utc_ns))&&item.Find("playable")&&item.Find("playable")->bool_value&&item.Find("seekAvailable")&&item.Find("seekAvailable")->bool_value;}return true;},&error),"public-fresh item shape");
+ HttpObservation::Mark(observation.validationEndNs);std::cout<<"[R133-public-fresh] response="<<body<<std::endl;HttpObservation::Mark(observation.outputEndNs);
+ NeedHttp(found,"public-fresh target missing");NeedHttp(bound(d),"public-fresh final binding");
+ const auto current=VisualSearchPublicationTestProbe::View(visual);NeedHttp(current.index==view.index&&current.publication==view.publication,"public-fresh publication changed");
+ }
+ }
+
+ NeedHttp(finish.Run(),"explicit finish failed");std::cout<<"[R133-finish-success]"<<std::endl;
  std::sort(elapsed.begin(),elapsed.end());std::cout<<"[R107-result] failures="<<failures<<" count="<<elapsed.size()<<" p95="<<elapsed[std::size_t(std::ceil(elapsed.size()*.95))-1]<<" max="<<elapsed.back()<<std::endl;
  NeedHttp(source_mode?writes>=6:writes==6,"durable writer completions");NeedHttp(elapsed[std::size_t(std::ceil(elapsed.size()*.95))-1]<=2000&&elapsed.back()<=5000,"original latency criteria");return failures?1:0;
  }catch(const std::exception& e){std::cerr<<"[R107-fail] "<<e.what()<<std::endl;return 1;}
