@@ -1,0 +1,90 @@
+{
+  "schema": "media-server.v450.r132.closure.v1",
+  "remoteEvidence": {
+    "evidenceCommit": "c2a417d7035847453d2ccb78b59f9d8e1e5f3d9a",
+    "actualRemoteSha": "c2a417d7035847453d2ccb78b59f9d8e1e5f3d9a",
+    "transport": "authenticated GitHub git/blobs base64 at exact commit blob IDs; decoded bytes compared",
+    "previousRawTransportFailure": "gh api contents raw: transform: short source buffer, exit1; no byte verification claimed, no product failure/retry",
+    "files": [
+      {
+        "path": "docs/release-artifacts/v4.5.0/132-execution.tar.gz",
+        "gitBlob": "268dc24a8d26079ebd316fe65f1ad01dd0856213",
+        "bytes": 24222432,
+        "sha256": "e0be56f02ea18239b66516c77b147c6575f9ca600f6bfb281bed7cf2a1a427c1",
+        "remoteByteEqual": true
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/132-validation.json",
+        "gitBlob": "bb5330d7725186685f1198ddd0a97c74d81e476e",
+        "bytes": 24334,
+        "sha256": "28e28717c55214d8966f83d67107325997824f497a75e014886beb556ae7b898",
+        "remoteByteEqual": true
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/132-independent-review.json",
+        "gitBlob": "4069192d0f403ebd90d1571911d8af74b70bde13",
+        "bytes": 3165,
+        "sha256": "6b9e95ef56b2801f00446db3b691b80f4c45c6289dbfc1d8cb47010691c9954d",
+        "remoteByteEqual": true
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/132-binding.json",
+        "gitBlob": "29e8e6a6d5a536f3d7970d7934d51479f356e6ea",
+        "bytes": 20273,
+        "sha256": "b5efd7fb83ee38d183cb021135543ffa0a90cfcf41b2673ed9a0aa5eb9c0f7a6",
+        "remoteByteEqual": true
+      }
+    ]
+  },
+  "cleanup": {
+    "ownedRootAbsent": true,
+    "ownedRootIdentity": {
+      "device": 16777232,
+      "inode": 175377470,
+      "uid": 501
+    },
+    "containerNamesRemoved": [
+      "media-server-r132-linux",
+      "media-server-r132-linux-native",
+      "media-server-r132-linux-final"
+    ],
+    "containersAbsent": true,
+    "recordedPidsAbsent": [
+      {
+        "run": "r132single-run",
+        "pid": 29471,
+        "absent": true,
+        "currentCommand": null
+      },
+      {
+        "run": "r132compact-run",
+        "pid": 29026,
+        "absent": true,
+        "currentCommand": null
+      },
+      {
+        "run": "r132cut-run",
+        "pid": 28075,
+        "absent": true,
+        "currentCommand": null
+      },
+      {
+        "run": "r132visualfinal-run",
+        "pid": 30919,
+        "absent": true,
+        "currentCommand": null
+      }
+    ],
+    "portScope": "all recorded helper PIDs absent and wrapper groups absent; their sockets cannot remain owned by these processes; no arbitrary unrelated port claim",
+    "symlinksUnlinkedWithoutFollowing": [
+      "proof-visual-final-case/symlink/evidence-1-0.jsonl",
+      "proof-visual-final-case/active-proof/symlink/active-2.jsonl",
+      "proof-visual-before-guard-case/symlink/evidence-1-0.jsonl"
+    ],
+    "method": "UID/inode/realpath checks; stopped exact Docker IDs rm without force; fd-safe rmtree on exact owned root only",
+    "preserved": "repository source/build outputs and all user configuration/private backups/models/SDK untouched",
+    "rawAndSanitized": "necessary nonsensitive execution data preserved before cleanup; raw private path strings not uploaded; source/saved hash relationship in archive manifest"
+  },
+  "result": "scoped improvements and single same-warm HTTP timings; full warm FAIL/publicfresh; normalFinish/closedjournal/cold not completed",
+  "finalRemoteSha": "closure commit SHA verified after push and reported in final response"
+}
