@@ -58,6 +58,9 @@ struct SearchModelLimits {
 };
 // snapshot adapter가 복사 전에 같은 논리 admission을 적용한다. 미디어 건강도 검사는 아니다.
 bool AccountSearchDocument(const SearchDocument&, std::size_t* bytes, std::size_t limit);
+// 단일 소유 vector: DTO 본체·모든 문자열 capacity·하위 vector. 여유 capacity는 caller가 합산한다.
+bool AccountOwnedSearchDocument(const SearchDocument&, std::size_t* bytes, std::size_t limit);
+bool AppendOwnedSearchDocument(std::vector<SearchDocument>*,SearchDocument&&,std::size_t* bytes,SearchModelLimits);
 
 // 성공한 source snapshot 사이의 변화분. 이력 유실/새 source instance는 Build로 재구축한다.
 struct SearchModelDelta {
@@ -95,6 +98,12 @@ public:
     RecordingSearchModel(const RecordingSearchModel&)=delete;
     RecordingSearchModel& operator=(const RecordingSearchModel&)=delete;
     static bool Build(const std::vector<SearchDocument>& documents,
+                      const std::string& source_instance, std::uint64_t revision,
+                      std::shared_ptr<const RecordingSearchModel>* output,
+                      std::string* error, SearchModelLimits limits = {});
+    // 인증된 준비 vector를 게시 모델로 이전한다. 실패 output 불변, 입력은 소비 가능하다.
+    // caller의 준비 예약은 함수 반환까지 살아 있어야 한다. 게시 예약은 별도로 먼저 확보한다.
+    static bool BuildOwned(std::vector<SearchDocument>&& documents,
                       const std::string& source_instance, std::uint64_t revision,
                       std::shared_ptr<const RecordingSearchModel>* output,
                       std::string* error, SearchModelLimits limits = {});

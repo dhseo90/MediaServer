@@ -96,6 +96,7 @@ bool RecordingCatalog::CaptureSearchSource(const std::vector<std::string>& chann
     for (const auto& channel : channels)
         if (!ValidateRecordingReferenceId(channel, nullptr)) return Fail(error, "search-invalid-channels");
     SearchDiagnostic::Stage("capture-source");
+    SearchCapacityBegin("capture-source",limits.max_documents,limits.max_bytes,0,0);
     CaptureCost costs;
     try {
         latency::Lock lock(mu_,latency::Source::Catalog,__LINE__,false,__func__);
@@ -111,8 +112,14 @@ bool RecordingCatalog::CaptureSearchSource(const std::vector<std::string>& chann
         SearchSourceBatch batch;batch.channels=channels;
         if(!limits.residency)limits.residency=SearchResidency();
         auto charge=limits.residency->ReserveOwned(limits.max_bytes);
-        if(!charge)return Fail(error,"search-capacity-exceeded");
+        if(!charge){SearchCapacityReject("shared-reservation",0,limits.max_bytes);return Fail(error,"search-capacity-exceeded");}
         batch.memory=std::move(*charge);
+        // Valid SearchDocument의17개4096-byte text, 세64-entry 목록,64개3-text facts.
+        // source adapter의 단일 DTO/복사 임시값은 vector envelope와 별도 예약한다.
+        constexpr std::size_t temporary_bound=2*(sizeof(SearchDocument)+17*8192+
+            3*64*(sizeof(std::string)+8192)+64*(sizeof(SearchEventFact)+3*8192));
+        auto temporary=limits.residency->Reserve(temporary_bound);
+        if(!temporary){SearchCapacityReject("shared-temporary",0,temporary_bound);return Fail(error,"search-capacity-exceeded");}
         batch.catalog_instance = search_instance_;batch.resolution_revision = source_snapshot_revision_;
         batch.delta.source_instance = SearchSourceIdentity(search_instance_, channels);
         if(!include_observations)batch.delta.source_instance="recordings:"+batch.delta.source_instance;
@@ -126,9 +133,7 @@ bool RecordingCatalog::CaptureSearchSource(const std::vector<std::string>& chann
         };
         std::size_t bytes = sizeof(batch);
         const auto add = [&](SearchDocument d) {
-            if (batch.delta.upserts.size() >= limits.max_documents ||
-                !AccountSearchDocument(d, &bytes, limits.max_bytes)) return false;
-            batch.delta.upserts.push_back(std::move(d));return true;
+            return AppendOwnedSearchDocument(&batch.delta.upserts,std::move(d),&bytes,limits);
         };
         // 저장된 locator의 시각만 소비한다. 여기서 미확정 관측의 epoch/시각을 새로 추정하지 않는다.
         const auto locate = [&](SearchDocument& d, const FrameLocatorV1& locator) {
@@ -217,7 +222,7 @@ bool RecordingCatalog::CaptureSearchSource(const std::vector<std::string>& chann
         SearchDiagnostic::Source(batch.catalog_instance,batch.resolution_revision,source_snapshot_revision_,search_instance_,true,batch.rebuild,batch.delta.upserts.size(),batch.pending.size());
         *result=std::move(batch);costs.complete=true;if(error)error->clear();return true;
     } catch(const RecordingRetainedReadError&) {return Fail(error,"search-source-unavailable");}
-      catch(const std::bad_alloc&) {return Fail(error,"search-capacity-exceeded");}
-      catch(const std::length_error&) {return Fail(error,"search-capacity-exceeded");}
+      catch(const std::bad_alloc&) {SearchCapacityReject("allocation-exception",0,0);return Fail(error,"search-capacity-exceeded");}
+      catch(const std::length_error&) {SearchCapacityReject("length-exception",0,0);return Fail(error,"search-capacity-exceeded");}
 }
 } // namespace recording

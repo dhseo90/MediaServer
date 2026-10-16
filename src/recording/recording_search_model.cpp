@@ -1,5 +1,6 @@
 // 파일 용도: 검색 값 검증·용량 admission·안정 정렬과 채널/ID 인덱스 구성.
 #include "recording/recording_search_model.h"
+#include "recording/recording_search_diagnostic.h"
 
 #include <algorithm>
 #include <new>
@@ -49,7 +50,7 @@ bool Valid(const SearchDocument& d) {
 
 // 잠재적으로 큰 vector capacity도 포함한다. overflow 없이 한도 안에서만 누적한다.
 bool Add(std::size_t value, std::size_t* total, std::size_t limit) {
-    if (*total > limit || value > limit - *total) return false;
+    if (*total > limit || value > limit - *total) {SearchCapacityReject("bytes-add",*total,value);return false;}
     *total += value;
     return true;
 }
@@ -74,6 +75,24 @@ bool Account(const SearchDocument& d, std::size_t* total, std::size_t limit) {
         !Add(2 * d.event_facts.capacity() * sizeof(SearchEventFact), total, limit)) return false;
     for (const auto& fact : d.event_facts)
         if (!text(fact.event_id) || !text(fact.event_type) || !text(fact.scenario_name)) return false;
+    return true;
+}
+
+// 같은 DTO를 두 번 소유하는 Build와 달리 준비 vector 자체를 이전하는 경로다.
+// SSO 문자열도 capacity+1로 보수적으로 포함한다. 공유/외부 비용을 할인하지 않는다.
+bool AccountOwned(const SearchDocument& d,std::size_t* total,std::size_t limit) {
+    if(!Add(sizeof(SearchDocument),total,limit))return false;
+    const auto text=[&](const std::string& v){return v.capacity()!=SIZE_MAX&&Add(v.capacity()+1,total,limit);};
+    for(const auto* v:{&d.id,&d.channel_id,&d.segment_id,&d.source_id,&d.store_id,&d.media_epoch_id,
+        &d.playback_segment_id,&d.playback_event_id,&d.playback_job_id,&d.observation_id,&d.reference_id,
+        &d.analysis_namespace,&d.stream_epoch_id,&d.track_id,&d.object,&d.time_provenance,&d.unavailable_reason})
+        if(!text(*v))return false;
+    for(const auto* list:{&d.event_ids,&d.zone_ids,&d.rule_ids}) {
+        if(list->capacity()>limit/sizeof(std::string)||!Add(list->capacity()*sizeof(std::string),total,limit))return false;
+        for(const auto& v:*list)if(!text(v))return false;
+    }
+    if(d.event_facts.capacity()>limit/sizeof(SearchEventFact)||!Add(d.event_facts.capacity()*sizeof(SearchEventFact),total,limit))return false;
+    for(const auto& f:d.event_facts)if(!text(f.event_id)||!text(f.event_type)||!text(f.scenario_name))return false;
     return true;
 }
 
@@ -178,11 +197,44 @@ bool AccountSearchDocument(const SearchDocument& d, std::size_t* bytes, std::siz
     return bytes && Valid(d) && Account(d, bytes, limit);
 }
 
+bool AccountOwnedSearchDocument(const SearchDocument& d,std::size_t* bytes,std::size_t limit) {
+    return bytes&&Valid(d)&&AccountOwned(d,bytes,limit);
+}
+
+bool AppendOwnedSearchDocument(std::vector<SearchDocument>* documents,SearchDocument&& document,
+    std::size_t* bytes,SearchModelLimits limits) {
+    search_capacity_diagnostic.documents=documents->size();
+    search_capacity_diagnostic.capacity=documents->capacity();
+    search_capacity_diagnostic.index=documents->size();
+    if(documents->size()>=limits.max_documents) {
+        SearchCapacityReject("document-count",documents->size(),1);return false;
+    }
+    auto next=*bytes;
+    if(!AccountOwnedSearchDocument(document,&next,limits.max_bytes))return false;
+    const auto required=documents->size()+1;
+    const auto capacity=documents->capacity()<required?
+        required+std::min({documents->capacity()?documents->capacity()-1:std::size_t{0},
+            std::size_t{1023},limits.max_documents-required}):documents->capacity();
+    const auto extra=capacity-required+(documents->capacity()<required?documents->capacity():0);
+    if(next>limits.max_bytes||extra>(limits.max_bytes-next)/sizeof(SearchDocument)) {
+        SearchCapacityReject("vector-relocation",next,extra>SIZE_MAX/sizeof(SearchDocument)?SIZE_MAX:extra*sizeof(SearchDocument));return false;
+    }
+    if(documents->capacity()<required)documents->reserve(capacity);
+    if(documents->capacity()-required>(limits.max_bytes-next)/sizeof(SearchDocument)) {
+        SearchCapacityReject("vector-capacity",next,(documents->capacity()-required)*sizeof(SearchDocument));return false;
+    }
+    documents->push_back(std::move(document));*bytes=next;return true;
+}
+
 bool RecordingSearchModel::Build(const std::vector<SearchDocument>& documents,
     const std::string& source_instance, std::uint64_t revision,
     std::shared_ptr<const RecordingSearchModel>* output, std::string* error, SearchModelLimits limits) {
     if (!output || !Text(source_instance, true)) return Fail(error, "search-invalid-source");
-    if (documents.size() > limits.max_documents) return Fail(error, "search-capacity-exceeded");
+    SearchCapacityBegin("model-build",limits.max_documents,limits.max_bytes,documents.size(),documents.capacity());
+    if (documents.size() > limits.max_documents) {
+        SearchCapacityReject("document-count",documents.size(),0);
+        return Fail(error, "search-capacity-exceeded");
+    }
     std::size_t bytes = sizeof(RecordingSearchModel);
     if (source_instance.size() > limits.max_bytes ||
         !Add(source_instance.size(), &bytes, limits.max_bytes)) return Fail(error, "search-capacity-exceeded");
@@ -191,12 +243,16 @@ bool RecordingSearchModel::Build(const std::vector<SearchDocument>& documents,
         !Add(unused * sizeof(SearchDocument), &bytes, limits.max_bytes))
         return Fail(error, "search-capacity-exceeded");
     for (const auto& d : documents) {
+        search_capacity_diagnostic.index=static_cast<std::size_t>(&d-documents.data());
         if (!Valid(d)) return Fail(error, "search-invalid-document");
         if (!Account(d, &bytes, limits.max_bytes)) return Fail(error, "search-capacity-exceeded");
     }
     try {
         auto lease=limits.residency?limits.residency->Reserve(bytes):std::shared_ptr<void>{};
-        if(limits.residency&&!lease)return Fail(error,"search-capacity-exceeded");
+        if(limits.residency&&!lease) {
+            SearchCapacityReject("shared-reservation",0,bytes);
+            return Fail(error,"search-capacity-exceeded");
+        }
         auto model = std::make_shared<RecordingSearchModel>();
         model->residency_=limits.residency;model->residency_lease_=std::move(lease);
         model->source_instance_ = source_instance;
@@ -222,8 +278,76 @@ bool RecordingSearchModel::Build(const std::vector<SearchDocument>& documents,
         if (error) error->clear();
         return true;
     } catch (const std::bad_alloc&) {
+        SearchCapacityReject("allocation-exception",0,0);
         return Fail(error, "search-capacity-exceeded");
     } catch (const std::length_error&) {
+        SearchCapacityReject("length-exception",0,0);
+        return Fail(error, "search-capacity-exceeded");
+    }
+}
+
+bool RecordingSearchModel::BuildOwned(std::vector<SearchDocument>&& documents,
+    const std::string& source_instance, std::uint64_t revision,
+    std::shared_ptr<const RecordingSearchModel>* output, std::string* error, SearchModelLimits limits) {
+    if (!output || !Text(source_instance, true)) return Fail(error, "search-invalid-source");
+    SearchCapacityBegin("model-build-owned",limits.max_documents,limits.max_bytes,documents.size(),documents.capacity());
+    if (documents.size() > limits.max_documents) {
+        SearchCapacityReject("document-count",documents.size(),0);
+        return Fail(error, "search-capacity-exceeded");
+    }
+    std::size_t bytes = sizeof(RecordingSearchModel);
+    if (source_instance.size() > limits.max_bytes ||
+        !Add(source_instance.size(), &bytes, limits.max_bytes)) return Fail(error, "search-capacity-exceeded");
+    const auto unused = documents.capacity() - documents.size();
+    if (unused > limits.max_bytes / sizeof(SearchDocument) ||
+        !Add(unused * sizeof(SearchDocument), &bytes, limits.max_bytes))
+        return Fail(error, "search-capacity-exceeded");
+    for (const auto& d : documents) {
+        search_capacity_diagnostic.index=static_cast<std::size_t>(&d-documents.data());
+        if (!Valid(d)) return Fail(error, "search-invalid-document");
+        // ID node/key, channel node/key, bucket arrays and per-channel positions.
+        // 256 includes two node/control envelopes and four pointer/index slots per document.
+        if (d.id.capacity()>SIZE_MAX/2-1 || d.channel_id.capacity()>SIZE_MAX/2-1 ||
+            !Add(256, &bytes, limits.max_bytes) ||
+            !Add(2*(d.id.capacity()+1), &bytes, limits.max_bytes) ||
+            !Add(2*(d.channel_id.capacity()+1), &bytes, limits.max_bytes) ||
+            !AccountOwned(d, &bytes, limits.max_bytes)) return Fail(error, "search-capacity-exceeded");
+    }
+    try {
+        auto lease=limits.residency?limits.residency->Reserve(bytes):std::shared_ptr<void>{};
+        if(limits.residency&&!lease) {
+            SearchCapacityReject("shared-reservation",0,bytes);
+            return Fail(error,"search-capacity-exceeded");
+        }
+        auto model = std::make_shared<RecordingSearchModel>();
+        model->residency_=limits.residency;model->residency_lease_=std::move(lease);
+        model->source_instance_ = source_instance;
+        model->revision_ = revision;
+        model->accounted_bytes_ = bytes;
+        model->documents_ = std::move(documents);
+        for (auto& d : model->documents_) {
+            for (auto* values : {&d.event_ids, &d.zone_ids, &d.rule_ids}) {
+                std::sort(values->begin(), values->end());
+                values->erase(std::unique(values->begin(), values->end()), values->end());
+            }
+            std::sort(d.event_facts.begin(), d.event_facts.end(), [](const auto& a, const auto& b) {
+                return a.event_id < b.event_id;
+            });
+        }
+        std::sort(model->documents_.begin(), model->documents_.end(), Earlier);
+        for (std::size_t i = 0; i < model->documents_.size(); ++i) {
+            const auto& d = model->documents_[i];
+            if (!model->ids_.emplace(d.id, i).second) return Fail(error, "search-duplicate-id");
+            model->channels_[d.channel_id].push_back(i);
+        }
+        *output = std::move(model);
+        if (error) error->clear();
+        return true;
+    } catch (const std::bad_alloc&) {
+        SearchCapacityReject("allocation-exception",0,0);
+        return Fail(error, "search-capacity-exceeded");
+    } catch (const std::length_error&) {
+        SearchCapacityReject("length-exception",0,0);
         return Fail(error, "search-capacity-exceeded");
     }
 }
@@ -267,11 +391,13 @@ bool RecordingSearchModel::ApplyDelta(const RecordingSearchModel& base, const Se
         merged.reserve(count);
         for (const auto& d : base.documents_) if (!changed.count(d.id)) merged.push_back(d);
         merged.insert(merged.end(), delta.upserts.begin(), delta.upserts.end());
-        return Build(merged, delta.source_instance, delta.revision, output, error,
+        return BuildOwned(std::move(merged), delta.source_instance, delta.revision, output, error,
                      {limits.max_documents, limits.max_bytes - change_bytes,limits.residency});
     } catch (const std::bad_alloc&) {
+        SearchCapacityReject("allocation-exception",0,0);
         return Fail(error, "search-capacity-exceeded");
     } catch (const std::length_error&) {
+        SearchCapacityReject("length-exception",0,0);
         return Fail(error, "search-capacity-exceeded");
     }
 }

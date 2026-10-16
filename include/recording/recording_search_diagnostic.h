@@ -16,6 +16,19 @@ namespace recording {
 // Linked only by the focused test's reader translation unit; no product request can set it.
 inline thread_local std::function<void()> search_after_capture_test;
 #endif
+// 최초 거부의 실제 Add 피연산자. thread-local 고정 크기이며 원문을 보유하지 않는다.
+struct SearchCapacityDiagnostic {
+    const char* stage="none"; const char* condition="none";
+    std::size_t max_documents=0,max_bytes=0,documents=0,capacity=0,index=0,before=0,addition=0;
+};
+inline thread_local SearchCapacityDiagnostic search_capacity_diagnostic;
+inline void SearchCapacityBegin(const char* stage,std::size_t docs,std::size_t bytes,std::size_t size,std::size_t capacity) noexcept {
+    search_capacity_diagnostic={stage,"none",docs,bytes,size,capacity,0,0,0};
+}
+inline void SearchCapacityReject(const char* condition,std::size_t before,std::size_t addition) noexcept {
+    auto& d=search_capacity_diagnostic;if(std::strcmp(d.condition,"none"))return;
+    d.condition=condition;d.before=before;d.addition=addition;
+}
 struct SearchDiagnostic {
     struct Attempt {const char* stage="start";const char* reason="none";std::uint64_t instance=0,current_instance=0,captured=0,current=0,documents=0,references=0;bool rebuild=false,authority=false;};
     std::array<Attempt,3> attempts{};
@@ -31,7 +44,7 @@ struct SearchDiagnostic {
         }
     }
     explicit SearchDiagnostic(const SearchModelResidency* value=nullptr) noexcept : resources(value),rejection_start(value?value->rejected():0) {
-        previous=active;active=this;
+        previous=active;active=this;search_capacity_diagnostic={};
         if(Enabled()){static std::atomic<bool> probe{false};if(!probe.exchange(true))
             {constexpr char probe_line[]="[search-failure-probe] {\"version\":1,\"attempts\":3}\n";Write(probe_line,sizeof(probe_line)-1);}}
     }
@@ -51,6 +64,13 @@ struct SearchDiagnostic {
     ~SearchDiagnostic() noexcept {
         active=previous;
         if(!Enabled()||status<500)return;
+        const auto& c=search_capacity_diagnostic;
+        if(std::strcmp(c.condition,"none")) {
+            char capacity_line[512];const int count=std::snprintf(capacity_line,sizeof(capacity_line),
+                "[search-capacity] {\"stage\":\"%s\",\"condition\":\"%s\",\"maxDocuments\":%zu,\"maxBytes\":%zu,\"documents\":%zu,\"capacity\":%zu,\"index\":%zu,\"before\":%zu,\"addition\":%zu}\n",
+                c.stage,c.condition,c.max_documents,c.max_bytes,c.documents,c.capacity,c.index,c.before,c.addition);
+            if(count>0&&count<int(sizeof(capacity_line)))Write(capacity_line,static_cast<std::size_t>(count));
+        }
         // One terminal request record, at most three fixed numeric/code attempts (<2KiB).
         char line[2048];int n=std::snprintf(line,sizeof(line),"[search-failure] {\"version\":1,\"status\":%d,\"channels\":%u,\"exception\":\"%s\",\"resourceRejectionsBefore\":%llu,\"resourceRejectionsAfter\":%llu,\"attempts\":[",status,channels,exception,(unsigned long long)rejection_start,(unsigned long long)(resources?resources->rejected():0));
         for(unsigned i=0;i<=attempt&&n>0&&n<int(sizeof(line));++i){const auto& a=attempts[i];n+=std::snprintf(line+n,sizeof(line)-n,

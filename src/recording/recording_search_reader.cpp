@@ -120,7 +120,7 @@ bool RecordingSearchReader::Refresh(const std::vector<std::string>& channels,
     }
     std::shared_ptr<const RecordingSearchModel> next;
     SearchDiagnostic::Stage(batch.rebuild?"model-build":"model-delta");
-    const bool built = batch.rebuild ? RecordingSearchModel::Build(batch.delta.upserts,
+    const bool built = batch.rebuild ? RecordingSearchModel::BuildOwned(std::move(batch.delta.upserts),
         batch.delta.source_instance, batch.delta.revision, &next, error, limits) :
         RecordingSearchModel::ApplyDelta(*previous, batch.delta, &next, error, limits);
     // 정렬/복사 동안 발생한 원본 상태 변경도 완료 직전에 거부한다.
@@ -142,40 +142,57 @@ bool RecordingSearchReader::WithEventFacts(const RecordingSearchModel& source,
         // 질의가 배제한 행은 요청 전용 사본에 복사하지 않는다. 공유 source와 기존 snapshot은
         // 불변이며, query가 없는 기존 전체 enrichment 호출은 그대로 모든 행을 소비한다.
         std::vector<SearchDocument> documents;
-        documents.reserve(candidates.positions.size());
+        std::size_t bytes=0;
         std::map<std::string,std::vector<std::size_t>> channels;
         for(const auto position:candidates.positions){
-            documents.push_back(source.documents().at(position));
-            auto& document=documents.back();document.event_facts.clear();
+            const auto& input=source.documents().at(position);
+            // 채널 결합 map/node/key/position과 복사할 DTO를 할당 전에 제한한다.
+            const auto join=256+2*input.channel_id.capacity();
+            if(bytes>limits.max_bytes||join>limits.max_bytes-bytes) {if(error)*error="search-capacity-exceeded";return false;}
+            bytes+=join;
+            auto anticipated=bytes;
+            if(!AccountOwnedSearchDocument(input,&anticipated,limits.max_bytes)) {if(error)*error="search-capacity-exceeded";return false;}
+            auto copy=input;copy.event_facts.clear();
+            if(!AppendOwnedSearchDocument(&documents,std::move(copy),&bytes,limits)) {if(error)*error="search-capacity-exceeded";return false;}
+            auto& document=documents.back();
             if(!document.event_ids.empty())channels[document.channel_id].push_back(documents.size()-1);
         }
         for(const auto& channel:channels) {
+            // QueryEventRecords의 기존8MiB facts envelope와 adapter의 이동 전 배열을
+            // 같은 공유 owner에 먼저 예약한다. 정렬 조회로 별도 by_id 전체 사본을 없앤다.
+            auto facts_memory=limits.residency?limits.residency->Reserve(2*8*1024*1024):std::shared_ptr<void>{};
+            if(limits.residency&&!facts_memory){if(error)*error="search-capacity-exceeded";return false;}
             std::vector<ingress::EventSearchApplicationFact> facts;
             if(!ingress::ReadEventSearchFactsForApplication(channel.first,&facts,error))return false;
-            std::map<std::string,const ingress::EventSearchApplicationFact*> by_id;
-            for(const auto& fact:facts) {
-                auto inserted=by_id.emplace(fact.event_id,&fact);
-                if(!inserted.second) {
-                    const auto& old=*inserted.first->second;
-                    if(std::tie(old.channel_id,old.track_id,old.stream_epoch_id,old.event_type,old.scenario_name)!=
-                       std::tie(fact.channel_id,fact.track_id,fact.stream_epoch_id,fact.event_type,fact.scenario_name)) {
-                        if(error)*error="search-event-evidence-conflict";
-                        return false;
-                    }
+            std::sort(facts.begin(),facts.end(),[](const auto& a,const auto& b){return a.event_id<b.event_id;});
+            for(std::size_t i=1;i<facts.size();++i)if(facts[i-1].event_id==facts[i].event_id) {
+                const auto& old=facts[i-1];const auto& fact=facts[i];
+                if(std::tie(old.channel_id,old.track_id,old.stream_epoch_id,old.event_type,old.scenario_name)!=
+                   std::tie(fact.channel_id,fact.track_id,fact.stream_epoch_id,fact.event_type,fact.scenario_name)) {
+                    if(error)*error="search-event-evidence-conflict";return false;
                 }
             }
             for(const auto index:channel.second) {
                 auto& d=documents[index];
                 for(const auto& id:d.event_ids) {
-                    const auto found=by_id.find(id);if(found==by_id.end())continue;
-                    const auto& fact=*found->second;
+                    const auto found=std::lower_bound(facts.begin(),facts.end(),id,[](const auto& f,const auto& key){return f.event_id<key;});
+                    if(found==facts.end()||found->event_id!=id)continue;
+                    const auto& fact=*found;
                     if(fact.channel_id!=d.channel_id || (!d.track_id.empty()&&d.track_id!=std::to_string(fact.track_id)&&d.track_id!="track-"+std::to_string(fact.track_id)) ||
                         (!d.stream_epoch_id.empty()&&d.stream_epoch_id!=fact.stream_epoch_id))continue;
+                    // 입력 facts는 별도 원본이다. 복사/재할당 중 old+new 목록과 문자열을 선계상한다.
+                    std::size_t extra=4*sizeof(SearchEventFact);
+                    for(const auto* text:{&fact.event_id,&fact.event_type,&fact.scenario_name}) {
+                        if(text->capacity()>(SIZE_MAX-extra)/4-1) {if(error)*error="search-capacity-exceeded";return false;}
+                        extra+=4*(text->capacity()+1);
+                    }
+                    if(bytes>limits.max_bytes||extra>limits.max_bytes-bytes) {if(error)*error="search-capacity-exceeded";return false;}
+                    bytes+=extra;
                     d.event_facts.push_back({fact.event_id,fact.event_type,fact.scenario_name});
                 }
             }
         }
-        return RecordingSearchModel::Build(documents,source.source_instance(),source.revision(),output,error,limits);
+        return RecordingSearchModel::BuildOwned(std::move(documents),source.source_instance(),source.revision(),output,error,limits);
     } catch(const std::bad_alloc&) {if(error)*error="search-capacity-exceeded";return false;}
       catch(const std::length_error&) {if(error)*error="search-capacity-exceeded";return false;}
 }
@@ -448,8 +465,7 @@ bool RecordingSearchReader::WithPlayback(const RecordingSearchModel& model,const
     try {
         std::vector<SearchDocument> documents;std::set<std::string> replaced_outputs;std::size_t bytes=0;
         const auto add=[&](SearchDocument document){
-            if(documents.size()>=limits.max_documents||!AccountSearchDocument(document,&bytes,limits.max_bytes))return false;
-            documents.push_back(std::move(document));return true;
+            return AppendOwnedSearchDocument(&documents,std::move(document),&bytes,limits);
         };
         const auto ns=[](std::int64_t pts,std::int32_t num,std::int32_t den)->std::optional<std::int64_t>{
             if(num<=0||den<=0)return {};
@@ -469,8 +485,18 @@ bool RecordingSearchReader::WithPlayback(const RecordingSearchModel& model,const
             if(model.documents()[i].kind==SearchDocumentKind::Recording)positions.push_back(i);
         // 관측은 점 위치이고 우선 선택이 필터 값을 바꾸지 않는다. 페이지를 자르기 전에 모든 일치를 선택한다.
         // 녹화 구간은 partial 분할/출력 대체가 끝난 뒤 필터링하는 기존 순서를 유지한다.
+        std::size_t candidate_text=0;
+        for(const auto& candidate:candidates)candidate_text=std::max(candidate_text,
+            candidate.output_segment_id.capacity()+candidate.event_id.capacity()+candidate.job_id.capacity());
         for(const auto position:positions) {
             const auto& input=model.documents()[position];
+            std::size_t temporary_bytes=0;
+            if(!AccountOwnedSearchDocument(input,&temporary_bytes,limits.max_bytes)||
+                candidate_text>(SIZE_MAX-1024)/4||temporary_bytes>(SIZE_MAX-1024-4*candidate_text)/4){if(error)*error="search-capacity-exceeded";return false;}
+            // document + part + 이동 전 인자: 준비 vector와 별도 수명.
+            // SelectSearchPlayback의 slices/positions는 살아 있는 proof workspace도 유지한다.
+            auto temporary=limits.residency->Reserve(4*temporary_bytes+4*candidate_text+1024);
+            if(!temporary){if(error)*error="search-capacity-exceeded";return false;}
             auto document=input;document.playback_segment_id=document.segment_id;
             document.playback_event_id.clear();document.playback_job_id.clear();
             const auto start=document.media_pts?ns(*document.media_pts,document.time_base_num,document.time_base_den):std::nullopt;
@@ -502,7 +528,7 @@ bool RecordingSearchReader::WithPlayback(const RecordingSearchModel& model,const
         }),documents.end());
         SearchDiagnostic::Stage("playback-model-build");
         std::shared_ptr<const RecordingSearchModel> next;
-        if(!RecordingSearchModel::Build(documents,model.source_instance(),model.revision(),&next,error,limits)||
+        if(!RecordingSearchModel::BuildOwned(std::move(documents),model.source_instance(),model.revision(),&next,error,limits)||
            !catalog_.ValidateSearchSource(proof,error))return false;
         *output=std::move(next);return true;
     }catch(const std::bad_alloc&){if(error)*error="search-capacity-exceeded";return false;}
