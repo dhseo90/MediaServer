@@ -1,0 +1,32 @@
+{
+  "schema": "media-server.v450.r126.independent-review.v1",
+  "decision": "SCOPED_CAPACITY_CHANGE_SUPPORTED_FULL_DIRECT_OBJECTIVE_INCOMPLETE",
+  "reviewer": {
+    "agent": "/root/independent_r126",
+    "requested": "gpt-6-astra/high",
+    "toolAccepted": "gpt-6-astra/high",
+    "actualModel": null,
+    "actualEffort": null,
+    "independence": "read-only; no implementation, test writing/execution or redelegation"
+  },
+  "reviewedBaseline": "8dca4e25f4bd4d8294ed4119926877e932b62ad1",
+  "sourceBinding": "126-execution.tar.gz:final-source-binding.json",
+  "codeConclusion": "no additional concrete product defect found after realloc peak, preparation lease and event-fact join corrections; preserves raw/current authority and existing query/error paths",
+  "results": {
+    "capacity": "25526 documents,128 native pages with independent exact ID/count oracle; HTTP,seek,evidence,old snapshot/new publication,logical final release supported",
+    "parallel": "FAIL:5.002087125s recv errno35,0 bytes/no headers; not received503 and not demonstrated capacity failure; 12 requests/aux200 incomplete",
+    "recorder": "2412 expected/2176 accepted; difference236 cannot all be attributed to queue drop172",
+    "macOS": "10 focused run exits0",
+    "linux": "4+6 focused run exits0; same runtime hash; Werror maintained; four test edits line breaks only",
+    "closedJournal": "final-source observer-native-timeout SIGTERM:verification FAIL, not proof of journal damage;capacity-run probe not-run"
+  },
+  "caveats": [
+    "capacity latencies3056.12/1441.38/1464.76ms, not earlier draft values",
+    "560 complete process/FD rounds; file categories mostly other do not prove product-owner category completeness",
+    "holder trace loss:true prevents complete lock attribution",
+    "readback opens stored package/manifest with nonempty frames; no new independent exhaustive asset rehash claim",
+    "Reserve returning empty can include reservation-ticket allocation failure; shared-reservation diagnostic alone is not proof of quota exhaustion",
+    "memory P0,longrun latency,recording gaps,rotation and release remain open"
+  ],
+  "finalExcerpt": "독립 최종 판정은 용량 개선의 한정 검증은 지지하되, R126 전체 목표는 미완료·차단 유지입니다. 추가 제품 코드 결함은 발견하지 못했습니다. 읽기 검토만 수행했으며 테스트 실행·편집·재위임은 하지 않았습니다. 실제 모델·추론 runtime은 미확인입니다."
+}

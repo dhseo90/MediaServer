@@ -17,6 +17,15 @@
 
 ## v4.5.0 잔여 개발과 릴리즈 순서
 
+[126 누적 구조화 용량 보완](release-artifacts/v4.5.0/126-validation.json)은 **용량·페이지·증거 한정 직접 PASS, 전체 직접 목표 미완료**다.
+준비 vector를 immutable model로 이전하고 실제 중복 소유·여유 capacity를 줄였다. 64MiB/100000문서와 공유640MiB는 유지했다.
+125 종료 원본의 선택 채널25526문서·128페이지·HTTP/seek/증거·새 확정 후 refresh와 마지막 논리 소유 반환은 확인했다.
+같은 누적 상태의 별도 병행 검사는 구조화 요청5.002초·0byte 수신 실패와 Recorder2412중2176수용으로 FAIL이다.
+원래12요청·보조limit200은 미완료이고, 닫힌 원장 관측도 observer timeout으로 실패했다. Finish 성공이나 용량 개선으로 대신하지 않는다.
+[독립 검토](release-artifacts/v4.5.0/126-independent-review.json)는 한정 개선과 macOS/Linux focused 회귀를 지지하며 전체 완료 승격을 거부한다.
+다음은 정상 검색이 수행되는 누적 상태의 병행 응답/소비 지연과 닫힌 원장 관측 경계다. 삭제0은 보존 원본상 byte/known-age 조건 미도달 근거가 있으며,
+과거 hold/free의 완전 재현이나 다음45분 삭제 보장은 아니다. **새900/45/120분 미실행·녹화 공백·메모리P0·출시 보류**를 유지한다.
+
 [125 고정 후보45분 누적](release-artifacts/v4.5.0/125-validation.json)은 **본2700초 뒤 혼합 구간 진행 FAIL**이다.
 제품/runtime·continuous-r114를 유지해1회 실행했다. 중·후반 구조화 검색/증거가 없어서 먼저 실패했고,
 공식 지연·삭제·명시 비활성화·닫힌 journal gate는 미실행이다. 원래 성공474건의 재계산p952463.097ms·최대2866.728ms,

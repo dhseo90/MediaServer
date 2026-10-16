@@ -1,0 +1,369 @@
+{
+  "schema": "media-server.v450.r126.validation.v1",
+  "status": "SCOPED_CAPACITY_PAGES_EVIDENCE_PASS_PARALLEL_AND_CLOSED_OBSERVATION_FAIL_FULL_DIRECT_INCOMPLETE",
+  "baseline": "8dca4e25f4bd4d8294ed4119926877e932b62ad1",
+  "priorProduct": "6cac6d28b22156fdf8886facb52f1c3369e9feca",
+  "entry": "v4.5.0 clean worktree/index; actual remote matched baseline; no user changes overwritten",
+  "model": {
+    "mainRequested": "gpt-6-astra/high",
+    "mainToolAccepted": null,
+    "mainActualModel": null,
+    "mainActualEffort": null,
+    "reviewRequested": "gpt-6-astra/high",
+    "reviewToolAccepted": "gpt-6-astra/high",
+    "reviewActualModel": null,
+    "reviewActualEffort": null
+  },
+  "priorPreserved": [
+    "125 FAIL; historical16651 snapshot membership, live holds/free and exact drop locations not reconstructed",
+    "124900 PASS and111/112/114/116/123 limited evidence remain in their source/environment scopes"
+  ],
+  "input": {
+    "archive": "125-execution.tar.gz",
+    "sha256": "39eeb7708486378f919c10c82e4a3ba059d0c82f7874a1617559e7beb95eb83b",
+    "extraction": "regular members only; reject absolute, traversal, symlinks and overwrite; manifest bytes/hash checked; private owned copies; originals unchanged",
+    "state": "closed-store reOpen, not old live cache/readers",
+    "selectedChannel": "9101",
+    "segments": 1231,
+    "mappingsAndDocuments": 25526,
+    "known": 1018,
+    "unplaced": 24508,
+    "observationDocuments": 0,
+    "pendingReferences": 0,
+    "allChannelsSegments": 2461,
+    "allChannelsMappings": 51223,
+    "pageLimitEffect": "limit20 does not limit full source capture; each mapping remains an individual result"
+  },
+  "refusal": {
+    "limits": {
+      "documents": 100000,
+      "bytes": 67108864
+    },
+    "captureBefore": {
+      "condition": "bytes-add: before+addition>maxBytes",
+      "documentsBeforeIncoming": 18078,
+      "capacity": 32768,
+      "index": 18078,
+      "before": 67108772,
+      "addition": 192,
+      "resourceRejections": 0
+    },
+    "legacyBuildOnOwnedCapture": {
+      "documents": 25526,
+      "capacity": 25600,
+      "index": 18066,
+      "before": 67108839,
+      "addition": 192
+    },
+    "controlled16651Prefix": {
+      "documents": 16651,
+      "capacity": 32768,
+      "index": 16170,
+      "before": 67108831,
+      "addition": 92,
+      "meaning": "valid-source prefix/capacity mechanism counterexample; not literal first125 snapshot reconstruction"
+    },
+    "diagnosticLimits": "bounded first condition/operands, not payload; documents0/authorityfalse in old125 fields are not empty/source-corrupt proof; reservation-ticket allocation may also yield shared-reservation"
+  },
+  "change": {
+    "actual": "BuildOwned transfers prepared vector allocation into immutable model, eliminating deep copy; bounded small/1024 growth removes large unused array capacity; count, overflow and old+new realloc peak checked before reserve",
+    "accounting": "one actual DTO/string/list allocation plus conservative index node/key envelope, unused capacity, model/source string; source lease remains during owned publication; temporary playback/capture/fact leases included; no changed64MiB/640MiB",
+    "consumers": "Capture/Refresh/WithPlayback/WithEventFacts/ApplyDelta use owned path; facts sort/lower_bound removes extra duplicate-key map; legacy const-vector Build retained",
+    "preserved": "query ordering/count/filter/cursor/scope, raw source authentication and current revalidation, old model immutability, exact seek/evidence, durable originals and errors"
+  },
+  "capacityFinal": {
+    "status": "PASS_SCOPED",
+    "runtimeSha256": "a738e679b07a4cd71f1bd7b25654148e45db3cc5ea5b19eb9b9ac425078ebae0",
+    "documents": 25526,
+    "vectorCapacity": 25600,
+    "singleOwnedDocumentBytesSum": 29712264,
+    "modelBytes": 42366711,
+    "sameVectorAllocationMoved": true,
+    "nativePages": 128,
+    "oracle": "all25526 ordered IDs plus known1018/unplaced24508 independently derived from CRC/length checked durable input",
+    "http200Ms": [
+      3056.12,
+      1441.38,
+      1464.76
+    ],
+    "seek200Ms": 7.37117,
+    "evidence201Ms": 54.744,
+    "evidence": "complete1 frame1 asset; actual PNG/package stored; separate process store.Open/manifest frames readback PASS; no exhaustive new asset-rehash assertion",
+    "httpCursor200Ms": 58.4954,
+    "newInput": {
+      "sourceOracle": 261,
+      "fileAccepted": 261,
+      "files": 6,
+      "modelDocumentsAfter": 25625,
+      "oldModelStillDocuments": 25526,
+      "oldModelBytes": 42366711,
+      "newModelBytes": 43085853,
+      "coexistentOwnerBytes": 272907147,
+      "freshHttp200Ms": [
+        1690.35,
+        520.733
+      ]
+    },
+    "shutdown": {
+      "serverStop": true,
+      "evidenceStop": true,
+      "explicitFinish": true,
+      "afterFinishLogicalBytes": 1800436,
+      "afterStorageDestroyRAMScratchFD": [
+        0,
+        0,
+        0
+      ]
+    },
+    "peakLogicalBytes": 450664673,
+    "limits": "cold3056ms below5s request but not2s p95 proof; no fullOScollector on this helper; exact allpages native vs one HTTPcursor; separate executions not merged"
+  },
+  "parallelFinal": {
+    "status": "FAIL",
+    "attempts": 1,
+    "elapsedSeconds": 567.945013291901,
+    "plannedOriginalRequests": 12,
+    "observedRequests": 4,
+    "actual200": 3,
+    "firstFailure": {
+      "id": 2,
+      "ms": 5002.087125,
+      "bytes": 0,
+      "headers": false,
+      "errno": 35,
+      "failure": "recv"
+    },
+    "otherStructured200Ms": 3219.288,
+    "twoVisual200Ms": [
+      2787.038417,
+      2814.761292
+    ],
+    "capacityRefusalObserved": false,
+    "sharedReservationRejections": 0,
+    "remainingOriginalRequests": "not-run",
+    "auxLimit200": "not-run",
+    "membershipGate": "not-run",
+    "source": {
+      "expected": 2412,
+      "accepted": 2176,
+      "files": 42,
+      "queueDrops": [
+        0,
+        172
+      ],
+      "dequeued": [
+        1206,
+        1034
+      ],
+      "maxDepth": [
+        245,
+        256
+      ],
+      "maxQueueWaitNs": [
+        8251227083,
+        9488740250
+      ],
+      "maxCallbackNs": [
+        3194698333,
+        5153589000
+      ],
+      "limits": "source-accepted difference236 vs queue172; extra64 not asserted exact causal keyframe discard; normal direct acceptance FAIL"
+    },
+    "shutdown": {
+      "serverStop": true,
+      "visualStop": true,
+      "explicitFinish": true,
+      "afterFinishLogicalBytes": 129171432,
+      "storageDestroyRAMScratchFD": [
+        0,
+        0,
+        0
+      ]
+    },
+    "logicalPeakBytes": 365632478,
+    "scratchPeakBytes": 320241664,
+    "scratchFdPeak": 18,
+    "collector": {
+      "samples": 560,
+      "allValid": true,
+      "allFdComplete": true,
+      "startIdentities": [
+        "macos:1792108836:496524"
+      ],
+      "metrics": {
+        "rssBytes": {
+          "first": 32768,
+          "last": 2052882432,
+          "max": 3199287296
+        },
+        "footprintBytes": {
+          "first": 81992,
+          "last": 1956497904,
+          "max": 3160329336
+        },
+        "fdCount": {
+          "first": 3,
+          "last": 19,
+          "max": 385
+        },
+        "anonymousFileBytes": {
+          "first": 0,
+          "last": 104408576,
+          "max": 1160328192
+        },
+        "anonymousAllocatedBytes": {
+          "first": 0,
+          "last": 105930752,
+          "max": 1166753792
+        }
+      },
+      "maxPairedVariableBytes": 354698000,
+      "maxLogicalFilesBytes": 152204048,
+      "limits": "sequential process/FD and nonatomic file sums; categories mostly other, not complete product-owner classification; unrelated maxima never added; holder loss:true; no heap attribution"
+    },
+    "qualification": "result qualification failed, not process-metrics collection failure; model-preparation8GiB/live448MiB phases unchanged; holder loss:true"
+  },
+  "closedJournal": {
+    "finalSource": "FAIL observer-native-timeout; helper SIGTERM; no journal corruption conclusion",
+    "capacityRun": "not-run after first observer failure",
+    "explicitHttpDisable": "not-run in these native lifecycle fixtures; Stop/Finish not replacement for mixed PUT gates",
+    "timeoutMs": 3000
+  },
+  "platforms": {
+    "macOS": "10 focused targets PASS on final product; original events regression failed at initial1024 growth, fixed small growth before final run",
+    "linux": "same product source, GStreamer ON/ONNX and SigLIP OFF, existing image, nonroot501:20/networknone/capdropALL; first4 +remaining6 PASS; prior GCC Werror indentation buildFAIL preserved, only4 test statement line breaks fixed",
+    "limits": "not full acceptance/UI; no global allocation failure injection claimed; existing negative scopes detailed in raw test logs"
+  },
+  "deletion": {
+    "uniqueMutations": 4924,
+    "compressedEnvelopesCRCCheckedIncludingDuplicates": 4463,
+    "lastMutationAtMs": 1792102418983,
+    "ageCutoffAtMs": 1792091618983,
+    "channels": {
+      "1": {
+        "segments": 1,
+        "mediaBytes": 28161,
+        "mappings": 1,
+        "known": 1,
+        "unknown": 0,
+        "allMappingsKnownSegments": 1,
+        "unknownAgeSegments": 0,
+        "ageEligibleBeforeProtection": 1
+      },
+      "9101": {
+        "segments": 1231,
+        "mediaBytes": 22338863,
+        "mappings": 25526,
+        "known": 1018,
+        "unknown": 24508,
+        "allMappingsKnownSegments": 622,
+        "unknownAgeSegments": 609,
+        "ageEligibleBeforeProtection": 0,
+        "quotaBytes": 113246208,
+        "nextReservationBytes": 67108864,
+        "bytesPlusOneReservation": 89447727,
+        "additionalBytesToReachQuota": 23798481,
+        "minimumAdditionalBytesToExceedQuota": 23798482
+      },
+      "9201": {
+        "segments": 1229,
+        "mediaBytes": 22299689,
+        "mappings": 25696,
+        "known": 1020,
+        "unknown": 24676,
+        "allMappingsKnownSegments": 621,
+        "unknownAgeSegments": 608,
+        "ageEligibleBeforeProtection": 0,
+        "quotaBytes": 113246208,
+        "nextReservationBytes": 67108864,
+        "bytesPlusOneReservation": 89408553,
+        "additionalBytesToReachQuota": 23837655,
+        "minimumAdditionalBytesToExceedQuota": 23837656
+      }
+    },
+    "deletionMutationCount": 0,
+    "limits": "closed-original analysis; not historical live hold/pending/free reconstruction; byte+one-reservation is necessary arithmetic, not entire admission replay; unknown age is intentionally not fabricated"
+  },
+  "remaining": [
+    "actual accumulated parallel5s response and Recorder acceptance failed; full direct objective incomplete",
+    "closed-journal observer timeout prevents closed check conclusion",
+    "same-success-workload before/after RSS improvement not established: old capture refused, new capture succeeds; no allocator/heap attribution",
+    "longrun latency,gaps,actual rotation,memoryP0/release remain blocked; no900/45/120 executed"
+  ],
+  "provenanceLimits": [
+    "early development probe binary/command overwritten across iterations; raw failures retained but exact historical probe binary hash unavailable",
+    "final source/runtime/helper binding preserved separately; original125 archive not duplicated",
+    "independent review supports scoped change and explicitly rejects full-completion promotion"
+  ],
+  "binding": {
+    "status": "PASS_BINDING_ONLY",
+    "candidateDigest": "8977e9b6ac618c7e0233823f6acb6ab1fcf7461206ee5d8b2a4149a643519e3a",
+    "candidateUnchanged": true,
+    "producer": {
+      "pass": 51,
+      "fail": 0
+    },
+    "readback": {
+      "ok": true,
+      "negativeChecks": 15
+    },
+    "coverage": {
+      "pass": 9,
+      "fail": 0
+    },
+    "manifestSemanticChange": "inventorySha256 only; generated compact JSON restored to existing pretty format without semantic change",
+    "notProductEvidence": true
+  },
+  "archive": {
+    "path": "docs/release-artifacts/v4.5.0/126-execution.tar.gz",
+    "bytes": 5358602,
+    "sha256": "d0268179e45bc959074056b6b829729e3570764bd70de303ef5c9b2a64508f55",
+    "members": 237,
+    "uncompressed": 30327938,
+    "readback": "all member bytes matched",
+    "status": "PRESERVED_LOCAL_ALL_MEMBERS_READBACK",
+    "priorArchiveNotDuplicated": true,
+    "contents": "original bounded outputs/development failures; calculated input/resource/http analysis; exact changed/new durable originals as delta and per-file hash map; unchanged125 bytes referenced; derived sqlite/visual cache excluded explicitly; current source/binary hashes"
+  },
+  "cleanup": {
+    "status": "pending remote evidence verification before root removal",
+    "ownedRoot": "/private/tmp/media-server-r126-q92jknrk",
+    "processes": "no owned test/helper process remained in final process inventory",
+    "container": "media-server-r126-linux2 exited0 and removed after Linux logs copied; first container --rm",
+    "settingsBackupsModelsSDK": "not accessed, archived or removed"
+  },
+  "developmentFailures": [
+    {
+      "log": "before.log",
+      "result": "baseline capture capacity refusal, bounded operands"
+    },
+    {
+      "log": "http1.log",
+      "result": "sandbox bind EPERM, not product HTTP pass"
+    },
+    {
+      "log": "http2.log",
+      "result": "POST missing required body returned400; corrected helper in separately labelled later run"
+    },
+    {
+      "log": "regress/recording_search_events_smoke-1.log",
+      "result": "initial1024 capacity caused R04 cost refusal; corrected small growth"
+    },
+    {
+      "log": "regress2/recording_search_model_smoke-1.log",
+      "result": "1000B test expectation stale after small growth; replaced with actual old+new realloc peak bound"
+    },
+    {
+      "log": "linux-output/regress/recording_search_filter_smoke-0.log",
+      "result": "GCC Werror preexisting misleading indentation; four tests line formatting only"
+    },
+    {
+      "log": "http-driver1.log",
+      "result": "helper compile error before HTTP; corrected field name, not expected RED"
+    }
+  ],
+  "commits": {
+    "implementation": "1b73f1f93195ebf32b1f822852d6456a138bb9e0",
+    "testsAndBinding": "e306b0d0919253bb65af89d1349a651378959506"
+  }
+}
