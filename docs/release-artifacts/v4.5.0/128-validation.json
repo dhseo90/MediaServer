@@ -1,6 +1,6 @@
 {
   "schema": "media-server.v450.r128.validation.v1",
-  "status": "SCOPED_VALIDATION_PRESERVED_REMOTE_AND_CLEANUP_PENDING",
+  "status": "SCOPED_DIAGNOSTIC_WRAPPER_LINUX_BINDING_COMPLETE_HISTORICAL_CAUSE_UNCONFIRMED_FULL_DIRECT_NOT_RUN",
   "baseline": "4e568180a30dbc24790a3cdde84feae388c3cd66",
   "entry": "v4.5.0 clean worktree/index and actual origin same HEAD; no user edits overwritten",
   "model": {
@@ -209,16 +209,19 @@
     "notPerformanceEvidence": true
   },
   "cleanup": {
-    "status": "pending after remote byte verification",
+    "status": "COMPLETE",
     "ownedRoot": "/private/tmp/media-server-r128-_38vpulb",
-    "processes": "all invoked helpers waited; no remaining owned process found",
-    "containers": {
-      "media-server-r128-linux": "exited1",
-      "media-server-r128-linux-followup": "exited1",
-      "media-server-r128-linux-final": "exited1",
-      "media-server-r128-linux-local": "exited0"
-    },
-    "ports": "no HTTP product server was started in R128"
+    "rootAbsent": true,
+    "containersRemoved": [
+      "media-server-r128-linux",
+      "media-server-r128-linux-followup",
+      "media-server-r128-linux-final",
+      "media-server-r128-linux-local"
+    ],
+    "processes": "all helpers reaped; process listing found no owned product/probe remaining before removal",
+    "ports": "no HTTP product server started in R128; no port allocated",
+    "excluded": "user settings/private backup/models/SDK and original archives untouched",
+    "order": "ordinary push and remote evidence/member byte verification preceded owned cleanup"
   },
   "implementationCommit": "12e05d977c981951165c68554a6ee13e37055efd",
   "archive": {
@@ -228,5 +231,14 @@
     "members": 80,
     "readback": "all allowlisted member bytes verified",
     "originalInputs": "125 and127 existing archives referenced, not duplicated; raw vs derived vs final-source filenames separate"
+  },
+  "remoteEvidenceReceipt": {
+    "remoteSha": "99cdd7bda6533b86cbbb738d3990bcbf830a3698",
+    "bytesVerified": {
+      "128-execution.tar.gz": "a11d9f458fdf140ef7d9e414b60bd565165f1826e24eaea6519d1300c2fea64e",
+      "128-validation.json": "4afd5a6633abf05996be67689ff3984c8ccce1be8f6e5dfe407b116a9aa49b1c",
+      "128-independent-review.json": "9fdb0fa04aa0d6f92a899da6183ede5649841b0916a2b6c9642f54ab243742d6"
+    },
+    "memberReadback": "all hashes match"
   }
 }
