@@ -1,0 +1,9 @@
+{
+  "schema": "media-server.v450.r135.closure.v1",
+  "state": "pending-remote-byte-verification-and-owned-root-cleanup",
+  "processGroupsPortsContainers": "absent verified after runs; evidence in archive records/post-stop-process.json",
+  "ownedRootRemoved": false,
+  "remoteBytesVerified": false,
+  "releaseHold": true,
+  "memoryP0": "open"
+}

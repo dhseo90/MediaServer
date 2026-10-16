@@ -1,0 +1,97 @@
+{
+  "schema": "media-server.v450.r135.independent-review.v1",
+  "reviewer": "/root/independent_r135",
+  "requestedModel": "gpt-6-astra",
+  "requestedEffort": "high",
+  "toolAccepted": true,
+  "runtimeModel": null,
+  "runtimeEffort": null,
+  "participation": "read-only; no implementation, test authoring, execution or redelegation",
+  "decision": "WARM_AND_COLD_PASS_WITH_REMAINING_LIMITATIONS",
+  "findings": [],
+  "preRun": "independent-prerun.json: explicit root, fixed rejection operands, unchanged fail-closed/restart/caps; negative-fixture alias interference corrected and macOS/Linux rerun",
+  "historical134": "first operand not preserved or recovered; cause remains unconfirmed and historical FAIL unchanged",
+  "native": "current actual writer default rejection versus explicit-root retry1/final nlink1, media31169B, Finish; no retrospective134inode claim",
+  "warm": "independent-warm.json: all gates and new closedjournal PASS; initial cache publication distinguished from later rebuild",
+  "cold": {
+    "externalRuns": 1,
+    "exit": 0,
+    "elapsedSeconds": 548.232933,
+    "initialPublication": {
+      "origin": "rebuild",
+      "generation": 1,
+      "documents": 3675,
+      "workerBuildMs": 473908
+    },
+    "original12": {
+      "actual200": 12,
+      "formalP95Ms": 1643.54,
+      "formalMaxMs": 1643.54,
+      "maxWireMs": 1643.547083
+    },
+    "aux200": {
+      "actual200": true,
+      "items": 200,
+      "clientMs": 4559.32775,
+      "orderingCurrentness": "PASS"
+    },
+    "publication": {
+      "generation": 3,
+      "documents": 3707,
+      "fresh": 32,
+      "allFreshBinding": "PASS"
+    },
+    "exactPublic": "actual200 exact hit/channel/current source/playback/seek/duration, same publication; knownUTC bucket N/A",
+    "recorder": {
+      "expected": 2483,
+      "accepted": 2483,
+      "files": 42,
+      "enqueuedDequeue": [
+        1240,
+        1243
+      ],
+      "dropped": [
+        0,
+        0
+      ]
+    },
+    "collector": "540 sequential valid completeFD samples, monitor0, no root safety failure",
+    "normalCompletion": "server/visual Stop, explicitFinish, finish-success, final result failures0, storage destruction logical owners0, readerCleanupHealthy",
+    "closedJournal": {
+      "rows": 5008,
+      "polls": 40,
+      "maxPollMs": 1928.598708,
+      "totalMs": 7802.872208,
+      "partialBytes": 0,
+      "backlog": false,
+      "busy": false,
+      "closeExit": 0
+    },
+    "runner": "no timeout/overflow/collector/qualification/cleanup error; process group absent"
+  },
+  "sourceAndInput": "test commit b6c73af4fd6d8b694e88f1174a548233701246d5; product unchanged; warm/cold same binary; source hashes match; cold2851 files exact prior seed; no latch",
+  "binding": "producer/readback/coverage exit0 in order, log hashes match; manifest only inventorySha256 changed; existing986proof rows reused, not new runtime/full review",
+  "remaining": {
+    "coldMaxCallbackSeconds": 4.807961167,
+    "coldMaxQueueWaitSeconds": 4.772843625,
+    "coldMaxDepth": 143,
+    "meaning": "one run drained without drops, not long-term margin/callback cause resolution",
+    "memoryP0": "open",
+    "release": "held",
+    "longRuns": "900/45/120 not-run"
+  },
+  "preservationReview": {
+    "decision": "NO_BLOCKING_PRESERVATION_FINDINGS",
+    "archiveBytes": 13539766,
+    "archiveSha256": "d916d84e73629be312133dff330eff2d3afea0c8638dcd3a7193748b7c6a80ce",
+    "payloadMembers": 188,
+    "totalMembers": 189,
+    "payloadHashMismatches": 0,
+    "deltaHashMismatches": 0,
+    "privatePathHits": 0,
+    "historicalAndDevelopmentFailuresPreserved": true,
+    "scope": "local read-only preservation review; remote verification and root cleanup pending",
+    "archiveReviewSnapshot": "archived independent-review predates this preservation review; standalone JSON records latest review"
+  },
+  "furtherRuntimeRuns": "warm1/cold1 authorization consumed; no further runs"
+}

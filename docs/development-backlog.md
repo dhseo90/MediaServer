@@ -17,6 +17,10 @@
 
 ## v4.5.0 잔여 개발과 릴리즈 순서
 
+[135 명시 저장 경로 collector 보완](release-artifacts/v4.5.0/135-validation.json)은 **collector 직접 검증과 warm/cold 각1회 전체 직접 PASS**다. 새 실제 writer의 정상 nlink2 게시를 기본 관측기가 `recording/other`로 거부하는 현상을 재현했고, fixture가 명시한 `recording` 경로에서 전체 재측정 후 nlink1만 집계하도록 했다. 기본 `recordings`와 unsafe 거부·재시도/자원 한도·제품·공개 oracle은 유지했다. 134 당시 최초 피연산자와 직접 원인은 여전히 미확정이며 역사적 FAIL은 변경하지 않는다.
+같은 warm에서 원래12 actual200 p95/max1886.12ms, aux2004164.011334ms/200항목, fresh48의 exact-public200, Recorder2495/2495/drop0/42파일을 확인했다. 독립 검토 뒤 cold1회는 실제 rebuild3675문서·473.908초, 원래12 p95/max1643.54ms, aux2004559.32775ms, fresh32의 exact-public200, Recorder2483/2483/drop0/42파일로 통과했다. 양쪽 모두 정상 Stop/Finish·최종 결과·새 닫힌 원장·최종 논리owner0을 확인했고 knownUTC bucket은 N/A다.
+[독립 검토](release-artifacts/v4.5.0/135-independent-review.json)와 결속은 실행 범위를 구분한다. cold callback 최대4.808초·queue wait4.773초·depth143은 장기 여유의 잔여다. 단회 drop0·owner0을 지속 무손실·전체heap 수렴으로 확대하지 않으며 900초/45분/120분·메모리P0·출시 보류는 유지한다. 보존/정리는 [135 closure](release-artifacts/v4.5.0/135-closure.json)로 확인한다.
+
 [134 UTC 독립 exact-public oracle](release-artifacts/v4.5.0/134-validation.json)은 **검사 교정·focused 검증 완료, warm 단회 수집 FAIL**이다. 모든 fresh의 current binding을 확인하고 UTC·score·broad 응답과 독립적으로 `(channelId,id)` 첫 representative를 선택해 기존 공개 seek를 호출하도록 했다. broad200/5초/ranking은 그대로이며 known-UTC bucket은 해당 문서가 있을 때의 추가 검사다. 제품 소스는 132와 동일하다.
 동일 warm은 약44.901초에 수집기 `root-unsafe-file`로 중단됐다. 중단 전 원래12개 실제HTTP200과 관측 p95/max1987.96ms는 유지하되 최종 latency assertion PASS가 아니다. aux200·새 publication/fresh target·공개 seek·Recorder 최종 수용·정상 Finish·닫힌 journal·최종 논리 소유 검사는 미도달이며 cold는 실행하지 않았다.
 최초 offending 경로/type/nlink는 미보존이다. fixture `recording/`과 관측기 `recordings/` 관리 분류 차이는 코드상 확인되지만 이번 오류의 직접 원인으로 확정하지 않는다. wrapper SIGTERM·process group 회수와 정상 제품 해제를 구분한다. [독립 검토](release-artifacts/v4.5.0/134-independent-review.json)와 원출력을 보존하고, 수집 거부의 정확한 피연산자/경로 진단 및 새 실행은 별도 재개 대상이다. 132/133 역사적 FAIL·장시간·메모리P0·출시 보류는 유지한다.

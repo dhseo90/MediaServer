@@ -1,0 +1,2101 @@
+{
+  "schema": "media-server.v450.r135.validation.v1",
+  "decision": "PASS_COLLECTOR_AND_WARM_COLD_DIRECT_WITH_LIMITATIONS",
+  "baseline": "af6dc5c6374c39b67cd778fd1eff0c2ecb962072",
+  "testCommit": "b6c73af4fd6d8b694e88f1174a548233701246d5",
+  "productCommit": "c438911431c631d239580367eee4a2c7e22045de",
+  "productUnchanged": true,
+  "settings": {
+    "requestedMain": "gpt-6-astra/high",
+    "mainToolAccepted": null,
+    "mainActualModel": null,
+    "mainActualEffort": null,
+    "requestedReview": "gpt-6-astra/high",
+    "reviewToolAccepted": true,
+    "reviewActualModel": null,
+    "reviewActualEffort": null
+  },
+  "historical134": {
+    "result": "FAIL unchanged",
+    "firstOperand": null,
+    "cause": "unconfirmed; no retrospective path/stat/inode reconstruction",
+    "newEvidenceScope": "current actual writer reproduces equivalent collector mismatch, not historical134 offending inode proof"
+  },
+  "collector": {
+    "default": "recordings",
+    "fixtureExplicit": "recording",
+    "managedHelpers": "category/ownership, media publication, generation transaction, SQLite ENOENT/page paths coherent",
+    "normalPublication": "actual validated writer linkat→directoryfsync→unlink; nlink2 triggers whole measurement restart; only finalnlink1 counted",
+    "limits": "retry caps,448MiB root/combined/model8GiB/FD/time unchanged",
+    "diagnostic": "first rejection fixed shape, no path/name/UUID; probing cannot change original rejection",
+    "newActualRejection": {
+      "schema": "root-file-rejection-v1",
+      "top": "recording",
+      "category": "other",
+      "depth": 3,
+      "type": "regular",
+      "nlink": 2,
+      "size": 31169,
+      "dev": 16777232,
+      "ino": 175473022,
+      "extension": "mp4",
+      "partialPattern": false,
+      "counterpart": {
+        "exists": true,
+        "type": "regular",
+        "nlink": 2,
+        "sameDev": true,
+        "sameIno": true
+      },
+      "generationTransactionActive": false,
+      "probeComplete": true,
+      "scan": {
+        "attempt": 1,
+        "missingRetries": 0,
+        "generationRetries": 0,
+        "mediaPublicationRetries": 0
+      }
+    },
+    "after": {
+      "wholeMeasurementRetries": 1,
+      "mediaBytes": 31169,
+      "mediaFiles": 1,
+      "mediaPartialFiles": 0,
+      "productRecordingLogicalFileBytes": 84582,
+      "nativeExit": 0,
+      "writerFinish": true
+    },
+    "notClaimed": "same file identity as134 or product defect"
+  },
+  "developmentHistory": {
+    "plannedDirectInvocations": 2,
+    "actualDirectInvocations": 3,
+    "first": "writer-before exit1 because test omitted admit_segment; complete callback requires active reservation; first raw preserved",
+    "correction": "same30 H264160x90@10fps AUs, admission64MiB test connection only; corrected baseline exit0 then candidateexit0",
+    "warning": "file evidence profile/bound warning preserved; no proven duration cause, not exact-seek qualification",
+    "reviewCorrection": "wrong-counterpart negatives initially masked by another alias; isolated media operand and reran affectedmacOS/Linux focused cases"
+  },
+  "focused": {
+    "macOSRoot": {
+      "passed": 30,
+      "failed": 0
+    },
+    "linuxRoot": {
+      "passed": 30,
+      "failed": 0
+    },
+    "contentionContract": 5,
+    "wrapperPropagation": 5,
+    "negativeScope": "wrong inode/type/name/nlink3, persistentnlink2, arbitrary/outside/tmp hardlinks, symlink, realFIFO; socket/device nonregular stat injection",
+    "linux": "existingrc58-arm64 image uid501:20/no network/capdrop/read-onlyrepo; no product full regression repeated",
+    "actualWriter": "test-only latch one publication per invocation, <=5s latch/20s wrapper; never inwarm/cold"
+  },
+  "input": {
+    "warm": "same134/133 hash map:125 seed+130delta-minus supplementdeletedPaths,2900files, software policy cache",
+    "cold": "same125 seed2851files, no warm cache copied",
+    "sameBinary": true,
+    "linkedRuntimeSha256": "5aa3656791b793205ca37fb4020a362d085a2298198688c885eb84545eda4525",
+    "helperSha256": "3736337ec3c766a62e8193a6bcb69354f7dbc1fb99e43d00442b72e7ff53fadc",
+    "reopenLimit": "not historical live cache/reader restoration"
+  },
+  "warm": {
+    "mode": "warm",
+    "externalRuns": 1,
+    "elapsedSeconds": 75.41644187504426,
+    "exit": 0,
+    "signal": null,
+    "timeout": false,
+    "overflow": false,
+    "qualification": {
+      "requests": 12,
+      "p95Ms": 1886.12,
+      "maxMs": 1886.12,
+      "spaceSamples": 74,
+      "scope": "actual HTTP/writer/index/retention; no evidence-A continuous mixed load; shape/order/seek metadata not exhaustive topk oracle",
+      "ownerFinal": {
+        "pid": 42331,
+        "seq": 6,
+        "phase": "after-storage-destruction",
+        "elapsedMs": 72913,
+        "ram": 0,
+        "ramPeak": 308902784,
+        "ramLimit": 671088640,
+        "ramRejected": 0,
+        "scratchDisk": 0,
+        "scratchDiskPeak": 325881856,
+        "scratchDiskLimit": 161069109248,
+        "scratchFd": 0,
+        "scratchFdPeak": 9,
+        "scratchFdLimit": 1048571,
+        "scratchRam": 0,
+        "preservedDisk": 0,
+        "preservedFd": 0,
+        "readerCleanupHealthy": true
+      }
+    },
+    "collectionError": null,
+    "runnerError": null,
+    "qualificationError": null,
+    "cleanupError": null,
+    "groupAbsent": true,
+    "monitorExit": 0,
+    "original12": {
+      "actual200": 12,
+      "wire": [
+        {
+          "id": 1,
+          "scope": "original12",
+          "route": "/ops/api/recordings/visual-search?channelIds=9101,9201&text=ball&limit=20&threshold=-1",
+          "beginNs": 1466151496089750,
+          "endNs": 1466152508058958,
+          "bytes": 9543,
+          "headers": true,
+          "status": 200,
+          "errno": 0,
+          "failure": "none",
+          "headerNs": 1466152508035458,
+          "receiveEndNs": 1466152508046458,
+          "validationEndNs": null,
+          "bindingEndNs": null,
+          "outputEndNs": null,
+          "bindingNs": 0,
+          "bindingCalls": 0
+        },
+        {
+          "id": 0,
+          "scope": "original12",
+          "route": "/ops/api/recordings/visual-search?channelIds=9101,9201&text=ball&limit=20&threshold=-1",
+          "beginNs": 1466151496068500,
+          "endNs": 1466152516416750,
+          "bytes": 9543,
+          "headers": true,
+          "status": 200,
+          "errno": 0,
+          "failure": "none",
+          "headerNs": 1466152516404666,
+          "receiveEndNs": 1466152516411375,
+          "validationEndNs": null,
+          "bindingEndNs": null,
+          "outputEndNs": null,
+          "bindingNs": 0,
+          "bindingCalls": 0
+        },
+        {
+          "id": 2,
+          "scope": "original12",
+          "route": "/ops/api/recordings/search?channelIds=9101&startTimeMs=1792000000000&endTimeMs=1792100000000&limit=20&includeUnplaced=true",
+          "beginNs": 1466151496096708,
+          "endNs": 1466153380351583,
+          "bytes": 11955,
+          "headers": true,
+          "status": 200,
+          "errno": 0,
+          "failure": "none",
+          "headerNs": 1466153380335791,
+          "receiveEndNs": 1466153380343500,
+          "validationEndNs": null,
+          "bindingEndNs": null,
+          "outputEndNs": null,
+          "bindingNs": 0,
+          "bindingCalls": 0
+        },
+        {
+          "id": 3,
+          "scope": "original12",
+          "route": "/ops/api/recordings/search?channelIds=9101&startTimeMs=1792000000000&endTimeMs=1792100000000&limit=20&includeUnplaced=true",
+          "beginNs": 1466151496100833,
+          "endNs": 1466153382221250,
+          "bytes": 11955,
+          "headers": true,
+          "status": 200,
+          "errno": 0,
+          "failure": "none",
+          "headerNs": 1466153382211125,
+          "receiveEndNs": 1466153382216166,
+          "validationEndNs": null,
+          "bindingEndNs": null,
+          "outputEndNs": null,
+          "bindingNs": 0,
+          "bindingCalls": 0
+        },
+        {
+          "id": 4,
+          "scope": "original12",
+          "route": "/ops/api/recordings/visual-search?channelIds=9101,9201&text=ball&limit=20&threshold=-1",
+          "beginNs": 1466153492138833,
+          "endNs": 1466154625768583,
+          "bytes": 9543,
+          "headers": true,
+          "status": 200,
+          "errno": 0,
+          "failure": "none",
+          "headerNs": 1466154625743791,
+          "receiveEndNs": 1466154625756375,
+          "validationEndNs": null,
+          "bindingEndNs": null,
+          "outputEndNs": null,
+          "bindingNs": 0,
+          "bindingCalls": 0
+        },
+        {
+          "id": 5,
+          "scope": "original12",
+          "route": "/ops/api/recordings/visual-search?channelIds=9101,9201&text=ball&limit=20&threshold=-1",
+          "beginNs": 1466153492146375,
+          "endNs": 1466154640203875,
+          "bytes": 9543,
+          "headers": true,
+          "status": 200,
+          "errno": 0,
+          "failure": "none",
+          "headerNs": 1466154640191583,
+          "receiveEndNs": 1466154640198166,
+          "validationEndNs": null,
+          "bindingEndNs": null,
+          "outputEndNs": null,
+          "bindingNs": 0,
+          "bindingCalls": 0
+        },
+        {
+          "id": 7,
+          "scope": "original12",
+          "route": "/ops/api/recordings/search?channelIds=9101&startTimeMs=1792000000000&endTimeMs=1792100000000&limit=20&includeUnplaced=true",
+          "beginNs": 1466153492156083,
+          "endNs": 1466155115847791,
+          "bytes": 11955,
+          "headers": true,
+          "status": 200,
+          "errno": 0,
+          "failure": "none",
+          "headerNs": 1466155115837458,
+          "receiveEndNs": 1466155115842833,
+          "validationEndNs": null,
+          "bindingEndNs": null,
+          "outputEndNs": null,
+          "bindingNs": 0,
+          "bindingCalls": 0
+        },
+        {
+          "id": 6,
+          "scope": "original12",
+          "route": "/ops/api/recordings/search?channelIds=9101&startTimeMs=1792000000000&endTimeMs=1792100000000&limit=20&includeUnplaced=true",
+          "beginNs": 1466153492154208,
+          "endNs": 1466155124099375,
+          "bytes": 11955,
+          "headers": true,
+          "status": 200,
+          "errno": 0,
+          "failure": "none",
+          "headerNs": 1466155124086333,
+          "receiveEndNs": 1466155124092625,
+          "validationEndNs": null,
+          "bindingEndNs": null,
+          "outputEndNs": null,
+          "bindingNs": 0,
+          "bindingCalls": 0
+        },
+        {
+          "id": 9,
+          "scope": "original12",
+          "route": "/ops/api/recordings/visual-search?channelIds=9101,9201&text=ball&limit=20&threshold=-1",
+          "beginNs": 1466155496069583,
+          "endNs": 1466156613618000,
+          "bytes": 9543,
+          "headers": true,
+          "status": 200,
+          "errno": 0,
+          "failure": "none",
+          "headerNs": 1466156613593083,
+          "receiveEndNs": 1466156613606000,
+          "validationEndNs": null,
+          "bindingEndNs": null,
+          "outputEndNs": null,
+          "bindingNs": 0,
+          "bindingCalls": 0
+        },
+        {
+          "id": 8,
+          "scope": "original12",
+          "route": "/ops/api/recordings/visual-search?channelIds=9101,9201&text=ball&limit=20&threshold=-1",
+          "beginNs": 1466155496059083,
+          "endNs": 1466156665857333,
+          "bytes": 9543,
+          "headers": true,
+          "status": 200,
+          "errno": 0,
+          "failure": "none",
+          "headerNs": 1466156665827250,
+          "receiveEndNs": 1466156665840875,
+          "validationEndNs": null,
+          "bindingEndNs": null,
+          "outputEndNs": null,
+          "bindingNs": 0,
+          "bindingCalls": 0
+        },
+        {
+          "id": 10,
+          "scope": "original12",
+          "route": "/ops/api/recordings/search?channelIds=9101&startTimeMs=1792000000000&endTimeMs=1792100000000&limit=20&includeUnplaced=true",
+          "beginNs": 1466155496074166,
+          "endNs": 1466157143189583,
+          "bytes": 11955,
+          "headers": true,
+          "status": 200,
+          "errno": 0,
+          "failure": "none",
+          "headerNs": 1466157143166125,
+          "receiveEndNs": 1466157143184375,
+          "validationEndNs": null,
+          "bindingEndNs": null,
+          "outputEndNs": null,
+          "bindingNs": 0,
+          "bindingCalls": 0
+        },
+        {
+          "id": 11,
+          "scope": "original12",
+          "route": "/ops/api/recordings/search?channelIds=9101&startTimeMs=1792000000000&endTimeMs=1792100000000&limit=20&includeUnplaced=true",
+          "beginNs": 1466155496084000,
+          "endNs": 1466157144319625,
+          "bytes": 11955,
+          "headers": true,
+          "status": 200,
+          "errno": 0,
+          "failure": "none",
+          "headerNs": 1466157144308583,
+          "receiveEndNs": 1466157144314250,
+          "validationEndNs": null,
+          "bindingEndNs": null,
+          "outputEndNs": null,
+          "bindingNs": 0,
+          "bindingCalls": 0
+        }
+      ],
+      "formal": [
+        "failures=0 count=12 p95=1886.12 max=1886.12"
+      ],
+      "observedResult": [
+        "failures=0 count=12 p95=1886.12 max=1886.12"
+      ]
+    },
+    "aux200": [
+      {
+        "id": 100,
+        "scope": "auxiliary200",
+        "route": "/ops/api/recordings/visual-search?channelIds=9101,9201&text=ball&limit=200&threshold=-1",
+        "beginNs": 1466191918251041,
+        "endNs": 1466196082262375,
+        "bytes": 79524,
+        "headers": true,
+        "status": 200,
+        "errno": 0,
+        "failure": "none",
+        "headerNs": 1466196079677166,
+        "receiveEndNs": 1466196079726500,
+        "validationEndNs": 1466196082230791,
+        "bindingEndNs": null,
+        "outputEndNs": 1466196082254208,
+        "bindingNs": 0,
+        "bindingCalls": 0,
+        "elapsedMs": 4164.011334
+      }
+    ],
+    "exactPublic": [
+      {
+        "id": 102,
+        "scope": "publicExact",
+        "route": "/ops/api/recordings/visual-search/seek?channelId=9101&hitId=frame%3A36%3A40f652ad-1b4b-4595-a5c9-e4e12888f5f1%3A0",
+        "beginNs": 1466196347271833,
+        "endNs": 1466196365985583,
+        "bytes": 449,
+        "headers": true,
+        "status": 200,
+        "errno": 0,
+        "failure": "none",
+        "headerNs": 1466196361571041,
+        "receiveEndNs": 1466196361573125,
+        "validationEndNs": 1466196365977791,
+        "bindingEndNs": null,
+        "outputEndNs": 1466196365977833,
+        "bindingNs": 0,
+        "bindingCalls": 0,
+        "elapsedMs": 18.71375
+      }
+    ],
+    "target": [
+      {
+        "id": "frame:36:40f652ad-1b4b-4595-a5c9-e4e12888f5f1:0",
+        "channel": "9101",
+        "segment": "40f652ad-1b4b-4595-a5c9-e4e12888f5f1",
+        "utcNs": null,
+        "seekTicks": "0",
+        "durationTicks": "100",
+        "seekTimescale": 3000,
+        "freshCount": 48,
+        "instanceId": "6870532c9b8de08952f371a97756c3b0",
+        "generation": 2
+      }
+    ],
+    "exactResponse": [
+      {
+        "hitId": "frame:36:40f652ad-1b4b-4595-a5c9-e4e12888f5f1:0",
+        "playbackUrl": "/ops/api/recordings/media/40f652ad-1b4b-4595-a5c9-e4e12888f5f1",
+        "playable": true,
+        "seekAvailable": true,
+        "targetSeconds": 0,
+        "frameDurationSeconds": 0.03333333333333333,
+        "timeBasis": "verified-native-file-presentation"
+      }
+    ],
+    "exactPublication": [
+      {
+        "beforeInstance": "6870532c9b8de08952f371a97756c3b0",
+        "beforeGeneration": 2,
+        "afterInstance": "6870532c9b8de08952f371a97756c3b0",
+        "afterGeneration": 2,
+        "sameIndex": true,
+        "samePublication": true
+      }
+    ],
+    "bucket": [
+      "not-applicable no-known-UTC-representative-fresh"
+    ],
+    "membership": [
+      "generation=2 documents=3794 newDocuments=48 instance=6870532c9b8de08952f371a97756c3b0"
+    ],
+    "source": [
+      "expected=2495 accepted=2495 files=42 fullAcceptance=1"
+    ],
+    "recorderCost": [
+      "enqueued=1247 dequeued=1247 dropped=0 payloadBytes=691657 maxDepth=46 maxBytes=24872 firstNs=22147719626 lastNs=63762368168 minInputGapNs=23356541 maxInputGapNs=43322792 queueWaitNs=574109490334 maxQueueWaitNs=1525247208 callbackNs=28696533883 maxCallbackNs=1567076458 firstDepth64Ns=0 firstDropNs=0 maxCallbackBeginNs=58217217543 maxCallbackOrdinal=1",
+      "enqueued=1248 dequeued=1248 dropped=0 payloadBytes=692196 maxDepth=48 maxBytes=25678 firstNs=22155131543 lastNs=63814409460 minInputGapNs=23388834 maxInputGapNs=43306875 queueWaitNs=575758357869 maxQueueWaitNs=1598228334 callbackNs=28701740411 maxCallbackNs=1621734708 firstDepth64Ns=0 firstDropNs=0 maxCallbackBeginNs=60239989918 maxCallbackOrdinal=61"
+    ],
+    "initialPublication": [
+      {
+        "enabled": true,
+        "state": "indexing",
+        "error": "",
+        "searchAvailable": true,
+        "sampleSeconds": 1,
+        "scanSeconds": 1,
+        "eventSnapshots": "disabled",
+        "index": {
+          "instanceId": "6870532c9b8de08952f371a97756c3b0",
+          "generation": null,
+          "identityScope": "worker-instance",
+          "origin": "cache",
+          "publishedAtMs": null,
+          "metadataReason": "cache-publication-history-not-stored",
+          "statisticsScope": "authorized-channels-all-indexed-samples-before-query-filters",
+          "coverage": "unknown",
+          "coverageReason": "sampled-index-no-continuous-coverage",
+          "sourceValidation": "search-revalidates-current-originals",
+          "channels": [
+            {
+              "channelId": "9101",
+              "indexedFrames": 1851,
+              "unknownTimeFrames": 1229,
+              "firstSampleTimeNs": "1792100930310588000",
+              "lastSampleTimeNs": "1792102409765536000",
+              "sourceCountsState": "unknown",
+              "examinedSegments": null,
+              "unsupportedSegments": null,
+              "examinedSnapshots": null,
+              "unsupportedSnapshots": null
+            },
+            {
+              "channelId": "9201",
+              "indexedFrames": 1848,
+              "unknownTimeFrames": 1227,
+              "firstSampleTimeNs": "1792100930333826000",
+              "lastSampleTimeNs": "1792102408815542000",
+              "sourceCountsState": "unknown",
+              "examinedSegments": null,
+              "unsupportedSegments": null,
+              "examinedSnapshots": null,
+              "unsupportedSnapshots": null
+            }
+          ]
+        },
+        "refresh": {
+          "state": "indexing",
+          "attemptState": "running",
+          "attemptStartedAtMs": 1792158917441,
+          "attemptFinishedAtMs": null,
+          "lastSuccessAtMs": null,
+          "error": "",
+          "usingPreviousPublication": true
+        },
+        "channels": [
+          {
+            "channelId": "9101",
+            "indexedFrames": 1851,
+            "unknownTimeFrames": 1229,
+            "firstSampleTimeNs": "1792100930310588000",
+            "lastSampleTimeNs": "1792102409765536000",
+            "sourceCountsState": "unknown",
+            "examinedSegments": null,
+            "unsupportedSegments": null,
+            "examinedSnapshots": null,
+            "unsupportedSnapshots": null
+          },
+          {
+            "channelId": "9201",
+            "indexedFrames": 1848,
+            "unknownTimeFrames": 1227,
+            "firstSampleTimeNs": "1792100930333826000",
+            "lastSampleTimeNs": "1792102408815542000",
+            "sourceCountsState": "unknown",
+            "examinedSegments": null,
+            "unsupportedSegments": null,
+            "examinedSnapshots": null,
+            "unsupportedSnapshots": null
+          }
+        ]
+      }
+    ],
+    "stop": [
+      "server=1",
+      "visual=1"
+    ],
+    "finish": [
+      "ok=1 error="
+    ],
+    "normalSuccessFinish": true,
+    "resourceOwners": [
+      {
+        "pid": 42331,
+        "seq": 0,
+        "phase": "opened",
+        "elapsedMs": 21245,
+        "ram": 2892682,
+        "ramPeak": 3403127,
+        "ramLimit": 671088640,
+        "ramRejected": 0,
+        "scratchDisk": 100192256,
+        "scratchDiskPeak": 122531840,
+        "scratchDiskLimit": 161069109248,
+        "scratchFd": 4,
+        "scratchFdPeak": 6,
+        "scratchFdLimit": 1048571,
+        "scratchRam": 1188864,
+        "preservedDisk": 0,
+        "preservedFd": 0,
+        "readerCleanupHealthy": true
+      },
+      {
+        "pid": 42331,
+        "seq": 1,
+        "phase": "ready",
+        "elapsedMs": 25826,
+        "ram": 2892682,
+        "ramPeak": 3403127,
+        "ramLimit": 671088640,
+        "ramRejected": 0,
+        "scratchDisk": 100192256,
+        "scratchDiskPeak": 122531840,
+        "scratchDiskLimit": 161069109248,
+        "scratchFd": 4,
+        "scratchFdPeak": 6,
+        "scratchFdLimit": 1048571,
+        "scratchRam": 1188864,
+        "preservedDisk": 0,
+        "preservedFd": 0,
+        "readerCleanupHealthy": true
+      },
+      {
+        "pid": 42331,
+        "seq": 2,
+        "phase": "wave",
+        "elapsedMs": 29875,
+        "ram": 85261916,
+        "ramPeak": 232629146,
+        "ramLimit": 671088640,
+        "ramRejected": 0,
+        "scratchDisk": 155897856,
+        "scratchDiskPeak": 322433024,
+        "scratchDiskLimit": 161069109248,
+        "scratchFd": 5,
+        "scratchFdPeak": 9,
+        "scratchFdLimit": 1048571,
+        "scratchRam": 1486080,
+        "preservedDisk": 0,
+        "preservedFd": 0,
+        "readerCleanupHealthy": true
+      },
+      {
+        "pid": 42331,
+        "seq": 3,
+        "phase": "wave",
+        "elapsedMs": 31617,
+        "ram": 112607262,
+        "ramPeak": 232629146,
+        "ramLimit": 671088640,
+        "ramRejected": 0,
+        "scratchDisk": 100356096,
+        "scratchDiskPeak": 322433024,
+        "scratchDiskLimit": 161069109248,
+        "scratchFd": 4,
+        "scratchFdPeak": 9,
+        "scratchFdLimit": 1048571,
+        "scratchRam": 1188864,
+        "preservedDisk": 0,
+        "preservedFd": 0,
+        "readerCleanupHealthy": true
+      },
+      {
+        "pid": 42331,
+        "seq": 4,
+        "phase": "wave",
+        "elapsedMs": 33637,
+        "ram": 110810762,
+        "ramPeak": 308902784,
+        "ramLimit": 671088640,
+        "ramRejected": 0,
+        "scratchDisk": 100429824,
+        "scratchDiskPeak": 322433024,
+        "scratchDiskLimit": 161069109248,
+        "scratchFd": 4,
+        "scratchFdPeak": 9,
+        "scratchFdLimit": 1048571,
+        "scratchRam": 1188864,
+        "preservedDisk": 0,
+        "preservedFd": 0,
+        "readerCleanupHealthy": true
+      },
+      {
+        "pid": 42331,
+        "seq": 5,
+        "phase": "finished",
+        "elapsedMs": 72866,
+        "ram": 90604668,
+        "ramPeak": 308902784,
+        "ramLimit": 671088640,
+        "ramRejected": 0,
+        "scratchDisk": 0,
+        "scratchDiskPeak": 325881856,
+        "scratchDiskLimit": 161069109248,
+        "scratchFd": 0,
+        "scratchFdPeak": 9,
+        "scratchFdLimit": 1048571,
+        "scratchRam": 0,
+        "preservedDisk": 0,
+        "preservedFd": 0,
+        "readerCleanupHealthy": true
+      },
+      {
+        "pid": 42331,
+        "seq": 6,
+        "phase": "after-storage-destruction",
+        "elapsedMs": 72913,
+        "ram": 0,
+        "ramPeak": 308902784,
+        "ramLimit": 671088640,
+        "ramRejected": 0,
+        "scratchDisk": 0,
+        "scratchDiskPeak": 325881856,
+        "scratchDiskLimit": 161069109248,
+        "scratchFd": 0,
+        "scratchFdPeak": 9,
+        "scratchFdLimit": 1048571,
+        "scratchRam": 0,
+        "preservedDisk": 0,
+        "preservedFd": 0,
+        "readerCleanupHealthy": true
+      }
+    ],
+    "workerTerminal": [
+      "stage=collect row=0 code=visual-cancelled"
+    ],
+    "sampleCount": 74,
+    "resourceMeasurements": {
+      "rssBytes": {
+        "count": 74,
+        "first": 32768,
+        "last": 1856258048,
+        "max": 2289500160
+      },
+      "footprintBytes": {
+        "count": 74,
+        "first": 81992,
+        "last": 1797589512,
+        "max": 3342929352
+      },
+      "fdCount": {
+        "count": 74,
+        "first": 4,
+        "last": 210,
+        "max": 413
+      },
+      "anonymousFileBytes": {
+        "count": 74,
+        "first": 0,
+        "last": 70310400,
+        "max": 1167135232
+      },
+      "anonymousAllocatedBytes": {
+        "count": 74,
+        "first": 0,
+        "last": 73068544,
+        "max": 1182461952
+      }
+    },
+    "firstFailures": [],
+    "collector": {
+      "completeFdSamples": 74,
+      "mediaPublicationOrTreeRetries": 1,
+      "end": [
+        {
+          "samples": 74,
+          "endedObserved": true
+        }
+      ],
+      "samePidStartIdentity": true
+    },
+    "broad": [
+      {
+        "prefix": "newDocuments=0",
+        "count": 200,
+        "index": {
+          "instanceId": "6870532c9b8de08952f371a97756c3b0",
+          "generation": 2,
+          "identityScope": "worker-instance",
+          "origin": "rebuild",
+          "publishedAtMs": 1792158960121,
+          "metadataReason": "live-publication",
+          "statisticsScope": "authorized-channels-all-indexed-samples-before-query-filters",
+          "coverage": "unknown",
+          "coverageReason": "sampled-index-no-continuous-coverage",
+          "sourceValidation": "search-revalidates-current-originals",
+          "channels": [
+            {
+              "channelId": "9101",
+              "indexedFrames": 1902,
+              "unknownTimeFrames": 1275,
+              "firstSampleTimeNs": "1792100930310588000",
+              "lastSampleTimeNs": "1792127670408699000",
+              "sourceCountsState": "known",
+              "examinedSegments": 1265,
+              "unsupportedSegments": 0,
+              "examinedSnapshots": 0,
+              "unsupportedSnapshots": 0
+            },
+            {
+              "channelId": "9201",
+              "indexedFrames": 1892,
+              "unknownTimeFrames": 1262,
+              "firstSampleTimeNs": "1792100930333826000",
+              "lastSampleTimeNs": "1792127661417363000",
+              "sourceCountsState": "known",
+              "examinedSegments": 1262,
+              "unsupportedSegments": 0,
+              "examinedSnapshots": 0,
+              "unsupportedSnapshots": 0
+            }
+          ]
+        },
+        "orderPass": true,
+        "currentnessPass": true
+      }
+    ],
+    "closedJournal": [
+      {
+        "poll": 1,
+        "ms": 2400.313083,
+        "count": 128,
+        "backlog": true
+      },
+      {
+        "poll": 2,
+        "ms": 297.27858300000025,
+        "count": 256,
+        "backlog": true
+      },
+      {
+        "poll": 3,
+        "ms": 257.2022500000003,
+        "count": 384,
+        "backlog": true
+      },
+      {
+        "poll": 4,
+        "ms": 251.7338749999999,
+        "count": 512,
+        "backlog": true
+      },
+      {
+        "poll": 5,
+        "ms": 257.1190840000004,
+        "count": 640,
+        "backlog": true
+      },
+      {
+        "poll": 6,
+        "ms": 254.5953330000002,
+        "count": 768,
+        "backlog": true
+      },
+      {
+        "poll": 7,
+        "ms": 257.8008749999999,
+        "count": 896,
+        "backlog": true
+      },
+      {
+        "poll": 8,
+        "ms": 261.823625,
+        "count": 1024,
+        "backlog": true
+      },
+      {
+        "poll": 9,
+        "ms": 254.8199999999997,
+        "count": 1152,
+        "backlog": true
+      },
+      {
+        "poll": 10,
+        "ms": 256.12266700000055,
+        "count": 1280,
+        "backlog": true
+      },
+      {
+        "poll": 11,
+        "ms": 266.0759589999998,
+        "count": 1408,
+        "backlog": true
+      },
+      {
+        "poll": 12,
+        "ms": 261.50966699999935,
+        "count": 1536,
+        "backlog": true
+      },
+      {
+        "poll": 13,
+        "ms": 259.06316700000025,
+        "count": 1664,
+        "backlog": true
+      },
+      {
+        "poll": 14,
+        "ms": 264.9763329999996,
+        "count": 1792,
+        "backlog": true
+      },
+      {
+        "poll": 15,
+        "ms": 266.64166600000044,
+        "count": 1920,
+        "backlog": true
+      },
+      {
+        "poll": 16,
+        "ms": 273.2958749999998,
+        "count": 2048,
+        "backlog": true
+      },
+      {
+        "poll": 17,
+        "ms": 273.3025829999997,
+        "count": 2176,
+        "backlog": true
+      },
+      {
+        "poll": 18,
+        "ms": 267.1803749999999,
+        "count": 2304,
+        "backlog": true
+      },
+      {
+        "poll": 19,
+        "ms": 274.66391699999986,
+        "count": 2432,
+        "backlog": true
+      },
+      {
+        "poll": 20,
+        "ms": 95.22654200000034,
+        "count": 2560,
+        "backlog": true
+      },
+      {
+        "poll": 21,
+        "ms": 100.04070799999954,
+        "count": 2688,
+        "backlog": true
+      },
+      {
+        "poll": 22,
+        "ms": 96.93958300000031,
+        "count": 2816,
+        "backlog": true
+      },
+      {
+        "poll": 23,
+        "ms": 95.65508299999965,
+        "count": 2944,
+        "backlog": true
+      },
+      {
+        "poll": 24,
+        "ms": 95.66666600000008,
+        "count": 3072,
+        "backlog": true
+      },
+      {
+        "poll": 25,
+        "ms": 98.60916600000019,
+        "count": 3200,
+        "backlog": true
+      },
+      {
+        "poll": 26,
+        "ms": 97.65991699999995,
+        "count": 3328,
+        "backlog": true
+      },
+      {
+        "poll": 27,
+        "ms": 97.67862500000047,
+        "count": 3456,
+        "backlog": true
+      },
+      {
+        "poll": 28,
+        "ms": 97.41604199999983,
+        "count": 3584,
+        "backlog": true
+      },
+      {
+        "poll": 29,
+        "ms": 98.52545800000007,
+        "count": 3712,
+        "backlog": true
+      },
+      {
+        "poll": 30,
+        "ms": 99.9081669999996,
+        "count": 3840,
+        "backlog": true
+      },
+      {
+        "poll": 31,
+        "ms": 100.26937499999985,
+        "count": 3968,
+        "backlog": true
+      },
+      {
+        "poll": 32,
+        "ms": 100.62554199999977,
+        "count": 4096,
+        "backlog": true
+      },
+      {
+        "poll": 33,
+        "ms": 100.22691699999996,
+        "count": 4224,
+        "backlog": true
+      },
+      {
+        "poll": 34,
+        "ms": 100.6557499999999,
+        "count": 4352,
+        "backlog": true
+      },
+      {
+        "poll": 35,
+        "ms": 154.06775000000016,
+        "count": 4480,
+        "backlog": true
+      },
+      {
+        "poll": 36,
+        "ms": 102.43562500000007,
+        "count": 4608,
+        "backlog": true
+      },
+      {
+        "poll": 37,
+        "ms": 102.1387080000004,
+        "count": 4736,
+        "backlog": true
+      },
+      {
+        "poll": 38,
+        "ms": 102.69962499999929,
+        "count": 4864,
+        "backlog": true
+      },
+      {
+        "poll": 39,
+        "ms": 159.24887500000114,
+        "count": 4992,
+        "backlog": true
+      },
+      {
+        "poll": 40,
+        "ms": 233.08016700000007,
+        "count": 5094,
+        "backlog": false
+      },
+      {
+        "count": 5094,
+        "polls": 40,
+        "partialBytes": 0,
+        "backlog": false,
+        "busy": false,
+        "pass": true,
+        "ms": 9486.030875
+      },
+      {
+        "close": {
+          "code": 0,
+          "signal": null
+        }
+      }
+    ],
+    "decision": "PASS_DIRECT_WARM",
+    "resourcePhaseMaxima": {
+      "initial": {
+        "samples": 23,
+        "separateMaximaNotSummed": true,
+        "rssBytes": 60817408,
+        "footprintBytes": 38453896,
+        "fdCount": 14,
+        "anonymousAllocatedBytes": 88662016
+      },
+      "live": {
+        "samples": 47,
+        "separateMaximaNotSummed": true,
+        "rssBytes": 2289500160,
+        "footprintBytes": 3342929352,
+        "fdCount": 413,
+        "anonymousAllocatedBytes": 213692416
+      },
+      "model": {
+        "samples": 4,
+        "separateMaximaNotSummed": true,
+        "rssBytes": 511115264,
+        "footprintBytes": 471680104,
+        "fdCount": 13,
+        "anonymousAllocatedBytes": 1182461952
+      }
+    }
+  },
+  "cold": {
+    "mode": "cold",
+    "externalRuns": 1,
+    "elapsedSeconds": 548.2329329999629,
+    "exit": 0,
+    "signal": null,
+    "timeout": false,
+    "overflow": false,
+    "qualification": {
+      "requests": 12,
+      "p95Ms": 1643.54,
+      "maxMs": 1643.54,
+      "spaceSamples": 540,
+      "scope": "actual HTTP/writer/index/retention; no evidence-A continuous mixed load; shape/order/seek metadata not exhaustive topk oracle",
+      "ownerFinal": {
+        "pid": 42932,
+        "seq": 6,
+        "phase": "after-storage-destruction",
+        "elapsedMs": 545022,
+        "ram": 0,
+        "ramPeak": 304995481,
+        "ramLimit": 671088640,
+        "ramRejected": 0,
+        "scratchDisk": 0,
+        "scratchDiskPeak": 382189568,
+        "scratchDiskLimit": 160895139840,
+        "scratchFd": 0,
+        "scratchFdPeak": 19,
+        "scratchFdLimit": 1048571,
+        "scratchRam": 0,
+        "preservedDisk": 0,
+        "preservedFd": 0,
+        "readerCleanupHealthy": true
+      }
+    },
+    "collectionError": null,
+    "runnerError": null,
+    "qualificationError": null,
+    "cleanupError": null,
+    "groupAbsent": true,
+    "monitorExit": 0,
+    "original12": {
+      "actual200": 12,
+      "wire": [
+        {
+          "id": 1,
+          "scope": "original12",
+          "route": "/ops/api/recordings/visual-search?channelIds=9101,9201&text=ball&limit=20&threshold=-1",
+          "beginNs": 1467013138911583,
+          "endNs": 1467014166436208,
+          "bytes": 9535,
+          "headers": true,
+          "status": 200,
+          "errno": 0,
+          "failure": "none",
+          "headerNs": 1467014166422666,
+          "receiveEndNs": 1467014166430583,
+          "validationEndNs": null,
+          "bindingEndNs": null,
+          "outputEndNs": null,
+          "bindingNs": 0,
+          "bindingCalls": 0
+        },
+        {
+          "id": 0,
+          "scope": "original12",
+          "route": "/ops/api/recordings/visual-search?channelIds=9101,9201&text=ball&limit=20&threshold=-1",
+          "beginNs": 1467013138900625,
+          "endNs": 1467014177447625,
+          "bytes": 9535,
+          "headers": true,
+          "status": 200,
+          "errno": 0,
+          "failure": "none",
+          "headerNs": 1467014177420166,
+          "receiveEndNs": 1467014177433291,
+          "validationEndNs": null,
+          "bindingEndNs": null,
+          "outputEndNs": null,
+          "bindingNs": 0,
+          "bindingCalls": 0
+        },
+        {
+          "id": 2,
+          "scope": "original12",
+          "route": "/ops/api/recordings/search?channelIds=9101&startTimeMs=1792000000000&endTimeMs=1792100000000&limit=20&includeUnplaced=true",
+          "beginNs": 1467013138917916,
+          "endNs": 1467014781350083,
+          "bytes": 11955,
+          "headers": true,
+          "status": 200,
+          "errno": 0,
+          "failure": "none",
+          "headerNs": 1467014781319666,
+          "receiveEndNs": 1467014781333083,
+          "validationEndNs": null,
+          "bindingEndNs": null,
+          "outputEndNs": null,
+          "bindingNs": 0,
+          "bindingCalls": 0
+        },
+        {
+          "id": 3,
+          "scope": "original12",
+          "route": "/ops/api/recordings/search?channelIds=9101&startTimeMs=1792000000000&endTimeMs=1792100000000&limit=20&includeUnplaced=true",
+          "beginNs": 1467013138926625,
+          "endNs": 1467014782473708,
+          "bytes": 11955,
+          "headers": true,
+          "status": 200,
+          "errno": 0,
+          "failure": "none",
+          "headerNs": 1467014782463250,
+          "receiveEndNs": 1467014782468750,
+          "validationEndNs": null,
+          "bindingEndNs": null,
+          "outputEndNs": null,
+          "bindingNs": 0,
+          "bindingCalls": 0
+        },
+        {
+          "id": 4,
+          "scope": "original12",
+          "route": "/ops/api/recordings/visual-search?channelIds=9101,9201&text=ball&limit=20&threshold=-1",
+          "beginNs": 1467015136882541,
+          "endNs": 1467016302477875,
+          "bytes": 9535,
+          "headers": true,
+          "status": 200,
+          "errno": 0,
+          "failure": "none",
+          "headerNs": 1467016302445250,
+          "receiveEndNs": 1467016302459208,
+          "validationEndNs": null,
+          "bindingEndNs": null,
+          "outputEndNs": null,
+          "bindingNs": 0,
+          "bindingCalls": 0
+        },
+        {
+          "id": 5,
+          "scope": "original12",
+          "route": "/ops/api/recordings/visual-search?channelIds=9101,9201&text=ball&limit=20&threshold=-1",
+          "beginNs": 1467015136916083,
+          "endNs": 1467016349990458,
+          "bytes": 9535,
+          "headers": true,
+          "status": 200,
+          "errno": 0,
+          "failure": "none",
+          "headerNs": 1467016349978041,
+          "receiveEndNs": 1467016349985333,
+          "validationEndNs": null,
+          "bindingEndNs": null,
+          "outputEndNs": null,
+          "bindingNs": 0,
+          "bindingCalls": 0
+        },
+        {
+          "id": 7,
+          "scope": "original12",
+          "route": "/ops/api/recordings/search?channelIds=9101&startTimeMs=1792000000000&endTimeMs=1792100000000&limit=20&includeUnplaced=true",
+          "beginNs": 1467015136937791,
+          "endNs": 1467016732985000,
+          "bytes": 11955,
+          "headers": true,
+          "status": 200,
+          "errno": 0,
+          "failure": "none",
+          "headerNs": 1467016732970833,
+          "receiveEndNs": 1467016732978125,
+          "validationEndNs": null,
+          "bindingEndNs": null,
+          "outputEndNs": null,
+          "bindingNs": 0,
+          "bindingCalls": 0
+        },
+        {
+          "id": 6,
+          "scope": "original12",
+          "route": "/ops/api/recordings/search?channelIds=9101&startTimeMs=1792000000000&endTimeMs=1792100000000&limit=20&includeUnplaced=true",
+          "beginNs": 1467015136937083,
+          "endNs": 1467016739239958,
+          "bytes": 11955,
+          "headers": true,
+          "status": 200,
+          "errno": 0,
+          "failure": "none",
+          "headerNs": 1467016739229833,
+          "receiveEndNs": 1467016739235291,
+          "validationEndNs": null,
+          "bindingEndNs": null,
+          "outputEndNs": null,
+          "bindingNs": 0,
+          "bindingCalls": 0
+        },
+        {
+          "id": 9,
+          "scope": "original12",
+          "route": "/ops/api/recordings/visual-search?channelIds=9101,9201&text=ball&limit=20&threshold=-1",
+          "beginNs": 1467017138759958,
+          "endNs": 1467018297312333,
+          "bytes": 9535,
+          "headers": true,
+          "status": 200,
+          "errno": 0,
+          "failure": "none",
+          "headerNs": 1467018297299833,
+          "receiveEndNs": 1467018297306041,
+          "validationEndNs": null,
+          "bindingEndNs": null,
+          "outputEndNs": null,
+          "bindingNs": 0,
+          "bindingCalls": 0
+        },
+        {
+          "id": 8,
+          "scope": "original12",
+          "route": "/ops/api/recordings/visual-search?channelIds=9101,9201&text=ball&limit=20&threshold=-1",
+          "beginNs": 1467017138749083,
+          "endNs": 1467018340753166,
+          "bytes": 9535,
+          "headers": true,
+          "status": 200,
+          "errno": 0,
+          "failure": "none",
+          "headerNs": 1467018340720625,
+          "receiveEndNs": 1467018340734125,
+          "validationEndNs": null,
+          "bindingEndNs": null,
+          "outputEndNs": null,
+          "bindingNs": 0,
+          "bindingCalls": 0
+        },
+        {
+          "id": 11,
+          "scope": "original12",
+          "route": "/ops/api/recordings/search?channelIds=9101&startTimeMs=1792000000000&endTimeMs=1792100000000&limit=20&includeUnplaced=true",
+          "beginNs": 1467017138769958,
+          "endNs": 1467018714506916,
+          "bytes": 11955,
+          "headers": true,
+          "status": 200,
+          "errno": 0,
+          "failure": "none",
+          "headerNs": 1467018714495083,
+          "receiveEndNs": 1467018714501000,
+          "validationEndNs": null,
+          "bindingEndNs": null,
+          "outputEndNs": null,
+          "bindingNs": 0,
+          "bindingCalls": 0
+        },
+        {
+          "id": 10,
+          "scope": "original12",
+          "route": "/ops/api/recordings/search?channelIds=9101&startTimeMs=1792000000000&endTimeMs=1792100000000&limit=20&includeUnplaced=true",
+          "beginNs": 1467017138762750,
+          "endNs": 1467018723628583,
+          "bytes": 11955,
+          "headers": true,
+          "status": 200,
+          "errno": 0,
+          "failure": "none",
+          "headerNs": 1467018723618958,
+          "receiveEndNs": 1467018723623500,
+          "validationEndNs": null,
+          "bindingEndNs": null,
+          "outputEndNs": null,
+          "bindingNs": 0,
+          "bindingCalls": 0
+        }
+      ],
+      "formal": [
+        "failures=0 count=12 p95=1643.54 max=1643.54"
+      ],
+      "observedResult": [
+        "failures=0 count=12 p95=1643.54 max=1643.54"
+      ]
+    },
+    "aux200": [
+      {
+        "id": 100,
+        "scope": "auxiliary200",
+        "route": "/ops/api/recordings/visual-search?channelIds=9101,9201&text=ball&limit=200&threshold=-1",
+        "beginNs": 1467053289657458,
+        "endNs": 1467057848985208,
+        "bytes": 79498,
+        "headers": true,
+        "status": 200,
+        "errno": 0,
+        "failure": "none",
+        "headerNs": 1467057833023500,
+        "receiveEndNs": 1467057833078416,
+        "validationEndNs": 1467057848879291,
+        "bindingEndNs": 1467057848739333,
+        "outputEndNs": 1467057848944041,
+        "bindingNs": 12480709,
+        "bindingCalls": 2,
+        "elapsedMs": 4559.32775
+      }
+    ],
+    "exactPublic": [
+      {
+        "id": 102,
+        "scope": "publicExact",
+        "route": "/ops/api/recordings/visual-search/seek?channelId=9101&hitId=frame%3A36%3A0570d5d9-dd7a-4b53-b220-1d015dd48fad%3A2000000000",
+        "beginNs": 1467058049979666,
+        "endNs": 1467058070845500,
+        "bytes": 458,
+        "headers": true,
+        "status": 200,
+        "errno": 0,
+        "failure": "none",
+        "headerNs": 1467058065413583,
+        "receiveEndNs": 1467058065415625,
+        "validationEndNs": 1467058070810125,
+        "bindingEndNs": null,
+        "outputEndNs": 1467058070810125,
+        "bindingNs": 0,
+        "bindingCalls": 0,
+        "elapsedMs": 20.865834
+      }
+    ],
+    "target": [
+      {
+        "id": "frame:36:0570d5d9-dd7a-4b53-b220-1d015dd48fad:2000000000",
+        "channel": "9101",
+        "segment": "0570d5d9-dd7a-4b53-b220-1d015dd48fad",
+        "utcNs": null,
+        "seekTicks": "0",
+        "durationTicks": "100",
+        "seekTimescale": 3000,
+        "freshCount": 32,
+        "instanceId": "35ca86d73a560208eff1b80024791487",
+        "generation": 3
+      }
+    ],
+    "exactResponse": [
+      {
+        "hitId": "frame:36:0570d5d9-dd7a-4b53-b220-1d015dd48fad:2000000000",
+        "playbackUrl": "/ops/api/recordings/media/0570d5d9-dd7a-4b53-b220-1d015dd48fad",
+        "playable": true,
+        "seekAvailable": true,
+        "targetSeconds": 0,
+        "frameDurationSeconds": 0.03333333333333333,
+        "timeBasis": "verified-native-file-presentation"
+      }
+    ],
+    "exactPublication": [
+      {
+        "beforeInstance": "35ca86d73a560208eff1b80024791487",
+        "beforeGeneration": 3,
+        "afterInstance": "35ca86d73a560208eff1b80024791487",
+        "afterGeneration": 3,
+        "sameIndex": true,
+        "samePublication": true
+      }
+    ],
+    "bucket": [
+      "not-applicable no-known-UTC-representative-fresh"
+    ],
+    "membership": [
+      "generation=3 documents=3707 newDocuments=32 instance=35ca86d73a560208eff1b80024791487"
+    ],
+    "source": [
+      "expected=2483 accepted=2483 files=42 fullAcceptance=1"
+    ],
+    "recorderCost": [
+      "enqueued=1240 dequeued=1240 dropped=0 payloadBytes=687676 maxDepth=143 maxBytes=78235 firstNs=494686531793 lastNs=536060406043 minInputGapNs=23343833 maxInputGapNs=43810000 queueWaitNs=1118460143362 maxQueueWaitNs=4772843625 callbackNs=30979136941 maxCallbackNs=4807961167 firstDepth64Ns=510859697418 firstDropNs=0 maxCallbackBeginNs=508714473918 maxCallbackOrdinal=61",
+      "enqueued=1243 dequeued=1243 dropped=0 payloadBytes=689462 maxDepth=52 maxBytes=27732 firstNs=494692054251 lastNs=536161947501 minInputGapNs=23374625 maxInputGapNs=43380583 queueWaitNs=545340264170 maxQueueWaitNs=1728110334 callbackNs=27885411279 maxCallbackNs=1758847375 firstDepth64Ns=0 firstDropNs=0 maxCallbackBeginNs=508718867751 maxCallbackOrdinal=61"
+    ],
+    "initialPublication": [
+      {
+        "enabled": true,
+        "state": "ready",
+        "error": "",
+        "searchAvailable": true,
+        "sampleSeconds": 1,
+        "scanSeconds": 1,
+        "eventSnapshots": "disabled",
+        "index": {
+          "instanceId": "35ca86d73a560208eff1b80024791487",
+          "generation": 1,
+          "identityScope": "worker-instance",
+          "origin": "rebuild",
+          "publishedAtMs": 1792159779383,
+          "metadataReason": "live-publication",
+          "statisticsScope": "authorized-channels-all-indexed-samples-before-query-filters",
+          "coverage": "unknown",
+          "coverageReason": "sampled-index-no-continuous-coverage",
+          "sourceValidation": "search-revalidates-current-originals",
+          "channels": [
+            {
+              "channelId": "9101",
+              "indexedFrames": 1839,
+              "unknownTimeFrames": 1217,
+              "firstSampleTimeNs": "1792100930310588000",
+              "lastSampleTimeNs": "1792102409765536000",
+              "sourceCountsState": "known",
+              "examinedSegments": 1231,
+              "unsupportedSegments": 0,
+              "examinedSnapshots": 0,
+              "unsupportedSnapshots": 0
+            },
+            {
+              "channelId": "9201",
+              "indexedFrames": 1836,
+              "unknownTimeFrames": 1215,
+              "firstSampleTimeNs": "1792100930333826000",
+              "lastSampleTimeNs": "1792102408815542000",
+              "sourceCountsState": "known",
+              "examinedSegments": 1229,
+              "unsupportedSegments": 0,
+              "examinedSnapshots": 0,
+              "unsupportedSnapshots": 0
+            }
+          ]
+        },
+        "refresh": {
+          "state": "ready",
+          "attemptState": "succeeded",
+          "attemptStartedAtMs": 1792159305475,
+          "attemptFinishedAtMs": 1792159779383,
+          "lastSuccessAtMs": 1792159779383,
+          "error": "",
+          "usingPreviousPublication": false
+        },
+        "channels": [
+          {
+            "channelId": "9101",
+            "indexedFrames": 1839,
+            "unknownTimeFrames": 1217,
+            "firstSampleTimeNs": "1792100930310588000",
+            "lastSampleTimeNs": "1792102409765536000",
+            "sourceCountsState": "known",
+            "examinedSegments": 1231,
+            "unsupportedSegments": 0,
+            "examinedSnapshots": 0,
+            "unsupportedSnapshots": 0
+          },
+          {
+            "channelId": "9201",
+            "indexedFrames": 1836,
+            "unknownTimeFrames": 1215,
+            "firstSampleTimeNs": "1792100930333826000",
+            "lastSampleTimeNs": "1792102408815542000",
+            "sourceCountsState": "known",
+            "examinedSegments": 1229,
+            "unsupportedSegments": 0,
+            "examinedSnapshots": 0,
+            "unsupportedSnapshots": 0
+          }
+        ]
+      }
+    ],
+    "stop": [
+      "server=1",
+      "visual=1"
+    ],
+    "finish": [
+      "ok=1 error="
+    ],
+    "normalSuccessFinish": true,
+    "resourceOwners": [
+      {
+        "pid": 42932,
+        "seq": 0,
+        "phase": "opened",
+        "elapsedMs": 19922,
+        "ram": 2841796,
+        "ramPeak": 3352241,
+        "ramLimit": 671088640,
+        "ramRejected": 0,
+        "scratchDisk": 93892608,
+        "scratchDiskPeak": 105013248,
+        "scratchDiskLimit": 160895139840,
+        "scratchFd": 4,
+        "scratchFdPeak": 6,
+        "scratchFdLimit": 1048571,
+        "scratchRam": 1188864,
+        "preservedDisk": 0,
+        "preservedFd": 0,
+        "readerCleanupHealthy": true
+      },
+      {
+        "pid": 42932,
+        "seq": 1,
+        "phase": "ready",
+        "elapsedMs": 497835,
+        "ram": 20489417,
+        "ramPeak": 61091833,
+        "ramLimit": 671088640,
+        "ramRejected": 0,
+        "scratchDisk": 93892608,
+        "scratchDiskPeak": 148381696,
+        "scratchDiskLimit": 160895139840,
+        "scratchFd": 4,
+        "scratchFdPeak": 6,
+        "scratchFdLimit": 1048571,
+        "scratchRam": 1188864,
+        "preservedDisk": 0,
+        "preservedFd": 0,
+        "readerCleanupHealthy": true
+      },
+      {
+        "pid": 42932,
+        "seq": 2,
+        "phase": "wave",
+        "elapsedMs": 501579,
+        "ram": 76146872,
+        "ramPeak": 215211041,
+        "ramLimit": 671088640,
+        "ramRejected": 0,
+        "scratchDisk": 148529152,
+        "scratchDiskPeak": 312029184,
+        "scratchDiskLimit": 160895139840,
+        "scratchFd": 5,
+        "scratchFdPeak": 9,
+        "scratchFdLimit": 1048571,
+        "scratchRam": 1486080,
+        "preservedDisk": 0,
+        "preservedFd": 0,
+        "readerCleanupHealthy": true
+      },
+      {
+        "pid": 42932,
+        "seq": 3,
+        "phase": "wave",
+        "elapsedMs": 503535,
+        "ram": 107946732,
+        "ramPeak": 226693476,
+        "ramLimit": 671088640,
+        "ramRejected": 0,
+        "scratchDisk": 94052352,
+        "scratchDiskPeak": 312029184,
+        "scratchDiskLimit": 160895139840,
+        "scratchFd": 4,
+        "scratchFdPeak": 9,
+        "scratchFdLimit": 1048571,
+        "scratchRam": 1188864,
+        "preservedDisk": 0,
+        "preservedFd": 0,
+        "readerCleanupHealthy": true
+      },
+      {
+        "pid": 42932,
+        "seq": 4,
+        "phase": "wave",
+        "elapsedMs": 505520,
+        "ram": 108086091,
+        "ramPeak": 304995481,
+        "ramLimit": 671088640,
+        "ramRejected": 0,
+        "scratchDisk": 94126080,
+        "scratchDiskPeak": 312029184,
+        "scratchDiskLimit": 160895139840,
+        "scratchFd": 4,
+        "scratchFdPeak": 9,
+        "scratchFdLimit": 1048571,
+        "scratchRam": 1188864,
+        "preservedDisk": 0,
+        "preservedFd": 0,
+        "readerCleanupHealthy": true
+      },
+      {
+        "pid": 42932,
+        "seq": 5,
+        "phase": "finished",
+        "elapsedMs": 544986,
+        "ram": 88012192,
+        "ramPeak": 304995481,
+        "ramLimit": 671088640,
+        "ramRejected": 0,
+        "scratchDisk": 0,
+        "scratchDiskPeak": 382189568,
+        "scratchDiskLimit": 160895139840,
+        "scratchFd": 0,
+        "scratchFdPeak": 19,
+        "scratchFdLimit": 1048571,
+        "scratchRam": 0,
+        "preservedDisk": 0,
+        "preservedFd": 0,
+        "readerCleanupHealthy": true
+      },
+      {
+        "pid": 42932,
+        "seq": 6,
+        "phase": "after-storage-destruction",
+        "elapsedMs": 545022,
+        "ram": 0,
+        "ramPeak": 304995481,
+        "ramLimit": 671088640,
+        "ramRejected": 0,
+        "scratchDisk": 0,
+        "scratchDiskPeak": 382189568,
+        "scratchDiskLimit": 160895139840,
+        "scratchFd": 0,
+        "scratchFdPeak": 19,
+        "scratchFdLimit": 1048571,
+        "scratchRam": 0,
+        "preservedDisk": 0,
+        "preservedFd": 0,
+        "readerCleanupHealthy": true
+      }
+    ],
+    "workerTerminal": [
+      "stage=encode row=355 code=visual-cancelled"
+    ],
+    "sampleCount": 540,
+    "resourceMeasurements": {
+      "rssBytes": {
+        "count": 540,
+        "first": 32768,
+        "last": 1884487680,
+        "max": 3197517824
+      },
+      "footprintBytes": {
+        "count": 540,
+        "first": 81992,
+        "last": 1732757952,
+        "max": 3158658168
+      },
+      "fdCount": {
+        "count": 540,
+        "first": 4,
+        "last": 5,
+        "max": 418
+      },
+      "anonymousFileBytes": {
+        "count": 540,
+        "first": 0,
+        "last": 0,
+        "max": 1185494016
+      },
+      "anonymousAllocatedBytes": {
+        "count": 540,
+        "first": 0,
+        "last": 0,
+        "max": 1190895616
+      }
+    },
+    "firstFailures": [],
+    "collector": {
+      "completeFdSamples": 540,
+      "mediaPublicationOrTreeRetries": 0,
+      "end": [
+        {
+          "samples": 540,
+          "endedObserved": true
+        }
+      ],
+      "samePidStartIdentity": true
+    },
+    "broad": [
+      {
+        "prefix": "newDocuments=2",
+        "count": 200,
+        "index": {
+          "instanceId": "35ca86d73a560208eff1b80024791487",
+          "generation": 3,
+          "identityScope": "worker-instance",
+          "origin": "rebuild",
+          "publishedAtMs": 1792159812980,
+          "metadataReason": "live-publication",
+          "statisticsScope": "authorized-channels-all-indexed-samples-before-query-filters",
+          "coverage": "unknown",
+          "coverageReason": "sampled-index-no-continuous-coverage",
+          "sourceValidation": "search-revalidates-current-originals",
+          "channels": [
+            {
+              "channelId": "9101",
+              "indexedFrames": 1853,
+              "unknownTimeFrames": 1231,
+              "firstSampleTimeNs": "1792100930310588000",
+              "lastSampleTimeNs": "1792102409765536000",
+              "sourceCountsState": "known",
+              "examinedSegments": 1238,
+              "unsupportedSegments": 0,
+              "examinedSnapshots": 0,
+              "unsupportedSnapshots": 0
+            },
+            {
+              "channelId": "9201",
+              "indexedFrames": 1854,
+              "unknownTimeFrames": 1233,
+              "firstSampleTimeNs": "1792100930333826000",
+              "lastSampleTimeNs": "1792102408815542000",
+              "sourceCountsState": "known",
+              "examinedSegments": 1238,
+              "unsupportedSegments": 0,
+              "examinedSnapshots": 0,
+              "unsupportedSnapshots": 0
+            }
+          ]
+        },
+        "orderPass": true,
+        "currentnessPass": true
+      }
+    ],
+    "closedJournal": [
+      {
+        "poll": 1,
+        "ms": 1928.598708,
+        "count": 128,
+        "backlog": true
+      },
+      {
+        "poll": 2,
+        "ms": 273.67274999999995,
+        "count": 256,
+        "backlog": true
+      },
+      {
+        "poll": 3,
+        "ms": 230.7953339999999,
+        "count": 384,
+        "backlog": true
+      },
+      {
+        "poll": 4,
+        "ms": 222.67254100000036,
+        "count": 512,
+        "backlog": true
+      },
+      {
+        "poll": 5,
+        "ms": 230.09620799999993,
+        "count": 640,
+        "backlog": true
+      },
+      {
+        "poll": 6,
+        "ms": 226.85716699999966,
+        "count": 768,
+        "backlog": true
+      },
+      {
+        "poll": 7,
+        "ms": 232.92608299999984,
+        "count": 896,
+        "backlog": true
+      },
+      {
+        "poll": 8,
+        "ms": 232.8956659999999,
+        "count": 1024,
+        "backlog": true
+      },
+      {
+        "poll": 9,
+        "ms": 227.42229199999974,
+        "count": 1152,
+        "backlog": true
+      },
+      {
+        "poll": 10,
+        "ms": 227.497167,
+        "count": 1280,
+        "backlog": true
+      },
+      {
+        "poll": 11,
+        "ms": 237.3614580000003,
+        "count": 1408,
+        "backlog": true
+      },
+      {
+        "poll": 12,
+        "ms": 232.03783300000032,
+        "count": 1536,
+        "backlog": true
+      },
+      {
+        "poll": 13,
+        "ms": 230.97570799999994,
+        "count": 1664,
+        "backlog": true
+      },
+      {
+        "poll": 14,
+        "ms": 237.96308399999998,
+        "count": 1792,
+        "backlog": true
+      },
+      {
+        "poll": 15,
+        "ms": 239.6532499999994,
+        "count": 1920,
+        "backlog": true
+      },
+      {
+        "poll": 16,
+        "ms": 243.37158400000044,
+        "count": 2048,
+        "backlog": true
+      },
+      {
+        "poll": 17,
+        "ms": 246.51274999999987,
+        "count": 2176,
+        "backlog": true
+      },
+      {
+        "poll": 18,
+        "ms": 238.9686670000001,
+        "count": 2304,
+        "backlog": true
+      },
+      {
+        "poll": 19,
+        "ms": 248.25683299999946,
+        "count": 2432,
+        "backlog": true
+      },
+      {
+        "poll": 20,
+        "ms": 67.38916599999993,
+        "count": 2560,
+        "backlog": true
+      },
+      {
+        "poll": 21,
+        "ms": 72.41770799999995,
+        "count": 2688,
+        "backlog": true
+      },
+      {
+        "poll": 22,
+        "ms": 69.32600000000002,
+        "count": 2816,
+        "backlog": true
+      },
+      {
+        "poll": 23,
+        "ms": 69.21033399999942,
+        "count": 2944,
+        "backlog": true
+      },
+      {
+        "poll": 24,
+        "ms": 68.86654100000032,
+        "count": 3072,
+        "backlog": true
+      },
+      {
+        "poll": 25,
+        "ms": 69.19362499999988,
+        "count": 3200,
+        "backlog": true
+      },
+      {
+        "poll": 26,
+        "ms": 69.7222499999998,
+        "count": 3328,
+        "backlog": true
+      },
+      {
+        "poll": 27,
+        "ms": 71.2742500000004,
+        "count": 3456,
+        "backlog": true
+      },
+      {
+        "poll": 28,
+        "ms": 72.38200000000052,
+        "count": 3584,
+        "backlog": true
+      },
+      {
+        "poll": 29,
+        "ms": 71.89337499999965,
+        "count": 3712,
+        "backlog": true
+      },
+      {
+        "poll": 30,
+        "ms": 71.19008300000041,
+        "count": 3840,
+        "backlog": true
+      },
+      {
+        "poll": 31,
+        "ms": 71.91620799999964,
+        "count": 3968,
+        "backlog": true
+      },
+      {
+        "poll": 32,
+        "ms": 73.47075000000041,
+        "count": 4096,
+        "backlog": true
+      },
+      {
+        "poll": 33,
+        "ms": 73.41112500000054,
+        "count": 4224,
+        "backlog": true
+      },
+      {
+        "poll": 34,
+        "ms": 73.73116699999991,
+        "count": 4352,
+        "backlog": true
+      },
+      {
+        "poll": 35,
+        "ms": 74.73204199999964,
+        "count": 4480,
+        "backlog": true
+      },
+      {
+        "poll": 36,
+        "ms": 74.75233399999979,
+        "count": 4608,
+        "backlog": true
+      },
+      {
+        "poll": 37,
+        "ms": 75.42441700000018,
+        "count": 4736,
+        "backlog": true
+      },
+      {
+        "poll": 38,
+        "ms": 75.45395800000006,
+        "count": 4864,
+        "backlog": true
+      },
+      {
+        "poll": 39,
+        "ms": 169.30229099999997,
+        "count": 4992,
+        "backlog": true
+      },
+      {
+        "poll": 40,
+        "ms": 77.62579199999982,
+        "count": 5008,
+        "backlog": false
+      },
+      {
+        "count": 5008,
+        "polls": 40,
+        "partialBytes": 0,
+        "backlog": false,
+        "busy": false,
+        "pass": true,
+        "ms": 7802.872208000001
+      },
+      {
+        "close": {
+          "code": 0,
+          "signal": null
+        }
+      }
+    ],
+    "decision": "PASS_DIRECT_COLD",
+    "resourcePhaseMaxima": {
+      "initial": {
+        "samples": 22,
+        "separateMaximaNotSummed": true,
+        "rssBytes": 61800448,
+        "footprintBytes": 39436936,
+        "fdCount": 14,
+        "anonymousAllocatedBytes": 77520896
+      },
+      "live": {
+        "samples": 514,
+        "separateMaximaNotSummed": true,
+        "rssBytes": 3197517824,
+        "footprintBytes": 3158658168,
+        "fdCount": 418,
+        "anonymousAllocatedBytes": 210653184
+      },
+      "model": {
+        "samples": 4,
+        "separateMaximaNotSummed": true,
+        "rssBytes": 512917504,
+        "footprintBytes": 473482344,
+        "fdCount": 13,
+        "anonymousAllocatedBytes": 1190895616
+      }
+    }
+  },
+  "memoryLimits": "logical RAM/RSS/footprint/anonymous files are separate; phase-specific maxima not summed; owner0 not wholeheap no-leak proof",
+  "qualityRemaining": {
+    "warmMaxCallbackSeconds": 1.621734708,
+    "coldMaxCallbackSeconds": 4.807961167,
+    "coldMaxQueueWaitSeconds": 4.772843625,
+    "coldMaxDepth": 143,
+    "meaning": "drop0 and exact acceptance in these short runs do not establish sustained margin or resolve callback cause"
+  },
+  "binding": "135-binding.json; ordered producer/readback/coverage, not performance evidence",
+  "independentReview": "135-independent-review.json",
+  "preservation": {
+    "archive": "135-execution.tar.gz",
+    "bytes": 13539766,
+    "sha256": "d916d84e73629be312133dff330eff2d3afea0c8638dcd3a7193748b7c6a80ce",
+    "payloadMembers": 188,
+    "totalMembers": 189,
+    "localReadback": "every payload saved hash checked; manifest parsed; entire gzip hash bound",
+    "deltaFiles": {
+      "warm": 45,
+      "cold": 52
+    }
+  },
+  "cleanup": "process groups/ports/container absent verified; ownedroot cleanup after remote bytes verification in135-closure.json",
+  "remaining": [
+    "134 historical cause unconfirmed",
+    "multi-second callback long-term margin",
+    "900seconds/45minutes/120minutes notrun",
+    "memoryP0 open",
+    "release held"
+  ]
+}
