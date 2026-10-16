@@ -859,12 +859,35 @@
     "release hold"
   ],
   "cleanup": {
-    "status": "pending remote evidence verification",
+    "status": "PASS after remote archive and supplemental byte verification",
     "ownedRoot": "/private/tmp/media-server-r130-pkw7n4z1",
-    "childGroupAbsent": true,
-    "monitorExit": 0,
-    "port": 62637,
-    "userSettingsBackupsModelsSDK": "excluded"
+    "ownedRootAbsent": true,
+    "ownedPointerAbsent": true,
+    "container": "media-server-r130-linux removed, absent",
+    "processPortContainerChecks": {
+      "pid": {
+        "exit": 1,
+        "stdout": "",
+        "stderr": ""
+      },
+      "port": {
+        "exit": 1,
+        "stdout": "",
+        "stderr": ""
+      },
+      "container": {
+        "exit": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    "removed": {
+      "files": 11611,
+      "dirs": 124,
+      "symlinksUnlinkedWithoutFollowing": 1
+    },
+    "userSettingsBackupsModelsSDK": "not read for cleanup or removed; symlink target not followed",
+    "logicalOwnership": "final product storage-destruction RAM/scratch/FD0; separate from OS process exit"
   },
   "archive": {
     "path": "docs/release-artifacts/v4.5.0/130-execution.tar.gz",
@@ -884,5 +907,48 @@
     "reconstructionDeletedPaths": [
       "snapshot-16.jsonl"
     ]
+  },
+  "remotePreservation": {
+    "remoteCommit": "a6bb89c77d495e85c354b72d0dd3f979d3cbc761",
+    "retrieval": "ls-remote plus fetch and git object byte readback",
+    "files": {
+      "docs/release-artifacts/v4.5.0/130-execution.tar.gz": {
+        "bytes": 18917815,
+        "sha256": "7ec0f4531532810eaa29905512ae328d7ba167fa1b48627576afd2897a897b2f"
+      },
+      "docs/release-artifacts/v4.5.0/130-validation.json": {
+        "bytes": 27001,
+        "sha256": "fa39e9e02001254352f1bf93804e943864667c8da05f8f062693024b14372fb8"
+      },
+      "docs/release-artifacts/v4.5.0/130-independent-review.json": {
+        "bytes": 2528,
+        "sha256": "ee747a2817fdfd1a107ff04fad2a0205692c16f975198400d6611777a0f6a27c"
+      }
+    },
+    "allArchiveMembersVerified": 167,
+    "unchangedOriginalArchive": {
+      "path": "docs/release-artifacts/v4.5.0/125-execution.tar.gz",
+      "bytes": 58516159,
+      "sha256": "39eeb7708486378f919c10c82e4a3ba059d0c82f7874a1617559e7beb95eb83b"
+    },
+    "supplementRemoteCommit": "1d6b7535a75a76d1f7bb6155164bd673a1a86a93",
+    "supplementFiles": {
+      "docs/release-artifacts/v4.5.0/130-validation.json": {
+        "bytes": 27136,
+        "sha256": "64fde17de53ff0c6bd82767a71c241cff72ae77604798e6739ec9197108413ff"
+      },
+      "docs/release-artifacts/v4.5.0/130-independent-review.json": {
+        "bytes": 2927,
+        "sha256": "1604e1a391dacadf02f2332e9298a9e11e2e1fc13feefe02e72baee75f24806a"
+      },
+      "docs/release-artifacts/v4.5.0/130-preservation-supplement.json": {
+        "bytes": 1505,
+        "sha256": "3b31f6b54289deff57c86442352f1979d67372c8e7f763b44ad8a850083c3c68"
+      },
+      "docs/release-artifacts/v4.5.0/130-execution.tar.gz": {
+        "bytes": 18917815,
+        "sha256": "7ec0f4531532810eaa29905512ae328d7ba167fa1b48627576afd2897a897b2f"
+      }
+    }
   }
 }

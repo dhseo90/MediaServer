@@ -45,6 +45,7 @@
       "deleted snapshot-16.jsonl must be recorded for faithful delta reconstruction",
       "final three-record synthetic observation must be distinguished from early two-record result"
     ],
-    "resolution": "130-preservation-supplement.json from existing bytes only; private raw excluded; no new execution"
+    "resolution": "130-preservation-supplement.json from existing bytes only; private raw excluded; no new execution",
+    "resolutionVerified": "reviewer readback: archive167 payload hashes match; deleted-path hash matches input binding; final synthetic3792B/hash/3rows/truncation verified; no remaining preservation blocker"
   }
 }
