@@ -2474,6 +2474,6 @@
     ],
     "firstSandboxPsAttempt": "EPERM, no result; repeated read-only with tool-approved process access"
   },
-  "cleanup": "pending remote evidence byte verification; separate closure commit",
+  "cleanup": "Completed after remote evidence byte verification; see 137-closure.json. Original evidence commit preserves pre-cleanup state.",
   "createdAtUtc": "2026-10-16T17:36:55.207984+00:00"
 }

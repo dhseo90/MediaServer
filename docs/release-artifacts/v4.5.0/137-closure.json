@@ -1,0 +1,229 @@
+{
+  "schema": "media-server.v450.r137.closure.v1",
+  "preservationCommit": "661d19947a7049772c38b6552f429fddb2506cfc",
+  "verifiedRemoteAtPreservation": "661d19947a7049772c38b6552f429fddb2506cfc",
+  "remoteCommitTree": "cde6473770f038eb09e48d36043dfcf46cdf967f",
+  "remoteBytes": [
+    {
+      "path": "docs/development-backlog.md",
+      "blob": "ffc5540f0132f6470511d4d6f3dc2123c61e93c2",
+      "bytes": 63274,
+      "sha256": "f92aede703d26c29839da5d82d324cb2592662265c2a5aa32cd04627a76e40a3",
+      "match": true
+    },
+    {
+      "path": "docs/release-artifacts/v4.5.0/137-validation.json",
+      "blob": "598b83754f2427824e76891af9f9cd14f352ea31",
+      "bytes": 64576,
+      "sha256": "9695a2dd5ac20fa5a2961108f9899ef82c686a6982c8aded57c5797e9fd938a6",
+      "match": true
+    },
+    {
+      "path": "docs/release-artifacts/v4.5.0/137-independent-review.json",
+      "blob": "a0bb63ef69fb59a604904af9ca6d3685d7d7b7d2",
+      "bytes": 5713,
+      "sha256": "ca7fe557681cdcfd9eddbbad7bb38de474726474841c0a289c73f3e21ceb78ca",
+      "match": true
+    },
+    {
+      "path": "docs/release-artifacts/v4.5.0/137-execution.tar.gz",
+      "blob": "ea67281cc6a6047b09134fa6c2f534a67f46c826",
+      "bytes": 26965466,
+      "sha256": "f165371bfbcbe4abb3080a6808aa39095fd69ba1f92a9f7ee6f2b01548734d2d",
+      "match": true
+    },
+    {
+      "path": "docs/release-artifacts/v4.5.0/137-diagnostic-schema.json",
+      "blob": "bd19057273136234e61d4f682ea432561ab41b2c",
+      "bytes": 6339,
+      "sha256": "fb47fab61081fbf1444f5d894b430380b9a0e317a2e1fc21a59cbbe99440f56c",
+      "match": true
+    },
+    {
+      "path": "docs/release-artifacts/v4.5.0/137-preflight.json",
+      "blob": "4f4c324f4ed945ad16c5f64409a8af1a6be85d09",
+      "bytes": 40044,
+      "sha256": "54bd0822a376ac7ee37f549d8a8a65a192bf6052d932f136d4511716a5126a60",
+      "match": true
+    },
+    {
+      "path": "docs/release-artifacts/v4.5.0/137-binding.json",
+      "blob": "195bd6a17ae4e6386874f1120f2c8b84839382fe",
+      "bytes": 1402,
+      "sha256": "e59e558d653ba2daba0fc6bc28766dfcb7a64a205baea586a8eafd52b65be2ff",
+      "match": true
+    }
+  ],
+  "ownedRootIdentity": {
+    "dev": 16777232,
+    "ino": 175548070,
+    "uid": 501
+  },
+  "postrunAbsence": {
+    "processes": [
+      {
+        "pid": 55428,
+        "absent": true,
+        "psExit": 1
+      },
+      {
+        "pid": 55471,
+        "absent": true,
+        "psExit": 1
+      }
+    ],
+    "ports": [
+      {
+        "port": 59354,
+        "connectEx": 61,
+        "closed": true
+      },
+      {
+        "port": 59355,
+        "connectEx": 61,
+        "closed": true
+      }
+    ],
+    "ownedContainers": [
+      {
+        "ID": "6f0b646605f3",
+        "Names": "media-server-r137-completion",
+        "State": "exited",
+        "Status": "Exited (0) 19 minutes ago"
+      },
+      {
+        "ID": "7ce0cd431e54",
+        "Names": "media-server-r137-native",
+        "State": "exited",
+        "Status": "Exited (1) 20 minutes ago"
+      },
+      {
+        "ID": "3a163f91ee3e",
+        "Names": "media-server-r137-path-check",
+        "State": "exited",
+        "Status": "Exited (0) 20 minutes ago"
+      },
+      {
+        "ID": "0b8b0ea6ed41",
+        "Names": "media-server-r137-worker-stage",
+        "State": "exited",
+        "Status": "Exited (0) 21 minutes ago"
+      },
+      {
+        "ID": "b7cb56c3f4e0",
+        "Names": "media-server-r137-observed",
+        "State": "exited",
+        "Status": "Exited (1) 22 minutes ago"
+      },
+      {
+        "ID": "39698d268cb7",
+        "Names": "media-server-r137-qualified",
+        "State": "exited",
+        "Status": "Exited (1) 23 minutes ago"
+      },
+      {
+        "ID": "abe3a2de20e6",
+        "Names": "media-server-r137-layout",
+        "State": "exited",
+        "Status": "Exited (1) 24 minutes ago"
+      },
+      {
+        "ID": "b4ab596746de",
+        "Names": "media-server-r137-focused-final",
+        "State": "exited",
+        "Status": "Exited (1) 29 minutes ago"
+      },
+      {
+        "ID": "c981dd5dae71",
+        "Names": "media-server-r137-syntax",
+        "State": "exited",
+        "Status": "Exited (1) 32 minutes ago"
+      },
+      {
+        "ID": "83f3d3233149",
+        "Names": "media-server-r137-focused",
+        "State": "exited",
+        "Status": "Exited (1) 33 minutes ago"
+      }
+    ],
+    "firstSandboxPsAttempt": "EPERM, no result; repeated read-only with tool-approved process access"
+  },
+  "cleanup": {
+    "canonicalUidRootVerified": true,
+    "entriesRemoved": 2002,
+    "symlinksUnlinkedWithoutFollowing": 277,
+    "externalTargetsUntouched": true,
+    "fdSafeRmtree": true,
+    "rootAbsent": true,
+    "markerAbsent": true,
+    "containers": [
+      {
+        "name": "media-server-r137-completion",
+        "id": "6f0b646605f331891d91263a2e340a88e287915c0c17bd7f6c624407860ee3a2",
+        "running": false,
+        "absent": true
+      },
+      {
+        "name": "media-server-r137-native",
+        "id": "7ce0cd431e54512e87aa2b829f76aaa8a1ddc9e79e74f7a623aaac0e465b42c5",
+        "running": false,
+        "absent": true
+      },
+      {
+        "name": "media-server-r137-path-check",
+        "id": "3a163f91ee3e026b106ddb19ba1a31ef184c230e6481e1f3bb7cca73eb20b2c6",
+        "running": false,
+        "absent": true
+      },
+      {
+        "name": "media-server-r137-worker-stage",
+        "id": "0b8b0ea6ed413a72123c066907d68051e3d9717d86e17f5c8f54f69d9731b0c8",
+        "running": false,
+        "absent": true
+      },
+      {
+        "name": "media-server-r137-observed",
+        "id": "b7cb56c3f4e034316240836760666929582ded68d6e28f1de9b8f67162430608",
+        "running": false,
+        "absent": true
+      },
+      {
+        "name": "media-server-r137-qualified",
+        "id": "39698d268cb7a285d147e4b290e3a1bd994eb43683fa19b7908037d277d50cc7",
+        "running": false,
+        "absent": true
+      },
+      {
+        "name": "media-server-r137-layout",
+        "id": "abe3a2de20e64d5924a8061287616cc8f3f6209e369099c06e5bf851f34eb44d",
+        "running": false,
+        "absent": true
+      },
+      {
+        "name": "media-server-r137-focused-final",
+        "id": "b4ab596746deda7ad37f9ad299d5c9ae0b3717a35f34344ca445fcee4bb747b2",
+        "running": false,
+        "absent": true
+      },
+      {
+        "name": "media-server-r137-syntax",
+        "id": "c981dd5dae71ed87a7b84e51a11814613ea8a38113ddd6d7e21f584eeafada90",
+        "running": false,
+        "absent": true
+      },
+      {
+        "name": "media-server-r137-focused",
+        "id": "83f3d3233149113767d74997d27f3c0b159f3c8a6e80cde552d758acef7c35a5",
+        "running": false,
+        "absent": true
+      }
+    ],
+    "userSettingsPrivateBackupsModelsSDK": "excluded and untouched",
+    "scope": "only own root/marker and named exited test containers; built diagnostic product/runtime retained in repo build directory"
+  },
+  "memoryP0": "HOLD_ATTRIBUTION_INSUFFICIENT",
+  "readiness45": "HOLD",
+  "R136Functional900": "PASS maintained",
+  "releaseHold": true,
+  "completedAtUtc": "2026-10-16T17:41:28.977887+00:00"
+}

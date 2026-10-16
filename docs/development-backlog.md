@@ -19,7 +19,7 @@
 
 [137 메모리 소유 귀속 진단](release-artifacts/v4.5.0/137-validation.json)은 **600초 기능 안전 조건 PASS, HOLD_ATTRIBUTION_INSUFFICIENT**다. 제품 의미·부하·한도 불변의 opt-in 진단을1회 수행해 본600.051초/전체615.606초, 검색160·증거각39·A10·정상 비활성화/Finish·닫힌 원장과 마지막 논리소유0을 확인했다. Recorder enqueue/dequeue/확정sample35952·drop0·600파일이며 callback최대1.035초로, upstream 전체 입력이나 장기 여유의 증명은 아니다.
 
-Snapshot8개·count퇴거82·모델60생성/60파괴와 동시최대7은 확인했으나 TTL만료0이며 총 모델bytes는 누적 문서와 함께 증가했다. 현재model과snapshot의 공유bytes를 중복 합산하지 않았다. 미귀속예약 peak150,082,471B는 다음표본에서903,368B로 감소했지만 실제 소유callsite가 미확정이고, SearchResidency 밖 RSS의 live heap/retention 구분도 남았다. 다음 최소 작업은 **기존 Journal/history/임시 예약의 실제 소유 분류와 동일 수명 경계의 비SearchResidency allocation 귀속**이며 계수완화·purge·장시간 재실행은 하지 않는다. [독립 검토](release-artifacts/v4.5.0/137-independent-review.json)도 HOLD다. R136 기능900 PASS를 유지하고45분/120분·메모리P0·출시는 계속 보류한다.
+Snapshot8개·count퇴거82·모델60생성/60파괴와 동시최대7은 확인했으나 TTL만료0이며 총 모델bytes는 누적 문서와 함께 증가했다. 현재model과snapshot의 공유bytes를 중복 합산하지 않았다. 미귀속예약 peak150,082,471B는 다음표본에서903,368B로 감소했지만 실제 소유callsite가 미확정이고, SearchResidency 밖 RSS의 live heap/retention 구분도 남았다. 다음 최소 작업은 **기존 Journal/history/임시 예약의 실제 소유 분류와 동일 수명 경계의 비SearchResidency allocation 귀속**이며 계수완화·purge·장시간 재실행은 하지 않는다. [독립 검토](release-artifacts/v4.5.0/137-independent-review.json)도 HOLD다. R136 기능900 PASS를 유지하고45분/120분·메모리P0·출시는 계속 보류한다. 원격 bytes 보존과 소유 root·컨테이너 정리는 [137 closure](release-artifacts/v4.5.0/137-closure.json)로 확인한다.
 
 [136 고정 후보900초 혼합 검증](release-artifacts/v4.5.0/136-validation.json)은 **기존 기능·검색·증거·정상 종료 gate PASS**다. 제품/fixture/collector/gate 변경 없이 fresh 단회 본 관측900.061초를 수행했고, 성공검색240건 p95 1061.988ms·최대1231.295ms·unavailable/timeout0, 구조화/장면 증거 각59·A15를 확인했다. 양 채널 비활성화200·정상 exit0·닫힌 journal·Finish와 storage 파괴 뒤 논리 owner0을 확인했다.
 
