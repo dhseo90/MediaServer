@@ -41,7 +41,6 @@
     "readiness45": "HOLD",
     "release": "HOLD"
   },
-  "remaining": "actual remote bytes and owned cleanup/closure",
   "recordReview": {
     "verdict": "PASS_WITH_DOCUMENTATION_CORRECTION_RESOLVED",
     "blockingFindings": [],
@@ -99,5 +98,7 @@
       "source payload matches0692cb1bb04be419a9aaa481c187390127ccb5fb"
     ],
     "scope": "read-only; no test execution/edit/delegation; bounded likely source attribution only"
-  }
+  },
+  "remainingAtLocalReview": "actual remote bytes and owned cleanup/closure",
+  "closureReference": "138-closure.json records later main-agent remote byte verification and cleanup; not claimed as an additional independent execution."
 }

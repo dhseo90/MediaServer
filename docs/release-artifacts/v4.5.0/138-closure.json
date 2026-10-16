@@ -1,0 +1,79 @@
+{
+  "schema": "media-server.v450.r138.closure.v1",
+  "diagnosticCommit": "0692cb1bb04be419a9aaa481c187390127ccb5fb",
+  "preservationCommit": "81f48e1a162546b2a2b5f629c248966c52659b3f",
+  "remoteVerification": {
+    "local": "81f48e1a162546b2a2b5f629c248966c52659b3f",
+    "remote": "81f48e1a162546b2a2b5f629c248966c52659b3f",
+    "firstReadFailure": "gh raw binary response failed: transform short source buffer; no binary verification or cleanup claimed. Changed read representation to JSON base64, no source/product changes.",
+    "checkedAtUtc": "2026-10-16T18:58:38.905443+00:00",
+    "files": [
+      {
+        "path": "docs/development-backlog.md",
+        "bytes": 64814,
+        "sha256": "bc4762035866c708af26303f4b6055428877d6eb30ed4b02eeebdbdf849e9447",
+        "match": true,
+        "method": "GitHub contents API base64 decoded at immutable pushed SHA"
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/138-validation.json",
+        "bytes": 23476,
+        "sha256": "2fb712901f21e2a714f5f99e34b699a7819d2f4d9a19e36d90b14e967854cd1b",
+        "match": true,
+        "method": "GitHub contents API base64 decoded at immutable pushed SHA"
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/138-independent-review.json",
+        "bytes": 4008,
+        "sha256": "dc5d9c1e463f144543ad84944830e4f54b64c8f4cb3586aaf3e2d11bea1c37ee",
+        "match": true,
+        "method": "GitHub contents API base64 decoded at immutable pushed SHA"
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/138-execution.tar.gz",
+        "bytes": 260175,
+        "sha256": "af15eae61de77757abfeeec7e68338f8f900e49dfcb6c29b9fde9ac0f9ba189c",
+        "match": true,
+        "method": "GitHub contents API base64 decoded at immutable pushed SHA"
+      }
+    ]
+  },
+  "rootIdentity": {
+    "dev": 16777232,
+    "ino": 175586052,
+    "uid": 501
+  },
+  "cleanup": {
+    "entries": 606,
+    "symlinksUnlinkedWithoutFollowing": 0,
+    "fdSafeRmtree": true,
+    "ownedProcessesAbsent": true,
+    "ports": "No server/listening ports were created by these focused fixtures",
+    "containers": [
+      {
+        "name": "media-server-r138-linux",
+        "id": "708881790fe693d117bb7cd2cf96b2f1f12929990d4ccff3712292e4fff05c34",
+        "running": false,
+        "exit": 0,
+        "absent": true
+      },
+      {
+        "name": "media-server-r138-linux-final",
+        "id": "7970ab500799e1685bb774d6236de9c48414ce434d2fa28223ea9aeaf832e732",
+        "running": false,
+        "exit": 0,
+        "absent": true
+      }
+    ],
+    "userSettingsPrivateBackupsModelsSDK": "untouched; not archived or cleaned",
+    "buildArtifacts": "repository build-gst-onnx retained; temporary focused binaries cleaned after hash/source preservation",
+    "systemCrashReport": "not removed; only sanitized stack preserved",
+    "rootAbsent": true,
+    "markerAbsent": true
+  },
+  "memoryP0": "HOLD",
+  "readiness45": "HOLD",
+  "readiness120": "HOLD",
+  "releaseHold": true,
+  "completedAtUtc": "2026-10-16T18:59:24.028626+00:00"
+}

@@ -640,7 +640,7 @@
     "binaryPayloadScope": "Built binaries/runtime retained locally in build directories until owned cleanup; hashes/UUID/build flags and changed sources preserved. Full binary/SDK/model payloads not uploaded.",
     "failedSourceLimit": "Initial mac/mac2 full prior test source revisions not separately snapshotted; original compiler/crash outputs retained. Final executed test sources exactly preserved."
   },
-  "cleanup": "pending after remote bytes verification",
+  "cleanup": "Completed after actual remote evidence byte verification; see138-closure.json. Owned root/marker and two exited containers absent; repository build and user files retained.",
   "platformRegression": {
     "macOS": {
       "ticket": 57,
