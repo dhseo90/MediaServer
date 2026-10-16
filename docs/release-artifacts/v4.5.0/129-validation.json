@@ -302,12 +302,23 @@
     "release hold"
   ],
   "cleanup": {
-    "status": "PENDING_REMOTE_VERIFICATION",
+    "status": "COMPLETE",
     "ownedRoot": "/private/tmp/media-server-r129-xiz87d62",
     "childGroupAbsent": true,
     "monitorExited": true,
     "httpPort": "not allocated; helper failed before HTTPserver stage",
-    "excluded": "user settings/private backups/models/SDK/original archives"
+    "excluded": "user settings/private backups/models/SDK/original archives",
+    "processVerification": {
+      "groupAbsent": true,
+      "ownedProcessMatches": 0,
+      "port": "no HTTP server started; no assigned port",
+      "method": "owned product process group and exact native binary/monitor command scan"
+    },
+    "rootAbsent": true,
+    "ownedPointerAbsent": true,
+    "removedOwnedRegularFiles": 5783,
+    "order": "actual remote SHA and all evidence/member bytes verified before deletion; process group absent verified; no symlinks followed",
+    "preserved": "repo build products, original125/127/128 archives, user settings/private backups/models/SDK untouched"
   },
   "notExpandedTo": "new900/45/120, full memoryP0 or release completion",
   "archive": {
@@ -317,5 +328,15 @@
     "members": 52,
     "readback": "every allowlisted member bytes/hash verified",
     "inputs": "125 original archive retained; no model/SDK/private settings/backup included"
+  },
+  "remoteEvidenceReceipt": {
+    "remoteSha": "73408e92a0c0bed6d476a0d1c95be8b9b711bcbc",
+    "method": "actual ls-remote + fetch; content-addressed blob and every archived member readback",
+    "bytesVerified": {
+      "129-execution.tar.gz": "8bb9d31395c207852cf760285b6287d192b322b25a4681377bba1d1cebd1e4e3",
+      "129-validation.json": "9e02a855aae8636726edb43b748ad1e6bb0956888680b9d6b3e811a68bee4cd4",
+      "129-independent-review.json": "79fba852086d5f57139e9f6f2ef3a9ccc40a41e7b19f45a426e32b3b3ed0791a"
+    },
+    "allArchiveMembersVerified": true
   }
 }
