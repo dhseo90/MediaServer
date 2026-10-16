@@ -1,5 +1,6 @@
 // 파일 용도: V420-M01~03 read model 독립 기대값. 서버·원장·미디어·포트를 만들지 않는다.
 #include "recording/recording_search_model.h"
+#include "recording/recording_search_diagnostic.h"
 #include <algorithm>
 #include <chrono>
 #include <iostream>
@@ -26,9 +27,43 @@ std::vector<std::string> Ids(const RecordingSearchModel& model) {
     for (const auto& d : model.documents()) ids.push_back(d.id);
     return ids;
 }
+void Owned126() {
+    auto owner=std::make_shared<SearchModelResidency>();std::string error;
+    std::vector<SearchDocument> rows;std::size_t bytes=0;
+    auto workspace=owner->Reserve(64*1024*1024);
+    for(unsigned i=0;i<26000;++i) {
+        auto row=Row("mapping-"+std::to_string(i),"a",i%3?std::optional<std::int64_t>{}:i);
+        row.segment_id="shared-segment";row.source_id="a";row.store_id="store";
+        if(!AppendOwnedSearchDocument(&rows,std::move(row),&bytes,{100000,64*1024*1024,owner}))throw std::runtime_error("R126 owned append");
+    }
+    const auto* allocation=rows.data();std::shared_ptr<const RecordingSearchModel> model;
+    Check(RecordingSearchModel::BuildOwned(std::move(rows),"owned",1,&model,&error,{100000,64*1024*1024,owner}),"R126 many mappings admitted");
+    Check(model->documents().data()==allocation&&model->documents().size()==26000,"R126 actual array ownership transferred without copy");
+    workspace.reset();Check(owner->used()==model->accounted_bytes(),"R126 preparation reservation released; model held");
+    auto held=model;std::vector<SearchDocument> invalid{Row("duplicate","a",1),Row("duplicate","a",2)};
+    Check(!RecordingSearchModel::BuildOwned(std::move(invalid),"owned",2,&model,&error,{100000,64*1024*1024,owner})&&model==held&&error=="search-duplicate-id","R126 duplicate rejects and old output unchanged");
+    Check(owner->used()==held->accounted_bytes(),"R126 failed owner rolls back");
+    auto full=owner->Reserve(owner->limit()-owner->used());std::vector<SearchDocument> denied{Row("next","a",3)};
+    Check(!RecordingSearchModel::BuildOwned(std::move(denied),"owned",2,&model,&error,{100000,64*1024*1024,owner})&&model==held&&denied.size()==1,"R126 shared refusal before consuming input");full.reset();
+    std::vector<SearchDocument> spare;spare.reserve(2000);spare.push_back(Row("spare","a",1));
+    Check(!RecordingSearchModel::BuildOwned(std::move(spare),"owned",2,&model,&error,{100000,100000,owner})&&model==held,"R126 unused capacity remains charged");
+    std::vector<SearchDocument> small;small.reserve(1);small.push_back(Row("first","a",1));
+    std::size_t cost=0;AccountOwnedSearchDocument(small.front(),&cost,SIZE_MAX);
+    auto next=Row("next","a",2);auto both=cost;AccountOwnedSearchDocument(next,&both,SIZE_MAX);
+    const auto relocation_limit=both+sizeof(SearchDocument)-1;const auto before_cost=cost;
+    SearchCapacityBegin("append-test",100000,relocation_limit,1,1);
+    Check(!AppendOwnedSearchDocument(&small,std::move(next),&cost,{100000,relocation_limit,owner})&&small.size()==1&&small.capacity()==1&&cost==before_cost,
+        "R126 relocation rejected before vector allocation");
+    auto near=SIZE_MAX-1;Check(!AccountOwnedSearchDocument(Row("overflow","a",1),&near,SIZE_MAX),"R126 integer overflow rejected");
+    RecordingSearchQuery q;q.channels={"a"};q.start_time_ms=0;q.end_time_ms=1;q.include_unplaced=true;q.limit=200;
+    RecordingSearchMatches matches;Check(model->Query(q,&matches,&error)&&matches.positions.size()==26000&&matches.known_count==8667&&matches.unplaced_count==17333,"R126 all mappings known/unplaced query");
+    matches={};model.reset();Check(owner->used()==held->accounted_bytes(),"R126 previous reader owns exact lease");held.reset();Check(owner->used()==0,"R126 final owner zero");
+}
+
 }
 int main() {
     try {
+        Owned126();
         std::string error;
         std::shared_ptr<const RecordingSearchModel> model;
         std::vector<SearchDocument> source{Row("older", "a", 100), Row("b", "a", 200),

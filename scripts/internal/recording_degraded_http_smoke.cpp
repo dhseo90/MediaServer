@@ -21,13 +21,13 @@ namespace ingress {struct VisualSearchPublicationTestProbe {
 namespace {
 using namespace ingress;using Clock=std::chrono::steady_clock;
 void NeedHttp(bool ok,const char* why){if(!ok)throw std::runtime_error(why);}
-void Observer107(const char* phase){
+[[maybe_unused]] void Observer107(const char* phase){
  if(const char* enabled=std::getenv("MEDIA_SERVER_VERIFY_CONTENTION_OBSERVER");enabled&&std::string(enabled)=="1"){
   if(phase)std::cout<<"[R101-phase] "<<phase<<std::endl;
   char token[16]{};std::cin.getline(token,sizeof(token));NeedHttp(std::string(token)=="continue","observer-not-ready");
  }
 }
-std::optional<std::uint64_t> Generation107(const std::string& body){
+[[maybe_unused]] std::optional<std::uint64_t> Generation107(const std::string& body){
  StrictJsonObjectDocument doc,index;std::string error;
  NeedHttp(ParseStrictJsonObjectDocument(body,&doc,&error),"status-json");
  const auto raw=StrictJsonObjectField(doc,"index");NeedHttp(raw.has_value(),"status-index");
@@ -80,6 +80,8 @@ struct ExplicitFinish {
 };
 
 }
+
+#ifndef RECORDING_DEGRADED_HTTP_NO_MAIN
 int main(int argc,char** argv){
  if((argc!=3&&argc!=4)||!RecordingWriterTestIsolation(argv[1]))return 2;
  // R111 diagnostic A/B only vary foreground HTTP concurrency. Default C keeps
@@ -151,3 +153,5 @@ int main(int argc,char** argv){
  NeedHttp(source_mode?writes>=6:writes==6,"durable writer completions");NeedHttp(elapsed[std::size_t(std::ceil(elapsed.size()*.95))-1]<=2000&&elapsed.back()<=5000,"original latency criteria");return failures?1:0;
  }catch(const std::exception& e){std::cerr<<"[R107-fail] "<<e.what()<<std::endl;return 1;}
 }
+
+#endif

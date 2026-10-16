@@ -5206,3 +5206,13 @@ R121-P03 cache 경계: canonical 중복 제거 뒤에도 실제 3150-sample lega
 - 기존 `/ops/api/sources/{9101,9201}` PUT 비활성화 순서에서 Recorder worker join → 마지막 writer 내구 확정 → source lease 반환을 유지한다. 122 원본 UUID/stack guard/삽입 재귀 근거와 새 재현을 구분한다.
 - `recording_history_stack_smoke.cpp`: 실제 authenticated index의 공개 Put/Get/Visit, 순서/역순/교차 삽입·overwrite·clone·buffered build·손상/쓰기 실패·Close를 독립 map 기대값과 대조한다. 제한된 pthread 스택에서 삽입 완료와 소유 반환을 확인하며 스택 크기 변경은 제품에 적용하지 않는다. 충돌 재현은 별도 실제 HTTP 경로로 판정한다. 기존 깊이/예약/오류/파일 형식을 유지한다.
 - 짧은 실제 제품 종료: 누적 원본의 별도 사본, 실제 두 source/Recorder/HTTP, 9101→9201 비활성화와 다른 채널 진행, 정상 Stop/Finish·닫힌 journal·최종 owner, 별도 프로세스 재Open/readback. 기존 source/worker 종료 회귀와 macOS/Linux index 회귀를 연결한다. 새900/45/120·UI·전체 acceptance는 비대상이다.
+
+### V450-MEM126 누적 구조화 검색 용량·소유 직접 검사
+
+실행 전 정의: R125 원본 hash를 보존한 별도 재Open 사본에서 기존 capture/model byte 거부의
+동일 피연산자를 확인한다. 새 표현은 기존 64MiB/100000문서와 공유640MiB 안에서 mapping을
+삭제하지 않고 정상 검색·총개수·순서·cursor·snapshot·현재 재생/증거를 유지해야 한다.
+최초거부/종료규모, known/unplaced·필터·동점, 이전 reader 동시 보유, 변경/삭제/권한/손상,
+예산 거부/실패 출력 불변·마지막 소유 반환을 관련 native/실제 HTTP 검사로 대조한다.
+짧은 비교는 고정 후보별 기준1회와 변경 후1회로 시작하며 코드 변경 없는 성공 선별 반복은 하지 않는다.
+직접 검증은 장시간·UI PASS가 아니며 이번 작업에는900/45분/120분 실행을 포함하지 않는다.

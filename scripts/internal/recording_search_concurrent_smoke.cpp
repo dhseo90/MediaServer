@@ -6,7 +6,8 @@
 #include <thread>
 #include <array>
 int main(int argc,char** argv){
-    if(argc!=2)return 2;gst_init(nullptr,nullptr);int pass=0,fail=0;
+    if(argc!=2)return 2;
+    gst_init(nullptr,nullptr);int pass=0,fail=0;
     auto check=[&](bool ok,const char* name){std::cout<<(ok?"[pass] ":"[fail] ")<<name<<'\n';ok?++pass:++fail;};
     try {
         Store store(std::filesystem::weakly_canonical(argv[1])/"store");auto input=Encode(90,false,false,160,90,30,30);Shift(input,7000000000ULL);

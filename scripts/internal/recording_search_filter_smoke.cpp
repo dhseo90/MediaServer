@@ -51,10 +51,16 @@ int main(){
     x=q;x.include_unplaced=true;Expect(x,{"a","unknown"},"F02 unknown separate after known");
     RecordingSearchMatches counts;Check(model->Query(x,&counts,&error)&&counts.known_count==1&&counts.unplaced_count==1,"F02 separate counts");
     for(int mode=0;mode<9;++mode){
-        x=q;if(mode==0)x.channels.clear();if(mode==1)x.end_time_ms=x.start_time_ms;
-        if(mode==2)x.start_time_ms=-1;if(mode==3)x.end_time_ms=std::numeric_limits<std::int64_t>::max();
-        if(mode==4)x.end_time_ms=x.start_time_ms+31LL*86400000+1;if(mode==5)x.objects.resize(33,"person");
-        if(mode==6)x.behaviours={"Intrusion"};if(mode==7)x.behaviours={"event:"};if(mode==8)x.rules={""};
+        x=q;
+        if(mode==0)x.channels.clear();
+        if(mode==1)x.end_time_ms=x.start_time_ms;
+        if(mode==2)x.start_time_ms=-1;
+        if(mode==3)x.end_time_ms=std::numeric_limits<std::int64_t>::max();
+        if(mode==4)x.end_time_ms=x.start_time_ms+31LL*86400000+1;
+        if(mode==5)x.objects.resize(33,"person");
+        if(mode==6)x.behaviours={"Intrusion"};
+        if(mode==7)x.behaviours={"event:"};
+        if(mode==8)x.rules={""};
         counts.positions={999};Check(!model->Query(x,&counts,&error)&&counts.positions==std::vector<std::size_t>{999},"invalid query rejects atomically");
     }
     std::cout<<"[search-filter] pass="<<pass<<" fail="<<fail<<'\n';return fail?1:0;

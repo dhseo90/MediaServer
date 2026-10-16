@@ -19,10 +19,15 @@ int main(){
     const auto expected=result;
     Check(SelectSearchPlayback(original,{other,event,event},&result,&error)&&result.size()==expected.size()&&
         result[1].event_id==expected[1].event_id&&result[2].event_id==expected[2].event_id,"candidate order and duplicate invariant");
-    for(int mode=0;mode<8;++mode){auto rejected=event;if(mode==0)rejected.original.source_id="other";if(mode==1)rejected.original.store_id="other";
-        if(mode==2)rejected.original.media_epoch_id="other";if(mode==3)rejected.original.segment_id="other";
-        if(mode==4)rejected.original.time_base_den=90000;if(mode==5)rejected.playable=false;
-        if(mode==6)rejected.provenance_verified=false;if(mode==7)rejected.original.store_id.clear();
+    for(int mode=0;mode<8;++mode){auto rejected=event;
+        if(mode==0)rejected.original.source_id="other";
+        if(mode==1)rejected.original.store_id="other";
+        if(mode==2)rejected.original.media_epoch_id="other";
+        if(mode==3)rejected.original.segment_id="other";
+        if(mode==4)rejected.original.time_base_den=90000;
+        if(mode==5)rejected.playable=false;
+        if(mode==6)rejected.provenance_verified=false;
+        if(mode==7)rejected.original.store_id.clear();
         Check(SelectSearchPlayback(original,{rejected},&result,&error)&&result.size()==1&&result[0].playback_segment_id=="original","unproven foreign unhealthy event cannot replace original");}
     auto point=original;point.start_pts=59;point.end_pts=60;
     Check(SelectSearchPlayback(point,{event},&result,&error)&&result.size()==1&&result[0].event_id=="event-b","observation point inside event");

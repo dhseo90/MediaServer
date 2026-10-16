@@ -83,8 +83,11 @@ int main(int argc,char**argv){
     query.events.clear();
     for(int mode=0;mode<5;++mode) {
         auto unrelated=query;
-        if(mode==0)unrelated.channels={"two"};if(mode==1)unrelated.start_time_ms=1500;
-        if(mode==2)unrelated.tracks={"other"};if(mode==3)unrelated.zones={"other"};if(mode==4)unrelated.rules={"other"};
+        if(mode==0)unrelated.channels={"two"};
+        if(mode==1)unrelated.start_time_ms=1500;
+        if(mode==2)unrelated.tracks={"other"};
+        if(mode==3)unrelated.zones={"other"};
+        if(mode==4)unrelated.rules={"other"};
         Check(model->Query(unrelated,&matches,&error)&&matches.positions.empty(),"excluded candidate missing evidence does not fail query");
     }
     auto epoch_doc=d;epoch_doc.event_ids={"missing-epoch"};

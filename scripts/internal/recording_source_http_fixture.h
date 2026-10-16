@@ -7,7 +7,7 @@ namespace {
 std::uint64_t SourceHttpSteadyNs(){return std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::steady_clock::now().time_since_epoch()).count();}
 std::int64_t SourceHttpNowMs(){return std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();}
 struct SourceHttpSample {std::string generation,hash;std::uint64_t ordinal;std::int64_t pts;};
-void RunHttpSources(recording::RecordingRuntimeStorage& runtime,const std::filesystem::path& root,
+[[maybe_unused]] void RunHttpSources(recording::RecordingRuntimeStorage& runtime,const std::filesystem::path& root,
                     unsigned count,std::atomic<unsigned>& writes,std::atomic<unsigned>& removed,
                     std::atomic<std::uint64_t>* started_ns=nullptr) {
  auto& catalog=runtime.catalog();
