@@ -17,6 +17,10 @@
 
 ## v4.5.0 잔여 개발과 릴리즈 순서
 
+[133 공개 fresh oracle 교정](release-artifacts/v4.5.0/133-validation.json)은 **검사 교정 완료, warm 단회 전체 FAIL**이다. 제품 소스·ranking·query·limit·자원 한도는 불변이다. broad top200 fresh 진입은 보장되지 않으므로 기존 200항목/5초/정렬 검사를 유지하면서, 모든 fresh binding 확인 후 알려진 UTC의 첫 적격 1ms bucket을 선택하는 별도 공개 조회 검사를 추가했다.
+같은 warm에서 원래12개 실제200 p95/max1989.14ms, broad 실제200/200항목/4635.40ms, Recorder2499/2499/drop0/42파일과 generation2/docs3794/fresh48을 확인했다. 그러나 fresh48 모두 UTC unknown으로 사전 고정 target을 만들 수 없어 `public-fresh oracle not constructible`로 실패했다. broad fresh2는 별도 targeted 검사의 대체 PASS가 아니다.
+예외 Stop/Finish·최종 논리owner0과 정상 성공 경로 Finish·final result·닫힌 journal 미실행을 구분한다. cold는 실행하지 않았다. 다음 결정은 UTC unknown fresh의 공개 조회를 검증할 사전 고정 oracle이며 UTC 생성·fixture 변경·ranking 보정은 자동 적용하지 않는다. [독립 검토](release-artifacts/v4.5.0/133-independent-review.json)와 최초 실패를 보존한다. 132 역사적 FAIL, 장시간·메모리P0·출시 보류는 유지한다.
+
 [132 원본 읽기 소유·재준비 비용 보완](release-artifacts/v4.5.0/132-validation.json)은 **한정 개선 및 같은 warm의 12응답·aux200 시간 기준 충족, 전체 warm FAIL**이다.
 현재 raw 전체 인증·lifecycle을 유지하는 소유 cut에서 strict parse/문서화를 Catalog 밖으로 옮겼고, 독점 미게시 모델의 postBuild 재시도 문서를 재사용했다. 실제 aux 대기와 겹친 visual 전체 source 수집도 기존 authenticated prepared 경계에 연결했다. 131 retention/admission·130 decoder 정책과 모든 한도는 유지했다.
 네 차례 실제 변경별 개발 실행을 보존했다. 마지막 동일 실행은 12개 HTTP200 p95/max1996.1ms, aux200 실제200·200항목·4385.88ms, Recorder2506/2506·drop0·42파일, immutable generation2/docs3794/new48을 확인했다. 그러나 공개 top200 fresh0 assertion이 실패했다. 새 게시 자체는 확인했으며, 동일 embedding인 새12개가 동점 ID 경계 뒤인 근거와 나머지36개 점수 미관측을 구분한다. 게시만으로 top200 fresh를 보장하는 검사 기대는 별도 결정이 필요하며 기존 FAIL을 완화하지 않았다.

@@ -1,0 +1,39 @@
+{
+  "schema": "media-server.v450.r133.independent-review.v1",
+  "reviewer": "/root/independent_r133",
+  "requestedModel": "gpt-6-astra",
+  "requestedEffort": "high",
+  "toolAccepted": true,
+  "actualRuntimeModel": null,
+  "actualRuntimeEffort": null,
+  "independence": "read-only; no implementation/test authoring/test execution/delegation",
+  "testReview": {
+    "initial": "two findings: all fresh exact sample binding; independent seek and duration expectation",
+    "fixed": "ExpectedSeek validates exact single PTS/AU/file/timebase; independent rational seek/duration compared within1ns; focused negative tests",
+    "final": "no blocking finding; one warm authorized by user"
+  },
+  "resultReview": {
+    "decision": "FAIL_WARM_ORACLE_NOT_CONSTRUCTIBLE_COLD_INELIGIBLE",
+    "original12": "12 actual200; p95/max1989.14ms",
+    "broad": "actual200/exact200/4635.401625ms/query-order-playback valid; fresh2 independently matched against input files, both UTCunknown",
+    "publication": "generation2/docs3794/fresh48; all binding checks passed; known0unknown48",
+    "targeted": "not-run: no selectable knownUTC fresh",
+    "recorder": "2499/2499/files42; dequeued1249+1250/drop0",
+    "normalFinish": "not-run; exceptionguard Stop/Finish distinct",
+    "closedJournal": "not-run",
+    "finalOwners": "0/healthy; no heap proof",
+    "wrapper": "all statuses/result follows absent final result line; original oracle-construction failure preserved",
+    "product": "unchanged R132; historical R132FAIL unchanged",
+    "next": "separate unknownUTC public oracle decision; no extra warm/cold"
+  },
+  "sourceHashes": {
+    "scripts/internal/recording_degraded_http_smoke.cpp": "78835d33e4db3c41a34a3381513439b7b0706094c2aecf91a5bc6c411d96ed49",
+    "scripts/internal/recording_public_fresh_oracle.h": "874ab1bb8918e7e74dc2d9d3c064cb2e2343ae887efabc4d6954adb121eb5c49",
+    "scripts/internal/recording_degraded_http_qualification.py": "541f32c2c589dc36f4c0ecfd516ff4f78cb7273b7058cc0aa281f6852eb89d88",
+    "scripts/internal/recording_degraded_http_run.py": "26ea2a9500744465e9d3092092266fef3bb24a88171605c40bcc1f7580e7a522",
+    "scripts/internal/recording_source_http_fixture.h": "cc47474eb994b8caba9f5cc4c3a0c4c7c3d8f965565aa1eda4162dfa26c8e2da",
+    "scripts/internal/recording_http_observation.h": "7b624c14dd3fdd5ea35a41edc0300271fd841146f2d7eeb55626e5ebf72dc1ad"
+  },
+  "scope": "static test diff and read-only actual execution results; not new product/performance execution by reviewer",
+  "preservationReview": "documents consistent; no blocker; reviewer did not repeat archive byte verification or claim cleanup complete"
+}
