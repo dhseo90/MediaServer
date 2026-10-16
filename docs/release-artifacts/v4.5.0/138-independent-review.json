@@ -1,0 +1,103 @@
+{
+  "schema": "media-server.v450.r138.independent-review.v1",
+  "reviewer": "/root/independent_r135",
+  "requested": {
+    "model": "gpt-6-astra",
+    "effort": "high"
+  },
+  "toolAcceptance": "Existing separate reviewer previously configured Astra/high; current followup exposes no model/effort acceptance",
+  "newToolAcceptance": null,
+  "actualRuntimeModel": null,
+  "actualRuntimeEffort": null,
+  "scope": "read-only source/evidence; no implementation/test authoring/execution/redelegation",
+  "preliminaryFindingsResolved": [
+    "separate Unattributed peak witness when total peak is older/higher",
+    "fixed site-to-workload-phase mapping documented; not request ID trace",
+    "fixture stdout flush matches product output; malformed mac3 line preserved"
+  ],
+  "finalFocused": {
+    "verdict": "FINAL_FOCUSED_REVIEW_PASS",
+    "blockingFindings": [],
+    "classification": "ATTRIBUTION_SOURCE_IDENTIFIED",
+    "classificationScope": "likely reservation callsite and actual owner lifetime; not complete historical peak attribution",
+    "verified": [
+      "macOS/Linux ticket57 + disabled exit0",
+      "5 complete JSON rows each, sums/peak vectors/finalUsed0",
+      "ExtractMedia132808915 held/split/release/cancel/admission reject",
+      "result mac11400/Linux11488 then0",
+      "Reservation24B unchanged; State520→5400 and Diagnostic248→2216 fixed diagnostic overhead",
+      "mac3 interleaving retained; final Sink flush fixed"
+    ],
+    "limits": [
+      "149586131 is source-derived caller combination, not measured simultaneous triple",
+      "R13715tickets and496340 remainder not resolved",
+      "malloc +1MiB then release; HWM0 not useful; nonmalloc excluded",
+      "Linux allocator/RSS/footprint unsupported; not macOS collector coverage"
+    ]
+  },
+  "holds": {
+    "R137": "HOLD_ATTRIBUTION_INSUFFICIENT",
+    "memoryP0": "HOLD",
+    "readiness45": "HOLD",
+    "release": "HOLD"
+  },
+  "remaining": "actual remote bytes and owned cleanup/closure",
+  "recordReview": {
+    "verdict": "PASS_WITH_DOCUMENTATION_CORRECTION_RESOLVED",
+    "blockingFindings": [],
+    "checked": [
+      "absolute/relative clocks",
+      "82 callsite classification",
+      "source-only caller sum and unresolved historical tickets",
+      "fixed diagnostic metadata",
+      "malloc final allocated41943040",
+      "HOLD and minimal followup scopes"
+    ],
+    "correction": "SDK26 phrasing corrected to current MacOSX.sdk→MacOSX27.0.sdk; ffi include is not malloc sysroot proof. Post-test preprocessor resolves malloc/malloc.h through MacOSX.sdk; original compile commands retained. No SDK replacement/re-execution."
+  },
+  "binding": {
+    "producer": {
+      "exit": 0,
+      "pass": 51,
+      "fail": 0
+    },
+    "readback": {
+      "exit": 0,
+      "errors": 0,
+      "negativeFixtures": "15/15"
+    },
+    "coverage": {
+      "exit": 0,
+      "covered": 986,
+      "missing": 0,
+      "pass": 9,
+      "fail": 0
+    },
+    "manifestDelta": "inventorySha256 only; all986 items unchanged",
+    "diagnosticCommit": "0692cb1bb",
+    "scope": "not performance/runtime qualification"
+  },
+  "localArchiveReview": {
+    "verdict": "LOCAL_ARCHIVE_REVIEW_PASS",
+    "blockingFindings": [],
+    "archive": {
+      "bytes": 260175,
+      "sha256": "af15eae61de77757abfeeec7e68338f8f900e49dfcb6c29b9fde9ac0f9ba189c",
+      "payloadFiles": 92,
+      "totalMembers": 93,
+      "memberHashErrors": 0,
+      "sourceCommitMismatches": 0,
+      "sanitizedFiles": 8,
+      "privatePathFindings": 0
+    },
+    "verified": [
+      "raw hash/sanitization distinction",
+      "R13723line excerpt matches preserved output",
+      "one compressed mutation length/CRC/path check",
+      "producer51/0→readback0 errors/15negative→coverage986/986·9/0",
+      "SDK correction/filler distinction/early source snapshot limitation",
+      "source payload matches0692cb1bb04be419a9aaa481c187390127ccb5fb"
+    ],
+    "scope": "read-only; no test execution/edit/delegation; bounded likely source attribution only"
+  }
+}

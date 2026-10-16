@@ -1,0 +1,664 @@
+{
+  "schema": "media-server.v450.r138.validation.v1",
+  "status": "ATTRIBUTION_SOURCE_IDENTIFIED",
+  "scope": "유력 예약 callsite와 owner 수명의 직접 재현 및 bounded 진단 검증; R137 전체 peak의 정확한 사후 귀속은 아님",
+  "baseline": "79d25e975f3ac190f9c87dbf997c83675c9bf89c",
+  "models": {
+    "main": {
+      "requestedModel": "gpt-6-astra",
+      "requestedEffort": "high",
+      "toolAccepted": null,
+      "actualRuntimeModel": null,
+      "actualRuntimeEffort": null
+    },
+    "reviewer": {
+      "requestedModel": "gpt-6-astra",
+      "requestedEffort": "high",
+      "toolAccepted": "existing separate reviewer previously configured Astra/high; no new acceptance exposed",
+      "actualRuntimeModel": null,
+      "actualRuntimeEffort": null
+    }
+  },
+  "maintained": {
+    "R135": "warm/cold direct PASS in prior scope",
+    "R136": "functional900 PASS",
+    "R137": "functional600 PASS / memory HOLD_ATTRIBUTION_INSUFFICIENT",
+    "memoryP0": "HOLD",
+    "readiness45": "HOLD",
+    "readiness120": "HOLD",
+    "releaseHold": true
+  },
+  "changes": "diagnostic labels/witness/allocator sampler, focused test and collector/inventory only; feature semantics, workloads, admission formulas, Reservation size and lifetimes unchanged",
+  "sourceRuntime": {
+    "baseline": "79d25e975f3ac190f9c87dbf997c83675c9bf89c",
+    "tree": "b45198309ea825398055c3b5cabcfc5cb268b363",
+    "state": "baseline plus reviewed working-file fingerprint; tests ran before diagnostic commit",
+    "files": {
+      "docs/project-feature-test-inventory.md": "e47cddbf493fc53e95d5c4086722b976bca0bd1359ea0456944868687a86fecd",
+      "include/recording/recording_memory_diagnostic_output.h": "c17cba2cf69bea32d8f1c93d270ae387e9b74ca446dd32f37a13d4876b9f11d6",
+      "include/recording/recording_memory_reservation.h": "37d9be8631e93a27f359ef39d2f73a2eca4b337f664adfeda4a090a72f06ac0f",
+      "scripts/internal/recording_memory_attribution.mjs": "f3124e1e8062f01b203b3af650f49df3d2f16868d181a7fe1d51b3252398a098",
+      "scripts/internal/recording_memory_attribution.test.mjs": "87a169829f778f0bd53e327d32bc72d6748ce51f72ff4f586d1c034c6a6fca51",
+      "src/ingress/evidence_application_service.cpp": "75a39f45bd5275fa2289e2dbe6309f7a6769a50e1f355e56bdb2374ecbbc7d2a",
+      "src/recording/evidence_frame_extractor.cpp": "7ba00e16f186f6642e0543c86a5e31f7fa25651f72e451e17cde9328050b5e11",
+      "src/recording/evidence_package_builder.cpp": "618794694625cef65ffd8e118f2035cd64becaa45476051805128db12c1bc0f2",
+      "src/recording/recording_catalog.cpp": "beab1753eec82d074d7f8bbb519434c2fb1fe6b49304c8ec946fac50937a14ec",
+      "src/recording/recording_catalog_history.h": "6ec9cce2f6d01d0bfcd2c6e9456d6f07386062d33c851cbfa326145cf8158b0e",
+      "src/recording/recording_generation_receipt.cpp": "f56dd423f2025d7056ca9562e4951d376641c0eceb32f4c00f0444c11ce87271",
+      "src/recording/recording_generation_transaction.cpp": "c63cb152668c60e377b61a6705caee445c40396809e8828330ae65761c5f70e7",
+      "src/recording/recording_journal.cpp": "33e0beb8f8eaad41bd8f3f40e753ad4587288e23d1f47087dfbb905fa2079c50",
+      "include/recording/recording_allocator_diagnostic.h": "f57c7c5af18de6e0c2c2520fc1af938844059a8d673b95948f3303187f518de3",
+      "scripts/internal/recording_memory_ticket_smoke.cpp": "449138d0f2b0f07ba944ae463faf1679c7308c38e556655f8c671a7516f1344b"
+    },
+    "artifacts": {
+      "build-gst-onnx/media_server": {
+        "bytes": 37996528,
+        "sha256": "44212bf0f988456f6b2b25bb4e04f6c065b8461c5c640dffa132fc23343ce93c"
+      },
+      "build-gst-onnx/libmedia_server_runtime.a": {
+        "bytes": 113117768,
+        "sha256": "2c8c5a8461ea0f8438364f8b084b7919af532fc9c331bcfde5b0f14ad484c0af"
+      },
+      "mac-final/recording_memory_ticket_smoke": {
+        "bytes": 15513840,
+        "sha256": "890c979dce449ba67a39514eab1982259fe3fd03538ce981cdeacd8efe482bec"
+      },
+      "linux-final/recording_memory_ticket_smoke": {
+        "bytes": 12062112,
+        "sha256": "38fd6ef26bf05dd43700ea5930e19ad7c304b3d9cfcf7aa711cf76da7cc2c1ed"
+      }
+    },
+    "toolchain": "Apple clang version 21.0.0 (clang-2100.3.34.2)\nTarget: arm64-apple-darwin27.0.0\nThread model: posix\nInstalledDir: /Library/Developer/CommandLineTools/usr/bin\n",
+    "macRuntime": "GStreamer1.28.1 / existing ORT/SigLIP2 build; focused fixture does not claim inference",
+    "linuxRuntime": "GStreamer1.28.7, ORT/SigLIP2OFF runtime; store-specific sourceON for worker focused; no inference",
+    "linuxImage": "sha256:ce72c8a15363984da642e9964189957896812061c6af1d0ef67e87b38ad5a588",
+    "binaryUuid": "UUID: C6F7A5AC-C1A6-3864-8EEC-D5E0585C6C84 (arm64) build-gst-onnx/media_server",
+    "productSourceFingerprint": {
+      "algorithm": "sorted src/include path + NUL + SHA256 bytes",
+      "files": 402,
+      "sha256": "8813a6b0276d2b89b15e8c64618e19923463142d73ebecf7c34806b82716dc1e"
+    },
+    "buildFiles": {
+      "build-gst-onnx/CMakeFiles/media_server_runtime.dir/flags.make": "596a03ca54d4db831f4b22b080cc94613945accdbbc2c0d5378c7141f43b34bc",
+      "build-gst-onnx/CMakeFiles/media_server.dir/link.txt": "e5d847bb5c30bf754978ae78d6ae143d1382181d99ea3f0681443b9692ec1724"
+    },
+    "postTestFrozenCommit": "0692cb1bb04be419a9aaa481c187390127ccb5fb",
+    "postTestFrozenTree": "d2b305f129d3881728e17e39975ac04e7826a16c",
+    "testedFileHashesMatchCommit": true
+  },
+  "historicalPeak": {
+    "ownerCapturedNs": 1478832500239875,
+    "unattributedBytes": 150082471,
+    "unattributedTickets": 15,
+    "residencyUsed": 186060228,
+    "rssBytes": 1756725248,
+    "footprintBytes": 1701628184,
+    "nextSampleUnknownBytes": 903368,
+    "sampleCadenceSeconds": 5,
+    "note": "sample maximum, not actual allocation instantaneous maximum; no raw malloc owner observation in R137",
+    "analysis": "archive analysis/r137-peak-analysis.json",
+    "sameClock": "structured46/47 finish ~0.61s before sample;48 starts33ms after. Visual generation143/docs597 event110ms before.",
+    "notObserved": "per-ticket Journal/History/retention/checkpoint activity; exact evidence/A admission start; complete Recorder callback events. Relative latency epoch not silently mapped to absolute clock."
+  },
+  "attribution": {
+    "callsite": "EvidenceFrameExtractor::ExtractMedia",
+    "imageReservationBytes": 132808915,
+    "formula": "4096*2160*3+(4096*3+1)*2160+3*compressBound((4096*3+1)*2160)+65536",
+    "directlyReproduced": true,
+    "callerReservationsSourceOnly": [
+      8388608,
+      8388608
+    ],
+    "sourceDerivedNestedSum": 149586131,
+    "differenceFromHistoricalSample": 496340,
+    "limits": "not exact historical15tickets; caller combination source-derived, not directly executed as149586131; remaining496340 not attributed. No owner defect established."
+  },
+  "directOwnership": {
+    "history": {
+      "rawBytes": 11179,
+      "capacity": 11183,
+      "reservation": 76716,
+      "visitorWorkspace": 871845,
+      "normalCancelExceptionPartialReadAndDestruction": "PASS",
+      "scope": "authenticated History raw/visitor ownership, not full source-binding semantic parser test"
+    },
+    "evidence": {
+      "actualWriterSamples": 30,
+      "width": 160,
+      "height": 90,
+      "imageReservation": 132808915,
+      "rgbBytes": 43200,
+      "macPngBytes": 1396,
+      "macPngCapacity": 2760,
+      "macResultReservation": 11400,
+      "linuxResultReservation": 11488,
+      "heldDuringDecoder": true,
+      "resultSplit": true,
+      "lastResultRelease": 0,
+      "cancelAfterAdmission": "PASS: no published PNG, image site0",
+      "budgetReject": "PASS: evidence-resource-unavailable; no fallback/retry",
+      "explicitFinish": "PASS",
+      "afterStorage": {
+        "ram": 0,
+        "scratch": 0,
+        "fd": 0
+      },
+      "sourceDerivedNestedCallerSum": 149586131,
+      "callerSumNotDirectlyMeasured": true,
+      "historicalDifferenceUnattributed": 496340,
+      "confirmedOwnerDefect": false,
+      "forcedAdmissionLimitCase": "After normal decode/release and cancel, a test-only empty reservation fills shared domain leaving16MiB to assert rejection. Final ledger peak655740163B (macOS) includes this intentional logical saturation, not naturally allocated memory or R137 peak."
+    }
+  },
+  "callsiteAudit": {
+    "file": "archive analysis/callsite-audit.json",
+    "rows": 82,
+    "defaultSearchCalls": 54,
+    "explicitSearchCategoryCalls": 18,
+    "scratchForwardingCalls": 10,
+    "ledgerWrappersExcluded": 2,
+    "domain": "only runtime-injected Catalog/Journal/Search owner combined; independent/default/thread-local fallback domains not merged"
+  },
+  "instrument": {
+    "categoryCount": 13,
+    "siteCount": 15,
+    "siteNames": [
+      "Unspecified",
+      "JournalIdentity",
+      "JournalProof",
+      "HistoryRaw",
+      "HistoryVisitor",
+      "RetentionSlots",
+      "RetentionAuxiliary",
+      "CatalogSummary",
+      "GenerationRead",
+      "GenerationParse",
+      "GenerationCopy",
+      "GenerationCleanup",
+      "EvidenceImage",
+      "EvidencePackage",
+      "EvidenceResponse"
+    ],
+    "siteWitnessColumns": [
+      "liveBytes",
+      "liveTickets",
+      "acquires",
+      "releases",
+      "peakBytes",
+      "peakNs",
+      "totalAtPeak",
+      "ticketsAtPeak",
+      "largestAcquireBytes",
+      "largestAcquireNs",
+      "lastReleaseNs",
+      "siteZeroNs",
+      "splits"
+    ],
+    "unknownPeakColumns": [
+      "bytes",
+      "monotonicNs",
+      "totalUsed",
+      "unknownTickets"
+    ],
+    "phase": "fixed callsite/workload family only; no request identity",
+    "zeroMeaning": "site has no live tickets; not release proof of a particular historical ticket",
+    "metadataLayout": {
+      "base": {
+        "TicketState": {
+          "sizeof": 16,
+          "align": 8
+        },
+        "State": {
+          "sizeof": 520,
+          "align": 8
+        },
+        "Reservation": {
+          "sizeof": 24,
+          "align": 8
+        },
+        "Diagnostic": {
+          "sizeof": 248,
+          "align": 8
+        }
+      },
+      "current": {
+        "TicketState": {
+          "sizeof": 16,
+          "align": 8
+        },
+        "State": {
+          "sizeof": 5400,
+          "align": 8
+        },
+        "Reservation": {
+          "sizeof": 24,
+          "align": 8
+        },
+        "Diagnostic": {
+          "sizeof": 2216,
+          "align": 8
+        }
+      },
+      "note": "Compiler AST layouts; fixed per-residency diagnostic metadata grows, including when disabled. Reservation admission formulas/layout unchanged; not charged workload bytes."
+    },
+    "perDomainFixedIncrementBytes": 4880,
+    "outputCapBytes": 16384,
+    "outputValidation": {
+      "mac-final": {
+        "jsonRecords": 5,
+        "maxLineBytes": 2008,
+        "collectorValidated": 5,
+        "linuxCoverage": null,
+        "finalUsed": 0,
+        "allocators": [
+          [
+            true,
+            true,
+            1483622930136291,
+            1483622930199791,
+            172608,
+            16777216,
+            0,
+            1390
+          ],
+          [
+            true,
+            true,
+            1483622931619416,
+            1483622931674500,
+            832784,
+            20971520,
+            0,
+            4679
+          ],
+          [
+            true,
+            true,
+            1483622932070916,
+            1483622932133083,
+            808208,
+            20971520,
+            0,
+            4677
+          ],
+          [
+            true,
+            true,
+            1483624154592583,
+            1483624154672916,
+            5090416,
+            41943040,
+            0,
+            40375
+          ],
+          [
+            true,
+            true,
+            1483624169671916,
+            1483624169742625,
+            4765312,
+            41943040,
+            0,
+            39861
+          ]
+        ]
+      },
+      "linux-final": {
+        "jsonRecords": 5,
+        "maxLineBytes": 1858,
+        "collectorValidated": 0,
+        "linuxCoverage": "JSON and C++ invariants; platform process RSS/footprint unsupported (-1); macOS collector not claimed",
+        "finalUsed": 0,
+        "allocators": [
+          [
+            false,
+            false,
+            102766670670,
+            102766670712,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            false,
+            false,
+            102767719004,
+            102767719045,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            false,
+            false,
+            102768028587,
+            102768028587,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            false,
+            false,
+            102957600337,
+            102957600379,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            false,
+            false,
+            102969065921,
+            102969065921,
+            0,
+            0,
+            0,
+            0
+          ]
+        ]
+      }
+    },
+    "disabled": "no witness updates or malloc statistics call; fixed metadata still allocated",
+    "hotPath": "existing opt-in diagnostic mutex and fixed numeric updates only, no new per-acquire heap/IO/mutex",
+    "allocatorCallsite": "existing observer/Finish Emit, after ledger/role locks released; no Catalog/Journal/realtime callback lock held"
+  },
+  "allocator": {
+    "api": "malloc_zone_statistics(NULL, &stats), current installed SDK header; MacOSX.sdk resolves to MacOSX27.0.sdk. MacOSX26.sdk in flags is ffi include, not malloc SDK proof.",
+    "coverage": "SDK all malloc zones; excludes non-malloc allocations. void API has no error result; supported/called is not complete heap proof",
+    "columns": [
+      "size_in_use",
+      "size_allocated",
+      "max_size_in_use",
+      "blocks_in_use"
+    ],
+    "maxMeaning": "SDK high-water mark of touched memory; observed0 is not a valid measured HWM",
+    "macFinal": {
+      "inUse": [
+        4758608,
+        5807184,
+        4758608
+      ],
+      "allocated": [
+        41943040,
+        41943040,
+        41943040
+      ],
+      "blocks": [
+        39856,
+        39857,
+        39856
+      ],
+      "maxSizeInUse": [
+        0,
+        0,
+        0
+      ]
+    },
+    "inference": "one1MiB real allocation/free observed; reserved zones unchanged. Not RSS leak/no-leak or full workload allocator attribution. No purge.",
+    "linux": "unsupported/calledfalse; zeros not malloc0 proof; RSS/footprint unsupported(-1)",
+    "additionalTaskVmInfo": "not introduced; existing RSS/footprint kept",
+    "sdkProvenance": "Post-test read-only compiler header probe saved; original compile commands preserved, no SDK/runtime replacement. Initial analysis also read MacOSX26 header but does not identify actual malloc build sysroot."
+  },
+  "focused": {
+    "mac": [
+      {
+        "name": "recording_memory_ticket_smoke-build",
+        "exit": 1,
+        "seconds": 0.6519895000383258
+      }
+    ],
+    "mac2": [
+      {
+        "name": "recording_memory_ticket_smoke-build",
+        "exit": 0,
+        "seconds": 0.8983237908687443
+      },
+      {
+        "name": "recording_memory_ticket_smoke",
+        "exit": -11,
+        "seconds": 0.6024668752215803
+      }
+    ],
+    "mac3": [
+      {
+        "name": "recording_memory_ticket_smoke-build",
+        "exit": 0,
+        "seconds": 0.9194078340660781
+      },
+      {
+        "name": "recording_memory_ticket_smoke",
+        "exit": 0,
+        "seconds": 1.7644208329729736
+      },
+      {
+        "name": "recording_memory_ticket_smoke-disabled",
+        "exit": 0,
+        "seconds": 0.13479641708545387
+      },
+      {
+        "name": "recording_memory_attribution_smoke-build",
+        "exit": 0,
+        "seconds": 0.424610499991104
+      },
+      {
+        "name": "recording_memory_attribution_smoke",
+        "exit": 0,
+        "seconds": 0.35793174989521503
+      },
+      {
+        "name": "recording_search_cursor_smoke-build",
+        "exit": 0,
+        "seconds": 0.43283366691321135
+      },
+      {
+        "name": "recording_search_cursor_smoke",
+        "exit": 0,
+        "seconds": 0.42701187497004867
+      },
+      {
+        "name": "visual_index_worker_smoke-build",
+        "exit": 0,
+        "seconds": 0.4954912078101188
+      },
+      {
+        "name": "visual_index_worker_smoke",
+        "exit": 0,
+        "seconds": 0.6618599169887602
+      },
+      {
+        "name": "recording_resource_trace_smoke-build",
+        "exit": 0,
+        "seconds": 0.43000808311626315
+      },
+      {
+        "name": "recording_resource_trace_smoke",
+        "exit": 0,
+        "seconds": 0.3745551249012351
+      }
+    ],
+    "mac-final": [
+      {
+        "name": "recording_memory_ticket_smoke-build",
+        "exit": 0,
+        "seconds": 0.9338055001571774
+      },
+      {
+        "name": "recording_memory_ticket_smoke",
+        "exit": 0,
+        "seconds": 1.771935333032161
+      },
+      {
+        "name": "recording_memory_ticket_smoke-disabled",
+        "exit": 0,
+        "seconds": 0.14299762505106628
+      }
+    ],
+    "linux": [
+      {
+        "name": "recording_memory_ticket_smoke-build",
+        "exit": 0,
+        "seconds": 1.4716663760000017
+      },
+      {
+        "name": "recording_memory_ticket_smoke",
+        "exit": 0,
+        "seconds": 0.47418108400000136
+      },
+      {
+        "name": "recording_memory_ticket_smoke-disabled",
+        "exit": 0,
+        "seconds": 0.005092582999999706
+      },
+      {
+        "name": "recording_memory_attribution_smoke-build",
+        "exit": 0,
+        "seconds": 0.4327936250000022
+      },
+      {
+        "name": "recording_memory_attribution_smoke",
+        "exit": 0,
+        "seconds": 0.00811629199999686
+      },
+      {
+        "name": "recording_search_cursor_smoke-build",
+        "exit": 0,
+        "seconds": 0.47243687499999965
+      },
+      {
+        "name": "recording_search_cursor_smoke",
+        "exit": 0,
+        "seconds": 0.13696783299999993
+      },
+      {
+        "name": "visual-store-build",
+        "exit": 0,
+        "seconds": 0.28965224999999606
+      },
+      {
+        "name": "visual_index_worker_smoke-build",
+        "exit": 0,
+        "seconds": 0.5008325419999977
+      },
+      {
+        "name": "visual_index_worker_smoke",
+        "exit": 0,
+        "seconds": 0.2400490839999989
+      },
+      {
+        "name": "recording_resource_trace_smoke-build",
+        "exit": 0,
+        "seconds": 0.33268095899999395
+      },
+      {
+        "name": "recording_resource_trace_smoke",
+        "exit": 0,
+        "seconds": 0.0017097919999997657
+      }
+    ],
+    "linux-final": [
+      {
+        "name": "recording_memory_ticket_smoke-build",
+        "exit": 0,
+        "seconds": 1.4792281670000023
+      },
+      {
+        "name": "recording_memory_ticket_smoke",
+        "exit": 0,
+        "seconds": 0.21868725100000574
+      },
+      {
+        "name": "recording_memory_ticket_smoke-disabled",
+        "exit": 0,
+        "seconds": 0.0044443329999950265
+      }
+    ]
+  },
+  "failureProvenance": [
+    {
+      "attempt": "mac",
+      "failure": "fixture build API typo Extract vs ExtractMedia",
+      "productExecuted": false
+    },
+    {
+      "attempt": "mac2",
+      "failure": "SIGSEGV because new test omitted gst_init before fixture Encode; corrected to existing fixture setup",
+      "proof": "sanitized crash stack retained; not product owner defect or expected RED"
+    },
+    {
+      "attempt": "mac3",
+      "failure": "assertions PASS; one of five output JSON lines interleaved plugin scanner stderr because fixture stdout not flushed",
+      "correction": "test Sink flush matches product; final test-only rerun mac/Linux; all five lines parse",
+      "noRetroactivePass": true
+    }
+  ],
+  "executionScope": "focused only, no new600/900/45/120 or mixed performance qualification; no production server/port listener",
+  "next": {
+    "ownerAttribution": "image callsite strongly supported; exact historical15tickets and496340 remainder remain unknown",
+    "persistentGrowth": "not established; no wholeheap convergence claim",
+    "productFix": "no owner defect identified; no coefficient/lifetime optimization adopted",
+    "minimumFollowup": "If exact nested attribution is required: one existing actual evidence HTTP/Create request under5s with new witness, preserve package+response+image simultaneous vector and normal release. Separate approval; no longrun needed for this question.",
+    "readiness45": "HOLD pending user approval and preserved bounded collection/resource guards. MemoryP0 PASS is not a mandatory prerequisite for a justified diagnostic entry.",
+    "question45": "Do stable active data and deletion cycles retain extra model/catalog/allocator in-use after last owner, vs merely retained malloc-zone pages? Current fixed5s samples plus acquire/release witnesses distinguish logical transient peaks but not all non-malloc allocations.",
+    "proposed45Boundary": "only separately approved existing2700s/2880s mode; unchanged640MiB RAM domain/448MiB live workspace and existing output/FD/collection/function gates. No new RSS threshold invented. First safety/collection failure stops, no rerun/purge; release boundaries captured before process exit.",
+    "p0Completion": "fixed active data/concurrency, actual lifetime/byte bounds, needed fix and before/after, direct regressions/independent review/final120min remain."
+  },
+  "binding": {
+    "order": [
+      "producer",
+      "readback",
+      "coverage"
+    ],
+    "exitCodes": [
+      0,
+      0,
+      0
+    ],
+    "producerChecks": 51,
+    "manifestChange": "inventorySha256 only; all986 item values unchanged, existing approvals reused only unchanged scope",
+    "readback": "validationErrors0/review4GlobalErrors0/negativeFixtures15of15",
+    "coverage": "PASS",
+    "logs": {
+      "producer": "d044f8ac77f4e3e0a7ee0672c9d63381151b9f522393a0aa536f910913ef258f",
+      "readback": "f004e8a145e0b287322992e5f2f9c356c12a495834505e9ea79a414fd1f6b6f7",
+      "coverage": "f3dd9d2ec3cd35ce7a806a391b6918dddd2c2377ca3039afa624f484985f9bce"
+    },
+    "runtimeQualification": "binding is not mixed/performance PASS"
+  },
+  "preservation": {
+    "archive": "138-execution.tar.gz",
+    "bytes": 260175,
+    "sha256": "af15eae61de77757abfeeec7e68338f8f900e49dfcb6c29b9fde9ac0f9ba189c",
+    "payloadFiles": 92,
+    "totalMembers": 93,
+    "allMemberBytesVerified": true,
+    "rawFilesSanitized": 8,
+    "binaryPayloadScope": "Built binaries/runtime retained locally in build directories until owned cleanup; hashes/UUID/build flags and changed sources preserved. Full binary/SDK/model payloads not uploaded.",
+    "failedSourceLimit": "Initial mac/mac2 full prior test source revisions not separately snapshotted; original compiler/crash outputs retained. Final executed test sources exactly preserved."
+  },
+  "cleanup": "pending after remote bytes verification",
+  "platformRegression": {
+    "macOS": {
+      "ticket": 57,
+      "attribution": 42,
+      "cursor": 53,
+      "visualWorker": 61,
+      "resourceTrace": "PASS",
+      "disabled": "PASS"
+    },
+    "linux": {
+      "ticket": 57,
+      "attribution": 42,
+      "cursor": 53,
+      "visualWorker": 61,
+      "resourceTrace": "PASS",
+      "disabled": "PASS",
+      "restriction": "unprivileged uid501/gid20, networknone, readonly root/capdropALL, existing image only; no inference claim"
+    }
+  },
+  "diagnosticCommit": "0692cb1bb04be419a9aaa481c187390127ccb5fb"
+}
