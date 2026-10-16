@@ -296,7 +296,19 @@
     "longrunlatency/recordinggaps/rotation/memoryP0/release"
   ],
   "cleanup": {
-    "status": "pending after remote bytes verification"
+    "status": "COMPLETE",
+    "root": "/private/tmp/media-server-r127-h4yndd5f",
+    "rootAbsent": true,
+    "removedOwnedRegularFiles": 14742,
+    "removedOwnedRegularBytes": 804525363,
+    "symlinks": 0,
+    "foreignOwners": 0,
+    "ownedProcessesPresent": false,
+    "processCheck": "ps exact owned-root filter empty before deletion; final runner process groupAbsent=true",
+    "ports": "full direct failed before HTTP server startup; pair server Stop and process exit confirmed; no unrelated listener touched",
+    "containers": "none created for R127; Linux not-run",
+    "settingsBackupsModelsSDK": "unchanged; excluded from archive and cleanup",
+    "existingBuildOutputs": "same-source build outputs retained"
   },
   "commits": {
     "implementation": "14872a4936909990e04b04abcddffae94d8cb9ac",
@@ -310,5 +322,24 @@
     "readback": "all member bytes matched",
     "priorOriginals": "125 archive preserved by reference; failed file hash and exact member bound; not duplicated",
     "exclusions": "user settings/backups/auth state, models/SDK, generated binaries/derivedcache, unrelated archives"
+  },
+  "remoteEvidenceReadbackBeforeCleanup": {
+    "remoteCommit": "8fbdb47dd0c97ae43a5601f7bc5754027231ec41",
+    "method": "GitHub contents JSON/base64 readback",
+    "priorRawRead": "gh raw binary transform short source buffer; no successful readback claimed",
+    "files": {
+      "127-execution.tar.gz": {
+        "bytes": 589006,
+        "sha256": "b6ae79d19ce781e6382e65ad308ae929d8cd301b36b8c93ef1d54e0aaa4ba074"
+      },
+      "127-validation.json": {
+        "bytes": 13147,
+        "sha256": "020dcb76daab9a2593d417fafe3b7b1ae3044b622f2c21d77cba420942fb8b1f"
+      },
+      "127-independent-review.json": {
+        "bytes": 1955,
+        "sha256": "c653949a668258a92f5e2a274d924f79ce5b7744c88c3517d1e2c5a6cdd07650"
+      }
+    }
   }
 }
