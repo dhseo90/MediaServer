@@ -156,7 +156,7 @@ bool RecordingVisualSource::Encode(VisualSearchDocument* doc,analysis::Siglip2En
     if(!std::isfinite(ns)||ns<0||ns>=std::ldexp(1.0L,63))return Fail(error,"visual-invalid-frame-reference");
     VisualRgbFrame frame;
     latency::VisualPhase decode("image-decode");
-    if(!DecodeVisualFrame(original->fd(),original->size_bytes(),std::llround(ns),&frame,error,cancelled))return false;
+    if(!DecodeVisualFrame(original->fd(),original->size_bytes(),std::llround(ns),&frame,error,cancelled,5000,StoredVisualIndexDecodePolicy()))return false;
     decode.End();
     if(cancelled&&cancelled())return Fail(error,"visual-cancelled");
     doc->embedding=encoder.EncodeRgb(frame.rgb.data(),frame.width,frame.height,std::size_t(frame.width)*3);

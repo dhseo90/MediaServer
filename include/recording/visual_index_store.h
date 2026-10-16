@@ -1,6 +1,7 @@
 // 파일 용도: 완성된 영상 색인 게시본의 파생 cache. 녹화 원장의 권위가 아니다.
 #pragma once
 #include "recording/visual_search_index.h"
+#include "recording/visual_frame_decoder.h"
 #include <filesystem>
 
 namespace recording {
@@ -9,11 +10,13 @@ namespace recording {
 // 실패한 load는 output 불변. cache 누락/손상은 원본에서 전체 재색인해야 한다.
 class VisualIndexStore {
 public:
-    explicit VisualIndexStore(std::filesystem::path directory) : directory_(std::move(directory)) {}
+    explicit VisualIndexStore(std::filesystem::path directory, VisualDecodePolicy policy=VisualDecodePolicy::Automatic)
+        : directory_(std::move(directory)),policy_(policy) {}
     bool Save(const VisualSearchIndex&, std::string* error) const;
     bool Load(const VisualEmbeddingContract&, std::shared_ptr<const VisualSearchIndex>* output,
         std::string* error, VisualIndexLimits limits = {}) const;
 private:
     std::filesystem::path directory_;
+    VisualDecodePolicy policy_;
 };
 } // namespace recording

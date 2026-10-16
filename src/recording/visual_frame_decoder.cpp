@@ -10,6 +10,7 @@
 #include <chrono>
 #include <cstring>
 #include <mutex>
+#include <fcntl.h>
 #include <sys/stat.h>
 #include <unistd.h>
 #if MEDIA_SERVER_USE_GSTREAMER
@@ -88,6 +89,32 @@ struct DecodeTrace {
     std::atomic<unsigned> event_count{0},factory_count{0},needs{0},seeks{0},pads{0},samples{0};
     std::atomic<const char*> first{nullptr};std::atomic<bool> bus_seen{false},closing{false};Event bus{},first_event{};
     char bus_domain[160]{},bus_description[160]{};bool bus_description_truncated{false};
+    // Private opt-in sink is an already-open owned 0600 file, never a public log/path.
+    int private_fd{-1};char raw_domain[160]{};char raw_message[1024]{},raw_debug[2048]{};
+    bool message_truncated{false},debug_truncated{false};
+    template<std::size_t N> static bool Raw(char (&out)[N],const char* in){
+        if(!in)return false;
+        const auto n=::strnlen(in,N);std::memcpy(out,in,std::min(n,N-1));return n>=N;
+    }
+    static void Json(std::ostream& o,const char* s){
+        constexpr char hex[]="0123456789abcdef";o<<'"';
+        for(const auto* p=reinterpret_cast<const unsigned char*>(s);*p;++p){const auto c=*p;
+            if(c=='"'||c=='\\')o<<'\\'<<char(c);
+            else if(c<32||c>=127)o<<"\\u00"<<hex[c>>4]<<hex[c&15];else o<<char(c);}
+        o<<'"';
+    }
+    void PrivateOutput()const{
+        if(private_fd<0||!bus_seen)return;
+        static std::mutex sink_mutex;std::lock_guard lock(sink_mutex);struct stat st{};
+        if(::fstat(private_fd,&st)||st.st_size<0||st.st_size>=65536){OutputFailure("[visual-frame] private-bus-output-failed\n");return;}
+        std::ostringstream o;o<<"{\"pid\":"<<::getpid()<<",\"requestStartNs\":"<<std::chrono::duration_cast<std::chrono::nanoseconds>(started.time_since_epoch()).count()
+          <<",\"targetNs\":"<<target<<",\"cleanup\":"<<bus.c<<",\"code\":"<<bus.b<<",\"domain\":";Json(o,raw_domain);
+        o<<",\"source\":";Json(o,bus.text);o<<",\"message\":";Json(o,raw_message);o<<",\"debug\":";Json(o,raw_debug);
+        o<<",\"messageTruncated\":"<<message_truncated<<",\"debugTruncated\":"<<debug_truncated<<"}\n";
+        const auto line=o.str();if(line.size()>65536-std::size_t(st.st_size)){OutputFailure("[visual-frame] private-bus-output-failed\n");return;}
+        std::size_t n=0;while(n<line.size()){const auto k=::write(private_fd,line.data()+n,line.size()-n);if(k<0&&errno==EINTR)continue;
+            if(k<=0){OutputFailure("[visual-frame] private-bus-output-failed\n");return;}n+=std::size_t(k);}
+    }
     std::int64_t offset_before{-1},first_pts{-1},last_pts{-1},last_stream{-1};
     struct stat before{};bool before_valid{false},found{false},failed{false},video{false},unsupported{false},null_done{false};
     explicit DecodeTrace(int f,std::uint64_t n,std::int64_t t,std::uint32_t ms,std::string* e)
@@ -95,22 +122,31 @@ struct DecodeTrace {
         const auto* value=std::getenv("MEDIA_SERVER_VERIFY_FRAME_TRACE");
         bounded=value&&std::strcmp(value,"bounded")==0;enabled=bounded||(value&&std::strcmp(value,"1")==0);
         invalid_setting=value&&*value&&std::strcmp(value,"0")&& !enabled;
+        if(enabled){const auto* sink=std::getenv("MEDIA_SERVER_VERIFY_FRAME_PRIVATE_FD");
+            if(sink&&*sink){char* end=nullptr;errno=0;const long n=std::strtol(sink,&end,10);struct stat st{};
+                if(!errno&&end&&!*end&&n>=3&&n<=INT32_MAX&&::fstat(int(n),&st)==0&&S_ISREG(st.st_mode)&&
+                    st.st_uid==::geteuid()&&st.st_nlink==1&&(st.st_mode&0777)==0600&&
+                    (::fcntl(int(n),F_GETFL)&O_APPEND))private_fd=int(n);
+                else invalid_setting=true;}}
         if(enabled){offset_before=::lseek(fd,0,SEEK_CUR);before_valid=::fstat(fd,&before)==0;}
     }
     static void Text(char* out,const char* in){if(!in)return;unsigned i=0;for(;in[i]&&i<159;++i){const unsigned char c=in[i];out[i]=(c>=32&&c<127&&c!='"'&&c!='\\')?char(c):'_';}out[i]=0;}
     void First(const char* value,std::int64_t a=0,std::int64_t b=0,std::int64_t c=0){if(enabled){const char* empty=nullptr;if(first.compare_exchange_strong(empty,value)){first_event.kind=value;first_event.a=a;first_event.b=b;first_event.c=c;}}}
     void Add(const char* kind,std::int64_t a=0,std::int64_t b=0,std::int64_t c=0,std::int64_t d=0,const char* text=nullptr){
-        if(!enabled)return;const auto i=event_count.fetch_add(1);if(i>=events.size())return;
+        if(!enabled)return;
+        const auto i=event_count.fetch_add(1);if(i>=events.size())return;
         auto& e=events[i];e.kind=kind;e.a=a;e.b=b;e.c=c;e.d=d;Text(e.text,text);
     }
-    void Sample(std::int64_t pts,std::int64_t stream){if(!enabled)return;const auto n=samples.fetch_add(1);if(!n)first_pts=pts;last_pts=pts;last_stream=stream;if(n<4)Add("sample",pts,stream,stream<0?INT64_MIN:stream-target);}
+    void Sample(std::int64_t pts,std::int64_t stream){if(!enabled)return;
+        const auto n=samples.fetch_add(1);if(!n)first_pts=pts;last_pts=pts;last_stream=stream;if(n<4)Add("sample",pts,stream,stream<0?INT64_MIN:stream-target);}
     static GstBusSyncReply Bus(GstBus*,GstMessage* message,gpointer user){auto& t=*static_cast<DecodeTrace*>(user);
         if(GST_MESSAGE_TYPE(message)==GST_MESSAGE_ASYNC_DONE)t.edges.async_done[t.edges.phase.load()].Put(t.edges.Now(),gst_message_get_seqnum(message));
         if(GST_MESSAGE_TYPE(message)==GST_MESSAGE_ERROR&&!t.bus_seen.exchange(true)){
 #ifdef RECORDING_FRAME_DIAGNOSTIC
             RecordVisualFrameBusDiagnostic(message,t.closing.load());
 #endif
-            GError* problem=nullptr;gst_message_parse_error(message,&problem,nullptr);t.bus.kind="bus-error";
+            GError* problem=nullptr;gchar* debug=nullptr;gst_message_parse_error(message,&problem,t.private_fd>=0?&debug:nullptr);t.bus.kind="bus-error";
+            if(t.private_fd>=0){Raw(t.raw_domain,problem?g_quark_to_string(problem->domain):nullptr);t.message_truncated=Raw(t.raw_message,problem?problem->message:nullptr);t.debug_truncated=Raw(t.raw_debug,debug);}g_free(debug);
             if(problem){t.bus.a=problem->domain;t.bus.b=problem->code;
                 // Existing opt-in trace only: canonical library description, never raw GError/debug.
                 const bool known=problem->domain==GST_CORE_ERROR||problem->domain==GST_LIBRARY_ERROR||
@@ -149,7 +185,10 @@ struct DecodeTrace {
         if(std::fputs(marker,stderr)<0||std::fflush(stderr)!=0){std::fputs(marker,stdout);std::fflush(stdout);}
     }
     ~DecodeTrace(){if(invalid_setting){OutputFailure("[visual-frame] trace-config-invalid\n");return;}
-      if(!enabled||(bounded&&succeeded&&!SuccessSample()))return;try{
+      if(!enabled)return;
+      try{
+        PrivateOutput();
+        if(bounded&&succeeded&&!SuccessSample())return;
         struct stat after{};const bool valid=::fstat(fd,&after)==0;
         std::ostringstream o;o<<"[visual-frame] {\"mode\":\""<<(bounded?"bounded":"full")<<"\",\"succeeded\":"<<(succeeded?"true":"false")<<",\"target\":"<<target<<",\"fd\":"<<fd<<",\"bytes\":"<<bytes<<",\"budgetMs\":"<<budget
           <<",\"policy\":\""<<(policy==VisualDecodePolicy::SoftwareOnly?"software-only":"automatic")<<"\""
@@ -163,7 +202,9 @@ struct DecodeTrace {
           <<",\"first\":\""<<(first.load()?first.load():"")<<"\",\"error\":\""<<(error?*error:"")<<"\",\"events\":[";
         bool comma=false;auto emit=[&](const Event& e){if(comma)o<<',';comma=true;o<<"{\"kind\":\""<<e.kind<<"\",\"a\":"<<e.a<<",\"b\":"<<e.b<<",\"c\":"<<e.c<<",\"d\":"<<e.d<<",\"text\":\""<<e.text<<"\"}";};
         for(unsigned i=0;i<std::min<unsigned>(event_count,events.size());++i)emit(events[i]);
-        for(unsigned i=0;i<std::min<unsigned>(factory_count,factories.size());++i)emit(factories[i]);if(bus_seen)emit(bus);if(first.load())emit(first_event);
+        for(unsigned i=0;i<std::min<unsigned>(factory_count,factories.size());++i)emit(factories[i]);
+        if(bus_seen)emit(bus);
+        if(first.load())emit(first_event);
         o<<"],\"droppedEvents\":"<<(event_count>events.size()?event_count-events.size():0)<<",\"droppedFactories\":"<<(factory_count>factories.size()?factory_count-factories.size():0);if(bus_seen)o<<",\"busDetail\":{\"domainName\":\""<<bus_domain<<"\",\"canonicalDescription\":\""<<bus_description
           <<"\",\"canonicalTruncated\":"<<(bus_description_truncated?"true":"false")<<",\"rawMessageCaptured\":false,\"debugCaptured\":false}";
         edges.Print(o);o<<"}\n";
@@ -195,7 +236,8 @@ struct Context {
 };
 void Need(GstAppSrc* source,guint requested,gpointer user){
     auto& c=*static_cast<Context*>(user);std::unique_lock lock(c.mutex);
-    if(c.trace.enabled)++c.trace.needs;if(c.trace.needs<=2)c.trace.Add("need",requested,c.offset);
+    if(c.trace.enabled)++c.trace.needs;
+    if(c.trace.needs<=2)c.trace.Add("need",requested,c.offset);
     if(c.Stop()||c.offset>=c.bytes){if(c.trace.enabled)c.trace.edges.source_eof[c.trace.edges.phase.load()].Put(c.trace.edges.Now(),0,c.offset,c.bytes);gst_app_src_end_of_stream(source);return;}
     if(!requested||requested>16*1024*1024){c.Failed("need-size");gst_app_src_end_of_stream(source);return;}
     const auto n=std::size_t(std::min<std::uint64_t>(c.bytes-c.offset,requested));
@@ -205,7 +247,8 @@ void Need(GstAppSrc* source,guint requested,gpointer user){
     while(got<n&&!c.Stop()){
         const auto result=::pread(c.fd,map.data+got,std::min<std::size_t>(n-got,65536),static_cast<off_t>(c.offset+got));
         const int read_error=result<0?errno:0;
-        if(result<0&&read_error==EINTR)continue;if(result<=0){c.trace.Add("pread",c.offset+got,result,read_error);c.trace.First(result<0?"pread-error":"pread-eof",c.offset+got,result,read_error);break;}got+=std::size_t(result);
+        if(result<0&&read_error==EINTR)continue;
+        if(result<=0){c.trace.Add("pread",c.offset+got,result,read_error);c.trace.First(result<0?"pread-error":"pread-eof",c.offset+got,result,read_error);break;}got+=std::size_t(result);
     }
     gst_buffer_unmap(buffer,&map);if(c.trace.needs<=2||got!=n)c.trace.Add("read",c.offset,n,got);
     if(got!=n){gst_buffer_unref(buffer);c.Failed("short-read");gst_app_src_end_of_stream(source);return;}
@@ -213,7 +256,8 @@ void Need(GstAppSrc* source,guint requested,gpointer user){
     const auto flow=gst_app_src_push_buffer(source,buffer);if(c.trace.needs<=2||flow!=GST_FLOW_OK)c.trace.Add("push",flow);if(flow!=GST_FLOW_OK&&flow!=GST_FLOW_FLUSHING){c.trace.First("push-flow",flow);c.Failed("push-flow");}
 }
 gboolean Seek(GstAppSrc*,guint64 offset,gpointer user){auto& c=*static_cast<Context*>(user);std::lock_guard lock(c.mutex);
-    if(c.trace.enabled)++c.trace.seeks;if(offset>c.bytes||c.Stop()){c.trace.Add("seek-data",offset,0);return FALSE;}if(c.trace.seeks<=2)c.trace.Add("seek-data",offset,1);c.offset=offset;return TRUE;}
+    if(c.trace.enabled)++c.trace.seeks;
+    if(offset>c.bytes||c.Stop()){c.trace.Add("seek-data",offset,0);return FALSE;}if(c.trace.seeks<=2)c.trace.Add("seek-data",offset,1);c.offset=offset;return TRUE;}
 void Pad(GstElement*,GstPad* pad,gpointer user){
     auto& c=*static_cast<Context*>(user);GstCaps* caps=gst_pad_get_current_caps(pad);
     const char* type=caps&&gst_caps_get_size(caps)?gst_structure_get_name(gst_caps_get_structure(caps,0)):"";
@@ -230,7 +274,8 @@ void Pad(GstElement*,GstPad* pad,gpointer user){
     GstPad* target=gst_element_get_static_pad(sink,"sink");
     const auto link=target?gst_pad_link(pad,target):GST_PAD_LINK_REFUSED;c.trace.Add("pad-link",link);
     if(link!=GST_PAD_LINK_OK)c.Failed("pad-link");
-    if(target)gst_object_unref(target);if(!video&&!gst_element_sync_state_with_parent(sink))c.Failed("fakesink-sync");
+    if(target)gst_object_unref(target);
+    if(!video&&!gst_element_sync_state_with_parent(sink))c.Failed("fakesink-sync");
 }
 bool Copy(GstSample* sample,std::int64_t target,VisualRgbFrame* out,DecodeTrace& trace){
     const auto reject=[&](const char* reason){if(trace.samples<=4||std::strcmp(reason,"copy-target"))trace.Add(reason);return false;};
@@ -316,7 +361,8 @@ bool DecodeVisualFrame(int fd,std::uint64_t bytes,std::int64_t target,VisualRgbF
             GstMessage* message=gst_bus_pop_filtered(bus,GST_MESSAGE_ERROR);
             if(message){GError* problem=nullptr;gst_message_parse_error(message,&problem,nullptr);
                 if(problem&&problem->domain==GST_STREAM_ERROR&&problem->code==GST_STREAM_ERROR_CODEC_NOT_FOUND)context.unsupported=true;
-                if(problem)g_error_free(problem);context.Failed("bus-error");gst_message_unref(message);break;}
+                if(problem)g_error_free(problem);
+                context.Failed("bus-error");gst_message_unref(message);break;}
             if(!sample&&gst_app_sink_is_eos(GST_APP_SINK(sink))){if(trace.enabled)trace.edges.Snapshot(3,"eos-exit",pipeline,sink);trace.First("eos-no-target");break;}
         }
         gst_object_unref(bus);

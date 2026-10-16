@@ -29,9 +29,9 @@ struct Digest {
     void Add(const void* p,std::size_t n){g_checksum_update(value,static_cast<const guchar*>(p),n);}
     std::array<unsigned char,32> Finish(){std::array<unsigned char,32>b{};gsize n=b.size();g_checksum_get_digest(value,b.data(),&n);return b;}
 };
-std::string Name(const VisualEmbeddingContract& c) {
+std::string Name(const VisualEmbeddingContract& c,VisualDecodePolicy policy) {
     Digest d;d.Add(c.space_id.data(),c.space_id.size());const auto hash=d.Finish();
-    constexpr char hex[]="0123456789abcdef";std::string s="visual-";
+    constexpr char hex[]="0123456789abcdef";std::string s=policy==VisualDecodePolicy::SoftwareOnly?"visual-software-v1-":"visual-";
     for(auto b:hash){s+=hex[b>>4];s+=hex[b&15];}return s+".v1";
 }
 int Directory(const std::filesystem::path& p) {
@@ -103,19 +103,19 @@ bool VisualIndexStore::Save(const VisualSearchIndex& index,std::string* error) c
         return Fail(error,"visual-cache-writer-unavailable");
     std::string temporary;
     try {
-        constexpr const char* scratch=".visual-pending.v1";
+        const char* scratch=policy_==VisualDecodePolicy::SoftwareOnly?".visual-software-pending.v1":".visual-pending.v1";
         Fd file{::openat(directory.value,scratch,O_RDWR|O_CREAT|O_NOFOLLOW|O_CLOEXEC|O_NONBLOCK,0600)};
         struct stat st{};
         if(file.value<0||::fstat(file.value,&st)!=0||!S_ISREG(st.st_mode)||st.st_uid!=::geteuid()||st.st_nlink!=1||
             (st.st_mode&0077)||st.st_size<0||st.st_size>std::int64_t(kMaxFile))return Fail(error,"visual-cache-invalid-pending");
         // 중단된 전용 형식만 회수한다. 임의 파일/링크를 지우거나 덮지 않는다.
-        const std::array<unsigned char,8> magic_bytes{0x4d,0x53,0x4d,0x56,0x58,0x49,0x31,0};
+        const std::array<unsigned char,8> magic_bytes{0x4d,0x53,0x4d,0x56,0x58,0x49,static_cast<unsigned char>(policy_==VisualDecodePolicy::SoftwareOnly?0x32:0x31),0};
         std::array<unsigned char,8> prior{};const auto count=std::min<std::int64_t>(st.st_size,8);
         if(::pread(file.value,prior.data(),count,0)!=count||!std::equal(prior.begin(),prior.begin()+count,magic_bytes.begin()))
             return Fail(error,"visual-cache-invalid-pending");
         temporary=scratch;
         if(::ftruncate(file.value,0)!=0)throw std::runtime_error("visual-cache-write-failed");
-        Stream s{file.value,true,kMaxFile,{}};std::uint64_t magic=0x314958564d534dULL;s.U64(magic);
+        Stream s{file.value,true,kMaxFile,{}};std::uint64_t magic=policy_==VisualDecodePolicy::SoftwareOnly?0x324958564d534dULL:0x314958564d534dULL;s.U64(magic);
         auto contract=index.contract();s.Contract(contract);std::uint64_t n=index.documents().size();s.U64(n);
         // 단일 행만 복사한다. 전체 벡터 게시본 복제는 하지 않는다.
         for(const auto& original:index.documents()){auto row=original;s.Document(row);}
@@ -125,7 +125,7 @@ bool VisualIndexStore::Save(const VisualSearchIndex& index,std::string* error) c
         if(std::getenv("V430_VISUAL_STORE_STOP_BEFORE_RENAME"))::raise(SIGSTOP);
         if(std::getenv("V430_VISUAL_STORE_FAIL_BEFORE_RENAME"))throw std::runtime_error("visual-cache-write-failed");
 #endif
-        const auto name=Name(contract);
+        const auto name=Name(contract,policy_);
         if(::renameat(directory.value,temporary.c_str(),directory.value,name.c_str())!=0)throw std::runtime_error("visual-cache-write-failed");
         temporary.clear();
         if(::fsync(directory.value)!=0)return Fail(error,"visual-cache-durability-unconfirmed");
@@ -144,12 +144,12 @@ bool VisualIndexStore::Load(const VisualEmbeddingContract& contract,std::shared_
     if(!output||!(contract==VisualEmbeddingContract::Siglip2()))return Fail(error,"visual-contract-mismatch");
     Fd directory{Directory(directory_)};if(directory.value<0)return Fail(error,"visual-cache-directory");
     try {
-        Fd file{::openat(directory.value,Name(contract).c_str(),O_RDONLY|O_NOFOLLOW|O_CLOEXEC|O_NONBLOCK)};
+        Fd file{::openat(directory.value,Name(contract,policy_).c_str(),O_RDONLY|O_NOFOLLOW|O_CLOEXEC|O_NONBLOCK)};
         if(file.value<0)return Fail(error,errno==ENOENT?"visual-cache-missing":"visual-cache-invalid");
         struct stat st{};if(::fstat(file.value,&st)!=0||!S_ISREG(st.st_mode)||st.st_size<32||st.st_size>std::int64_t(kMaxFile)||st.st_uid!=::geteuid()||(st.st_mode&0022))
             return Fail(error,"visual-cache-invalid");
         Stream s{file.value,false,std::uint64_t(st.st_size),{}};std::uint64_t magic=0;s.U64(magic);
-        if(magic!=0x314958564d534dULL)return Fail(error,"visual-cache-invalid");
+        if(magic!=(policy_==VisualDecodePolicy::SoftwareOnly?0x324958564d534dULL:0x314958564d534dULL))return Fail(error,"visual-cache-invalid");
         VisualEmbeddingContract stored;s.Contract(stored);if(!(stored==contract))return Fail(error,"visual-contract-mismatch");
         std::uint64_t n=0;s.U64(n);if(n>limits.max_documents||n>20000||n>s.remaining/(768*4)||n>limits.max_bytes/sizeof(VisualSearchDocument))return Fail(error,"visual-index-capacity");
         std::vector<VisualSearchDocument> docs;docs.reserve(std::size_t(n));

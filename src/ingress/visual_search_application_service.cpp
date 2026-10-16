@@ -254,7 +254,7 @@ VisualSearchApplicationService::VisualSearchApplicationService(recording::Record
     // 기존 directory의 권한을 임의로 바꾸지 않는다. Store가 owner/symlink 경계를 재검사한다.
     if(::mkdir(options_.cache_directory.c_str(),0700)!=0&&errno!=EEXIST)throw std::runtime_error("visual-cache-unavailable");
     encoder_=std::make_unique<analysis::Siglip2Encoder>(options_.model_directory);
-    worker_=std::make_unique<recording::VisualIndexWorker>(recording::VisualIndexStore(options_.cache_directory),
+    worker_=std::make_unique<recording::VisualIndexWorker>(recording::VisualIndexStore(options_.cache_directory,recording::StoredVisualIndexDecodePolicy()),
         recording::VisualIndexWorker::SourceWithCoverage([this](auto* docs,auto* coverage,const auto& cancelled,std::string* error){
             std::vector<std::string> channels;if(!channels_(&channels)){*error="visual-source-unavailable";return false;}
             std::map<std::string,recording::VisualSourceCoverage> counts;

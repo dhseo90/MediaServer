@@ -8,6 +8,14 @@ namespace recording {
 // SoftwareOnly의 avdec_h264는 인스턴스별 단일 codec thread로 frame 소유 충돌을 피한다.
 // 자동 정책과 전역 factory 선택은 변경하지 않는다.
 enum class VisualDecodePolicy { Automatic, SoftwareOnly };
+// 저장 MP4의 scene-index 추출만 사용한다. 일반 decoder/증거/Linux 정책은 별개다.
+constexpr VisualDecodePolicy StoredVisualIndexDecodePolicy() {
+#ifdef __APPLE__
+    return VisualDecodePolicy::SoftwareOnly;
+#else
+    return VisualDecodePolicy::Automatic;
+#endif
+}
 struct VisualRgbFrame {
     int width{0},height{0};
     std::int64_t presentation_ns{0};
