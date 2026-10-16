@@ -1,0 +1,314 @@
+{
+  "schema": "media-server.v450.r127.validation.v1",
+  "status": "SCOPED_MODEL_REUSE_CURSOR_PROGRESS_VERIFIED_FULL_DIRECT_BLOCKED_AT_INITIAL_INDEX",
+  "baseline": "5ce061715f73f922436cf66f79ab5239203ea7f4",
+  "entry": "v4.5.0 clean worktree/index and remote baseline; no user changes overwritten",
+  "priorImplementation": "1b73f1f93195ebf32b1f822852d6456a138bb9e0",
+  "priorTests": "e306b0d0919253bb65af89d1349a651378959506",
+  "model": {
+    "mainRequested": "gpt-6-astra/high",
+    "mainToolAccepted": null,
+    "mainActualModel": null,
+    "mainActualEffort": null,
+    "implementationHelperRequested": "gpt-6-astra/high",
+    "implementationHelperToolAccepted": "gpt-6-astra/high",
+    "implementationHelperActualModel": null,
+    "implementationHelperActualEffort": null,
+    "reviewRequested": "gpt-6-astra/high",
+    "reviewToolAccepted": "gpt-6-astra/high",
+    "reviewActualModel": null,
+    "reviewActualEffort": null
+  },
+  "priorPreserved": [
+    "126 capacity25526/native128 pages and scopedHTTP/seek/evidence; not allHTTPpages",
+    "126 parallel5s receive failure,Recorder2412/2176,closedobserver timeout remain historical",
+    "124900PASS and111/112/114/116/123 limited scopes; memoryP0/releasehold"
+  ],
+  "input": {
+    "archive": "125-execution.tar.gz",
+    "sha256": "39eeb7708486378f919c10c82e4a3ba059d0c82f7874a1617559e7beb95eb83b",
+    "sourcePacketSha256": "50a5b9127e5b5a46ecc1b625e2778cc72068844979acfa6dfff34a0aff46b0b7",
+    "scope": "owned closed-store copy and hash map; not historic live reader/cache reconstruction; no payload modification",
+    "failedFile": [
+      {
+        "path": "9101/fbb3074b-9328-4b87-bb5e-313e1805b5f3.mp4",
+        "bytes": 2654,
+        "sha256": "5dc838088a1ecc7175e52a1419719ccf356813ada598f6ae8731d34238db0e15",
+        "dev": 16777232,
+        "inode": 175259836,
+        "originalArchive": "125-execution.tar.gz",
+        "originalMember": "observer/recordings/9101/fbb3074b-9328-4b87-bb5e-313e1805b5f3.mp4",
+        "baselineMatches": true
+      }
+    ],
+    "finalDurableOriginals": "all original recording bytes unchanged; derived sqlite changed, lease file new; no durable file removals"
+  },
+  "change": {
+    "service": "short state access lock separated from same single preparation mutex; Refresh/EventFacts/Playback/SnapshotBegin still bounded serial preparation, cursor/seek/evidence do not wait on preparation",
+    "playback": "shared immutable source for no-event/no-metadata allRecording ns documents with unchanged effective playback fields; candidate authentication and final source validation retained; otherwise original reconstruction",
+    "ownership": "same model residency retained through snapshots; no extra model/vector allocation on reuse; proof preparation reservation retained; caller maxdocuments/maxbytes enforced; no limit raised",
+    "diagnostics": "fixed40 phases perrequest/first128 requests and bounded observer milestones; no payload, output after mutex release",
+    "unchanged": "64MiB/100000documents,640MiBdomain,source authority/errors/permissions,unknown/unplaced,top ordering,cursor,seek,evidence,durable originals"
+  },
+  "pairComparison": {
+    "planned": "2 rounds of2 structured actualHTTP, stop first failure; same baseline copied separately, no visual/writer/index/retention causal control",
+    "observedPerRun": 2,
+    "remainingRound": "not-run",
+    "before": {
+      "client": "both5s receiveFAIL0bytes/noheaders; not observedHTTP200",
+      "serverMs": [
+        5820.095,
+        5821.399
+      ],
+      "firstRefreshMs": 1595.461,
+      "playbackMs": [
+        1370.767,
+        1400.482
+      ],
+      "playbackDocumentsMs": [
+        412.611,
+        434.011
+      ],
+      "secondServiceWaitMs": 2968.805,
+      "currentnessJsonMs": [
+        2850.658,
+        1448.681
+      ]
+    },
+    "after": {
+      "client": "both5s receiveFAIL0bytes/noheaders; not observedHTTP200",
+      "serverMs": [
+        5197.509,
+        5210.879
+      ],
+      "playbackReuse": 2,
+      "secondPreparationWaitMsApprox": 2600,
+      "candidatesMsApprox": 980
+    },
+    "limits": "nested phases not additive; pair lacks retention/visual activation of existing decoded segment cache; cannot attribute all actual mixed cost from this control; before binary hash not saved before relink"
+  },
+  "parallel": {
+    "attempts": 1,
+    "elapsedSeconds": 527.1559740828816,
+    "exit": 1,
+    "firstObservedFailure": {
+      "stage": "initial visual index encode",
+      "row": 299,
+      "bytes": 2654,
+      "targetNs": 0,
+      "policy": "automatic",
+      "factory": "vtdec_hw:applemedia:1.28.1",
+      "elapsedUs": 6353,
+      "decodedSamples": 0,
+      "first": "bus-error",
+      "publicCode": "visual-frame-unavailable"
+    },
+    "terminal": "index-ready after unchanged500s ready budget; worker internal next attempt cancelled row3335; outer630s timeoutfalse",
+    "notRun": [
+      "original12",
+      "originalP95Max",
+      "auxLimit200",
+      "newMembership",
+      "normalRecorderAcceptance",
+      "explicitStopFinish",
+      "newClosedJournal",
+      "LinuxR127",
+      "producer/readback/coverage"
+    ],
+    "structuredChangesReached": false,
+    "originalHttpCount": 0,
+    "recorderExpectation": "not started; do not report drop0/acceptancePASS",
+    "explicitFinish": "not-run; guard was after ready check",
+    "destructorRelease": {
+      "logicalRAM": 0,
+      "scratchBytes": 0,
+      "scratchFD": 0,
+      "readerCleanupHealthy": true
+    },
+    "collection": {
+      "receivedBytes": 1107976,
+      "savedBytes": 1107976,
+      "overflow": false,
+      "monitorExit": 0,
+      "groupAbsent": true,
+      "samples": 520,
+      "allValid": true,
+      "allFDComplete": true,
+      "startIdentities": [
+        "macos:1792118660:135076"
+      ],
+      "phases": {
+        "initial": {
+          "samples": 22,
+          "metrics": {
+            "rssBytes": {
+              "first": 32768,
+              "last": 64012288,
+              "max": 64012288
+            },
+            "footprintBytes": {
+              "first": 81992,
+              "last": 41730720,
+              "max": 41730720
+            },
+            "fdCount": {
+              "first": 3,
+              "last": 11,
+              "max": 13
+            },
+            "anonymousFileBytes": {
+              "first": 0,
+              "last": 63517696,
+              "max": 76052480
+            },
+            "anonymousAllocatedBytes": {
+              "first": 0,
+              "last": 64733184,
+              "max": 78548992
+            }
+          },
+          "maxPairedVariableBytes": 202104839
+        },
+        "model": {
+          "samples": 4,
+          "metrics": {
+            "rssBytes": {
+              "first": 54165504,
+              "last": 512000000,
+              "max": 512000000
+            },
+            "footprintBytes": {
+              "first": 22971016,
+              "last": 472613992,
+              "max": 472613992
+            },
+            "fdCount": {
+              "first": 10,
+              "last": 12,
+              "max": 12
+            },
+            "anonymousFileBytes": {
+              "first": 63517696,
+              "last": 1165571072,
+              "max": 1165571072
+            },
+            "anonymousAllocatedBytes": {
+              "first": 64733184,
+              "last": 1182515200,
+              "max": 1182515200
+            }
+          },
+          "maxPairedVariableBytes": 119683743
+        },
+        "live": {
+          "samples": 494,
+          "metrics": {
+            "rssBytes": {
+              "first": 3161669632,
+              "last": 1721679872,
+              "max": 3199401984
+            },
+            "footprintBytes": {
+              "first": 3123268704,
+              "last": 1667483856,
+              "max": 3160624248
+            },
+            "fdCount": {
+              "first": 10,
+              "last": 366,
+              "max": 385
+            },
+            "anonymousFileBytes": {
+              "first": 63517696,
+              "last": 63517696,
+              "max": 63517696
+            },
+            "anonymousAllocatedBytes": {
+              "first": 64733184,
+              "last": 64733184,
+              "max": 64733184
+            }
+          },
+          "maxPairedVariableBytes": 185464465
+        }
+      },
+      "holder": "loss:true; no selected request records; no whole-wait attribution",
+      "limits": "sequentialFD,nonatomicfiles; categoriesmostlyother; nofullheap/instantpeak proof"
+    },
+    "postprocessingFailure": "ModuleNotFoundError:http_qualification; copied wrapper omitted auxiliary module; separate from initial readiness failure; no rerun or overwrite",
+    "sourceRuntime": {
+      "head": "5ce061715f73f922436cf66f79ab5239203ea7f4",
+      "files": {
+        "docs/project-feature-test-inventory.md": "fb46dd7a4371f28f5f88a4b02df4094b2f458800b26337136074aaf466668b83",
+        "include/recording/recording_search_diagnostic.h": "bbd967d978cc51cae684782ba27c873f6391c0cf0433c667ead45f09d465ce0b",
+        "include/recording/recording_search_reader.h": "82b7e804c538aa59959ab82616a5c69310f474e4e0c2820358af007ee9c7cfcd",
+        "scripts/internal/recording_generation_observation.h": "4521544e1d16108c334911172bc1ed04f12fb8c76eac734bcce60d13398cf140",
+        "scripts/internal/recording_search_scope_smoke.cpp": "492151de7d7f3cfa362fc91a2ac5d54be02b59146674399e2a358bb7fa27a2d8",
+        "scripts/internal/recording_search_source_smoke.cpp": "6df34a3cb7a367847c9e6270a9b74a86461edf4e297cf6b3806267fda44fbc76",
+        "src/ingress/recording_search_application_service.cpp": "39ee932230f4f099c26daaeb0d833a4cc3f5626e3c6d12c1efc65867d512c3ac",
+        "src/recording/recording_search_reader.cpp": "d7c5c88aa33ec649d49537db978fc1d735a9131c490a772a5839f866ab197383"
+      },
+      "runtime": "715b4fad331eda921569e8808948e96997e2f91b45be78394cfa86aa544c231a",
+      "binary": "0e55ab15bed7ef04010e2bf6ffc60c56c0740cfa50c56d644a277e3394c7e341",
+      "input": "50a5b9127e5b5a46ecc1b625e2778cc72068844979acfa6dfff34a0aff46b0b7",
+      "scope": "same source-parallel; one post-change direct attempt; no 900/45/120",
+      "macBuild": "existing flags C++17 arm64, no optimization flags changed",
+      "pairBeforeBinary": "hash not saved before relink; original output+commands retained, not complete binary binding"
+    }
+  },
+  "closedJournal": {
+    "input": "R126final closed original reconstructed from125+126durabledelta/hashmap",
+    "pass": true,
+    "rows": 5008,
+    "polls": 40,
+    "totalMs": 7766.331708,
+    "maxPollMs": 1921.968667,
+    "perRequestBudgetMs": 3000,
+    "partialBytes": 0,
+    "backlog": false,
+    "busy": false,
+    "exit": 0,
+    "changes": "diagnostic phase output only; unchanged full read/poll contract",
+    "limits": "126 timeout did not reproduce; cause unresolved; not new final-source closedjournalPASS"
+  },
+  "regressions": {
+    "macOS": [
+      "recording_search_source_smoke64/64",
+      "recording_search_generation_smoke exit0",
+      "recording_search_cursor_smoke exit0",
+      "recording_search_playback_smoke exit0",
+      "recording_search_application_smoke exit0",
+      "recording_search_scope_smoke13/13"
+    ],
+    "scope": "nsreuse/effectivefields/nonns/mixedfallback/limits/staledeletion,oldcursorwhilelatchedprep,principal/scope/revisionretry and unchanged related regressions; raw logs authoritative",
+    "Linux": "not-run after scope blocker; prior126platform evidence only unchanged paths",
+    "binding": "new producer/readback/coverage not-run after prerequisite blocker; inventory source hash preserved, no bindingPASS claim"
+  },
+  "stop": {
+    "reason": "new initial visual decode/readiness blocker before approved structured/concurrent target; decoder investigation/retry would extend scope; AGENTS4 stop rule",
+    "actions": "no further product fixes, new tests or long runs; preserve reviewed changes and minimal evidence, ordinarypush,ownedcleanup",
+    "resume": "authorize narrow initial visual encode failure investigation including exact file/runtime/factory then requalify same direct workload; separately fix missing wrapper qualifier before another authorized run"
+  },
+  "remaining": [
+    "fullsame-run12/aux200/newmembership/Recorder/explicitFinish/closedjournal",
+    "structured pair5s and exact remaining currentness/cold candidate cost",
+    "newLinux and requiredbinding",
+    "longrunlatency/recordinggaps/rotation/memoryP0/release"
+  ],
+  "cleanup": {
+    "status": "pending after remote bytes verification"
+  },
+  "commits": {
+    "implementation": "14872a4936909990e04b04abcddffae94d8cb9ac",
+    "testsAndObservation": "aa84a19dbd6c945b2f137072f855b596370cc6bf"
+  },
+  "archive": {
+    "path": "docs/release-artifacts/v4.5.0/127-execution.tar.gz",
+    "bytes": 589006,
+    "sha256": "b6ae79d19ce781e6382e65ad308ae929d8cd301b36b8c93ef1d54e0aaa4ba074",
+    "members": 64,
+    "readback": "all member bytes matched",
+    "priorOriginals": "125 archive preserved by reference; failed file hash and exact member bound; not duplicated",
+    "exclusions": "user settings/backups/auth state, models/SDK, generated binaries/derivedcache, unrelated archives"
+  }
+}

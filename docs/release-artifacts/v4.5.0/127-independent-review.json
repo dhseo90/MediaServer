@@ -1,0 +1,34 @@
+{
+  "schema": "media-server.v450.r127.independent-review.v1",
+  "decision": "SCOPED_CHANGE_SUPPORTED_FULL_DIRECT_BLOCKED",
+  "reviewer": {
+    "agent": "/root/independent_r127",
+    "requested": "gpt-6-astra/high",
+    "toolAccepted": "gpt-6-astra/high",
+    "actualModel": null,
+    "actualEffort": null,
+    "independence": "read-only; no implementation, test writing/execution, or redelegation"
+  },
+  "sourceBinding": "127-execution.tar.gz:http-final.binding.json",
+  "code": "No additional confirmed defect found. Single bounded preparation, immutable source sharing, current raw/source validation, effective limits, snapshot ownership and principal/scope preserved. Prior cursor progresses while new preparation is latched.",
+  "results": {
+    "macOS": "source64/64;scope13/13;5 related target run exits0",
+    "pair": "two clients still5s recv failure; late server200 is not client200; removed playback reconstruction cost only",
+    "parallel": "initial index row299 frame failure; next internal worker attempt cancelled at original500s ready boundary; exit1 elapsed527.156s; structured changed paths not yet executed",
+    "notRun": [
+      "original12",
+      "latency gate",
+      "aux200",
+      "new membership",
+      "normal Recorder acceptance",
+      "explicit Finish",
+      "new closed journal",
+      "Linux R127",
+      "producer/readback/coverage"
+    ],
+    "closedPrior": "5008 rows40 polls, every request within3000ms, partial0/backlogfalse/busyfalse, exit0; historical126 timeout cause unconfirmed",
+    "cleanup": "raw1107976 bytes retained; monitor0/group absent/logical RAM scratch FD0 after destruction; not explicit Finish proof",
+    "postprocessing": "missing http_qualification separate from initial index-ready failure"
+  },
+  "conclusion": "Preserve limited change and failed evidence; full parallel improvement and memoryP0/release remain unproven. No decoder cause attribution or further run after scope blocker."
+}
