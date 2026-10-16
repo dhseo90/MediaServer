@@ -212,6 +212,7 @@ private:
     Options options_;
     std::mutex apply_mu_;
     std::mutex admission_mu_;
+    std::mutex periodic_mu_; // One bounded private periodic preparation.
     // New admissions stay serialized; progress/completion do not wait for a
     // Catalog snapshot/retention plan. Only reservation maps use this short lock.
     std::mutex reservation_mu_;

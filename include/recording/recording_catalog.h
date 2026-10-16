@@ -146,7 +146,7 @@ public:
                              RecordingLocationCatalogSnapshot* result, std::string* error) const;
     bool CaptureSearchSource(const std::vector<std::string>& channels,
         const RecordingSearchModel* previous, SearchSourceBatch* result, std::string* error,
-        SearchModelLimits limits = {}, bool include_observations = true) const;
+        SearchModelLimits limits = {}, bool include_observations = true, SearchSourceBatch* retry_capture = nullptr) const;
     bool ValidateSearchSource(const SearchSourceBatch&, std::string* error) const;
     bool ValidateManagedWriterBinding(const RecordingJournal& journal,
                                      const std::filesystem::path& root,

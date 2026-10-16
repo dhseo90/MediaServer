@@ -63,6 +63,7 @@ private:
         std::uint64_t max_depth{0}, max_bytes{0}, first_input_ns{0}, last_input_ns{0};
         std::uint64_t min_input_gap_ns{UINT64_MAX}, max_input_gap_ns{0};
         std::uint64_t queue_wait_ns{0}, max_queue_wait_ns{0}, callback_ns{0}, max_callback_ns{0};
+        std::uint64_t first_depth64_ns{0}, first_drop_ns{0}, max_callback_begin_ns{0}, max_callback_ordinal{0};
         std::size_t dropped_packets{0};
         bool recorder_video_loss_pending{false};
         bool stop{false};

@@ -809,48 +809,80 @@ void RetentionCoordinator::RemoveChannelPolicy(const std::string& channel_id) {
     // verified finalize 또는 cleanup이 Complete*Write를 호출할 때까지 유지한다.
 }
 
+namespace {
+// Fixed per-call diagnostics, emitted only after admission lock destruction.
+struct AdmissionCosts {
+ const bool active=recording::latency::SubcostEnabled();
+ std::uint64_t begin=active?recording::latency::Now():0;std::array<std::uint64_t,7> ns{};
+ template<class F> auto Measure(unsigned slot,F&& f){const auto b=active?recording::latency::Now():0;auto result=f();if(active)ns[slot]+=recording::latency::Now()-b;return result;}
+ ~AdmissionCosts(){if(!active)return;static std::atomic<unsigned> count{0};const auto id=count.fetch_add(1);if(id>=128)return;
+ std::fprintf(stderr,"[R119-admission] {\"id\":%u,\"beginNs\":%llu,\"endNs\":%llu,\"costNs\":[%llu,%llu,%llu,%llu,%llu,%llu,%llu]}\n",id,(unsigned long long)begin,(unsigned long long)recording::latency::Now(),(unsigned long long)ns[0],(unsigned long long)ns[1],(unsigned long long)ns[2],(unsigned long long)ns[3],(unsigned long long)ns[4],(unsigned long long)ns[5],(unsigned long long)ns[6]);}
+};
+}
+namespace {
+// Fixed per-call diagnostics, emitted only after admission lock destruction.
+struct PeriodicCosts {
+ const bool active=recording::latency::SubcostEnabled();
+ std::uint64_t begin=active?recording::latency::Now():0;std::array<std::uint64_t,7> ns{};
+ template<class F> auto Measure(unsigned slot,F&& f){const auto b=active?recording::latency::Now():0;auto result=f();if(active)ns[slot]+=recording::latency::Now()-b;return result;}
+ ~PeriodicCosts(){if(!active)return;static std::atomic<unsigned> count{0};const auto id=count.fetch_add(1);if(id>=128)return;
+ std::fprintf(stderr,"[R131-periodic] {\"id\":%u,\"beginNs\":%llu,\"endNs\":%llu,\"costNs\":[%llu,%llu,%llu,%llu,%llu,%llu,%llu]}\n",id,(unsigned long long)begin,(unsigned long long)recording::latency::Now(),(unsigned long long)ns[0],(unsigned long long)ns[1],(unsigned long long)ns[2],(unsigned long long)ns[3],(unsigned long long)ns[4],(unsigned long long)ns[5],(unsigned long long)ns[6]);}
+};
+}
 void RetentionCoordinator::RunPeriodic(std::int64_t now_ms) {
     recording::latency::WorkScope holder_work_scope(recording::latency::Work::Retention);
-    std::lock_guard admission_lock(admission_mu_);
+    PeriodicCosts costs;
+    // Bound periodic preparations to one. Admission and policy changes may proceed
+    // during its charged private scan; they are serialized again before rebasing.
+    std::lock_guard periodic_lock(periodic_mu_);
+    std::unique_lock admission_lock(admission_mu_,std::defer_lock);
+    std::vector<std::pair<std::string, RetentionPolicy>> policies;
+    std::vector<std::uint64_t> event_bounds;
+    const auto decision=[&](std::string* failure){
+    costs.Measure(0,[&]{admission_lock.lock();return true;});
     std::unordered_set<std::string> pending_channels;
-    const auto initial=ReadSnapshot(RetentionSnapshotSelection::Pending);
-    if(!initial.authoritative){std::lock_guard lock(mu_);for(auto& [_,status]:statuses_)status.last_error=initial.error;return;}
+    const auto initial=costs.Measure(1,[&]{return ReadSnapshot(RetentionSnapshotSelection::Pending);});
+    if(!initial.authoritative){if(failure)*failure=initial.error;return false;}
     for (const auto& candidate : initial.candidates) {
         if (candidate.Lifecycle() == RecordingLifecycle::DeletionPending) {
             pending_channels.insert(candidate.Channel());
         }
     }
     for (const auto& channel_id : pending_channels) {
-        const auto recovered = RecoverPendingForChannel(now_ms, channel_id);
+        const auto recovered = costs.Measure(2,[&]{return RecoverPendingForChannel(now_ms, channel_id);});
         if (!recovered.ok) {
             std::lock_guard lock(mu_);
             const auto status = statuses_.find(channel_id);
             if (status != statuses_.end()) status->second.last_error = recovered.last_error;
         }
     }
-    std::vector<std::pair<std::string, RetentionPolicy>> policies;
     {
         std::lock_guard lock(mu_);
         policies.assign(policies_.begin(), policies_.end());
     }
-    if(policies.empty())return;
     // One authenticated cut covers this serialized periodic pass. Plan filters
     // candidates by channel; do not clone/scan the same namespaces per channel.
-    std::vector<std::uint64_t> event_bounds;event_bounds.reserve(policies.size());
+    event_bounds.reserve(policies.size());
     {std::lock_guard lock(reservation_mu_);
      for(const auto& item:policies)event_bounds.push_back(EventReservationsLocked(item.first));}
-    const auto snapshot=ReadSnapshot();
-    if(!snapshot.authoritative){
+    return true;
+    };
+    // Same authenticated All cut and changed-ID/hold/reservation rebase as
+    // admission. Read policy only in decision, never before the unlocked scan.
+    const auto snapshot=costs.Measure(3,[&]{return ReadSnapshot(RetentionSnapshotSelection::All,{},decision);});
+    if(!snapshot.authoritative||!admission_lock.owns_lock()){
         std::lock_guard lock(mu_);
-        for(const auto& item:policies)statuses_[item.first].last_error=snapshot.error;
+        for(auto& item:statuses_)item.second.last_error=snapshot.error;
         return;
     }
     std::size_t channel_index=0;
-    for (const auto& [channel_id, policy] : policies) {
+    for (const auto& item : policies) {
+        const auto& channel_id=item.first;
+        const auto& policy=item.second;
         const auto event_bound=event_bounds[channel_index++];
         SpaceAndReservations space;
         std::string error;
-        if (!ReadSpaceAndReservations(channel_id,&space,&error)) {
+        if (!costs.Measure(4,[&]{return ReadSpaceAndReservations(channel_id,&space,&error);})) {
             std::lock_guard lock(mu_);
             statuses_[channel_id].last_error =
                 error.empty() ? "recording root 여유 공간 조회 실패" : error;
@@ -865,8 +897,8 @@ void RetentionCoordinator::RunPeriodic(std::int64_t now_ms) {
         request.free_bytes = free_bytes > inflight_bytes ? free_bytes - inflight_bytes : 0;
         request.reserved_free_bytes = options_.reserved_free_bytes;
         request.event_reserved_bytes=event_bound;
-        const auto plan = Plan(snapshot, request);
-        const auto applied = Apply(plan, now_ms);
+        const auto plan = costs.Measure(5,[&]{return Plan(snapshot, request);});
+        const auto applied = costs.Measure(6,[&]{return Apply(plan, now_ms);});
         if (!applied.ok) {
             std::lock_guard lock(mu_);
             statuses_[channel_id].last_error = applied.last_error;
@@ -874,16 +906,6 @@ void RetentionCoordinator::RunPeriodic(std::int64_t now_ms) {
     }
 }
 
-namespace {
-// Fixed per-call diagnostics, emitted only after admission lock destruction.
-struct AdmissionCosts {
- const bool active=recording::latency::SubcostEnabled();
- std::uint64_t begin=active?recording::latency::Now():0;std::array<std::uint64_t,7> ns{};
- template<class F> auto Measure(unsigned slot,F&& f){const auto b=active?recording::latency::Now():0;auto result=f();if(active)ns[slot]+=recording::latency::Now()-b;return result;}
- ~AdmissionCosts(){if(!active)return;static std::atomic<unsigned> count{0};const auto id=count.fetch_add(1);if(id>=128)return;
- std::fprintf(stderr,"[R119-admission] {\"id\":%u,\"beginNs\":%llu,\"endNs\":%llu,\"costNs\":[%llu,%llu,%llu,%llu,%llu,%llu,%llu]}\n",id,(unsigned long long)begin,(unsigned long long)recording::latency::Now(),(unsigned long long)ns[0],(unsigned long long)ns[1],(unsigned long long)ns[2],(unsigned long long)ns[3],(unsigned long long)ns[4],(unsigned long long)ns[5],(unsigned long long)ns[6]);}
-};
-}
 RetentionAdmissionResult RetentionCoordinator::AdmitContinuousWrite(
     const std::string& channel_id,
     std::uint64_t expected_segment_bytes,

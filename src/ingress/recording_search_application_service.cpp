@@ -122,10 +122,11 @@ ApplicationServiceResult RecordingApplicationService::Search(const Query& raw,co
             // 각 시도의 동일한 revision/재생 검증을 통과한 모델만 한 번 게시한다.
             const bool observations=!query.objects.empty()||!query.tracks.empty()||!query.events.empty()||
                 !query.zones.empty()||!query.rules.empty()||!query.behaviours.empty();
+            recording::SearchSourceBatch retry_capture;
             bool prepared=false;
             for(unsigned attempt=0;attempt<3;++attempt){
                 diagnostic.attempt=attempt;recording::SearchDiagnostic::Stage("refresh");
-                bool refreshed=false;{recording::SearchDiagnostic::Phase cost("Refresh");refreshed=search.Refresh(query.channels,state->source,&state->source,&error,{},observations);}
+                bool refreshed=false;{recording::SearchDiagnostic::Phase cost("Refresh");refreshed=search.Refresh(query.channels,state->source,&state->source,&error,{},observations,&retry_capture);}
                 if(!refreshed){
                     if(error=="search-source-changed"){recording::SearchDiagnostic::Reason(error);recording::latency::VisualPhase phase("structured-source-changed");continue;}
                     return Failure(error);

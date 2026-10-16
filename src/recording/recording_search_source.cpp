@@ -6,6 +6,9 @@
 #include <limits>
 #include <new>
 #include <stdexcept>
+#if MEDIA_SERVER_USE_OPENSSL
+#include <openssl/evp.h>
+#endif
 
 namespace recording {
 namespace {
@@ -13,14 +16,14 @@ namespace {
 // Counts are per capture, not the whole HTTP request or a CPU-time estimate.
 struct CaptureCost {
     bool enabled=latency::SubcostEnabled(),complete=false;
-    std::uint64_t rows=0,excluded=0,memo=0,begin=enabled?latency::Now():0;
+    std::uint64_t rows=0,excluded=0,memo=0,reused=0,begin=enabled?latency::Now():0;
     std::array<std::uint64_t,4> decode=latency::segment_decode_cost;
     ~CaptureCost() {
         if(!enabled)return;
         static std::atomic<unsigned> records{0};if(records.fetch_add(1)>=12)return;
         char line[512];const int n=std::snprintf(line,sizeof(line),
-            "[search-capture-cost] {\"rows\":%llu,\"excluded\":%llu,\"memoExcluded\":%llu,\"decodeCalls\":%llu,\"decodeHits\":%llu,\"parseNs\":%llu,\"elapsedNs\":%llu,\"complete\":%s}\n",
-            (unsigned long long)rows,(unsigned long long)excluded,(unsigned long long)memo,
+            "[search-capture-cost] {\"rows\":%llu,\"excluded\":%llu,\"memoExcluded\":%llu,\"reusedSegments\":%llu,\"decodeCalls\":%llu,\"decodeHits\":%llu,\"parseNs\":%llu,\"elapsedNs\":%llu,\"complete\":%s}\n",
+            (unsigned long long)rows,(unsigned long long)excluded,(unsigned long long)memo,(unsigned long long)reused,
             (unsigned long long)(latency::segment_decode_cost[0]-decode[0]),
             (unsigned long long)(latency::segment_decode_cost[1]-decode[1]),
             (unsigned long long)(latency::segment_decode_cost[2]-decode[2]),
@@ -91,8 +94,12 @@ bool RecordingCatalog::ValidateSearchSource(const SearchSourceBatch& batch, std:
 }
 
 bool RecordingCatalog::CaptureSearchSource(const std::vector<std::string>& channels,
-    const RecordingSearchModel* previous, SearchSourceBatch* result, std::string* error, SearchModelLimits limits, bool include_observations) const {
-    if (!result || channels.empty() || channels.size() > 32) return Fail(error, "search-invalid-channels");
+    const RecordingSearchModel* previous, SearchSourceBatch* result, std::string* error, SearchModelLimits limits, bool include_observations, SearchSourceBatch* retry_capture) const {
+    if (!result || result==retry_capture || channels.empty() || channels.size() > 32) return Fail(error, "search-invalid-channels");
+    // Consume the prior attempt once, including exceptions/partial moves. It
+    // cannot be offered again after an interrupted current namespace traversal.
+    SearchSourceBatch prior_capture;
+    if(retry_capture)prior_capture=std::move(*retry_capture);
     for (const auto& channel : channels)
         if (!ValidateRecordingReferenceId(channel, nullptr)) return Fail(error, "search-invalid-channels");
     SearchDiagnostic::Stage("capture-source");
@@ -131,8 +138,43 @@ bool RecordingCatalog::CaptureSearchSource(const std::vector<std::string>& chann
         const auto selected = [&](const std::string& channel) {
             return std::find(channels.begin(), channels.end(), channel) != channels.end();
         };
-        std::size_t bytes = sizeof(batch);
+        batch.residency_=limits.residency.get();batch.max_documents_=limits.max_documents;batch.max_bytes_=limits.max_bytes;
+        const bool remember=retry_capture&&!include_observations&&batch.rebuild;
+        const bool reuse=remember&&prior_capture.rebuild&&prior_capture.pending.empty()&&
+            prior_capture.catalog_instance==batch.catalog_instance&&
+            prior_capture.delta.source_instance==batch.delta.source_instance&&
+            prior_capture.resolution_revision<=batch.resolution_revision&&
+            prior_capture.residency_==batch.residency_&&prior_capture.max_documents_==limits.max_documents&&
+            prior_capture.max_bytes_==limits.max_bytes;
+        std::array<unsigned char,32> raw_digest{};std::size_t raw_size=0;
+        bool raw_valid=false;
+        std::size_t bytes = sizeof(batch),span_bytes=0;
+        bool remember_spans=remember;
+        const auto drop_spans=[&] {batch.segment_spans_.clear();bytes-=span_bytes;span_bytes=0;remember_spans=false;};
+        const auto remember_span=[&](const std::string& id,RecordingLifecycle lifecycle,std::size_t begin) {
+            if(!remember_spans||!raw_valid)return true;
+            const auto charge=sizeof(std::pair<const std::string,SearchSourceBatch::SegmentSpan>)+4*sizeof(void*)+2*(id.size()+1);
+            const auto slack=(batch.delta.upserts.capacity()-batch.delta.upserts.size())*sizeof(SearchDocument);
+            if(bytes>limits.max_bytes||slack>limits.max_bytes-bytes||charge>limits.max_bytes-bytes-slack){drop_spans();return true;}
+            bytes+=charge;span_bytes+=charge;
+            batch.segment_spans_.emplace(id,SearchSourceBatch::SegmentSpan{raw_digest,raw_size,begin,batch.delta.upserts.size()-begin,lifecycle});
+            return true;
+        };
         const auto add = [&](SearchDocument d) {
+            // Optional retry evidence must neither displace a valid document nor
+            // use the vector's unoccupied/relocation storage as free memory.
+            const auto& documents=batch.delta.upserts;
+            if(span_bytes&&documents.size()<limits.max_documents){
+                auto next=bytes;
+                if(AccountOwnedSearchDocument(d,&next,std::numeric_limits<std::size_t>::max())){
+                    const auto required=documents.size()+1;
+                    const auto capacity=documents.capacity()<required?
+                        required+std::min({documents.capacity()?documents.capacity()-1:std::size_t{0},
+                            std::size_t{1023},limits.max_documents-required}):documents.capacity();
+                    const auto extra=capacity-required+(documents.capacity()<required?documents.capacity():0);
+                    if(next>limits.max_bytes||extra>(limits.max_bytes-next)/sizeof(SearchDocument))drop_spans();
+                }
+            }
             return AppendOwnedSearchDocument(&batch.delta.upserts,std::move(d),&bytes,limits);
         };
         // 저장된 locator의 시각만 소비한다. 여기서 미확정 관측의 epoch/시각을 새로 추정하지 않는다.
@@ -186,7 +228,8 @@ bool RecordingCatalog::CaptureSearchSource(const std::vector<std::string>& chann
             const bool complete=segments_v2_.ForEachChannelEntry(channels,[&](const auto& id,const auto& s) {
                 ++costs.rows;
                 const auto lifecycle=EffectiveLifecycleV2Locked(id,true);
-                if (lifecycle==RecordingLifecycle::Deleted) return true;
+                const auto begin=batch.delta.upserts.size();
+                if (lifecycle==RecordingLifecycle::Deleted) return remember_span(id,lifecycle,begin);
                 const auto segment = [&](const RecordingUtcMappingV1* m) {
                     SearchDocument d;d.id="s2:"+Key(id)+Key(m?m->mapping_id:"");d.channel_id=s.channel_id;d.segment_id=id;
                     d.source_id=s.source_id;d.store_id=s.store_id;d.media_epoch_id=s.media_epoch_id;d.stream_epoch_id=s.media_epoch_id;d.media_end_pts=m?m->end_pts:s.media_end_pts;d.media_pts=m?m->start_pts:s.media_start_pts;
@@ -196,14 +239,41 @@ bool RecordingCatalog::CaptureSearchSource(const std::vector<std::string>& chann
                             d.start_ns=m->utc_start_ns;d.end_ns=m->utc_end_ns;}}
                     return add(std::move(d));
                 };
-                if (s.mappings.empty()) return segment(nullptr);
-                for(const auto& mapping:s.mappings)if(!segment(&mapping))return false;
-                return true;
+                if (s.mappings.empty()) {if(!segment(nullptr))return false;}
+                else for(const auto& mapping:s.mappings)if(!segment(&mapping))return false;
+                return remember_span(id,lifecycle,begin);
             },[&](const auto& id){
                 // Channel exclusion never suppresses current lifecycle errors.
                 ++costs.rows;++costs.excluded;
                 (void)EffectiveLifecycleV2Locked(id,true);return true;
-            },&costs.memo);
+            },&costs.memo,[&](const std::string& id,const std::string& raw)->std::optional<bool>{
+                raw_valid=false;
+                if(!remember)return {};
+#if MEDIA_SERVER_USE_OPENSSL
+                unsigned digest_size=0;
+                raw_valid=EVP_Digest(raw.data(),raw.size(),raw_digest.data(),&digest_size,EVP_sha256(),nullptr)==1&&digest_size==raw_digest.size();
+#endif
+                raw_size=raw.size();
+                if(!raw_valid||!reuse)return {};
+                const auto prior=prior_capture.segment_spans_.find(id);
+                if(prior==prior_capture.segment_spans_.end())return {};
+                const auto span=prior->second;
+                if(span.raw_bytes!=raw_size||span.digest!=raw_digest)return {};
+                const auto lifecycle=EffectiveLifecycleV2Locked(id,true);
+                // State is separate from segment raw. A changed lifecycle takes
+                // the strict path; deleted rows are never moved into the result.
+                if(lifecycle!=span.lifecycle)return {};
+                if(span.begin>prior_capture.delta.upserts.size()||span.count>prior_capture.delta.upserts.size()-span.begin)return {};
+                const auto begin=batch.delta.upserts.size();
+                for(std::size_t i=span.begin;i<span.begin+span.count;++i){
+                    const auto& d=prior_capture.delta.upserts[i];
+                    if(d.segment_id!=id||d.kind!=SearchDocumentKind::Recording||!selected(d.channel_id))return {};
+                }
+                for(std::size_t i=span.begin;i<span.begin+span.count;++i)
+                    if(!add(std::move(prior_capture.delta.upserts[i])))return false;
+                prior_capture.segment_spans_.erase(prior);++costs.rows;++costs.reused;++batch.reused_segments_;
+                return remember_span(id,lifecycle,begin);
+            });
             if(!complete)return Fail(error,"search-capacity-exceeded");
             if(include_observations&&(!observations_.ForEach(v1)||!observations_v2_.ForEach(v2)||!referenced_observations_.ForEach(referenced)))
                 return Fail(error,"search-capacity-exceeded");

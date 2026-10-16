@@ -330,13 +330,13 @@ std::size_t SharedStream::TotalDroppedPacketCount() const {
 void SharedStream::ReportRecorder(const std::shared_ptr<SubscriberState>& state) {
     if(!recording::latency::SubcostEnabled()||state->role!=SubscriberRole::Recorder)return;
     // Called only after join, outside queue/map locks; all counter writers stopped.
-    std::fprintf(stderr,"[recorder-cost] enqueued=%llu dequeued=%llu dropped=%zu payloadBytes=%llu maxDepth=%llu maxBytes=%llu firstNs=%llu lastNs=%llu minInputGapNs=%llu maxInputGapNs=%llu queueWaitNs=%llu maxQueueWaitNs=%llu callbackNs=%llu maxCallbackNs=%llu\n",
+    std::fprintf(stderr,"[recorder-cost] enqueued=%llu dequeued=%llu dropped=%zu payloadBytes=%llu maxDepth=%llu maxBytes=%llu firstNs=%llu lastNs=%llu minInputGapNs=%llu maxInputGapNs=%llu queueWaitNs=%llu maxQueueWaitNs=%llu callbackNs=%llu maxCallbackNs=%llu firstDepth64Ns=%llu firstDropNs=%llu maxCallbackBeginNs=%llu maxCallbackOrdinal=%llu\n",
         (unsigned long long)state->enqueued,(unsigned long long)state->dequeued,state->dropped_packets,
         (unsigned long long)state->payload_bytes,(unsigned long long)state->max_depth,(unsigned long long)state->max_bytes,
         (unsigned long long)state->first_input_ns,(unsigned long long)state->last_input_ns,
         (unsigned long long)state->min_input_gap_ns,(unsigned long long)state->max_input_gap_ns,
         (unsigned long long)state->queue_wait_ns,(unsigned long long)state->max_queue_wait_ns,
-        (unsigned long long)state->callback_ns,(unsigned long long)state->max_callback_ns);
+        (unsigned long long)state->callback_ns,(unsigned long long)state->max_callback_ns,(unsigned long long)state->first_depth64_ns,(unsigned long long)state->first_drop_ns,(unsigned long long)state->max_callback_begin_ns,(unsigned long long)state->max_callback_ordinal);
 }
 
 void SharedStream::WorkerLoop(const std::shared_ptr<SubscriberState>& state) {
@@ -372,7 +372,7 @@ void SharedStream::WorkerLoop(const std::shared_ptr<SubscriberState>& state) {
         }
         if(begin){const auto cost=recording::latency::Now()-begin;
             // Only this worker writes callback counters; final report follows join.
-            state->callback_ns+=cost;state->max_callback_ns=std::max(state->max_callback_ns,cost);}
+            state->callback_ns+=cost;if(cost>state->max_callback_ns){state->max_callback_ns=cost;state->max_callback_begin_ns=begin;state->max_callback_ordinal=packet.observation?packet.observation->ordinal:0;}}
     }
 }
 
@@ -390,13 +390,14 @@ void SharedStream::EnqueuePacket(const std::shared_ptr<SubscriberState>& state, 
                 state->recorder_video_loss_pending = true;
             }
             if(recording::latency::SubcostEnabled()&&state->role==SubscriberRole::Recorder)
-                state->queued_bytes-=state->queue.front().packet.payload.size();
+                {state->queued_bytes-=state->queue.front().packet.payload.size();
+                 if(!state->first_drop_ns)state->first_drop_ns=recording::latency::Now();}
             state->queue.pop_front();
             ++state->dropped_packets;
         }
         const auto now=recording::latency::SubcostEnabled()&&state->role==SubscriberRole::Recorder?recording::latency::Now():0;
         state->queue.push_back({packet,now});
-        if(now){++state->enqueued;state->payload_bytes+=packet.payload.size();state->queued_bytes+=packet.payload.size();
+        if(now){if(!state->first_depth64_ns&&state->queue.size()>=64)state->first_depth64_ns=now;++state->enqueued;state->payload_bytes+=packet.payload.size();state->queued_bytes+=packet.payload.size();
             state->max_depth=std::max(state->max_depth,std::uint64_t(state->queue.size()));state->max_bytes=std::max(state->max_bytes,state->queued_bytes);
             if(state->last_input_ns){const auto gap=now-state->last_input_ns;state->min_input_gap_ns=std::min(state->min_input_gap_ns,gap);state->max_input_gap_ns=std::max(state->max_input_gap_ns,gap);}
             else state->first_input_ns=now;

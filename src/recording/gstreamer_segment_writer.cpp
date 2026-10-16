@@ -201,8 +201,8 @@ public:
         const auto costs=writer_costs;const bool report=latency::SubcostEnabled()&&!costs_reported;costs_reported=true;
         lock.unlock();
         if(report){const char* names[]={"push","open","writer-binding","admission","finalize","eos","fsync","hash","file-evidence","ready-ticket","durable-commit","release"};
-            for(unsigned i=0;i<costs.size();++i)std::fprintf(stderr,"[writer-cost] stage=%s calls=%llu totalNs=%llu maxNs=%llu\n",names[i],
-                (unsigned long long)costs[i][0],(unsigned long long)costs[i][1],(unsigned long long)costs[i][2]);}
+            for(unsigned i=0;i<costs.size();++i)std::fprintf(stderr,"[writer-cost] stage=%s calls=%llu totalNs=%llu maxNs=%llu maxBeginNs=%llu maxEndNs=%llu\n",names[i],
+                (unsigned long long)costs[i][0],(unsigned long long)costs[i][1],(unsigned long long)costs[i][2],(unsigned long long)costs[i][3],(unsigned long long)costs[i][4]);}
     }
 
     std::shared_ptr<const RecordingTimeSnapshot> TimeSnapshot() const {
@@ -210,12 +210,12 @@ public:
     }
 
 private:
-    std::array<std::array<std::uint64_t,3>,12> writer_costs{};
+    std::array<std::array<std::uint64_t,5>,12> writer_costs{};
     bool costs_reported{false};
     struct Cost {
-        std::array<std::uint64_t,3>& row;std::uint64_t begin;
+        std::array<std::uint64_t,5>& row;std::uint64_t begin;
         Cost(Impl& owner,unsigned stage):row(owner.writer_costs[stage]),begin(latency::SubcostEnabled()?latency::Now():0){}
-        void End(){if(begin){const auto ns=latency::Now()-begin;++row[0];row[1]+=ns;row[2]=std::max(row[2],ns);begin=0;}}
+        void End(){if(begin){const auto ns=latency::Now()-begin;++row[0];row[1]+=ns;if(ns>row[2]){row[2]=ns;row[3]=begin;row[4]=begin+ns;}begin=0;}}
         ~Cost(){End();}
     };
     bool Fail(std::string* error, const std::string& message) {

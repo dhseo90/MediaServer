@@ -85,11 +85,13 @@ void Locate(SearchDocument& d, const ConsumerReferenceResolution& resolution) {
 
 bool RecordingSearchReader::Refresh(const std::vector<std::string>& channels,
     const std::shared_ptr<const RecordingSearchModel>& previous,
-    std::shared_ptr<const RecordingSearchModel>* output, std::string* error, SearchModelLimits limits, bool include_observations) const {
+    std::shared_ptr<const RecordingSearchModel>* output, std::string* error, SearchModelLimits limits, bool include_observations, SearchSourceBatch* retry_capture) const {
     if (!output) {if(error)*error="search-invalid-output";return false;}
     if(!limits.residency)limits.residency=catalog_.SearchResidency();
     SearchSourceBatch batch;
-    {SearchDiagnostic::Phase cost("Capture");if (!catalog_.CaptureSearchSource(channels, previous.get(), &batch, error, limits, include_observations)) return false;}
+    {SearchDiagnostic::Phase cost("Capture");if (!catalog_.CaptureSearchSource(channels, previous.get(), &batch, error, limits, include_observations, retry_capture)) {if(retry_capture)*retry_capture=SearchSourceBatch{};return false;}}
+    if(retry_capture)*retry_capture=SearchSourceBatch{};
+
 #ifdef RECORDING_SEARCH_TESTING
     if(search_after_capture_test)search_after_capture_test();
 #endif
@@ -114,7 +116,11 @@ bool RecordingSearchReader::Refresh(const std::vector<std::string>& channels,
         }
         Locate(batch.delta.upserts.at(pending.document_index), resolution);
     }
-    if (!catalog_.ValidateSearchSource(batch, error)) return false;
+    if (!catalog_.ValidateSearchSource(batch, error)) {
+        if(retry_capture&&!include_observations&&batch.rebuild&&error&&*error=="search-source-changed")
+            *retry_capture=std::move(batch);
+        return false;
+    }
     if (!batch.rebuild && previous && batch.delta.upserts.empty() && batch.delta.removed_ids.empty()) {
         SearchDiagnostic::CostRow("RefreshReuse",SearchDiagnostic::Tick(),SearchDiagnostic::Tick());*output = previous;if(error)error->clear();return true;
     }

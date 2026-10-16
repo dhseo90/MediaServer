@@ -18,7 +18,7 @@ public:
     bool Refresh(const std::vector<std::string>& channels,
                  const std::shared_ptr<const RecordingSearchModel>& previous,
                  std::shared_ptr<const RecordingSearchModel>* output,
-                 std::string* error, SearchModelLimits limits = {}, bool include_observations = true) const;
+                 std::string* error, SearchModelLimits limits = {}, bool include_observations = true, SearchSourceBatch* retry_capture = nullptr) const;
     bool WithPlayback(const RecordingSearchModel&, const RecordingSearchQuery&,
         std::shared_ptr<const RecordingSearchModel>*, std::string* error, SearchModelLimits limits = {}) const;
     // 무후보이며 이미 원본 ns 축인 recording-only 모델은 같은 불변 소유권을 게시한다.

@@ -61,7 +61,8 @@ class RecordingRetainedRowStore {
     // authenticates the current raw row; this is never membership/cut authority.
     struct DecodedSegment {
         SearchModelResidency::Reservation memory;
-        std::string bytes;
+        std::array<unsigned char,32> digest{};
+        std::size_t raw_bytes=0;
         std::shared_ptr<const void> row;
         std::size_t charged=0;
         std::list<std::string>::iterator recent;
@@ -116,9 +117,13 @@ public:
         decoded_recency_.clear();decoded_segments_.clear();segment_classes_.clear();decoded_bytes_=0;
     }
     std::shared_ptr<const void> VerifiedSegmentDecode(const std::string& id,const std::string& raw) {
+        // The caller has just authenticated the entire current raw row. Keep
+        // its SHA-256 identity, not another owning JSON string, with the parsed
+        // value. A revision, ID or open FD is never a replacement for that read.
+        std::array<unsigned char,32> digest{};if(!RawDigest(raw,&digest))return {};
         std::lock_guard lock(decoded_mu_);const auto it=decoded_segments_.find(id);
         if(it==decoded_segments_.end())return {};
-        if(it->second.bytes==raw){decoded_recency_.splice(decoded_recency_.end(),decoded_recency_,it->second.recent);return it->second.row;}
+        if(it->second.raw_bytes==raw.size()&&it->second.digest==digest){decoded_recency_.splice(decoded_recency_.end(),decoded_recency_,it->second.recent);return it->second.row;}
         EraseDecoded(it);return {};
     }
     // Exclusion-only classification of the same authenticated raw. This cannot
@@ -163,10 +168,11 @@ public:
         if(it!=decoded_segments_.end())EraseDecoded(it);
         const auto summary=segment_classes_.find(id);if(summary!=segment_classes_.end()){decoded_bytes_-=summary->second.charged;segment_classes_.erase(summary);}
     }
-    void RememberVerifiedSegmentDecode(const std::string& id,std::string raw,
+    void RememberVerifiedSegmentDecode(const std::string& id,const std::string& raw,
         std::shared_ptr<const void> row,std::size_t row_bytes) {
         // Obtain the owner before the cache mutex: Finish holds the store mutex
         // while clearing this cache, so the opposite lock order is forbidden.
+        std::array<unsigned char,32> digest{};if(!RawDigest(raw,&digest))return;
         const auto owner=MemoryOwner();
 #if defined(MEDIA_SERVER_RECORDING_GENERATION_TESTING)
         if(probe_before_remember){auto hook=probe_before_remember;hook();}
@@ -174,7 +180,7 @@ public:
         std::lock_guard lock(decoded_mu_);
         if(decoded_closed_)return;
         // Include the LRU node and its independent ID allocation in the same cap.
-        const auto extra=sizeof(DecodedSegment)+256+4*(id.size()+1)+raw.capacity()+1;
+        const auto extra=sizeof(DecodedSegment)+256+4*(id.size()+1);
         if(row_bytes>decoded_limit_||extra>decoded_limit_-row_bytes)return;
         const auto charged=extra+row_bytes;
         if(const auto old=decoded_segments_.find(id);old!=decoded_segments_.end()){
@@ -190,7 +196,7 @@ public:
             try {
                 // Keep the extra ticket local until map construction succeeds:
                 // an emplace exception destroys its argument before this catch.
-                DecodedSegment entry{{},std::move(raw),std::move(row),charged,std::prev(decoded_recency_.end())};
+                DecodedSegment entry{{},digest,raw.size(),std::move(row),charged,std::prev(decoded_recency_.end())};
 #if defined(MEDIA_SERVER_RECORDING_GENERATION_TESTING)
                 if(probe_throw_after_recency)throw std::bad_alloc();
 #endif
@@ -300,6 +306,13 @@ public:
     // perform its normal lifecycle/retirement checks in excluded(id).
     template<class F,class E> bool ForEachChannelEntry(const std::vector<std::string>& channels,F&& visitor,E&& excluded,
                                                      std::uint64_t* memo_excluded=nullptr)const {
+        return ForEachChannelEntry(channels,std::forward<F>(visitor),std::forward<E>(excluded),memo_excluded,
+            [](const std::string&,const std::string&)->std::optional<bool>{return {};});
+    }
+    // The private consumer may reuse a derived row only after this current raw
+    // namespace read. nullopt requests the unchanged strict typed decode path.
+    template<class F,class E,class R> bool ForEachChannelEntry(const std::vector<std::string>& channels,F&& visitor,E&& excluded,
+                                                     std::uint64_t* memo_excluded,R&& raw_consumer)const {
         static_assert(std::is_same_v<T,RecordingSegmentV2>);
         const auto consume=[&](const auto& id,const auto& value){
             return std::find(channels.begin(),channels.end(),value.channel_id)!=channels.end()
@@ -315,6 +328,10 @@ public:
                     if(memo_excluded)++*memo_excluded;
                     if(!excluded(id)){refused=true;return false;}return true;
                 }
+            }
+            if(const auto used=raw_consumer(id,bytes.bytes)){
+                if(!*used)refused=true;
+                return *used;
             }
             const auto row=Decode(id,std::move(bytes));
             if(!consume(row->first,row->second)){refused=true;return false;}return true;
@@ -351,7 +368,7 @@ public:
 private:
     const_iterator Decode(const std::string& id,RecordingColdRow value)const {
         // The immutable cut supplies authenticated bytes and membership. A live
-        // sibling supplies only exact-byte parsed memoization, under its existing
+        // sibling supplies only current-raw SHA-256-bound parsed memoization, under its existing
         // cache mutex/16MiB budget. Shared row tickets outlive cache eviction.
         const auto& decoded=decoded_store_?decoded_store_:store_;
         if constexpr(std::is_same_v<T,RecordingSegmentV2>){
@@ -401,7 +418,7 @@ private:
         if constexpr(std::is_same_v<T,RecordingSegmentV2>){
             if(kind_=="segment-v2"){
                 decoded->RememberVerifiedSegmentClass(id,value.bytes,shared->second);
-                decoded->RememberVerifiedSegmentDecode(id,std::move(value.bytes),shared,pair_bytes+shared->second.memory.bytes());
+                decoded->RememberVerifiedSegmentDecode(id,value.bytes,shared,pair_bytes+shared->second.memory.bytes());
             }
         }
         return const_iterator(this,std::move(shared));
