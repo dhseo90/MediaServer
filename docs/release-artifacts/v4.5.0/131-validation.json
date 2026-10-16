@@ -681,7 +681,57 @@
     "memoryP0/releasehold"
   ],
   "cleanup": {
-    "status": "pending remote preservation and owned-only cleanup"
+    "status": "PASS after verified remote evidence bytes",
+    "ownedRoot": "/private/tmp/media-server-r131-xzh09d20",
+    "rootAbsent": true,
+    "pointerAbsent": true,
+    "processPortChecks": [
+      {
+        "pid": 16048,
+        "absent": true
+      },
+      {
+        "pid": 17019,
+        "absent": true
+      },
+      {
+        "pid": 17935,
+        "absent": true
+      },
+      {
+        "pid": 19994,
+        "absent": true
+      },
+      {
+        "port": 63389,
+        "listenerAbsent": true
+      },
+      {
+        "port": 63569,
+        "listenerAbsent": true
+      },
+      {
+        "port": 63805,
+        "listenerAbsent": true
+      },
+      {
+        "port": 64294,
+        "listenerAbsent": true
+      }
+    ],
+    "containersRemovedAndAbsent": [
+      "media-server-r131-linux",
+      "media-server-r131-linux-final",
+      "media-server-r131-linux-verified",
+      "media-server-r131-linux-native"
+    ],
+    "removed": {
+      "files": 19652,
+      "dirs": 514,
+      "symlinksUnlinkedWithoutFollowing": 841
+    },
+    "userSettingsBackupsModelsSDK": "untouched; symlink targets not followed",
+    "logicalOwnerBoundary": "actual warm final storage-destruction RAM/scratch/FD0; OS process cleanup is separate"
   },
   "archive": {
     "path": "docs/release-artifacts/v4.5.0/131-execution.tar.gz",
@@ -709,5 +759,28 @@
     "product": "b38aad0a350f9e8a9df33462ed17893b66f143ab",
     "testsAndBinding": "61e338f82e2c8cda41c5d44c17226eef4216adee",
     "execution": "baseline HEAD9de8f1945091c7c81ef1a9c8897d7e4e1708d655 plus exact bound worktree source files; commits created after execution, not claimed as execution HEAD"
+  },
+  "remotePreservation": {
+    "remoteCommit": "75f6873d08a1b38ac2429cc5ea442502290a2689",
+    "retrieval": "ls-remote then fetch and git object byte readback",
+    "files": {
+      "docs/release-artifacts/v4.5.0/131-execution.tar.gz": {
+        "bytes": 68542583,
+        "sha256": "09c8bf98a2106e17cc0a8890a1b2de37b55563a33d968c922b5d19a00ade17d1"
+      },
+      "docs/release-artifacts/v4.5.0/131-validation.json": {
+        "bytes": 24896,
+        "sha256": "9b204108b8f6abcda77d609d6ec1cfe2c47f25782795d472cbab2f4da26ed79d"
+      },
+      "docs/release-artifacts/v4.5.0/131-independent-review.json": {
+        "bytes": 3730,
+        "sha256": "4a0fe85f7c48c6cba528963068664db75b95ed28d89835dc3eaeaa27e456af75"
+      },
+      "docs/release-artifacts/v4.5.0/131-binding.json": {
+        "bytes": 17858,
+        "sha256": "8db3c8e3baa8c441703f3e66359d5a0d90a0df7ea9ecbfe9b454d5edb1f2d6a8"
+      }
+    },
+    "archivePayloadsReadback": 496
   }
 }
