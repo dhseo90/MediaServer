@@ -69,11 +69,24 @@ bool VisualIndexWorker::Rebuild(const Cancelled& cancelled,std::string* error){
     latency::VisualPhase rebuild("index-rebuild");
     struct FailureTrace {
         std::string* error;const char* stage="begin";std::size_t row=0;bool succeeded=false;
+        bool candidate_available=false;char channel[65]{},segment[65]{},media_hash[65]{};std::int64_t media_pts=0;std::int32_t num=0,den=0;
+        const std::int64_t started_ns=std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::steady_clock::now().time_since_epoch()).count();
+        void Candidate(const VisualSearchDocument& doc){
+            candidate_available=true;
+            const auto copy=[](char* out,const std::string& value,bool numeric){
+                const bool safe=value.size()<=64&&std::all_of(value.begin(),value.end(),[numeric](unsigned char c){return (c>='0'&&c<='9')||(!numeric&&((c>='a'&&c<='f')||c=='-'));});
+                std::snprintf(out,65,"%s",safe?value.c_str():"redacted");
+            };
+            copy(channel,doc.channel_id,true);copy(segment,doc.segment_id,false);copy(media_hash,doc.media_sha256,false);
+            media_pts=doc.media_pts;num=doc.time_base_num;den=doc.time_base_den;
+        }
         ~FailureTrace(){if(succeeded||!latency::SubcostEnabled())return;
             static std::atomic<unsigned> count{0};if(count.fetch_add(1)>=16)return;
             const bool safe=error&&!error->empty()&&error->size()<=80&&
                 std::all_of(error->begin(),error->end(),[](unsigned char c){return (c>='a'&&c<='z')||(c>='0'&&c<='9')||c=='-';});
             std::fprintf(stderr,"[R119-index-failure] stage=%s row=%zu code=%s\n",stage,row,safe?error->c_str():"unclassified");
+            std::fprintf(stderr,"[R129-index-failure-binding] startNs=%lld finishNs=%lld row=%zu candidateAvailable=%d channel=%s segment=%s mediaSha256=%s mediaPts=%lld timeBaseNum=%d timeBaseDen=%d\n",
+                static_cast<long long>(started_ns),static_cast<long long>(std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::steady_clock::now().time_since_epoch()).count()),row,candidate_available,candidate_available?channel:"-",candidate_available?segment:"-",candidate_available?media_hash:"-",static_cast<long long>(candidate_available?media_pts:0),candidate_available?num:0,candidate_available?den:0);
         }
     } failure_trace{error};
     std::shared_ptr<const VisualSearchIndex> base;
@@ -107,16 +120,18 @@ bool VisualIndexWorker::Rebuild(const Cancelled& cancelled,std::string* error){
     std::set<std::pair<std::string,std::string>> unsupported_segments,unsupported_snapshots;
     failure_trace.stage="encode";
     for(auto& row:docs){
-        ++failure_trace.row;
+        ++failure_trace.row;failure_trace.candidate_available=false;
         if(row.event_id.empty()&&unsupported_segments.count({row.channel_id,row.segment_id}))continue;
         if(cancelled())return Fail(error,"visual-cancelled");
         const auto found=prior.find(row.id);
         if(found!=prior.end()&&Same(row,*found->second))row.embedding=found->second->embedding;
         else if(!encode(&row,cancelled,error)){
+            if(latency::SubcostEnabled())failure_trace.Candidate(row);
             if(cancelled())return Fail(error,"visual-cancelled");
             if(!error||*error!="visual-frame-unsupported")return false;
             if(row.event_id.empty())unsupported_segments.emplace(row.channel_id,row.segment_id);
             else unsupported_snapshots.emplace(row.channel_id,row.id);
+            failure_trace.candidate_available=false;
             error->clear();
         }
     }

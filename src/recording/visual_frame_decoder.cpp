@@ -87,6 +87,7 @@ struct DecodeTrace {
     std::array<Event,32> events{};std::array<Event,16> factories{};
     std::atomic<unsigned> event_count{0},factory_count{0},needs{0},seeks{0},pads{0},samples{0};
     std::atomic<const char*> first{nullptr};std::atomic<bool> bus_seen{false},closing{false};Event bus{},first_event{};
+    char bus_domain[160]{},bus_description[160]{};bool bus_description_truncated{false};
     std::int64_t offset_before{-1},first_pts{-1},last_pts{-1},last_stream{-1};
     struct stat before{};bool before_valid{false},found{false},failed{false},video{false},unsupported{false},null_done{false};
     explicit DecodeTrace(int f,std::uint64_t n,std::int64_t t,std::uint32_t ms,std::string* e)
@@ -110,7 +111,15 @@ struct DecodeTrace {
             RecordVisualFrameBusDiagnostic(message,t.closing.load());
 #endif
             GError* problem=nullptr;gst_message_parse_error(message,&problem,nullptr);t.bus.kind="bus-error";
-            if(problem){t.bus.a=problem->domain;t.bus.b=problem->code;g_error_free(problem);}
+            if(problem){t.bus.a=problem->domain;t.bus.b=problem->code;
+                // Existing opt-in trace only: canonical library description, never raw GError/debug.
+                const bool known=problem->domain==GST_CORE_ERROR||problem->domain==GST_LIBRARY_ERROR||
+                    problem->domain==GST_RESOURCE_ERROR||problem->domain==GST_STREAM_ERROR;
+                Text(t.bus_domain,known?g_quark_to_string(problem->domain):"other-domain-redacted");
+                gchar* description=known?gst_error_get_message(problem->domain,problem->code):nullptr;
+                Text(t.bus_description,description?description:"unclassified");
+                t.bus_description_truncated=description&&std::strlen(description)>=sizeof(t.bus_description);
+                g_free(description);g_error_free(problem);}
             Text(t.bus.text,GST_MESSAGE_SRC(message)?GST_OBJECT_NAME(GST_MESSAGE_SRC(message)):"unknown");t.bus.c=t.closing;if(!t.closing)t.First("bus-error",t.bus.a,t.bus.b);
         }return GST_BUS_PASS;
     }
@@ -155,7 +164,9 @@ struct DecodeTrace {
         bool comma=false;auto emit=[&](const Event& e){if(comma)o<<',';comma=true;o<<"{\"kind\":\""<<e.kind<<"\",\"a\":"<<e.a<<",\"b\":"<<e.b<<",\"c\":"<<e.c<<",\"d\":"<<e.d<<",\"text\":\""<<e.text<<"\"}";};
         for(unsigned i=0;i<std::min<unsigned>(event_count,events.size());++i)emit(events[i]);
         for(unsigned i=0;i<std::min<unsigned>(factory_count,factories.size());++i)emit(factories[i]);if(bus_seen)emit(bus);if(first.load())emit(first_event);
-        o<<"],\"droppedEvents\":"<<(event_count>events.size()?event_count-events.size():0)<<",\"droppedFactories\":"<<(factory_count>factories.size()?factory_count-factories.size():0);edges.Print(o);o<<"}\n";
+        o<<"],\"droppedEvents\":"<<(event_count>events.size()?event_count-events.size():0)<<",\"droppedFactories\":"<<(factory_count>factories.size()?factory_count-factories.size():0);if(bus_seen)o<<",\"busDetail\":{\"domainName\":\""<<bus_domain<<"\",\"canonicalDescription\":\""<<bus_description
+          <<"\",\"canonicalTruncated\":"<<(bus_description_truncated?"true":"false")<<",\"rawMessageCaptured\":false,\"debugCaptured\":false}";
+        edges.Print(o);o<<"}\n";
         const auto line=o.str();if(std::fwrite(line.data(),1,line.size(),stderr)!=line.size()||std::fflush(stderr)!=0)OutputFailure("[visual-frame] trace-output-failed\n");
     }catch(...){OutputFailure("[visual-frame] trace-output-failed\n");}}
 };

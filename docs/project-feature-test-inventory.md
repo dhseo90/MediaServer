@@ -5238,3 +5238,7 @@ ID/시간/유효 재생 target을 대조한다. 비ns 변환·관측 혼합·eve
 래퍼는 제품 시작 전 실제 후처리 import/인자파싱, 보존127 FAIL의 후처리 거부와 제품/실행/후처리/정리 오류 분리를 확인한다. 임의PASS stub은 금지한다.
 127 Linux source/generation/cursor/playback/application/scope 및 decoder 영향 회귀를 수행한다. 원본손상/부재/cancel/Stop·현재권한·과거게시본 불변은 기존 해당 focused검사의 범위로 대조한다.
 같은Automatic 원본의 초기 게시 적격근거와 독립검토 이후에만 기존 source-parallel1회, ready500초/전체630초·원래12실제200 p95≤2000ms/max≤5000ms·aux2005초·게시/Recorder/Finish/닫힌원장을 기존대로 판단한다. 새900/45/120과UI는 제외한다.
+
+### V450-MEM129 — 동일 프로세스의 초기 게시 및 병행 재개
+
+기존 source-parallel 외부1회에서 초기 ready500초를 첫 결과로 판정하고 통과한 같은 프로세스의 원래12응답·aux200·새 게시·Recorder·Finish를 이어간다. 전체630초·기존입력/cache배치·Automatic·한도·gate는 불변이다. 초기 게시나 과거 bus 원인 해결을 실행 전 별도 PASS로 요구하지 않는다. opt-in 최초 bus의 정제 domain/canonical description(원문/debug 미수집·길이 제한)과 실패 후보/시간축만 연결하며 선택/반환/fallback은 불변이다. 합성 bus 단위검사에서 raw 경로/URI 미출력·첫 오류 보존·JSON/cleanup 형식을 확인한다. 실제 worker 실패/이전 게시본 보존은 관련 기존 worker focused 검사로 확인하며 Linux128 불변 범위는 재사용한다. 최초 실패와 내부시도·후처리·정리 오류를 분리하고 외부 재시도·900/45/120분은 금지한다.
