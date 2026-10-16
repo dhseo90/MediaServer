@@ -17,6 +17,11 @@
 
 ## v4.5.0 잔여 개발과 릴리즈 순서
 
+[128 초기 색인 실패 직접 조사](release-artifacts/v4.5.0/128-validation.json)는 **과거 bus 오류 미재현·래퍼 복구/관련 플랫폼 회귀 완료, 초기 게시 적격성 미확정**이다.
+보존2654B 원본의 target0 sample과 원장/hash를 확인했고, 실제 Automatic `vtdec_hw:applemedia:1.28.1`의 단일 직접 호출은 성공했다. sandbox에서 avdec로 전환된 호출 및 SoftwareOnly 대조는 별도 결과다. 과거6.35ms bus 오류의 상세 메시지는 미보존이며, 현재 성공을 원인 해소나 초기 index 게시 PASS로 승격하지 않는다.
+실제 후처리 모듈과 오류 분리 보존을 복구하고 R127 관련 Linux 회귀를 마감했다. [독립 판단](release-artifacts/v4.5.0/128-independent-review.json)에 따라 최종 source-parallel은 not-run이다. 다음은 동일 Automatic의 실제 source→encode→게시 준비 경계에 대한 근거 확보이며, 구조화 두 요청의5초 실패·Recorder 수용·전체 직접 목표는 별도 잔여다. 새900/45/120분은 실행하지 않았다.
+
+
 [127 구조화 준비/서비스 잠금 보완](release-artifacts/v4.5.0/127-validation.json)은 **한정 코드 회귀 확인·전체 병행 목표 차단**이다.
 무후보 ns 녹화의 불필요한 재생 모델 재구성을 줄이고, 기존 cursor가 새 source 준비 잠금을 기다리지 않도록 분리했다.
 단일 준비 수·현재 원문 검증·64MiB/640MiB·snapshot 권한/소유는 유지하며 macOS 관련 회귀와 [독립 검토](release-artifacts/v4.5.0/127-independent-review.json)를 받았다.

@@ -1,0 +1,28 @@
+{
+  "schema": "media-server.v450.r128.independent-review.v1",
+  "decision": "SCOPED_DIAGNOSTIC_WRAPPER_LINUX_SUPPORTED_HISTORICAL_CAUSE_AND_INITIAL_PUBLICATION_UNCONFIRMED",
+  "reviewer": {
+    "agent": "/root/independent_r128",
+    "requested": "gpt-6-astra/high",
+    "toolAccepted": "gpt-6-astra/high",
+    "actualModel": null,
+    "actualEffort": null,
+    "independence": "read-only; no implementation, test writing/execution or delegation"
+  },
+  "findings": [
+    {
+      "issue": "std::quoted does not JSON-escape control characters in raw GError/debug",
+      "resolution": "JsonString escapes U+0000..001F, quotes and backslash; roundtrip smoke PASS; reviewer re-read confirms resolved"
+    }
+  ],
+  "finalCodeReview": "No additional confirmed defect; probe RAII closes FD on all returns/exceptions and parses target before open; product policy unchanged; GCC newline behavior unchanged. Wrapper records product/runner/observer/postprocess/cleanup independently.",
+  "evidenceReview": {
+    "input": "target0 present, bytes/sample hashes match; actual standalone vtdec_hw call succeeds",
+    "historical": "first bus-error not reproduced, raw historical message/debug and domain name unavailable; no root-cause fix demonstrated",
+    "wrapper": "three units preserve separate outcomes; not product execution evidence",
+    "linux": "five related tests plus scope13/13 and decoder PASS checks86439; initial compile error and pre-init guard errors retained",
+    "eligibility": "source→encode→index initial publication not established; final source-parallel not-run appropriate"
+  },
+  "bindingReview": "producer51/0,readback0 errors/15 negative,coverage9/0 and inventorySha256-only diff confirmed read-only; not execution-performance evidence",
+  "cleanupReview": "execution evidence preserved; actual cleanup tracked separately in validation; completion only after absence check"
+}

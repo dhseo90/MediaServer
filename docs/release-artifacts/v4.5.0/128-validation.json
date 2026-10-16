@@ -1,0 +1,232 @@
+{
+  "schema": "media-server.v450.r128.validation.v1",
+  "status": "SCOPED_VALIDATION_PRESERVED_REMOTE_AND_CLEANUP_PENDING",
+  "baseline": "4e568180a30dbc24790a3cdde84feae388c3cd66",
+  "entry": "v4.5.0 clean worktree/index and actual origin same HEAD; no user edits overwritten",
+  "model": {
+    "mainRequested": "gpt-6-astra/high",
+    "mainToolAccepted": null,
+    "mainActualModel": null,
+    "mainActualEffort": null,
+    "reviewRequested": "gpt-6-astra/high",
+    "reviewToolAccepted": "gpt-6-astra/high",
+    "reviewActualModel": null,
+    "reviewActualEffort": null
+  },
+  "input": {
+    "archive": "125-execution.tar.gz",
+    "archiveSha256": "39eeb7708486378f919c10c82e4a3ba059d0c82f7874a1617559e7beb95eb83b",
+    "member": "observer/recordings/9101/fbb3074b-9328-4b87-bb5e-313e1805b5f3.mp4",
+    "bytes": 2654,
+    "sha256": "5dc838088a1ecc7175e52a1419719ccf356813ada598f6ae8731d34238db0e15",
+    "extraction": "owned exclusive path; reject absolute/parent traversal/symlink/nonregular/overwrite; reproduction uses separate copies; no user settings/models/SDK in archive"
+  },
+  "originalFailure": {
+    "indexCandidateRow": 299,
+    "targetNs": 0,
+    "policy": "Automatic",
+    "factory": "vtdec_hw:applemedia:1.28.1",
+    "elapsedUs": 6353,
+    "decodedSamples": 0,
+    "first": "bus-error",
+    "publicCode": "visual-frame-unavailable",
+    "rawMessageDebug": null,
+    "domainName": null,
+    "numericDomain": 2599,
+    "numericCode": 7,
+    "sourceElement": "vtdechw298",
+    "closing": false,
+    "limits": "numeric GQuark domain is process-specific; code7 alone cannot identify domain or root cause. Not SIGBUS. Later row3335 cancellation and500s ready deadline are separate."
+  },
+  "nativeProof": {
+    "result": "PASS compact canonical source binding and full file evidence verification",
+    "sampleCount": 1,
+    "nativePts": 0,
+    "nativeDts": 0,
+    "durationTicks": 100,
+    "timescale": 3000,
+    "movieTimescale": 3000,
+    "editDuration": 100,
+    "editMediaTime": 0,
+    "targetNs": 0,
+    "rawPtsNs": 0,
+    "streamTimeNs": 0,
+    "sourceGeneration": "0ae6c69b-191f-47ad-9b60-aaedd2f520e2",
+    "sourceOrdinal": 1,
+    "sourcePtsNs": 0,
+    "segmentSequence": 2182,
+    "mutationId": "mut-1792102056597-2180",
+    "nalReferenceGraph": "not exhaustively established; one compressed sample/hash and actual decode output confirmed",
+    "developmentFailure": "diagnostic json.dumps whitespace form rejected edit tuple; original compact binding parsed and verified. No product parser change, no file corruption conclusion.",
+    "codecInspection": {
+      "method": "bounded read-only avcC/stsz/stco and length-prefixed NAL inspection; native parser separately validates full file evidence",
+      "avcC": {
+        "version": 1,
+        "profile": 244,
+        "compatibility": 0,
+        "level": 11,
+        "nalLengthBytes": 4,
+        "sha256": "f69ffc4cc3f0c31f63512a17df72f8eda4570998b2abb31418a0b97f9f0ad56c"
+      },
+      "sampleOffset": 48,
+      "sampleBytes": 1745,
+      "sampleSha256": "b25e44a4dba1557705a24002b39876aaac2b30f3387644be21ed00e2d591fb5a",
+      "nals": [
+        {
+          "bytes": 2,
+          "type": 9,
+          "nalRefIdc": 0
+        },
+        {
+          "bytes": 29,
+          "type": 7,
+          "nalRefIdc": 3
+        },
+        {
+          "bytes": 5,
+          "type": 8,
+          "nalRefIdc": 3
+        },
+        {
+          "bytes": 517,
+          "type": 6,
+          "nalRefIdc": 0
+        },
+        {
+          "bytes": 1172,
+          "type": 5,
+          "nalRefIdc": 3
+        }
+      ],
+      "limits": "NAL type5 denotes IDR syntax, not exhaustive compressed reference/bitstream validation. Actual target decode succeeded on current hardware call only.",
+      "evidence": "128-execution.tar.gz:codec-analysis.json"
+    }
+  },
+  "decoder": {
+    "classification": "D_NOT_REPRODUCED",
+    "plan": "3 calls predefined: failed Automatic, failed SoftwareOnly, neighbor Automatic; then hardware environment mismatch identified and separate2call plan fixed before execution",
+    "calls": 5,
+    "noFurtherDecodeRetries": true,
+    "sandboxAutomatic": "both succeeded after existing decodebin removed vtdec_hw and selected avdec_h264; not original hardware equivalence",
+    "softwareOnly": "exact target0, avdec_h264 existing max-threads1; diagnostic comparison only",
+    "hardwareAutomatic": "failed file and normal neighbor each1call succeeded with only vtdec_hw:applemedia:1.28.1 instance1; exact target0; failed-file RGB43200B",
+    "failedFileHardwareElapsedUs": 1325556,
+    "evidence": "128-execution.tar.gz:decoder-analysis.json and per-call stdout/stderr",
+    "ownership": "hash/dev/inode/size unchanged in each call, FD offset37 unchanged, trace nullDone1, helper explicitly closes FD; no claim about historical bytes or whole heap",
+    "productFix": null,
+    "policy": "Automatic preserved, no new fallback/retry/rank/registry/runtime/SDK change; target0 no explicit target seek",
+    "unknown": [
+      "historical raw bus details",
+      "worker multi-file/hardware load state",
+      "first failure root cause",
+      "source→encode→initial index publication eligibility"
+    ],
+    "sourceProvenance": "executed diagnostic binary preserved with runtime hash; its TU was not snapshotted before JSON/RAII edits. Final reviewed source and final-build hashes separately preserved; final build only JSON smoke."
+  },
+  "wrapper": {
+    "restoredQualifierSha256": "3c1af2f7064e74964f6e3999ff0945d2252268d1dad29a1becca048252bbbf57",
+    "sameBytesAsR126": true,
+    "preflight": "real imports and --help PASS before product start",
+    "prior127Reanalysis": "zero-HTTP prior failure rejected; original execution untouched; no HTTP/Recorder/Finish fabricated",
+    "unitTests": {
+      "pass": 3,
+      "fail": 0,
+      "scope": "product not started; distinct product/runner/observer/postprocess/cleanup preservation"
+    },
+    "probeFormatting": "JSON controls/quotes/backslash roundtrip PASS",
+    "cleanup": "child and monitor owned groups checked, wait/pipe failures recorded without hiding original outcome"
+  },
+  "platform": {
+    "macOS": "five bounded standalone decoder calls plus native file proof; formatting/import/3wrapper units. Existing R127 model/cursor macOS proofs reused, no broad repetition.",
+    "linux": {
+      "imageId": "sha256:ce72c8a15363984da642e9964189957896812061c6af1d0ef67e87b38ad5a588",
+      "uid": 501,
+      "network": "none",
+      "capabilities": "all dropped; no-new-privileges",
+      "configuration": "existing Release GStreamerON ORTOFF SigLIP2OFF",
+      "results": {
+        "source": "PASS",
+        "generation": "PASS",
+        "cursor": "PASS",
+        "playback": "PASS",
+        "application": "PASS",
+        "scope": "13/13",
+        "decoder": "PASS checks86439"
+      },
+      "preservedFailures": [
+        "scope -Werror=misleading-indentation in R127 existing one-line conditional; newline-only fix",
+        "copied build mount root reported UID0; guard rejected before product start twice. chown did not correct VM mount presentation; local container UID501-owned root passed existing guard. No safety guard/timeout bypass."
+      ],
+      "runtime": "new Linux build; scope links corrected source overlay. Other tests reuse same built runtime; no binary swap reported as unchanged."
+    }
+  },
+  "initialPublication": "NOT_RUN_NOT_QUALIFIED",
+  "finalParallel": {
+    "runs": 0,
+    "status": "not-run",
+    "reason": "direct target decode success does not establish source→encode→initial publication; independent review agrees; no prep repetition"
+  },
+  "notRun": [
+    "original12 HTTP",
+    "auxlimit200",
+    "new membership/public query",
+    "normal Recorder expected acceptance",
+    "explicit Finish for final parallel",
+    "new closed journal final parallel",
+    "900s",
+    "45min",
+    "120min"
+  ],
+  "reused": [
+    "R127 limited model/cursor macOS direct proof",
+    "R126 closed5008rows/40poll each<3000ms,total7.766s; not historical126 timeout root cause",
+    "111/112/114/116/123/124/126 unchanged scoped proof, not new performance evidence"
+  ],
+  "remaining": [
+    "structured concurrent5s client receive failures",
+    "normal Recorder acceptance and longrun gaps",
+    "complete direct targets",
+    "memoryP0",
+    "release hold"
+  ],
+  "binding": {
+    "status": "PASS_BINDING_ONLY",
+    "candidateDigest": "8977e9b6ac618c7e0233823f6acb6ab1fcf7461206ee5d8b2a4149a643519e3a",
+    "unchanged": true,
+    "producer": {
+      "pass": 51,
+      "fail": 0
+    },
+    "readback": {
+      "validationErrors": 0,
+      "negative": 15
+    },
+    "coverage": {
+      "pass": 9,
+      "fail": 0
+    },
+    "manifestSemanticChange": "inventorySha256 only; original pretty JSON formatting preserved",
+    "notPerformanceEvidence": true
+  },
+  "cleanup": {
+    "status": "pending after remote byte verification",
+    "ownedRoot": "/private/tmp/media-server-r128-_38vpulb",
+    "processes": "all invoked helpers waited; no remaining owned process found",
+    "containers": {
+      "media-server-r128-linux": "exited1",
+      "media-server-r128-linux-followup": "exited1",
+      "media-server-r128-linux-final": "exited1",
+      "media-server-r128-linux-local": "exited0"
+    },
+    "ports": "no HTTP product server was started in R128"
+  },
+  "implementationCommit": "12e05d977c981951165c68554a6ee13e37055efd",
+  "archive": {
+    "path": "docs/release-artifacts/v4.5.0/128-execution.tar.gz",
+    "bytes": 3015266,
+    "sha256": "a11d9f458fdf140ef7d9e414b60bd565165f1826e24eaea6519d1300c2fea64e",
+    "members": 80,
+    "readback": "all allowlisted member bytes verified",
+    "originalInputs": "125 and127 existing archives referenced, not duplicated; raw vs derived vs final-source filenames separate"
+  }
+}
