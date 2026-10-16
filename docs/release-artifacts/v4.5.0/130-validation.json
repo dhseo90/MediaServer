@@ -1,0 +1,884 @@
+{
+  "schema": "media-server.v450.r130.validation.v1",
+  "status": "SCOPED_MACOS_INDEX_POLICY_INITIAL_PUBLICATION_PASS_FULL_DIRECT_FAIL",
+  "baseline": "c1b969df983862dc010080e47e46a0bfb7c27dd8",
+  "productCommit": "bf627b13bc525db3629ac6ccdbc1b2f1603b8eec",
+  "executionCommit": "3bfb392eb78e9ff6cc9b99f27bff2afa985f0600",
+  "model": {
+    "mainRequested": "gpt-6-astra/high",
+    "mainToolAccepted": null,
+    "mainActualModel": null,
+    "mainActualEffort": null,
+    "reviewRequested": "gpt-6-astra/high",
+    "reviewToolAccepted": "gpt-6-astra/high",
+    "reviewActualModel": null,
+    "reviewActualEffort": null
+  },
+  "entry": "clean v4.5.0; actual remote same baseline; no user changes overwritten",
+  "binding": {
+    "sourceFiles": {
+      "docs/project-feature-test-inventory.md": "f85a6f6c35e273db25f94845f4409dd04da7122e098b289d0a736263160ecfd6",
+      "include/recording/visual_frame_decoder.h": "4d11ed18c9475a2774f56e8e80740c641815349863ae3ebf73cd72e11de2451d",
+      "include/recording/visual_index_store.h": "2a0af00cc9650045c1cf2361c2cbf9177e4e1bba2193d586c3437a3a9b799442",
+      "scripts/internal/recording_degraded_http_run.py": "26ea2a9500744465e9d3092092266fef3bb24a88171605c40bcc1f7580e7a522",
+      "scripts/internal/recording_degraded_http_run.test.py": "2544ae50fe7a6511ce5dec553a343cf75eac5b21cc1ab1db7b8eb8ccc48913ff",
+      "scripts/internal/recording_frame_bus_detail_smoke.cpp": "20523e88052c814f26fb64bdc2f939f318d54d6c930d5fac9b4452b28d68a157",
+      "scripts/internal/visual_index_store_smoke.cpp": "e1cb2582d6743b36a30c2866f47eab441e4c0eec7ccea199fc9fdb6fba80cbfd",
+      "src/ingress/visual_search_application_service.cpp": "826b8bd90278a2b592dfe4861c94d5c45ebcc3082c2465e5ec02e829af46dc8e",
+      "src/recording/recording_visual_source.cpp": "6066cd16f5eb61c4f41f7dc799248efdd602f365dde6e93684c0bbbe19c92fd0",
+      "src/recording/visual_frame_decoder.cpp": "9f1d654f800626d4e0241fde12a0559bbfdd71b6c8449a7e8dbd2c21196f7e20",
+      "src/recording/visual_index_store.cpp": "fce5ad9479f8d31b3b07163f1de86eae0a3315e003a3a57e8e017873f9e52a8b",
+      "scripts/internal/recording_index_policy_smoke.cpp": "57722e5e255dede6e790fdba32b903b755d3881e3af2b3924b82d3a659cbd1e0"
+    },
+    "sourceFingerprint": "b02d2e2ea15c79bbaa9d3397503c556d47dfa3f348ce022b724b7ad62623b3d4",
+    "linkedRuntimeSha256": "037fdbce6c226fecbb140c82d93fba3750725afd0b7cc6badb886d4e3ee90a49",
+    "binarySha256": "f8b36e2d2575fb3b497fe009dcd6e4b0dbf954cb27fe0a7f8e8b56b8ceb90f18",
+    "buildExecution": "r130-finalbuild/execution.json",
+    "policy": "macOS storedMP4 index SoftwareOnly, instance avdec_h264 maxthreads1; other defaults unchanged",
+    "executionHead": "3bfb392eb78e9ff6cc9b99f27bff2afa985f0600",
+    "executionTree": "50f2ddc9a04a941c369123e8355169c5e706eee2",
+    "worktreeClean": true,
+    "binaryUuid": "B1184594-25F4-3408-A030-2315435B54AF",
+    "postRunSourceHashReadback": "PASS all bound sources unchanged"
+  },
+  "diagnostics": {
+    "actualMessage": "private opt-in owned0600 appendFD, fixed1024/2048 buffers, firsterror only, cleanup output; no public raw text",
+    "privateCapBytes": 65536,
+    "combinedCollectionCapBytes": 4194304,
+    "synthetic": "3records first-error/controlJSON/truncation/sampled-success cleanup, no decoder calls",
+    "actualNewBus": "not observed; private0 bytes in limited comparison and final run",
+    "historical129": "gst-stream-error-quark/code7 generic only; raw historical message/debug still absent, not reconstructed"
+  },
+  "comparison": {
+    "plan": "one process, Automatic thenSoftware, first320 original Collect candidates plus historical3files original order (321unique rows); no embedding cache",
+    "initialGuardFailure": "wrong runner cwd rejected before initialization exit2, decoder0; corrected owned cwd, original output retained",
+    "actual": {
+      "execution": {
+        "exit": 0,
+        "elapsed": 41.13433500006795,
+        "externalRuns": 1
+      },
+      "counts": [
+        321,
+        321
+      ],
+      "rgbEqual": 321,
+      "policies": [
+        {
+          "sumDecodeUs": 2115255,
+          "maxDecodeUs": 74420
+        },
+        {
+          "sumDecodeUs": 643358,
+          "maxDecodeUs": 28283
+        }
+      ],
+      "factorySamples": [
+        [
+          {
+            "kind": "factory",
+            "a": 0,
+            "b": 0,
+            "c": 0,
+            "d": 0,
+            "text": "appsrc:app:1.28.1"
+          },
+          {
+            "kind": "factory",
+            "a": 0,
+            "b": 0,
+            "c": 0,
+            "d": 0,
+            "text": "decodebin:playback:1.28.1"
+          },
+          {
+            "kind": "factory",
+            "a": 0,
+            "b": 0,
+            "c": 0,
+            "d": 0,
+            "text": "typefind:coreelements:1.28.1"
+          },
+          {
+            "kind": "factory",
+            "a": 0,
+            "b": 0,
+            "c": 0,
+            "d": 0,
+            "text": "videoconvert:videoconvertscale:1.28.1"
+          },
+          {
+            "kind": "factory",
+            "a": 0,
+            "b": 0,
+            "c": 0,
+            "d": 0,
+            "text": "appsink:app:1.28.1"
+          },
+          {
+            "kind": "factory",
+            "a": 0,
+            "b": 0,
+            "c": 0,
+            "d": 0,
+            "text": "qtdemux:isomp4:1.28.1"
+          },
+          {
+            "kind": "factory",
+            "a": 0,
+            "b": 0,
+            "c": 0,
+            "d": 0,
+            "text": "multiqueue:coreelements:1.28.1"
+          },
+          {
+            "kind": "factory",
+            "a": 0,
+            "b": 0,
+            "c": 0,
+            "d": 0,
+            "text": "h264parse:videoparsersbad:1.28.1"
+          },
+          {
+            "kind": "factory",
+            "a": 0,
+            "b": 0,
+            "c": 0,
+            "d": 0,
+            "text": "capsfilter:coreelements:1.28.1"
+          },
+          {
+            "kind": "factory",
+            "a": 0,
+            "b": 0,
+            "c": 0,
+            "d": 0,
+            "text": "vtdec_hw:applemedia:1.28.1"
+          }
+        ],
+        [
+          {
+            "kind": "factory",
+            "a": 0,
+            "b": 0,
+            "c": 0,
+            "d": 0,
+            "text": "appsrc:app:1.28.1"
+          },
+          {
+            "kind": "factory",
+            "a": 0,
+            "b": 0,
+            "c": 0,
+            "d": 0,
+            "text": "decodebin:playback:1.28.1"
+          },
+          {
+            "kind": "factory",
+            "a": 0,
+            "b": 0,
+            "c": 0,
+            "d": 0,
+            "text": "typefind:coreelements:1.28.1"
+          },
+          {
+            "kind": "factory",
+            "a": 0,
+            "b": 0,
+            "c": 0,
+            "d": 0,
+            "text": "videoconvert:videoconvertscale:1.28.1"
+          },
+          {
+            "kind": "factory",
+            "a": 0,
+            "b": 0,
+            "c": 0,
+            "d": 0,
+            "text": "appsink:app:1.28.1"
+          },
+          {
+            "kind": "factory",
+            "a": 0,
+            "b": 0,
+            "c": 0,
+            "d": 0,
+            "text": "qtdemux:isomp4:1.28.1"
+          },
+          {
+            "kind": "factory",
+            "a": 0,
+            "b": 0,
+            "c": 0,
+            "d": 0,
+            "text": "multiqueue:coreelements:1.28.1"
+          },
+          {
+            "kind": "factory",
+            "a": 0,
+            "b": 0,
+            "c": 0,
+            "d": 0,
+            "text": "h264parse:videoparsersbad:1.28.1"
+          },
+          {
+            "kind": "factory",
+            "a": 0,
+            "b": 0,
+            "c": 0,
+            "d": 0,
+            "text": "capsfilter:coreelements:1.28.1"
+          },
+          {
+            "kind": "factory",
+            "a": 0,
+            "b": 0,
+            "c": 0,
+            "d": 0,
+            "text": "vtdec_hw:applemedia:1.28.1"
+          }
+        ],
+        [
+          {
+            "kind": "factory",
+            "a": 0,
+            "b": 0,
+            "c": 0,
+            "d": 0,
+            "text": "appsrc:app:1.28.1"
+          },
+          {
+            "kind": "factory",
+            "a": 0,
+            "b": 0,
+            "c": 0,
+            "d": 0,
+            "text": "decodebin:playback:1.28.1"
+          },
+          {
+            "kind": "factory",
+            "a": 0,
+            "b": 0,
+            "c": 0,
+            "d": 0,
+            "text": "typefind:coreelements:1.28.1"
+          },
+          {
+            "kind": "factory",
+            "a": 0,
+            "b": 0,
+            "c": 0,
+            "d": 0,
+            "text": "videoconvert:videoconvertscale:1.28.1"
+          },
+          {
+            "kind": "factory",
+            "a": 0,
+            "b": 0,
+            "c": 0,
+            "d": 0,
+            "text": "appsink:app:1.28.1"
+          },
+          {
+            "kind": "factory",
+            "a": 0,
+            "b": 0,
+            "c": 0,
+            "d": 0,
+            "text": "qtdemux:isomp4:1.28.1"
+          },
+          {
+            "kind": "factory",
+            "a": 0,
+            "b": 0,
+            "c": 0,
+            "d": 0,
+            "text": "multiqueue:coreelements:1.28.1"
+          },
+          {
+            "kind": "factory",
+            "a": 0,
+            "b": 0,
+            "c": 0,
+            "d": 0,
+            "text": "h264parse:videoparsersbad:1.28.1"
+          },
+          {
+            "kind": "factory",
+            "a": 0,
+            "b": 0,
+            "c": 0,
+            "d": 0,
+            "text": "capsfilter:coreelements:1.28.1"
+          },
+          {
+            "kind": "factory",
+            "a": 1,
+            "b": 0,
+            "c": 0,
+            "d": 0,
+            "text": "avdec_h264:libav:1.28.1"
+          }
+        ]
+      ],
+      "rawBusBytes": 0,
+      "derivation": "Remove complete [visual-frame] JSON and its inserted newline from merged stream; all642 original row bytes preserved, no inferred field"
+    },
+    "input": "three2654B MP4s distinct whole-file hashes; same AVC configuration/sample payload, one native sample timescale3000/duration100/edit0; metadata differences retained",
+    "limitations": "not full index/embedding reliability proof; fixed order not randomized; actual factory only bounded representative samples"
+  },
+  "policy": {
+    "adoptedScope": "macOS storedMP4 scene-index Encode SoftwareOnly; avdec_h264 instance maxthreads1 existing mechanism",
+    "unchanged": [
+      "general DecodeVisualFrame defaultAutomatic",
+      "Linux index Automatic",
+      "realtime/Recorder/Client/Analysis",
+      "evidence112",
+      "exact1ns/5s and existing budgets"
+    ],
+    "cache": "software-v1 filename and internalmagic2/pending distinct; legacy Automatic unchanged and retained; current worker policy immutable so Same only samepolicy; no source/evidence format rewrite",
+    "compatibility": "older default reader uses legacy namespace; renamed legacy bytes rejected by software magic; old cache not erased",
+    "qualification": "scoped candidate and actual initial publication supported; no claim of R129 hardware root cause fix or full direct performance"
+  },
+  "execution": {
+    "head": "3bfb392eb78e9ff6cc9b99f27bff2afa985f0600",
+    "pid": 12653,
+    "exit": 1,
+    "elapsedSeconds": 555.6338321669027,
+    "timeout": false,
+    "overflow": false,
+    "receivedBytes": 1839611,
+    "savedBytes": 1839611,
+    "privateBusBytes": 0,
+    "runnerError": null,
+    "collectionError": null,
+    "qualificationError": "AssertionError:p95",
+    "cleanupError": null,
+    "monitorExit": 0,
+    "groupAbsent": true,
+    "externalSourceParallelRuns": 1
+  },
+  "initialPublication": {
+    "result": "PASS",
+    "origin": "rebuild",
+    "generation": 1,
+    "documents": 3675,
+    "channels": [
+      {
+        "channelId": "9101",
+        "indexedFrames": 1839,
+        "unknownTimeFrames": 1217,
+        "firstSampleTimeNs": "1792100930310588000",
+        "lastSampleTimeNs": "1792102409765536000",
+        "sourceCountsState": "known",
+        "examinedSegments": 1231,
+        "unsupportedSegments": 0,
+        "examinedSnapshots": 0,
+        "unsupportedSnapshots": 0
+      },
+      {
+        "channelId": "9201",
+        "indexedFrames": 1836,
+        "unknownTimeFrames": 1215,
+        "firstSampleTimeNs": "1792100930333826000",
+        "lastSampleTimeNs": "1792102408815542000",
+        "sourceCountsState": "known",
+        "examinedSegments": 1229,
+        "unsupportedSegments": 0,
+        "examinedSnapshots": 0,
+        "unsupportedSnapshots": 0
+      }
+    ],
+    "attemptElapsedMs": 480243,
+    "ready": {
+      "enabled": true,
+      "state": "ready",
+      "error": "",
+      "searchAvailable": true,
+      "sampleSeconds": 1,
+      "scanSeconds": 1,
+      "eventSnapshots": "disabled",
+      "index": {
+        "instanceId": "e99ba269bb7c7767e6623eb22da4558f",
+        "generation": 1,
+        "identityScope": "worker-instance",
+        "origin": "rebuild",
+        "publishedAtMs": 1792127629193,
+        "metadataReason": "live-publication",
+        "statisticsScope": "authorized-channels-all-indexed-samples-before-query-filters",
+        "coverage": "unknown",
+        "coverageReason": "sampled-index-no-continuous-coverage",
+        "sourceValidation": "search-revalidates-current-originals",
+        "channels": [
+          {
+            "channelId": "9101",
+            "indexedFrames": 1839,
+            "unknownTimeFrames": 1217,
+            "firstSampleTimeNs": "1792100930310588000",
+            "lastSampleTimeNs": "1792102409765536000",
+            "sourceCountsState": "known",
+            "examinedSegments": 1231,
+            "unsupportedSegments": 0,
+            "examinedSnapshots": 0,
+            "unsupportedSnapshots": 0
+          },
+          {
+            "channelId": "9201",
+            "indexedFrames": 1836,
+            "unknownTimeFrames": 1215,
+            "firstSampleTimeNs": "1792100930333826000",
+            "lastSampleTimeNs": "1792102408815542000",
+            "sourceCountsState": "known",
+            "examinedSegments": 1229,
+            "unsupportedSegments": 0,
+            "examinedSnapshots": 0,
+            "unsupportedSnapshots": 0
+          }
+        ]
+      },
+      "refresh": {
+        "state": "ready",
+        "attemptState": "succeeded",
+        "attemptStartedAtMs": 1792127148950,
+        "attemptFinishedAtMs": 1792127629193,
+        "lastSuccessAtMs": 1792127629193,
+        "error": "",
+        "usingPreviousPublication": false
+      },
+      "channels": [
+        {
+          "channelId": "9101",
+          "indexedFrames": 1839,
+          "unknownTimeFrames": 1217,
+          "firstSampleTimeNs": "1792100930310588000",
+          "lastSampleTimeNs": "1792102409765536000",
+          "sourceCountsState": "known",
+          "examinedSegments": 1231,
+          "unsupportedSegments": 0,
+          "examinedSnapshots": 0,
+          "unsupportedSnapshots": 0
+        },
+        {
+          "channelId": "9201",
+          "indexedFrames": 1836,
+          "unknownTimeFrames": 1215,
+          "firstSampleTimeNs": "1792100930333826000",
+          "lastSampleTimeNs": "1792102408815542000",
+          "sourceCountsState": "known",
+          "examinedSegments": 1229,
+          "unsupportedSegments": 0,
+          "examinedSnapshots": 0,
+          "unsupportedSnapshots": 0
+        }
+      ]
+    }
+  },
+  "http": {
+    "rows": [
+      {
+        "round": 0,
+        "client": 0,
+        "ms": 1746.03
+      },
+      {
+        "round": 0,
+        "client": 1,
+        "ms": 1764.74
+      },
+      {
+        "round": 0,
+        "client": 2,
+        "ms": 1557.71
+      },
+      {
+        "round": 0,
+        "client": 3,
+        "ms": 1569.83
+      },
+      {
+        "round": 1,
+        "client": 0,
+        "ms": 1019.34
+      },
+      {
+        "round": 1,
+        "client": 1,
+        "ms": 1002.04
+      },
+      {
+        "round": 1,
+        "client": 2,
+        "ms": 467.377
+      },
+      {
+        "round": 1,
+        "client": 3,
+        "ms": 497.919
+      },
+      {
+        "round": 2,
+        "client": 0,
+        "ms": 2807.21
+      },
+      {
+        "round": 2,
+        "client": 1,
+        "ms": 2811.34
+      },
+      {
+        "round": 2,
+        "client": 2,
+        "ms": 2706.74
+      },
+      {
+        "round": 2,
+        "client": 3,
+        "ms": 2685.31
+      }
+    ],
+    "count": 12,
+    "wire200": 12,
+    "p95Ms": 2811.34,
+    "maxMs": 2811.34,
+    "latency": "FAIL",
+    "helperFinalLatencyGate": "not-run; earlier normal-source-acceptance exception",
+    "qualifierLatencyGate": "FAIL p95; full12 actual population",
+    "aux200": "not-run"
+  },
+  "Recorder": {
+    "rows": [
+      {
+        "enqueued": 1231,
+        "dequeued": 1074,
+        "dropped": 157,
+        "payloadBytes": 682938,
+        "maxDepth": 256,
+        "maxBytes": 142686,
+        "firstNs": 500826639751,
+        "lastNs": 541897767626,
+        "minInputGapNs": 4730209,
+        "maxInputGapNs": 56755083,
+        "queueWaitNs": 6443580799081,
+        "maxQueueWaitNs": 9308887041,
+        "callbackNs": 47822690172,
+        "maxCallbackNs": 4249298292
+      },
+      {
+        "enqueued": 1237,
+        "dequeued": 782,
+        "dropped": 455,
+        "payloadBytes": 685960,
+        "maxDepth": 256,
+        "maxBytes": 142686,
+        "firstNs": 500832961542,
+        "lastNs": 542091100501,
+        "minInputGapNs": 23379542,
+        "maxInputGapNs": 43347709,
+        "queueWaitNs": 4717669190620,
+        "maxQueueWaitNs": 9338175667,
+        "callbackNs": 47859951972,
+        "maxCallbackNs": 4792787459
+      }
+    ],
+    "expected": 2468,
+    "accepted": 1701,
+    "files": 43,
+    "result": "FAIL normal-source-acceptance",
+    "queueDrops": 612,
+    "dequeued": 1856,
+    "differenceNotAttributed": 155,
+    "scope": "counter boundaries finite source fixture; difference not asserted to equal recovery discard; no longrun inference"
+  },
+  "newMembership": "not-run; 43 durable files is not proof of fresh publication membership",
+  "termination": {
+    "serverStop": true,
+    "visualStop": true,
+    "runtimeFinish": true,
+    "path": "ExplicitFinish guard on exception; explicit calls observed, not full success path",
+    "closedJournalObserver": "not-run"
+  },
+  "resources": {
+    "samples": 548,
+    "sameStartIdentities": [
+      "macos:1792127122:947810"
+    ],
+    "rssMax": 3200925696,
+    "footprintMax": 3162213496,
+    "fdMax": 387,
+    "complete": true,
+    "notSimultaneousPeaks": true
+  },
+  "ownerSamples": [
+    {
+      "pid": 12653,
+      "seq": 0,
+      "phase": "opened",
+      "elapsedMs": 20116,
+      "ram": 2841796,
+      "ramPeak": 3352241,
+      "ramLimit": 671088640,
+      "ramRejected": 0,
+      "scratchDisk": 93892608,
+      "scratchDiskPeak": 105013248,
+      "scratchDiskLimit": 161788481536,
+      "scratchFd": 4,
+      "scratchFdPeak": 6,
+      "scratchFdLimit": 1048571,
+      "scratchRam": 1188864,
+      "preservedDisk": 0,
+      "preservedFd": 0,
+      "readerCleanupHealthy": true
+    },
+    {
+      "pid": 12653,
+      "seq": 1,
+      "phase": "ready",
+      "elapsedMs": 504093,
+      "ram": 21346078,
+      "ramPeak": 60551810,
+      "ramLimit": 671088640,
+      "ramRejected": 0,
+      "scratchDisk": 93892608,
+      "scratchDiskPeak": 105013248,
+      "scratchDiskLimit": 161788481536,
+      "scratchFd": 4,
+      "scratchFdPeak": 6,
+      "scratchFdLimit": 1048571,
+      "scratchRam": 1188864,
+      "preservedDisk": 0,
+      "preservedFd": 0,
+      "readerCleanupHealthy": true
+    },
+    {
+      "pid": 12653,
+      "seq": 2,
+      "phase": "wave",
+      "elapsedMs": 507959,
+      "ram": 147057242,
+      "ramPeak": 225040211,
+      "ramLimit": 671088640,
+      "ramRejected": 0,
+      "scratchDisk": 257372160,
+      "scratchDiskPeak": 257372160,
+      "scratchDiskLimit": 161788481536,
+      "scratchFd": 7,
+      "scratchFdPeak": 8,
+      "scratchFdLimit": 1048571,
+      "scratchRam": 2080512,
+      "preservedDisk": 0,
+      "preservedFd": 0,
+      "readerCleanupHealthy": true
+    },
+    {
+      "pid": 12653,
+      "seq": 3,
+      "phase": "wave",
+      "elapsedMs": 509213,
+      "ram": 95505566,
+      "ramPeak": 245701861,
+      "ramLimit": 671088640,
+      "ramRejected": 0,
+      "scratchDisk": 203059200,
+      "scratchDiskPeak": 257372160,
+      "scratchDiskLimit": 161788481536,
+      "scratchFd": 6,
+      "scratchFdPeak": 8,
+      "scratchFdLimit": 1048571,
+      "scratchRam": 1783296,
+      "preservedDisk": 0,
+      "preservedFd": 0,
+      "readerCleanupHealthy": true
+    },
+    {
+      "pid": 12653,
+      "seq": 4,
+      "phase": "wave",
+      "elapsedMs": 513005,
+      "ram": 185269477,
+      "ramPeak": 267113654,
+      "ramLimit": 671088640,
+      "ramRejected": 0,
+      "scratchDisk": 257875968,
+      "scratchDiskPeak": 257875968,
+      "scratchDiskLimit": 161788481536,
+      "scratchFd": 7,
+      "scratchFdPeak": 8,
+      "scratchFdLimit": 1048571,
+      "scratchRam": 2080512,
+      "preservedDisk": 0,
+      "preservedFd": 0,
+      "readerCleanupHealthy": true
+    },
+    {
+      "pid": 12653,
+      "seq": 5,
+      "phase": "finished",
+      "elapsedMs": 552359,
+      "ram": 88481608,
+      "ramPeak": 267113654,
+      "ramLimit": 671088640,
+      "ramRejected": 0,
+      "scratchDisk": 0,
+      "scratchDiskPeak": 346480640,
+      "scratchDiskLimit": 161788481536,
+      "scratchFd": 0,
+      "scratchFdPeak": 18,
+      "scratchFdLimit": 1048571,
+      "scratchRam": 0,
+      "preservedDisk": 0,
+      "preservedFd": 0,
+      "readerCleanupHealthy": true
+    },
+    {
+      "pid": 12653,
+      "seq": 6,
+      "phase": "after-storage-destruction",
+      "elapsedMs": 552391,
+      "ram": 0,
+      "ramPeak": 267113654,
+      "ramLimit": 671088640,
+      "ramRejected": 0,
+      "scratchDisk": 0,
+      "scratchDiskPeak": 346480640,
+      "scratchDiskLimit": 161788481536,
+      "scratchFd": 0,
+      "scratchFdPeak": 18,
+      "scratchFdLimit": 1048571,
+      "scratchRam": 0,
+      "preservedDisk": 0,
+      "preservedFd": 0,
+      "readerCleanupHealthy": true
+    }
+  ],
+  "postRunCache": {
+    "file": "r130-run/recording/visual-cache/visual-software-v1-60ed08bdba53522430186d14e0fd1e94ba7dc0d1b1342454271f97a474f91192.v1",
+    "bytes": 12540182,
+    "sha256": "d53c9c3af0eab3240db98eafe74241bf0dbd10586048bbc807e6e0f32b4da767",
+    "checksumVerified": true,
+    "magic": "0x324958564d534d",
+    "documents": 3699,
+    "selectedHistoricalFiles": [
+      {
+        "id": "frame:36:c29c6958-aac4-4c67-9909-b235339005d4:0",
+        "channel": "9201",
+        "segment": "c29c6958-aac4-4c67-9909-b235339005d4",
+        "fileHash": "d2b62fe27cbbeaafde13e7b159967853034edfc0624f6fb23260a0077a68d657",
+        "auHash": "b25e44a4dba1557705a24002b39876aaac2b30f3387644be21ed00e2d591fb5a",
+        "pts": 0,
+        "timebase": [
+          1,
+          1000000000
+        ],
+        "embeddingSha256": "e803c62e07283325b3459cccc67019bf083df6c56af43ac3761b325197a21f2f"
+      },
+      {
+        "id": "frame:36:d97a90bc-b393-4a70-8a45-8044cde110f7:0",
+        "channel": "9101",
+        "segment": "d97a90bc-b393-4a70-8a45-8044cde110f7",
+        "fileHash": "f5a5b68aa093f3ed450cd19ed849ecbe98cca261e226397e4413bc8a72044e55",
+        "auHash": "b25e44a4dba1557705a24002b39876aaac2b30f3387644be21ed00e2d591fb5a",
+        "pts": 0,
+        "timebase": [
+          1,
+          1000000000
+        ],
+        "embeddingSha256": "e803c62e07283325b3459cccc67019bf083df6c56af43ac3761b325197a21f2f"
+      },
+      {
+        "id": "frame:36:fbb3074b-9328-4b87-bb5e-313e1805b5f3:0",
+        "channel": "9101",
+        "segment": "fbb3074b-9328-4b87-bb5e-313e1805b5f3",
+        "fileHash": "5dc838088a1ecc7175e52a1419719ccf356813ada598f6ae8731d34238db0e15",
+        "auHash": "b25e44a4dba1557705a24002b39876aaac2b30f3387644be21ed00e2d591fb5a",
+        "pts": 0,
+        "timebase": [
+          1,
+          1000000000
+        ],
+        "embeddingSha256": "e803c62e07283325b3459cccc67019bf083df6c56af43ac3761b325197a21f2f"
+      }
+    ],
+    "scope": "read-only post-run persisted derived cache; not substitute for new immutable publication membership assertion or RGB hash"
+  },
+  "regressions": {
+    "macOS": {
+      "sourceWithRealEncoderChecks": 898,
+      "softwareDecoderChecks": 86439,
+      "cacheChecks": 41,
+      "workerChecks": 58,
+      "wrapperUnits": 5,
+      "privateSyntheticRecords": 3
+    },
+    "Linux": {
+      "image": "sha256:ce72c8a15363984da642e9964189957896812061c6af1d0ef67e87b38ad5a588",
+      "uid": 501,
+      "network": "none",
+      "caps": "all dropped/no-new-privileges",
+      "config": "Release GStreamerON ORTOFF SigLIP2OFF",
+      "sourceChecks": 126,
+      "AutomaticDecoderChecks": 86439,
+      "privateSynthetic": "PASS",
+      "runtimeBuild": "PASS"
+    },
+    "preservedDevelopmentFailures": [
+      "cwd pre-init guard exit2",
+      "wrapper cleanup AST missing private_bus NameError3 before context repair",
+      "Linux diagnostic TU GCC misleading-indentation9; newline-only repair",
+      "Linux resume script existing-root FileExistsError before product execution",
+      "premature readback SIGTERM143 invalid; final readback after producer exit0"
+    ]
+  },
+  "approvalBinding": {
+    "candidateDigest": "8977e9b6ac618c7e0233823f6acb6ab1fcf7461206ee5d8b2a4149a643519e3a",
+    "unchanged": true,
+    "producer": "51/0 exit0",
+    "readback": "0errors 15negative PASS exit0 after producer",
+    "coverage": "9/0 exit0 after readback",
+    "manifest": "inventorySha256 only; original formatting preserved"
+  },
+  "independentReview": "130-independent-review.json",
+  "reuse": [
+    "128 wrapper/Linux/binding only unchanged scope",
+    "127 limited model/cursor",
+    "111/112/114/116/123/124 historical scoped evidence unchanged"
+  ],
+  "notRun": [
+    "new900",
+    "45min",
+    "120min",
+    "wholeUI",
+    "wholeacceptance",
+    "release"
+  ],
+  "remaining": [
+    "full direct performance p952000ms",
+    "normal Recorder acceptance/gaps",
+    "same-run aux200/newmembership/closedjournal",
+    "historical hardware cause",
+    "memoryP0",
+    "release hold"
+  ],
+  "cleanup": {
+    "status": "pending remote evidence verification",
+    "ownedRoot": "/private/tmp/media-server-r130-pkw7n4z1",
+    "childGroupAbsent": true,
+    "monitorExit": 0,
+    "port": 62637,
+    "userSettingsBackupsModelsSDK": "excluded"
+  },
+  "archive": {
+    "path": "docs/release-artifacts/v4.5.0/130-execution.tar.gz",
+    "bytes": 18917815,
+    "sha256": "7ec0f4531532810eaa29905512ae328d7ba167fa1b48627576afd2897a897b2f",
+    "members": 168,
+    "allMemberReadback": "PASS",
+    "recordingDeltaFiles": 53,
+    "unchangedOriginalsReference": {
+      "archive": "docs/release-artifacts/v4.5.0/125-execution.tar.gz",
+      "sha256": "39eeb7708486378f919c10c82e4a3ba059d0c82f7874a1617559e7beb95eb83b",
+      "inputMap": "run/input-map.json",
+      "changedFiles": "run/recording-delta.json"
+    },
+    "privateRawIncluded": false
+  }
+}

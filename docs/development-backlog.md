@@ -17,6 +17,11 @@
 
 ## v4.5.0 잔여 개발과 릴리즈 순서
 
+[130 macOS 저장 영상 색인 정책 대조](release-artifacts/v4.5.0/130-validation.json)는 **정책·초기 게시 한정 PASS, 전체 병행 직접 FAIL**이다.
+동일 원본321후보의 Automatic/SoftwareOnly 대조는 모두 정확히 성공했고 해당 RGB도 일치했다. 실제 대표 factory는 vtdec_hw와 avdec_h264(max-threads1)이며 과거 bus 내부 원인은 미확정이다. macOS 저장 MP4 색인만 SoftwareOnly를 적용하고 파생 cache의 정책별 이름/형식/임시 파일을 분리했다. Linux·실시간·증거 정책과 한도는 유지한다.
+최종 외부1회는 실제 rebuild generation1/3675문서를480.243초에 게시했다. 원래12개는 모두HTTP200이나 p95/max2811.34ms이고, Recorder2468기대/1701수용·queue drop612·추가미귀속155로 실패했다. 보조200·새 membership·닫힌 원장 관측은 not-run이다. 예외 guard의 실제 Stop/Finish와 마지막 논리 소유0은 별도 확인했다.
+[독립 판단](release-artifacts/v4.5.0/130-independent-review.json), macOS/비특권 Linux 영향 회귀와 결속을 보존한다. 다음 차단은 동일 누적 병행 지연·정상 Recorder 수용과 남은 직접 관측이며, 새900/45/120분·메모리P0·출시 완료로 확대하지 않는다.
+
 [129 동일 프로세스 source-parallel 재개](release-artifacts/v4.5.0/129-validation.json)는 **초기 게시 FAIL·후속 직접 검사 not-run**이다.
 초기 게시의 별도 사전 PASS를 요구하지 않고, 고정 후보에서 외부1회를 실행했다. 500초 ready 한도에서 `index=null/searchAvailable=false`, 전체527.064초·exit1로 종료했다.
 내부 시도에서 서로 다른 보존 파일2개의 target0이 Automatic `vtdec_hw:applemedia:1.28.1`의 `gst-stream-error-quark/code7`로 실패했고, 세 번째 시도는 종료 과정에서 취소됐다. 이는 stream decode 오류 분류이며 원본 손상·decoder 결함·과거127과 동일 원인을 확정하지 않는다.

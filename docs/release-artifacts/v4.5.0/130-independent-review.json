@@ -1,0 +1,42 @@
+{
+  "schema": "media-server.v450.r130.independent-review.v1",
+  "reviewer": {
+    "agent": "/root/independent_r130",
+    "requested": "gpt-6-astra/high",
+    "toolAccepted": "gpt-6-astra/high",
+    "actualModel": null,
+    "actualEffort": null,
+    "independence": "read-only; no implementation, test writing/execution or delegation"
+  },
+  "decision": "MACOS_STORED_INDEX_POLICY_AND_INITIAL_PUBLICATION_SUPPORTED_FULL_DIRECT_FAIL",
+  "findingsResolved": [
+    "Reserve private64KiB inside4MiB total and check final sum",
+    "Write private first bus before success trace sampling return",
+    "Propagate private diagnostic output failure to collectionError"
+  ],
+  "preflight": "mac/Linux focused and unchanged canonical candidate reviewed; initial publication not required before final single run",
+  "resultReview": {
+    "initialPublication": "rebuild generation1/docs3675/unsupported0/attempt480243ms PASS",
+    "http": "12 wire200, nearest-rank p95=max2811.34ms FAIL; helper final gate not reached, qualifier p95 actually failed",
+    "Recorder": "expected2468 accepted1701 files43; queue612, dequeued1856, residual155 unclassified",
+    "notRun": [
+      "aux200",
+      "new immutable membership/public fresh query",
+      "new closed journal observer"
+    ],
+    "termination": "exception guard serverStop, cancellation of background encode, visualStop, Finishok1, afterStorage owners0; not full normal gate/heap proof",
+    "binding": "final binary/runtime/major source readback matches; input2851 matches seed before run only",
+    "historical": "private bus0 bytes; no actual new GError/debug; R129 underlying cause unconfirmed"
+  },
+  "policyReview": "MP4 Encode only uses platform policy; default Linux/realtime/evidence unchanged; separate software cache filename+magic+pending prevents legacy cross-policy reuse; current worker immutable policy preserves Same reuse",
+  "comparisonReview": "321same rows each policy in sameprocess, all pass RGB equal; actual factory only3bounded representative records; fixed Automatic thenSoftware timing is not randomized or longrun proof",
+  "linuxScope": "GStreamerON ORTOFF SIGLIP2OFF source126/decoder86439/privatebus; active encoder/cache validated on macOS only",
+  "bindingReview": "unchanged candidateDigest; producer/readback/coverage results separate from product qualification",
+  "remaining": [
+    "concurrent latency",
+    "Recorder acceptance/gaps",
+    "aux200/fresh publication check/closed journal on same execution",
+    "memoryP0",
+    "releasehold"
+  ]
+}
