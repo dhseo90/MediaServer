@@ -1,0 +1,2479 @@
+{
+  "schema": "media-server.v450.r137.validation.v1",
+  "status": "HOLD_ATTRIBUTION_INSUFFICIENT",
+  "functionalSafety600": "PASS",
+  "memoryP0": "HOLD_ATTRIBUTION_INSUFFICIENT",
+  "readiness45": "HOLD",
+  "releaseHold": true,
+  "baseline": {
+    "head": "7cfea7a9f4e70ed22e8e9cc283b5eed72d787853",
+    "productFeature": "c438911431c631d239580367eee4a2c7e22045de",
+    "R136": "PASS_FUNCTIONAL900_MEMORY_P0_HOLD remains valid; no new900/45/120"
+  },
+  "models": {
+    "main": {
+      "requested": {
+        "model": "gpt-6-astra",
+        "effort": "high"
+      },
+      "toolAccepted": null,
+      "actualRuntimeModel": null,
+      "actualRuntimeEffort": null
+    },
+    "reviewer": {
+      "requested": {
+        "model": "gpt-6-astra",
+        "effort": "high"
+      },
+      "toolAccepted": "existing separate /root/independent_r135 configured Astra/high",
+      "actualRuntimeModel": null,
+      "actualRuntimeEffort": null
+    },
+    "unexposed": "unknown; project defaults and model names are not runtime proof"
+  },
+  "changeScope": "opt-in fixed bounded owner/ticket/counter diagnostics and dedicated600 mode; no product feature behavior/lifetime/limits/workload change",
+  "diagnosticCommit": "ed93102f2d309451cbf2dd49f1ff32dad1241347",
+  "binding": {
+    "sourceStart": {
+      "head": "ed93102f2d309451cbf2dd49f1ff32dad1241347",
+      "fixtureProfile": "continuous-r114",
+      "fixtureProfileSourceSha256": "b7635f864c34aabdf291dde989a7c106cf6513db7a7b2b7a94e30cb408c5192e",
+      "tree": "95e805c09418b97e8fa32dfb4f2a78182fb6a424",
+      "sourceSha256": "8f1fdc1136954c0cbb01d8040812839364078932ef85c3a0ea35e8c1a9350451",
+      "binarySha256": "c73c82d3cc6e3faffb9d2f0cb979c47e13e8ccddbbb7032d1f92de523632e8c8"
+    },
+    "sourceEnd": {
+      "head": "ed93102f2d309451cbf2dd49f1ff32dad1241347",
+      "fixtureProfile": "continuous-r114",
+      "fixtureProfileSourceSha256": "b7635f864c34aabdf291dde989a7c106cf6513db7a7b2b7a94e30cb408c5192e",
+      "tree": "95e805c09418b97e8fa32dfb4f2a78182fb6a424",
+      "sourceSha256": "8f1fdc1136954c0cbb01d8040812839364078932ef85c3a0ea35e8c1a9350451",
+      "binarySha256": "c73c82d3cc6e3faffb9d2f0cb979c47e13e8ccddbbb7032d1f92de523632e8c8"
+    },
+    "runtimeSha256": "22ccb23635026c91b1751e83de7470334f399c61b723f4cdeb51162de08e3bb0",
+    "binaryUuid": "2AB7580D-6A39-3D6B-890D-669DEC046477",
+    "details": "137-binding.json / 137-preflight.json; actual linked final build, no runtime swap"
+  },
+  "execution": {
+    "externalAttempts": 1,
+    "command": "python3 scripts/internal/run_v450_recording_a_mixed.py --memory-attribution-diagnostic <OWNED_ROOT>/mixed600",
+    "observationSeconds": 600.0505840000001,
+    "helperElapsedSeconds": 609.898,
+    "executionElapsedSeconds": 615.388921292033,
+    "totalWithFinalBindingSeconds": 615.6055570000317,
+    "budgetSeconds": 780,
+    "exit": 0,
+    "pid": 55471,
+    "startIdentity": "macos:1792171293:317402",
+    "timedOut": false,
+    "restarted": false,
+    "sameSourceAndBinary": true,
+    "mode": "v450-memory-attribution-diagnostic",
+    "memoryAttributionDiagnosticCompleted": true,
+    "longrunObservationCompleted": false,
+    "profile": "continuous-r114 /108MiB channel/S=P71237B/448MiB live/640MiB shared RAM",
+    "startedAt": "2026-10-16T17:21:24.830182+00:00",
+    "finishedAt": "2026-10-16T17:31:40.431854+00:00"
+  },
+  "collection": {
+    "ownerRows": 124,
+    "periodicSamples": 120,
+    "externalCycles": 121,
+    "collector": [
+      {
+        "status": "captured",
+        "pid": 55471,
+        "count": 124,
+        "phases": {
+          "opened": 1,
+          "sample": 120,
+          "before-Finish": 1,
+          "after-Finish": 1,
+          "after-storage-destruction": 1
+        },
+        "finalOwnerZero": true
+      }
+    ],
+    "ledgerInvariant": true,
+    "clock": {
+      "ownerProcessGapNs": {
+        "n": 124,
+        "first": 5709,
+        "last": 9708,
+        "min": 5709,
+        "max": 87500,
+        "delta": 3999
+      },
+      "internalSpanNs": {
+        "n": 124,
+        "first": 12375,
+        "last": 20958,
+        "min": 12375,
+        "max": 131084,
+        "delta": 8583
+      },
+      "ownerSampleGapNs": {
+        "n": 119,
+        "first": 5024883083,
+        "last": 5030846334,
+        "min": 5012131125,
+        "max": 5049489041,
+        "delta": 5963251
+      },
+      "externalOwnerAgeNs": {
+        "n": 121,
+        "first": -52503792,
+        "last": 1132594375,
+        "min": -52503792,
+        "max": 4954670000,
+        "delta": 1185098167
+      },
+      "externalCycleSpanNs": {
+        "n": 121,
+        "first": 698805917,
+        "last": 48856000,
+        "min": 42777583,
+        "max": 730431750,
+        "delta": -649949917
+      },
+      "roleToVisualAgeNs": {
+        "n": 123,
+        "first": 34583,
+        "last": 17800834,
+        "min": 6833,
+        "max": 17800834,
+        "delta": 17766251
+      },
+      "observationOriginNsEstimate": 1478530707685332.0,
+      "mapping": "first external processCapturedNs minus corresponding progress.elapsedMs; internal/external sequential skew retained; no atomic heap claim"
+    },
+    "events": {
+      "uniqueInSampledRings": 520,
+      "kindCounts": {
+        "6": 210,
+        "1": 60,
+        "2": 50,
+        "3": 90,
+        "4": 50,
+        "5": 60
+      },
+      "aggregateEventSequence": 520,
+      "completeHistory": true,
+      "thisExecutionSequenceComplete": true,
+      "scope": "This run sampled all sequence indices without conflict; finite ring is not generally lossless."
+    },
+    "disabledBoundaries": "nearest owner snapshot age recorded, not fresh atomic boundary sample"
+  },
+  "owners": {
+    "sampleFirstLastMinMax": {
+      "count": 120,
+      "seconds": {
+        "n": 120,
+        "first": 0.281943543,
+        "last": 598.870987668,
+        "min": 0.281943543,
+        "max": 598.870987668,
+        "delta": 598.589044125
+      },
+      "metrics": {
+        "residencyUsed": {
+          "n": 120,
+          "first": 2966773,
+          "last": 93385763,
+          "min": 1474665,
+          "max": 186060228,
+          "delta": 90418990
+        },
+        "attributedSearchBytes": {
+          "n": 120,
+          "first": 1193825,
+          "last": 89517529,
+          "min": 1193825,
+          "max": 89517529,
+          "delta": 88323704
+        },
+        "unattributedSearchBytes": {
+          "n": 120,
+          "first": 1772948,
+          "last": 3868234,
+          "min": 217812,
+          "max": 150082471,
+          "delta": 2095286
+        },
+        "rssBytes": {
+          "n": 120,
+          "first": 3181953024,
+          "last": 1915404288,
+          "min": 1689894912,
+          "max": 3209543680,
+          "delta": -1266548736
+        },
+        "footprintBytes": {
+          "n": 120,
+          "first": 3133983984,
+          "last": 1856031168,
+          "min": 1638435024,
+          "max": 3160558856,
+          "delta": -1277952816
+        }
+      },
+      "ticketBytes": {
+        "unattributed": {
+          "n": 120,
+          "first": 1772948,
+          "last": 3868234,
+          "min": 217812,
+          "max": 150082471,
+          "delta": 2095286
+        },
+        "model": {
+          "n": 120,
+          "first": 0,
+          "last": 65954315,
+          "min": 0,
+          "max": 65954315,
+          "delta": 65954315
+        },
+        "sourceBatch": {
+          "n": 120,
+          "first": 0,
+          "last": 0,
+          "min": 0,
+          "max": 0,
+          "delta": 0
+        },
+        "retryBatch": {
+          "n": 120,
+          "first": 0,
+          "last": 0,
+          "min": 0,
+          "max": 0,
+          "delta": 0
+        },
+        "sourceCut": {
+          "n": 120,
+          "first": 0,
+          "last": 0,
+          "min": 0,
+          "max": 0,
+          "delta": 0
+        },
+        "preparation": {
+          "n": 120,
+          "first": 0,
+          "last": 0,
+          "min": 0,
+          "max": 0,
+          "delta": 0
+        },
+        "matches": {
+          "n": 120,
+          "first": 0,
+          "last": 1120480,
+          "min": 0,
+          "max": 1120480,
+          "delta": 1120480
+        },
+        "page": {
+          "n": 120,
+          "first": 0,
+          "last": 0,
+          "min": 0,
+          "max": 2688,
+          "delta": 0
+        },
+        "response": {
+          "n": 120,
+          "first": 0,
+          "last": 0,
+          "min": 0,
+          "max": 33554432,
+          "delta": 0
+        },
+        "preparedNative": {
+          "n": 120,
+          "first": 0,
+          "last": 0,
+          "min": 0,
+          "max": 359424,
+          "delta": 0
+        },
+        "retainedRaw": {
+          "n": 120,
+          "first": 1309,
+          "last": 783261,
+          "min": 1309,
+          "max": 783261,
+          "delta": 781952
+        },
+        "catalogRow": {
+          "n": 120,
+          "first": 3652,
+          "last": 20173393,
+          "min": 3652,
+          "max": 20173393,
+          "delta": 20169741
+        },
+        "scratch": {
+          "n": 120,
+          "first": 1188864,
+          "last": 1486080,
+          "min": 1188864,
+          "max": 2962136,
+          "delta": 297216
+        }
+      },
+      "models": {
+        "registeredCount": {
+          "n": 120,
+          "first": 0,
+          "last": 5,
+          "min": 0,
+          "max": 6,
+          "delta": 5
+        },
+        "registeredBytes": {
+          "n": 120,
+          "first": 0,
+          "last": 65954315,
+          "min": 0,
+          "max": 65954315,
+          "delta": 65954315
+        },
+        "currentCount": {
+          "n": 120,
+          "first": 0,
+          "last": 1,
+          "min": 0,
+          "max": 1,
+          "delta": 1
+        },
+        "currentBytes": {
+          "n": 120,
+          "first": 0,
+          "last": 17160503,
+          "min": 0,
+          "max": 17160503,
+          "delta": 17160503
+        },
+        "currentDocuments": {
+          "n": 120,
+          "first": 0,
+          "last": 10350,
+          "min": 0,
+          "max": 10350,
+          "delta": 10350
+        },
+        "snapshotUniqueCount": {
+          "n": 120,
+          "first": 0,
+          "last": 5,
+          "min": 0,
+          "max": 5,
+          "delta": 5
+        },
+        "snapshotUniqueBytes": {
+          "n": 120,
+          "first": 0,
+          "last": 65954315,
+          "min": 0,
+          "max": 65954315,
+          "delta": 65954315
+        },
+        "unpublishedCount": {
+          "n": 120,
+          "first": 0,
+          "last": 0,
+          "min": 0,
+          "max": 0,
+          "delta": 0
+        },
+        "unpublishedBytes": {
+          "n": 120,
+          "first": 0,
+          "last": 0,
+          "min": 0,
+          "max": 0,
+          "delta": 0
+        }
+      },
+      "live": {
+        "structuredRequests": {
+          "n": 120,
+          "first": 0,
+          "last": 0,
+          "min": 0,
+          "max": 2,
+          "delta": 0
+        },
+        "preparationsIncludingWaiters": {
+          "n": 120,
+          "first": 0,
+          "last": 0,
+          "min": 0,
+          "max": 0,
+          "delta": 0
+        },
+        "requestMediaCachesIncludingEncoder": {
+          "n": 120,
+          "first": 0,
+          "last": 0,
+          "min": 0,
+          "max": 3,
+          "delta": 0
+        },
+        "requestMediaEntries": {
+          "n": 120,
+          "first": 0,
+          "last": 0,
+          "min": 0,
+          "max": 54,
+          "delta": 0
+        },
+        "requestMediaRetainedEnvelopeBytes": {
+          "n": 120,
+          "first": 0,
+          "last": 0,
+          "min": 0,
+          "max": 2385656,
+          "delta": 0
+        },
+        "responseHolds": {
+          "n": 120,
+          "first": 0,
+          "last": 0,
+          "min": 0,
+          "max": 0,
+          "delta": 0
+        },
+        "preparedReaders": {
+          "n": 120,
+          "first": 0,
+          "last": 0,
+          "min": 0,
+          "max": 54,
+          "delta": 0
+        },
+        "preparedRetainedEnvelopeBytes": {
+          "n": 120,
+          "first": 0,
+          "last": 0,
+          "min": 0,
+          "max": 2385656,
+          "delta": 0
+        },
+        "visualRequests": {
+          "n": 120,
+          "first": 0,
+          "last": 0,
+          "min": 0,
+          "max": 2,
+          "delta": 0
+        },
+        "visualPublications": {
+          "n": 120,
+          "first": 1,
+          "last": 1,
+          "min": 1,
+          "max": 2,
+          "delta": 0
+        },
+        "visualIndices": {
+          "n": 120,
+          "first": 1,
+          "last": 1,
+          "min": 1,
+          "max": 2,
+          "delta": 0
+        },
+        "visualIndexLogicalBytes": {
+          "n": 120,
+          "first": 6128,
+          "last": 5880872,
+          "min": 6128,
+          "max": 5880872,
+          "delta": 5874744
+        },
+        "sourceCutRetainedRows": {
+          "n": 120,
+          "first": 0,
+          "last": 0,
+          "min": 0,
+          "max": 0,
+          "delta": 0
+        },
+        "resolvedMediaFDs": {
+          "n": 120,
+          "first": 0,
+          "last": 0,
+          "min": 0,
+          "max": 56,
+          "delta": 0
+        }
+      }
+    },
+    "intervals": [
+      {
+        "rangeSeconds": [
+          0,
+          300
+        ],
+        "summary": {
+          "count": 60,
+          "seconds": {
+            "n": 60,
+            "first": 0.281943543,
+            "last": 296.756476668,
+            "min": 0.281943543,
+            "max": 296.756476668,
+            "delta": 296.474533125
+          },
+          "metrics": {
+            "residencyUsed": {
+              "n": 60,
+              "first": 2966773,
+              "last": 38666025,
+              "min": 1474665,
+              "max": 45685716,
+              "delta": 35699252
+            },
+            "attributedSearchBytes": {
+              "n": 60,
+              "first": 1193825,
+              "last": 35349208,
+              "min": 1193825,
+              "max": 40596937,
+              "delta": 34155383
+            },
+            "unattributedSearchBytes": {
+              "n": 60,
+              "first": 1772948,
+              "last": 3316817,
+              "min": 217812,
+              "max": 19559966,
+              "delta": 1543869
+            },
+            "rssBytes": {
+              "n": 60,
+              "first": 3181953024,
+              "last": 1752416256,
+              "min": 1689894912,
+              "max": 3209543680,
+              "delta": -1429536768
+            },
+            "footprintBytes": {
+              "n": 60,
+              "first": 3133983984,
+              "last": 1697384728,
+              "min": 1638435024,
+              "max": 3160558856,
+              "delta": -1436599256
+            }
+          },
+          "ticketBytes": {
+            "unattributed": {
+              "n": 60,
+              "first": 1772948,
+              "last": 3316817,
+              "min": 217812,
+              "max": 19559966,
+              "delta": 1543869
+            },
+            "model": {
+              "n": 60,
+              "first": 0,
+              "last": 26057861,
+              "min": 0,
+              "max": 26057861,
+              "delta": 26057861
+            },
+            "sourceBatch": {
+              "n": 60,
+              "first": 0,
+              "last": 0,
+              "min": 0,
+              "max": 0,
+              "delta": 0
+            },
+            "retryBatch": {
+              "n": 60,
+              "first": 0,
+              "last": 0,
+              "min": 0,
+              "max": 0,
+              "delta": 0
+            },
+            "sourceCut": {
+              "n": 60,
+              "first": 0,
+              "last": 0,
+              "min": 0,
+              "max": 0,
+              "delta": 0
+            },
+            "preparation": {
+              "n": 60,
+              "first": 0,
+              "last": 0,
+              "min": 0,
+              "max": 0,
+              "delta": 0
+            },
+            "matches": {
+              "n": 60,
+              "first": 0,
+              "last": 447920,
+              "min": 0,
+              "max": 447920,
+              "delta": 447920
+            },
+            "page": {
+              "n": 60,
+              "first": 0,
+              "last": 0,
+              "min": 0,
+              "max": 2688,
+              "delta": 0
+            },
+            "response": {
+              "n": 60,
+              "first": 0,
+              "last": 0,
+              "min": 0,
+              "max": 33554432,
+              "delta": 0
+            },
+            "preparedNative": {
+              "n": 60,
+              "first": 0,
+              "last": 0,
+              "min": 0,
+              "max": 359424,
+              "delta": 0
+            },
+            "retainedRaw": {
+              "n": 60,
+              "first": 1309,
+              "last": 389661,
+              "min": 1309,
+              "max": 672189,
+              "delta": 388352
+            },
+            "catalogRow": {
+              "n": 60,
+              "first": 3652,
+              "last": 5491630,
+              "min": 3652,
+              "max": 5491630,
+              "delta": 5487978
+            },
+            "scratch": {
+              "n": 60,
+              "first": 1188864,
+              "last": 2962136,
+              "min": 1188864,
+              "max": 2962136,
+              "delta": 1773272
+            }
+          },
+          "models": {
+            "registeredCount": {
+              "n": 60,
+              "first": 0,
+              "last": 5,
+              "min": 0,
+              "max": 6,
+              "delta": 5
+            },
+            "registeredBytes": {
+              "n": 60,
+              "first": 0,
+              "last": 26057861,
+              "min": 0,
+              "max": 26057861,
+              "delta": 26057861
+            },
+            "currentCount": {
+              "n": 60,
+              "first": 0,
+              "last": 1,
+              "min": 0,
+              "max": 1,
+              "delta": 1
+            },
+            "currentBytes": {
+              "n": 60,
+              "first": 0,
+              "last": 7273849,
+              "min": 0,
+              "max": 7273849,
+              "delta": 7273849
+            },
+            "currentDocuments": {
+              "n": 60,
+              "first": 0,
+              "last": 4387,
+              "min": 0,
+              "max": 4387,
+              "delta": 4387
+            },
+            "snapshotUniqueCount": {
+              "n": 60,
+              "first": 0,
+              "last": 5,
+              "min": 0,
+              "max": 5,
+              "delta": 5
+            },
+            "snapshotUniqueBytes": {
+              "n": 60,
+              "first": 0,
+              "last": 26057861,
+              "min": 0,
+              "max": 26057861,
+              "delta": 26057861
+            },
+            "unpublishedCount": {
+              "n": 60,
+              "first": 0,
+              "last": 0,
+              "min": 0,
+              "max": 0,
+              "delta": 0
+            },
+            "unpublishedBytes": {
+              "n": 60,
+              "first": 0,
+              "last": 0,
+              "min": 0,
+              "max": 0,
+              "delta": 0
+            }
+          },
+          "live": {
+            "structuredRequests": {
+              "n": 60,
+              "first": 0,
+              "last": 0,
+              "min": 0,
+              "max": 2,
+              "delta": 0
+            },
+            "preparationsIncludingWaiters": {
+              "n": 60,
+              "first": 0,
+              "last": 0,
+              "min": 0,
+              "max": 0,
+              "delta": 0
+            },
+            "requestMediaCachesIncludingEncoder": {
+              "n": 60,
+              "first": 0,
+              "last": 0,
+              "min": 0,
+              "max": 3,
+              "delta": 0
+            },
+            "requestMediaEntries": {
+              "n": 60,
+              "first": 0,
+              "last": 0,
+              "min": 0,
+              "max": 54,
+              "delta": 0
+            },
+            "requestMediaRetainedEnvelopeBytes": {
+              "n": 60,
+              "first": 0,
+              "last": 0,
+              "min": 0,
+              "max": 2385656,
+              "delta": 0
+            },
+            "responseHolds": {
+              "n": 60,
+              "first": 0,
+              "last": 0,
+              "min": 0,
+              "max": 0,
+              "delta": 0
+            },
+            "preparedReaders": {
+              "n": 60,
+              "first": 0,
+              "last": 0,
+              "min": 0,
+              "max": 54,
+              "delta": 0
+            },
+            "preparedRetainedEnvelopeBytes": {
+              "n": 60,
+              "first": 0,
+              "last": 0,
+              "min": 0,
+              "max": 2385656,
+              "delta": 0
+            },
+            "visualRequests": {
+              "n": 60,
+              "first": 0,
+              "last": 0,
+              "min": 0,
+              "max": 2,
+              "delta": 0
+            },
+            "visualPublications": {
+              "n": 60,
+              "first": 1,
+              "last": 1,
+              "min": 1,
+              "max": 2,
+              "delta": 0
+            },
+            "visualIndices": {
+              "n": 60,
+              "first": 1,
+              "last": 1,
+              "min": 1,
+              "max": 2,
+              "delta": 0
+            },
+            "visualIndexLogicalBytes": {
+              "n": 60,
+              "first": 6128,
+              "last": 2906472,
+              "min": 6128,
+              "max": 4038512,
+              "delta": 2900344
+            },
+            "sourceCutRetainedRows": {
+              "n": 60,
+              "first": 0,
+              "last": 0,
+              "min": 0,
+              "max": 0,
+              "delta": 0
+            },
+            "resolvedMediaFDs": {
+              "n": 60,
+              "first": 0,
+              "last": 0,
+              "min": 0,
+              "max": 56,
+              "delta": 0
+            }
+          }
+        }
+      },
+      {
+        "rangeSeconds": [
+          300,
+          600
+        ],
+        "summary": {
+          "count": 60,
+          "seconds": {
+            "n": 60,
+            "first": 301.792554501,
+            "last": 598.870987668,
+            "min": 301.792554501,
+            "max": 598.870987668,
+            "delta": 297.078433167
+          },
+          "metrics": {
+            "residencyUsed": {
+              "n": 60,
+              "first": 186060228,
+              "last": 93385763,
+              "min": 36376367,
+              "max": 186060228,
+              "delta": -92674465
+            },
+            "attributedSearchBytes": {
+              "n": 60,
+              "first": 35977757,
+              "last": 89517529,
+              "min": 35792986,
+              "max": 89517529,
+              "delta": 53539772
+            },
+            "unattributedSearchBytes": {
+              "n": 60,
+              "first": 150082471,
+              "last": 3868234,
+              "min": 500436,
+              "max": 150082471,
+              "delta": -146214237
+            },
+            "rssBytes": {
+              "n": 60,
+              "first": 1756725248,
+              "last": 1915404288,
+              "min": 1756725248,
+              "max": 1915404288,
+              "delta": 158679040
+            },
+            "footprintBytes": {
+              "n": 60,
+              "first": 1701628184,
+              "last": 1856031168,
+              "min": 1701628184,
+              "max": 1856031168,
+              "delta": 154402984
+            }
+          },
+          "ticketBytes": {
+            "unattributed": {
+              "n": 60,
+              "first": 150082471,
+              "last": 3868234,
+              "min": 500436,
+              "max": 150082471,
+              "delta": -146214237
+            },
+            "model": {
+              "n": 60,
+              "first": 28120492,
+              "last": 65954315,
+              "min": 28120492,
+              "max": 65954315,
+              "delta": 37833823
+            },
+            "sourceBatch": {
+              "n": 60,
+              "first": 0,
+              "last": 0,
+              "min": 0,
+              "max": 0,
+              "delta": 0
+            },
+            "retryBatch": {
+              "n": 60,
+              "first": 0,
+              "last": 0,
+              "min": 0,
+              "max": 0,
+              "delta": 0
+            },
+            "sourceCut": {
+              "n": 60,
+              "first": 0,
+              "last": 0,
+              "min": 0,
+              "max": 0,
+              "delta": 0
+            },
+            "preparation": {
+              "n": 60,
+              "first": 0,
+              "last": 0,
+              "min": 0,
+              "max": 0,
+              "delta": 0
+            },
+            "matches": {
+              "n": 60,
+              "first": 543232,
+              "last": 1120480,
+              "min": 483280,
+              "max": 1120480,
+              "delta": 577248
+            },
+            "page": {
+              "n": 60,
+              "first": 0,
+              "last": 0,
+              "min": 0,
+              "max": 0,
+              "delta": 0
+            },
+            "response": {
+              "n": 60,
+              "first": 0,
+              "last": 0,
+              "min": 0,
+              "max": 0,
+              "delta": 0
+            },
+            "preparedNative": {
+              "n": 60,
+              "first": 0,
+              "last": 0,
+              "min": 0,
+              "max": 39936,
+              "delta": 0
+            },
+            "retainedRaw": {
+              "n": 60,
+              "first": 394909,
+              "last": 783261,
+              "min": 394909,
+              "max": 783261,
+              "delta": 388352
+            },
+            "catalogRow": {
+              "n": 60,
+              "first": 5730260,
+              "last": 20173393,
+              "min": 5588807,
+              "max": 20173393,
+              "delta": 14443133
+            },
+            "scratch": {
+              "n": 60,
+              "first": 1188864,
+              "last": 1486080,
+              "min": 1188864,
+              "max": 1486080,
+              "delta": 297216
+            }
+          },
+          "models": {
+            "registeredCount": {
+              "n": 60,
+              "first": 4,
+              "last": 5,
+              "min": 4,
+              "max": 6,
+              "delta": 1
+            },
+            "registeredBytes": {
+              "n": 60,
+              "first": 28120492,
+              "last": 65954315,
+              "min": 28120492,
+              "max": 65954315,
+              "delta": 37833823
+            },
+            "currentCount": {
+              "n": 60,
+              "first": 1,
+              "last": 1,
+              "min": 1,
+              "max": 1,
+              "delta": 0
+            },
+            "currentBytes": {
+              "n": 60,
+              "first": 7814357,
+              "last": 17160503,
+              "min": 5525,
+              "max": 17160503,
+              "delta": 9346146
+            },
+            "currentDocuments": {
+              "n": 60,
+              "first": 4713,
+              "last": 10350,
+              "min": 3,
+              "max": 10350,
+              "delta": 5637
+            },
+            "snapshotUniqueCount": {
+              "n": 60,
+              "first": 4,
+              "last": 5,
+              "min": 4,
+              "max": 5,
+              "delta": 1
+            },
+            "snapshotUniqueBytes": {
+              "n": 60,
+              "first": 28120492,
+              "last": 65954315,
+              "min": 28120492,
+              "max": 65954315,
+              "delta": 37833823
+            },
+            "unpublishedCount": {
+              "n": 60,
+              "first": 0,
+              "last": 0,
+              "min": 0,
+              "max": 0,
+              "delta": 0
+            },
+            "unpublishedBytes": {
+              "n": 60,
+              "first": 0,
+              "last": 0,
+              "min": 0,
+              "max": 0,
+              "delta": 0
+            }
+          },
+          "live": {
+            "structuredRequests": {
+              "n": 60,
+              "first": 0,
+              "last": 0,
+              "min": 0,
+              "max": 0,
+              "delta": 0
+            },
+            "preparationsIncludingWaiters": {
+              "n": 60,
+              "first": 0,
+              "last": 0,
+              "min": 0,
+              "max": 0,
+              "delta": 0
+            },
+            "requestMediaCachesIncludingEncoder": {
+              "n": 60,
+              "first": 0,
+              "last": 0,
+              "min": 0,
+              "max": 1,
+              "delta": 0
+            },
+            "requestMediaEntries": {
+              "n": 60,
+              "first": 0,
+              "last": 0,
+              "min": 0,
+              "max": 6,
+              "delta": 0
+            },
+            "requestMediaRetainedEnvelopeBytes": {
+              "n": 60,
+              "first": 0,
+              "last": 0,
+              "min": 0,
+              "max": 352536,
+              "delta": 0
+            },
+            "responseHolds": {
+              "n": 60,
+              "first": 0,
+              "last": 0,
+              "min": 0,
+              "max": 0,
+              "delta": 0
+            },
+            "preparedReaders": {
+              "n": 60,
+              "first": 0,
+              "last": 0,
+              "min": 0,
+              "max": 6,
+              "delta": 0
+            },
+            "preparedRetainedEnvelopeBytes": {
+              "n": 60,
+              "first": 0,
+              "last": 0,
+              "min": 0,
+              "max": 352536,
+              "delta": 0
+            },
+            "visualRequests": {
+              "n": 60,
+              "first": 0,
+              "last": 0,
+              "min": 0,
+              "max": 0,
+              "delta": 0
+            },
+            "visualPublications": {
+              "n": 60,
+              "first": 1,
+              "last": 1,
+              "min": 1,
+              "max": 1,
+              "delta": 0
+            },
+            "visualIndices": {
+              "n": 60,
+              "first": 1,
+              "last": 1,
+              "min": 1,
+              "max": 1,
+              "delta": 0
+            },
+            "visualIndexLogicalBytes": {
+              "n": 60,
+              "first": 2961672,
+              "last": 5880872,
+              "min": 2961672,
+              "max": 5880872,
+              "delta": 2919200
+            },
+            "sourceCutRetainedRows": {
+              "n": 60,
+              "first": 0,
+              "last": 0,
+              "min": 0,
+              "max": 0,
+              "delta": 0
+            },
+            "resolvedMediaFDs": {
+              "n": 60,
+              "first": 2,
+              "last": 0,
+              "min": 0,
+              "max": 6,
+              "delta": -2
+            }
+          }
+        }
+      }
+    ],
+    "snapshotPool": {
+      "entries": {
+        "n": 120,
+        "first": 0,
+        "last": 8,
+        "min": 0,
+        "max": 8,
+        "delta": 8
+      },
+      "productBytesWithRepeatedModelCharges": {
+        "n": 120,
+        "first": 0,
+        "last": 116978378,
+        "min": 0,
+        "max": 116978378,
+        "delta": 116978378
+      },
+      "matchCapacityBytes": {
+        "n": 120,
+        "first": 0,
+        "last": 917520,
+        "min": 0,
+        "max": 917520,
+        "delta": 917520
+      },
+      "modelReferences": {
+        "n": 120,
+        "first": 0,
+        "last": 8,
+        "min": 0,
+        "max": 8,
+        "delta": 8
+      },
+      "uniqueModels": {
+        "n": 120,
+        "first": 0,
+        "last": 5,
+        "min": 0,
+        "max": 5,
+        "delta": 5
+      },
+      "uniqueModelBytes": {
+        "n": 120,
+        "first": 0,
+        "last": 65954315,
+        "min": 0,
+        "max": 65954315,
+        "delta": 65954315
+      },
+      "oldestExpiryRemainingMs": {
+        "n": 119,
+        "first": 295399.306167,
+        "last": 242243.197125,
+        "min": 242219.595791,
+        "max": 295399.306167,
+        "delta": -53156.10904199997
+      },
+      "newestExpiryRemainingMs": {
+        "n": 119,
+        "first": 295479.648625,
+        "last": 287330.279708,
+        "min": 287330.279708,
+        "max": 299969.471958,
+        "delta": -8149.368916999956
+      }
+    },
+    "activityPeaks": {
+      "structuredRequests": 2,
+      "preparationsIncludingWaiters": 2,
+      "requestMediaCachesIncludingEncoder": 3,
+      "requestMediaEntries": 66,
+      "requestMediaRetainedEnvelopeBytes": 3373040,
+      "responseHolds": 38,
+      "preparedReaders": 65,
+      "preparedRetainedEnvelopeBytes": 3373040,
+      "visualRequests": 2,
+      "visualPublications": 2,
+      "visualIndices": 2,
+      "visualIndexLogicalBytes": 11706160,
+      "sourceCutRetainedRows": 585,
+      "resolvedMediaFDs": 66
+    },
+    "cumulative": {
+      "modelsCreated": 60,
+      "modelsDestroyed": 60,
+      "modelsPublishedCurrent": 50,
+      "modelsNoLongerCurrent": 50,
+      "modelSnapshotRetains": 90,
+      "snapshotTtlExpired": 0,
+      "snapshotCountEvicted": 82,
+      "snapshotByteEvicted": 0,
+      "eventSequence": 520,
+      "lastPreparedReaderReleaseNs": 1479128538772833,
+      "finalPhaseReprepare": 0,
+      "visualGeneration": 210,
+      "visualDocs": 0,
+      "visualCurrentBytes": 0,
+      "visualRetiredBytes": 0,
+      "visualCurrentUseCount": 0,
+      "visualRetiredUseCount": 0,
+      "visualCapturedNs": 1479131601560791,
+      "rolesAggregateCapturedNs": 1479131619361583,
+      "peakSimultaneousModels": 7
+    },
+    "unattributedPeakNeighborhood": [
+      {
+        "sampleStartNs": 1478827464162000,
+        "residencyUsed": 38666025,
+        "attributedSearchBytes": 35349208,
+        "unattributedSearchBytes": 3316817,
+        "rssBytes": 1752416256,
+        "footprintBytes": 1697384728,
+        "tickets": {
+          "unattributed": [
+            3316817,
+            312
+          ],
+          "model": [
+            26057861,
+            5
+          ],
+          "sourceBatch": [
+            0,
+            0
+          ],
+          "retryBatch": [
+            0,
+            0
+          ],
+          "sourceCut": [
+            0,
+            0
+          ],
+          "preparation": [
+            0,
+            0
+          ],
+          "matches": [
+            447920,
+            8
+          ],
+          "page": [
+            0,
+            0
+          ],
+          "response": [
+            0,
+            0
+          ],
+          "preparedNative": [
+            0,
+            0
+          ],
+          "retainedRaw": [
+            389661,
+            891
+          ],
+          "catalogRow": [
+            5491630,
+            299
+          ],
+          "scratch": [
+            2962136,
+            14
+          ]
+        }
+      },
+      {
+        "sampleStartNs": 1478832500239833,
+        "residencyUsed": 186060228,
+        "attributedSearchBytes": 35977757,
+        "unattributedSearchBytes": 150082471,
+        "rssBytes": 1756725248,
+        "footprintBytes": 1701628184,
+        "tickets": {
+          "unattributed": [
+            150082471,
+            15
+          ],
+          "model": [
+            28120492,
+            4
+          ],
+          "sourceBatch": [
+            0,
+            0
+          ],
+          "retryBatch": [
+            0,
+            0
+          ],
+          "sourceCut": [
+            0,
+            0
+          ],
+          "preparation": [
+            0,
+            0
+          ],
+          "matches": [
+            543232,
+            8
+          ],
+          "page": [
+            0,
+            0
+          ],
+          "response": [
+            0,
+            0
+          ],
+          "preparedNative": [
+            0,
+            0
+          ],
+          "retainedRaw": [
+            394909,
+            903
+          ],
+          "catalogRow": [
+            5730260,
+            305
+          ],
+          "scratch": [
+            1188864,
+            4
+          ]
+        }
+      },
+      {
+        "sampleStartNs": 1478837543193875,
+        "residencyUsed": 36696354,
+        "attributedSearchBytes": 35792986,
+        "unattributedSearchBytes": 903368,
+        "rssBytes": 1757478912,
+        "footprintBytes": 1702299928,
+        "tickets": {
+          "unattributed": [
+            903368,
+            319
+          ],
+          "model": [
+            28129254,
+            6
+          ],
+          "sourceBatch": [
+            0,
+            0
+          ],
+          "retryBatch": [
+            0,
+            0
+          ],
+          "sourceCut": [
+            0,
+            0
+          ],
+          "preparation": [
+            0,
+            0
+          ],
+          "matches": [
+            483280,
+            8
+          ],
+          "page": [
+            0,
+            0
+          ],
+          "response": [
+            0,
+            0
+          ],
+          "preparedNative": [
+            0,
+            0
+          ],
+          "retainedRaw": [
+            402781,
+            921
+          ],
+          "catalogRow": [
+            5588807,
+            308
+          ],
+          "scratch": [
+            1188864,
+            4
+          ]
+        }
+      }
+    ],
+    "shutdownPhases": {
+      "before-Finish": {
+        "residencyUsed": 81663533,
+        "attributedSearchBytes": 81146713,
+        "unattributedSearchBytes": 516820,
+        "rssBytes": 1914929152,
+        "footprintBytes": 1855457728,
+        "tickets": {
+          "unattributed": [
+            516820,
+            17
+          ],
+          "model": [
+            65954315,
+            5
+          ],
+          "sourceBatch": [
+            0,
+            0
+          ],
+          "retryBatch": [
+            0,
+            0
+          ],
+          "sourceCut": [
+            0,
+            0
+          ],
+          "preparation": [
+            0,
+            0
+          ],
+          "matches": [
+            1120480,
+            8
+          ],
+          "page": [
+            0,
+            0
+          ],
+          "response": [
+            0,
+            0
+          ],
+          "preparedNative": [
+            0,
+            0
+          ],
+          "retainedRaw": [
+            788509,
+            1803
+          ],
+          "catalogRow": [
+            12094545,
+            601
+          ],
+          "scratch": [
+            1188864,
+            4
+          ]
+        },
+        "models": [
+          [
+            60,
+            16746003,
+            10100,
+            1142,
+            false,
+            2,
+            true
+          ],
+          [
+            61,
+            17160503,
+            10350,
+            1170,
+            true,
+            2,
+            true
+          ],
+          [
+            56,
+            15847367,
+            9558,
+            1082,
+            false,
+            1,
+            true
+          ],
+          [
+            58,
+            3237,
+            2,
+            1082,
+            false,
+            1,
+            true
+          ],
+          [
+            59,
+            16197205,
+            9769,
+            1110,
+            false,
+            2,
+            true
+          ]
+        ],
+        "snapshotPools": [
+          [
+            1,
+            8,
+            116978378,
+            917520,
+            8,
+            5,
+            65954315,
+            1479371821875250,
+            1479416908957833,
+            false
+          ]
+        ],
+        "live": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          1,
+          1,
+          5880872,
+          0,
+          0
+        ]
+      },
+      "after-Finish": {
+        "residencyUsed": 67591615,
+        "attributedSearchBytes": 67074795,
+        "unattributedSearchBytes": 516820,
+        "rssBytes": 1914929152,
+        "footprintBytes": 1855457728,
+        "tickets": {
+          "unattributed": [
+            516820,
+            17
+          ],
+          "model": [
+            65954315,
+            5
+          ],
+          "sourceBatch": [
+            0,
+            0
+          ],
+          "retryBatch": [
+            0,
+            0
+          ],
+          "sourceCut": [
+            0,
+            0
+          ],
+          "preparation": [
+            0,
+            0
+          ],
+          "matches": [
+            1120480,
+            8
+          ],
+          "page": [
+            0,
+            0
+          ],
+          "response": [
+            0,
+            0
+          ],
+          "preparedNative": [
+            0,
+            0
+          ],
+          "retainedRaw": [
+            0,
+            0
+          ],
+          "catalogRow": [
+            0,
+            0
+          ],
+          "scratch": [
+            0,
+            0
+          ]
+        },
+        "models": [
+          [
+            60,
+            16746003,
+            10100,
+            1142,
+            false,
+            2,
+            true
+          ],
+          [
+            61,
+            17160503,
+            10350,
+            1170,
+            true,
+            2,
+            true
+          ],
+          [
+            56,
+            15847367,
+            9558,
+            1082,
+            false,
+            1,
+            true
+          ],
+          [
+            58,
+            3237,
+            2,
+            1082,
+            false,
+            1,
+            true
+          ],
+          [
+            59,
+            16197205,
+            9769,
+            1110,
+            false,
+            2,
+            true
+          ]
+        ],
+        "snapshotPools": [
+          [
+            1,
+            8,
+            116978378,
+            917520,
+            8,
+            5,
+            65954315,
+            1479371821875250,
+            1479416908957833,
+            false
+          ]
+        ],
+        "live": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          1,
+          1,
+          5880872,
+          0,
+          0
+        ]
+      },
+      "after-storage-destruction": {
+        "residencyUsed": 0,
+        "attributedSearchBytes": 0,
+        "unattributedSearchBytes": 0,
+        "rssBytes": 540901376,
+        "footprintBytes": 392906264,
+        "tickets": {
+          "unattributed": [
+            0,
+            0
+          ],
+          "model": [
+            0,
+            0
+          ],
+          "sourceBatch": [
+            0,
+            0
+          ],
+          "retryBatch": [
+            0,
+            0
+          ],
+          "sourceCut": [
+            0,
+            0
+          ],
+          "preparation": [
+            0,
+            0
+          ],
+          "matches": [
+            0,
+            0
+          ],
+          "page": [
+            0,
+            0
+          ],
+          "response": [
+            0,
+            0
+          ],
+          "preparedNative": [
+            0,
+            0
+          ],
+          "retainedRaw": [
+            0,
+            0
+          ],
+          "catalogRow": [
+            0,
+            0
+          ],
+          "scratch": [
+            0,
+            0
+          ]
+        },
+        "models": [],
+        "snapshotPools": [],
+        "live": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    "interpretation": [
+      "Current structured model last17,160,503B/10,350documents;5 unique snapshot models65,954,315B. The current model is included, not added again.",
+      "Snapshot product bytes116,978,378 includes repeated model charges and differs from resident unique bytes.8entries,82count evictions,0TTL/byte evictions.60created/60destroyed, simultaneous peak7.",
+      "No periodic model-ticket total decrease despite replacement destruction: larger source models replace smaller ones. This does not establish TTL release or steady-state byte convergence.",
+      "Visual current last5,880,872B/1185docs/generation210. Activity peak2indices/11,706,160B; sampled retired bytes may miss short overlap. No persistent retired-holder observed; not absence proof for every instant.",
+      "RequestMedia/PreparedSource retained envelope peak3,373,040B, caches3/entries66/responseholds38/readers65/FD66; overlaps existing backing tickets and is not added to SearchResidency. Final all0.",
+      "Sampled sourceBatch/retryBatch/sourceCut/preparation zero is not no activity: active preparation peak2/sourcecut rows585. Fixed5s samples miss short phases.",
+      "Unattributed peak150,082,471B drops to903,368B by next sample; last3,868,234B and Finish516,820B before final0. Live callsite/heap attribution remains insufficient, not confirmed persistent leak."
+    ]
+  },
+  "functional": {
+    "passedAssertions": 1653,
+    "failedAssertions": 0,
+    "search": {
+      "officialPopulation": {
+        "count": 160,
+        "p95Ms": 928.2774579999968,
+        "maxMs": 1182.78445799998
+      },
+      "successByClient": [
+        40,
+        40,
+        40,
+        40
+      ],
+      "unavailable": 0,
+      "transportFailureCount": 0,
+      "routeDiagnosticsRoundedMs": {
+        "/ops/api/recordings/search": {
+          "count": 80,
+          "p95Ms": 544,
+          "maxMs": 580
+        },
+        "/ops/api/recordings/visual-search": {
+          "count": 80,
+          "p95Ms": 983,
+          "maxMs": 1183
+        }
+      },
+      "wallTimeRequestBins": null,
+      "wallTimeReason": "mixed-http-timing has elapsed durations but no request start/end absolute monotonic timestamp; no array thirds substituted",
+      "existingEvidenceWindows": [
+        {
+          "structured": 260,
+          "visual": 520,
+          "evidence": 13,
+          "visualEvidence": 13
+        },
+        {
+          "structured": 260,
+          "visual": 520,
+          "evidence": 13,
+          "visualEvidence": 13
+        },
+        {
+          "structured": 260,
+          "visual": 520,
+          "evidence": 13,
+          "visualEvidence": 13
+        }
+      ],
+      "evidenceWindowsScope": "helper selects window at evidenceLoad entry; item counts and created packages, not request-time latency bins",
+      "ACompletedByActualTime": [
+        5,
+        5
+      ],
+      "retainedAndBusyWallTime": null
+    },
+    "latencyGate": false,
+    "latencyMeaning": "original successful160 request population only; diagnostic distribution, not replacement official900 gate; legacy analysis key officialPopulation names this original array",
+    "evidence": {
+      "structuredComplete": 39,
+      "structuredPartial": 0,
+      "normalBusy": 39,
+      "visualCreated": 39,
+      "retainedChecks": 78,
+      "ACompleted": 10,
+      "allWindowsProgress": [
+        {
+          "structured": 260,
+          "visual": 520,
+          "evidence": 13,
+          "visualEvidence": 13
+        },
+        {
+          "structured": 260,
+          "visual": 520,
+          "evidence": 13,
+          "visualEvidence": 13
+        },
+        {
+          "structured": 260,
+          "visual": 520,
+          "evidence": 13,
+          "visualEvidence": 13
+        }
+      ]
+    },
+    "recording": {
+      "finalizedFiles": 600,
+      "channels": {
+        "9101": {
+          "files": 300,
+          "samples": 17975,
+          "bytes": 10306963
+        },
+        "9201": {
+          "files": 300,
+          "samples": 17977,
+          "bytes": 10308096
+        }
+      },
+      "intraSegmentGaps": [],
+      "betweenSameGenerationGaps": [],
+      "sameGenerationComparisons": 300,
+      "channelGenerationGroups": 300,
+      "allFileHashesMatchBinding": true,
+      "compressedRowsCRCChecked": 1190,
+      "deliveryLossLogLines": 0,
+      "scope": "closed finalized samples and within-generation continuity only; generation transition/Stop tail/source completeness not proven",
+      "recorderRows": [
+        {
+          "enqueued": 17975,
+          "dequeued": 17975,
+          "dropped": 0,
+          "payloadBytes": 9962363,
+          "maxDepth": 31,
+          "maxBytes": 16793,
+          "firstNs": 5126030834,
+          "lastNs": 605198314543,
+          "minInputGapNs": 23253834,
+          "maxInputGapNs": 47176125,
+          "queueWaitNs": 36665046740,
+          "maxQueueWaitNs": 1003965750,
+          "callbackNs": 23312779653,
+          "maxCallbackNs": 1035376792,
+          "firstDepth64Ns": 0,
+          "firstDropNs": 0,
+          "maxCallbackBeginNs": 592050308334,
+          "maxCallbackOrdinal": 61
+        },
+        {
+          "enqueued": 17977,
+          "dequeued": 17977,
+          "dropped": 0,
+          "payloadBytes": 9963488,
+          "maxDepth": 29,
+          "maxBytes": 14990,
+          "firstNs": 5135464668,
+          "lastNs": 605231630168,
+          "minInputGapNs": 17881416,
+          "maxInputGapNs": 46642125,
+          "queueWaitNs": 29895439471,
+          "maxQueueWaitNs": 939264417,
+          "callbackNs": 23169215081,
+          "maxCallbackNs": 972551042,
+          "firstDepth64Ns": 0,
+          "firstDropNs": 0,
+          "maxCallbackBeginNs": 495852760626,
+          "maxCallbackOrdinal": 61
+        }
+      ],
+      "durableSamples": 35952,
+      "writerAcceptedCounter": null,
+      "enqueuedDurableMultisetMatch": true,
+      "recorderRowChannelMapping": "not emitted; no inferred association by line order",
+      "maxQueueWaitNs": 1003965750,
+      "maxCallbackNs": 1035376792,
+      "sourceCompleteness": "source-emitted total not recorded; subscriber input count equals dequeue and closed durable count; no claim before enqueue/after Stop",
+      "readiness600Recorder": "NO_OBSERVED_DROP_OR_DURABLE_COUNT_DEFICIT",
+      "longtermMargin": "single600 diagnostic only; ~1s callback and depth31 remain measured margin, not longterm proof",
+      "sourceExpected": null,
+      "queueEnqueued": 35952,
+      "queueDequeued": 35952,
+      "queueDrops": 0
+    },
+    "shutdown": {
+      "cleanup": [
+        {
+          "schema": "recording-process-cleanup-v1",
+          "attemptCount": 1,
+          "pid": 55471,
+          "exitCode": 0,
+          "signalCode": null,
+          "exitedObserved": true,
+          "stopCode": "complete",
+          "forcedTermination": "not-used",
+          "normalExitPass": true,
+          "normalShutdownPass": true,
+          "archiveSafe": true,
+          "ports": [
+            {
+              "kind": "http",
+              "port": 59354,
+              "status": "pass",
+              "code": "closed",
+              "closed": true
+            },
+            {
+              "kind": "rtsp",
+              "port": 59355,
+              "status": "pass",
+              "code": "closed",
+              "closed": true
+            }
+          ]
+        }
+      ],
+      "state": [
+        {
+          "status": "captured",
+          "count": 6,
+          "events": [
+            {
+              "seq": 0,
+              "atUs": 1478530627736,
+              "channel": "9101",
+              "phase": "session-created",
+              "reason": "epoch-9101-1-1792171299115"
+            },
+            {
+              "seq": 1,
+              "atUs": 1478530691559,
+              "channel": "9101",
+              "phase": "writer-started",
+              "reason": "ok"
+            },
+            {
+              "seq": 2,
+              "atUs": 1478530694645,
+              "channel": "9201",
+              "phase": "session-created",
+              "reason": "epoch-9201-1-1792171299182"
+            },
+            {
+              "seq": 3,
+              "atUs": 1478530700941,
+              "channel": "9201",
+              "phase": "writer-started",
+              "reason": "ok"
+            },
+            {
+              "seq": 4,
+              "atUs": 1479130770721,
+              "channel": "9101",
+              "phase": "stop-channel",
+              "reason": "requested"
+            },
+            {
+              "seq": 5,
+              "atUs": 1479130799787,
+              "channel": "9201",
+              "phase": "stop-channel",
+              "reason": "requested"
+            }
+          ],
+          "issues": []
+        }
+      ],
+      "resource": [
+        {
+          "status": "captured",
+          "count": 124,
+          "final": {
+            "pid": 55471,
+            "seq": 123,
+            "phase": "after-storage-destruction",
+            "elapsedMs": 606061,
+            "ram": 0,
+            "ramPeak": 251995783,
+            "ramLimit": 671088640,
+            "ramRejected": 0,
+            "scratchDisk": 0,
+            "scratchDiskPeak": 71786496,
+            "scratchDiskLimit": 161132167168,
+            "scratchFd": 0,
+            "scratchFdPeak": 18,
+            "scratchFdLimit": 1048572,
+            "scratchRam": 0,
+            "preservedDisk": 0,
+            "preservedFd": 0,
+            "readerCleanupHealthy": true
+          },
+          "scope": "actual shared product owner; logical charges, not total heap or RSS; sequential counter reads"
+        }
+      ],
+      "finishPhases": [
+        {
+          "pid": 55471,
+          "seq": 121,
+          "phase": "before-Finish",
+          "elapsedMs": 606035,
+          "ram": 81663533,
+          "ramPeak": 251995783,
+          "ramLimit": 671088640,
+          "ramRejected": 0,
+          "scratchDisk": 26939392,
+          "scratchDiskPeak": 71786496,
+          "scratchDiskLimit": 161132167168,
+          "scratchFd": 4,
+          "scratchFdPeak": 18,
+          "scratchFdLimit": 1048572,
+          "scratchRam": 1188864,
+          "preservedDisk": 0,
+          "preservedFd": 0,
+          "readerCleanupHealthy": true
+        },
+        {
+          "pid": 55471,
+          "seq": 122,
+          "phase": "after-Finish",
+          "elapsedMs": 606037,
+          "ram": 67591615,
+          "ramPeak": 251995783,
+          "ramLimit": 671088640,
+          "ramRejected": 0,
+          "scratchDisk": 0,
+          "scratchDiskPeak": 71786496,
+          "scratchDiskLimit": 161132167168,
+          "scratchFd": 0,
+          "scratchFdPeak": 18,
+          "scratchFdLimit": 1048572,
+          "scratchRam": 0,
+          "preservedDisk": 0,
+          "preservedFd": 0,
+          "readerCleanupHealthy": true
+        },
+        {
+          "pid": 55471,
+          "seq": 123,
+          "phase": "after-storage-destruction",
+          "elapsedMs": 606061,
+          "ram": 0,
+          "ramPeak": 251995783,
+          "ramLimit": 671088640,
+          "ramRejected": 0,
+          "scratchDisk": 0,
+          "scratchDiskPeak": 71786496,
+          "scratchDiskLimit": 161132167168,
+          "scratchFd": 0,
+          "scratchFdPeak": 18,
+          "scratchFdLimit": 1048572,
+          "scratchRam": 0,
+          "preservedDisk": 0,
+          "preservedFd": 0,
+          "readerCleanupHealthy": true
+        }
+      ],
+      "closedJournalGate": true,
+      "disableHttp": [
+        {
+          "method": "PUT",
+          "routeClass": "source-item",
+          "status": 200,
+          "headerElapsedMs": 24,
+          "bodyElapsedMs": 0,
+          "totalElapsedMs": 24,
+          "bytes": 438,
+          "phase": "complete",
+          "outcome": "ok"
+        },
+        {
+          "method": "PUT",
+          "routeClass": "source-item",
+          "status": 200,
+          "headerElapsedMs": 23,
+          "bodyElapsedMs": 0,
+          "totalElapsedMs": 23,
+          "bytes": 438,
+          "phase": "complete",
+          "outcome": "ok"
+        }
+      ],
+      "failureLines": []
+    }
+  },
+  "rssInterpretation": {
+    "scope": "same sample owner/process pairs plus age-labelled external file/FD samples; not atomic heap",
+    "firstLastMax": {
+      "residencyUsed": {
+        "n": 120,
+        "first": 2966773,
+        "last": 93385763,
+        "min": 1474665,
+        "max": 186060228,
+        "delta": 90418990
+      },
+      "attributedSearchBytes": {
+        "n": 120,
+        "first": 1193825,
+        "last": 89517529,
+        "min": 1193825,
+        "max": 89517529,
+        "delta": 88323704
+      },
+      "unattributedSearchBytes": {
+        "n": 120,
+        "first": 1772948,
+        "last": 3868234,
+        "min": 217812,
+        "max": 150082471,
+        "delta": 2095286
+      },
+      "rssBytes": {
+        "n": 120,
+        "first": 3181953024,
+        "last": 1915404288,
+        "min": 1689894912,
+        "max": 3209543680,
+        "delta": -1266548736
+      },
+      "footprintBytes": {
+        "n": 120,
+        "first": 3133983984,
+        "last": 1856031168,
+        "min": 1638435024,
+        "max": 3160558856,
+        "delta": -1277952816
+      }
+    },
+    "late300To600": {
+      "residencyUsed": {
+        "n": 60,
+        "first": 186060228,
+        "last": 93385763,
+        "min": 36376367,
+        "max": 186060228,
+        "delta": -92674465
+      },
+      "attributedSearchBytes": {
+        "n": 60,
+        "first": 35977757,
+        "last": 89517529,
+        "min": 35792986,
+        "max": 89517529,
+        "delta": 53539772
+      },
+      "unattributedSearchBytes": {
+        "n": 60,
+        "first": 150082471,
+        "last": 3868234,
+        "min": 500436,
+        "max": 150082471,
+        "delta": -146214237
+      },
+      "rssBytes": {
+        "n": 60,
+        "first": 1756725248,
+        "last": 1915404288,
+        "min": 1756725248,
+        "max": 1915404288,
+        "delta": 158679040
+      },
+      "footprintBytes": {
+        "n": 60,
+        "first": 1701628184,
+        "last": 1856031168,
+        "min": 1701628184,
+        "max": 1856031168,
+        "delta": 154402984
+      }
+    },
+    "afterStorageRssBytes": 540901376,
+    "afterStorageFootprintBytes": 392906264,
+    "statement": "Initial decrease and later increase coexist. Models/catalog rows explain named logical ownership but no measured live-heap attribution of remaining RSS. Do not assign it to allocator/ORT/OS or call leak/no-leak. Process exit is not the owner release proof.",
+    "externalFileAndFd": "archive run/memory-intervals.json; anonymous allocated refers anonymous file backing, not total anonymous VM; maxima at distinct times not summed"
+  },
+  "decision": {
+    "classification": "HOLD_ATTRIBUTION_INSUFFICIENT",
+    "reasons": [
+      "Major150,082,471B unattributed peak lacks concrete live owner mapping.",
+      "RSS outside logical ticket ledger not decomposed into live allocations vs retained/free pages.",
+      "Count eviction/model destruction verified; real TTL expiry absent under unchanged continuous workload.",
+      "All final logical owners0 and peak later returns, so FAIL_CONFIRMED_OWNER_GROWTH is not established."
+    ],
+    "recorder": "no observed queue drop or durable count deficit in this600 run; not full upstream/longterm proof",
+    "nextMinimalMeasurement": [
+      "Categorize still-unattributed Journal/history/candidate temporary ReserveOwned tickets using actual lifetime ownership, preserving admission coefficients.",
+      "Target non-SearchResidency live allocation/VM ownership at identical quiescent lifecycle boundaries before/after model/visual release; no purge or forced expiry.",
+      "Retain original cadence/workload; do not claim TTL release until actually observed or separately isolate expiry mechanism without replacing mixed evidence."
+    ],
+    "staticUnattributedCandidates": [
+      "recording_journal.cpp ReserveOwned at1055/2124/2161/2202/2259",
+      "recording_catalog.cpp ReserveOwned at375/400/431/2336/2815/2961/3536/4349/4354/4362/4392/4546/4592; static candidates only, no allocation-stack link to peak"
+    ],
+    "noFurtherExecution": "No45/120/900 or product optimization automatically started"
+  },
+  "limitations": [
+    "No live TTL expiry: count-eight eviction precedes 300s TTL under unchanged workload. Focused expiry PASS is separate.",
+    "Model bytes increase with source document accumulation; count bounded and destruction observed, not a steady-size workload.",
+    "Fixed samples may miss transient unpublished model, page, preparation, response and retired-index owners; cumulative peaks distinguish zero sample from no activity.",
+    "Unattributed has static candidate callsites but no per-owner live allocation mapping. Do not assign its bytes by subtraction to a particular callsite.",
+    "RSS/footprint includes inference/runtime/allocator and other product allocations outside SearchResidency. No malloc-zone/live allocation evidence; retention vs leak unproven.",
+    "Role registry and ticket ledger captured sequentially; model construction ticket may predate registration.",
+    "RequestMedia/PreparedSource retained envelope values overlap backing owners; not added to the ticket ledger.",
+    "Recorder enqueued count is subscriber-local; no upstream FanOut/source-emitted total or channel identity in cost line. Durable sample multiset equality is observed, not reconstructed exact source set."
+  ],
+  "focusedAndBinding": {
+    "preflight": "137-preflight.json",
+    "review": "137-independent-review.json",
+    "binding": "137-binding.json",
+    "order": "producer then readback then coverage, all pass before run",
+    "macOS": "memory42, cursor, visual61, resource focused PASS",
+    "Linux": "existing unprivileged image; memory42/cursor53 plus visual61/resource PASS; full runtime SIGLIP2OFF, store-specific source ON; not Linux inference or full diagnostic",
+    "failureProvenance": "all available failed build/focused logs preserved; first tmpfs compiler log missing remains explicitly unavailable; no failures reclassified as expected RED"
+  },
+  "preservation": {
+    "archive": "137-execution.tar.gz",
+    "bytes": 26965466,
+    "sha256": "f165371bfbcbe4abb3080a6808aa39095fd69ba1f92a9f7ee6f2b01548734d2d",
+    "files": 908,
+    "payloadBytes": 53713142,
+    "allMemberBytesVerified": true,
+    "tarMembers": 909,
+    "filesMeaning": "908 payload members plus manifest.json;909 total tar members"
+  },
+  "postrunAbsence": {
+    "processes": [
+      {
+        "pid": 55428,
+        "absent": true,
+        "psExit": 1
+      },
+      {
+        "pid": 55471,
+        "absent": true,
+        "psExit": 1
+      }
+    ],
+    "ports": [
+      {
+        "port": 59354,
+        "connectEx": 61,
+        "closed": true
+      },
+      {
+        "port": 59355,
+        "connectEx": 61,
+        "closed": true
+      }
+    ],
+    "ownedContainers": [
+      {
+        "ID": "6f0b646605f3",
+        "Names": "media-server-r137-completion",
+        "State": "exited",
+        "Status": "Exited (0) 19 minutes ago"
+      },
+      {
+        "ID": "7ce0cd431e54",
+        "Names": "media-server-r137-native",
+        "State": "exited",
+        "Status": "Exited (1) 20 minutes ago"
+      },
+      {
+        "ID": "3a163f91ee3e",
+        "Names": "media-server-r137-path-check",
+        "State": "exited",
+        "Status": "Exited (0) 20 minutes ago"
+      },
+      {
+        "ID": "0b8b0ea6ed41",
+        "Names": "media-server-r137-worker-stage",
+        "State": "exited",
+        "Status": "Exited (0) 21 minutes ago"
+      },
+      {
+        "ID": "b7cb56c3f4e0",
+        "Names": "media-server-r137-observed",
+        "State": "exited",
+        "Status": "Exited (1) 22 minutes ago"
+      },
+      {
+        "ID": "39698d268cb7",
+        "Names": "media-server-r137-qualified",
+        "State": "exited",
+        "Status": "Exited (1) 23 minutes ago"
+      },
+      {
+        "ID": "abe3a2de20e6",
+        "Names": "media-server-r137-layout",
+        "State": "exited",
+        "Status": "Exited (1) 24 minutes ago"
+      },
+      {
+        "ID": "b4ab596746de",
+        "Names": "media-server-r137-focused-final",
+        "State": "exited",
+        "Status": "Exited (1) 29 minutes ago"
+      },
+      {
+        "ID": "c981dd5dae71",
+        "Names": "media-server-r137-syntax",
+        "State": "exited",
+        "Status": "Exited (1) 32 minutes ago"
+      },
+      {
+        "ID": "83f3d3233149",
+        "Names": "media-server-r137-focused",
+        "State": "exited",
+        "Status": "Exited (1) 33 minutes ago"
+      }
+    ],
+    "firstSandboxPsAttempt": "EPERM, no result; repeated read-only with tool-approved process access"
+  },
+  "cleanup": "pending remote evidence byte verification; separate closure commit",
+  "createdAtUtc": "2026-10-16T17:36:55.207984+00:00"
+}

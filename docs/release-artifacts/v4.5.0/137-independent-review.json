@@ -36,6 +36,104 @@
     ]
   },
   "postExecution": {
-    "status": "pending"
+    "verdict": "HOLD_ATTRIBUTION_INSUFFICIENT",
+    "independence": "same separate reviewer; read-only source/results/file hash review; no implementation/test authoring/execution/redelegation",
+    "execution": {
+      "source": "ed93102f2d309451cbf2dd49f1ff32dad1241347",
+      "runs": 1,
+      "exit": 0,
+      "observationSeconds": 600.050584,
+      "totalWithFinalBindingSeconds": 615.605557,
+      "sourceAndBinaryBeforeAfterEqual": true,
+      "functionalSafety": "PASS: search160, unavailable/transport0, evidence39+39, A10, normal disable/Finish/closed journal"
+    },
+    "collection": {
+      "pid": 55471,
+      "ownerRows": 124,
+      "sampleRows": 120,
+      "externalCycles": 121,
+      "ledgerOrClockErrorsObserved": 0,
+      "modelTicketAndRegistryBytesMatchEverySample": true,
+      "internalSpanMaxNs": 131084,
+      "externalOwnerSkewNs": [
+        -52503792,
+        4954670000
+      ],
+      "eventCoverage": "this run sequence0..519 complete without conflict; not a general lossless ring guarantee"
+    },
+    "ownerLifetime": {
+      "modelsCreated": 60,
+      "modelsDestroyed": 60,
+      "peakSimultaneousModels": 7,
+      "countEvictions": 82,
+      "ttlExpirations": 0,
+      "byteEvictions": 0,
+      "interpretation": "replacement destruction and final release observed; no TTL release and no sampled model total byte decrease during observation"
+    },
+    "memoryP0": {
+      "unattributedSamplePeakBytes": 150082471,
+      "unattributedLastSampleBytes": 3868234,
+      "unattributedBeforeAfterFinishBytes": 516820,
+      "unattributedAfterDestructionBytes": 0,
+      "residencyBeforeFinishBytes": 81663533,
+      "residencyAfterFinishBytes": 67591615,
+      "residencyAfterDestructionBytes": 0,
+      "reason": "Major unattributed peak owner remains unknown; outside-SearchResidency live allocation vs allocator retention unresolved. Release observed, so confirmed leak is also unsupported."
+    },
+    "recorder": {
+      "enqueued": 35952,
+      "dequeued": 35952,
+      "durableSamples": 35952,
+      "drops": 0,
+      "files": 600,
+      "independentFileHashMismatches": 0,
+      "maxDepth": 31,
+      "maxQueueWaitNs": 1003965750,
+      "maxCallbackNs": 1035376792,
+      "firstDropAndDepth64": "both rows zero",
+      "scope": "subscriber/durable aggregate and multiset; no channel ID in cost rows or upstream total/longterm margin proof"
+    },
+    "shutdown": "normal exit0, no forced termination, closed journal, all final ticket/model/pool/live0",
+    "analysisReview": "HOLD supported; distinguish actual520 event coverage from finite-ring general limitation",
+    "readiness45": "HOLD",
+    "R136Functional900": "PASS maintained",
+    "remainingAtReview": [
+      "preserve evidence",
+      "verify remote bytes",
+      "owned cleanup"
+    ],
+    "actualRuntimeModel": null,
+    "actualRuntimeEffort": null
+  },
+  "localEvidenceReview": {
+    "verdict": "LOCAL_EVIDENCE_REVIEW_PASS",
+    "blockingFindings": [],
+    "memoryVerdict": "HOLD_ATTRIBUTION_INSUFFICIENT",
+    "functional600": "PASS",
+    "readiness45": "HOLD",
+    "archive": {
+      "bytes": 26965466,
+      "sha256": "f165371bfbcbe4abb3080a6808aa39095fd69ba1f92a9f7ee6f2b01548734d2d",
+      "payloadMembers": 908,
+      "totalTarMembers": 909,
+      "payloadHashMismatches": 0,
+      "originalHashMismatches": 0,
+      "missingOriginals": 0,
+      "compressedJournalRowsRead": 1190,
+      "compressedCrcErrors": 0,
+      "observedPrivatePathFindings": 0
+    },
+    "findings": [
+      "Unique model ticket vs role and sample vs peak correctly separated",
+      "520 actual events complete, no general lossless ring claim",
+      "Count eviction82 and destruction do not substitute for TTL0",
+      "Unattributed150082471 and outside-ledger RSS remain unknown; owner0 not wholeheap proof",
+      "Recorder35952 aggregate and multiset correct, no channel/upstream/longterm claim"
+    ],
+    "documentation": "validation/review/backlog consistent with raw output",
+    "remainingAtReview": "actual remote bytes verification and owned cleanup/closure",
+    "scope": "read-only; no edits/test execution/redelegation",
+    "actualRuntimeModel": null,
+    "actualRuntimeEffort": null
   }
 }
