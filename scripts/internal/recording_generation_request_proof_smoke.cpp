@@ -267,6 +267,51 @@ void AdmissionPreparedCases(const std::filesystem::path& root){
         Need(journal.Finish(&error));
     }
 }
+// R131: real Catalog private preparation, policy/currentness and admission progress.
+void PeriodicPreparedCases(const std::filesystem::path& root){
+    for(const std::string mode:{"increase","decrease","remove","hold","completion","parallel","exception","unlink-failure"}){
+        const auto path=root/mode;std::filesystem::create_directories(path);CompleteFixture(path);
+        RecordingJournal journal(Options(path));Need(journal.Open(&error));auto opts=ReadOptions(path);opts.enable_generation_writes=true;
+        RecordingCatalog catalog(journal,opts);Need(catalog.Open(&error));
+        std::filesystem::create_directories(path/"periodic");Write(path/"periodic/legacy.mp4",std::string(12,'x'));
+        auto legacy=ProjectionV1();legacy.segment_id="periodic-legacy";legacy.channel_id="periodic";legacy.size_bytes=12;
+        Need(catalog.FinalizeSegment(legacy,(path/"periodic/legacy.mp4").string(),&error));
+        unsigned unlinks=0;
+        RetentionCoordinator coordinator(catalog,[](auto* bytes,auto*){*bytes=1024ULL*1024*1024;return true;},
+            [&](const auto& file,auto* detail){++unlinks;if(mode=="unlink-failure"){*detail="injected unlink failure";return false;}
+                return RemoveContainedMediaFile(path,file,detail);},{0,1,path});
+        RetentionPolicy policy{(mode=="increase"||mode=="hold"||mode=="unlink-failure")?1ULL:1024ULL*1024*1024,0,1024ULL*1024*1024,0};
+        Need(coordinator.UpdateChannelPolicy("periodic",policy,&error));
+        Need(coordinator.UpdateChannelPolicy("other",{1024ULL*1024*1024,0,1024ULL*1024*1024,0},&error));
+        if(mode=="completion")Need(coordinator.AdmitContinuousWrite("other",128,1).allowed);
+        const auto fds=OpenDescriptors();std::promise<void> entered,resume;auto ready=entered.get_future();auto release=resume.get_future().share();
+        std::exception_ptr failure;
+        std::thread periodic([&]{try{ProofProbe::RetentionHook([&]{ProofProbe::RetentionHook({});entered.set_value();release.wait();
+                if(mode=="exception")throw std::runtime_error("periodic preparation injection");});coordinator.RunPeriodic(2);
+            }catch(...){failure=std::current_exception();}ProofProbe::RetentionHook({});});
+        struct Guard{std::promise<void>& resume;std::thread& thread;bool done=false;void Release(){if(!done){resume.set_value();done=true;}}
+            ~Guard(){Release();if(thread.joinable())thread.join();}}guard{resume,periodic};
+        Need(ready.wait_for(std::chrono::seconds(3))==std::future_status::ready);
+        auto change=std::async(std::launch::async,[&]{std::string detail;
+            if(mode=="remove"){coordinator.RemoveChannelPolicy("periodic");return true;}
+            if(mode=="increase"||mode=="decrease"){auto current=policy;current.continuous_max_bytes=mode=="increase"?1024ULL*1024*1024:1;
+                return coordinator.UpdateChannelPolicy("periodic",current,&detail);}
+            if(mode=="hold")return catalog.AdjustHoldCount("periodic-legacy",1,&detail);
+            if(mode=="completion"){coordinator.CompleteContinuousWrite("other",128);return true;}
+            const auto other=coordinator.AdmitContinuousWrite("other",128,3);if(other.allowed)coordinator.CompleteContinuousWrite("other",128);return other.allowed;
+        });
+        const bool progressed=change.wait_for(std::chrono::seconds(3))==std::future_status::ready;
+        if(!progressed)guard.Release();
+        const bool changed=change.get();guard.Release();periodic.join();if(failure)std::rethrow_exception(failure);
+        Check("R131-P01",progressed&&changed,(mode+": policy/admission/completion progresses while periodic preparation paused").c_str());
+        const bool should_unlink=mode=="decrease"||mode=="unlink-failure";
+        Check("R131-P01",unlinks==(should_unlink?1u:0u),(mode+": current policy and hold determine actual deletion; no stale plan").c_str());
+        if(mode=="unlink-failure")Check("R131-P01",!coordinator.ChannelStatus("periodic").last_error.empty(),"unlink failure remains visible");
+        if(mode=="hold")Need(catalog.AdjustHoldCount("periodic-legacy",-1,&error));
+        Check("R131-P01",OpenDescriptors()==fds&&catalog.RetentionSnapshot().authoritative,"periodic private reader returns FD and preserves authority");
+        Need(journal.Finish(&error));
+    }
+}
 void RetentionPathCases(const std::filesystem::path& root){
     std::filesystem::create_directories(root);CompleteFixture(root);
     RecordingJournal journal(Options(root));Need(journal.Open(&error));
@@ -780,6 +825,7 @@ int main(int argc,char** argv){
         RetentionSharedDecodeCase();
         RetentionPreparedCases(root/"retention-prepared");
         AdmissionPreparedCases(root/"admission-prepared");
+        PeriodicPreparedCases(root/"periodic-prepared");
         RetentionPathCases(root/"retention-path");
         RetentionPrefixCases(root/"retention-prefix");
         {const auto base=Mutation();const auto identity=RecordingJournalGenerationReadOnlyProbe::SourceIdentity(base);

@@ -70,6 +70,60 @@ int main(int argc,char** argv) {
         check(relevant==3&&rejected.status==503&&rejected.body=="{\"error\":\"recording-search-unavailable\"}","related candidate additions exhaust exactly three attempts fail closed");
         const auto refreshed=app.Search(query,"owner","scope",auth);
         check(refreshed.status==200&&std::stoull(Field(Json(refreshed.body),"unplacedCount"))==std::stoull(Field(Json(before.body),"unplacedCount"))+3,"fresh search includes every related addition");
+        // R131: only a complete pre-Build rejected batch may be consumed by the
+        // same request. Real finalized media arrives between capture and validate.
+        recording::RecordingSearchReader source_reader(store.catalog,reader);
+        recording::SearchSourceBatch retry;
+        std::shared_ptr<const recording::RecordingSearchModel> retried,cold;
+        const auto original=store.Segments().front();
+        unsigned retry_calls=0;
+        recording::search_after_capture_test=[&]{if(++retry_calls==1)CloneSource(store,original,"r131-new",false);};
+        check(!source_reader.Refresh({"probe-channel"},{},&retried,&error,{},false,&retry)&&
+            error=="search-source-changed"&&!retried&&retry.memory.bytes()>0,
+            "R131 real finalization rejects before Build and retains one private charged batch");
+        recording::search_after_capture_test={};
+        check(source_reader.Refresh({"probe-channel"},{},&retried,&error,{},false,&retry)&&retry.memory.bytes()==0,
+            "R131 next bounded attempt consumes prior batch and releases retry owner");
+        check(source_reader.Refresh({"probe-channel"},{},&cold,&error,{},false),"R131 independent cold source comparison");
+        const auto same=[](const auto& a,const auto& b){
+            if(!a||!b||a->documents().size()!=b->documents().size())return false;
+            for(std::size_t i=0;i<a->documents().size();++i){const auto& x=a->documents()[i];const auto& y=b->documents()[i];
+                if(std::tie(x.id,x.channel_id,x.segment_id,x.source_id,x.store_id,x.media_epoch_id,x.stream_epoch_id,x.start_ns,x.end_ns,x.time_provenance,x.uncertainty_ns,x.media_pts,x.media_end_pts,x.time_base_num,x.time_base_den,x.unavailable_reason)!=
+                   std::tie(y.id,y.channel_id,y.segment_id,y.source_id,y.store_id,y.media_epoch_id,y.stream_epoch_id,y.start_ns,y.end_ns,y.time_provenance,y.uncertainty_ns,y.media_pts,y.media_end_pts,y.time_base_num,y.time_base_den,y.unavailable_reason))return false;
+            }return true;
+        };
+        check(same(retried,cold)&&std::any_of(retried->documents().begin(),retried->documents().end(),[](const auto& d){return d.segment_id=="r131-new";}),
+            "R131 reused and fresh complete source fields agree and include actual new segment");
+        const auto held_retry=retried;
+        recording::search_after_capture_test=[&]{if(!store.catalog.MarkSegmentCorrupt("r131-new","container-invalid",&error))throw std::runtime_error(error);};
+        check(!source_reader.Refresh({"probe-channel"},{},&retried,&error,{},false,&retry)&&retried==held_retry,
+            "R131 separate lifecycle mutation rejects while previous model remains immutable");
+        recording::search_after_capture_test={};
+        check(source_reader.Refresh({"probe-channel"},{},&retried,&error,{},false,&retry)&&
+            std::any_of(retried->documents().begin(),retried->documents().end(),[](const auto& d){return d.segment_id=="r131-new"&&d.unavailable_reason=="corrupt";})&&
+            std::none_of(held_retry->documents().begin(),held_retry->documents().end(),[](const auto& d){return d.segment_id=="r131-new"&&d.unavailable_reason=="corrupt";}),
+            "R131 raw-equal current lifecycle is not replaced by stale retry state");
+        recording::search_after_capture_test=[&]{if(!store.catalog.PutObservationV2(observation("retry-boundary"),&error))throw std::runtime_error(error);};
+        check(!source_reader.Refresh({"probe-channel"},{},&retried,&error,{},false,&retry),"R131 retry fixture for changed limits");
+        recording::search_after_capture_test={};const auto before_capacity=retried;
+        check(!source_reader.Refresh({"probe-channel"},{},&retried,&error,{1,64*1024*1024},false,&retry)&&
+            error=="search-capacity-exceeded"&&retried==before_capacity&&retry.memory.bytes()==0,
+            "R131 capacity failure clears consumed retry without changing prior output");
+        recording::search_after_capture_test=[&]{if(!store.catalog.PutObservationV2(observation("retry-range"),&error))throw std::runtime_error(error);};
+        check(!source_reader.Refresh({"probe-channel"},{},&retried,&error,{},false,&retry)&&retry.memory.bytes()>0,
+            "R131 nonempty retry before changing source range");
+        recording::search_after_capture_test={};
+        check(source_reader.Refresh({"other-empty"},{},&retried,&error,{},false,&retry)&&retried->documents().empty(),
+            "R131 different source range never imports prior segment documents");
+        check(source_reader.Refresh({"probe-channel"},{},&cold,&error,{},false),"R131 current exact document bound");
+        const recording::SearchModelLimits exact(cold->documents().size(),64*1024*1024);
+        recording::search_after_capture_test=[&]{CloneSource(store,original,"zz-r131-overflow",false);};
+        check(!source_reader.Refresh({"probe-channel"},{},&retried,&error,exact,false,&retry)&&error=="search-source-changed"&&retry.memory.bytes()>0,
+            "R131 real added segment invalidates exact-count captured source");
+        recording::search_after_capture_test={};const auto before_partial=retried;
+        check(!source_reader.Refresh({"probe-channel"},{},&retried,&error,exact,false,&retry)&&error=="search-capacity-exceeded"&&
+            retry.memory.bytes()==0&&retried==before_partial,
+            "R131 new candidate over exact bound clears partially consumed retry and preserves output");
         bool authorized=true;recording::search_after_capture_test=[&]{authorized=false;};
         check(app.Search(query,"owner","scope",[&](const auto&){return authorized;}).status==403,"authority revoked during preparation not published");recording::search_after_capture_test={};
         check(app.Search(query,"owner","scope",auth).status==200,"failure path releases request owners and resumes");

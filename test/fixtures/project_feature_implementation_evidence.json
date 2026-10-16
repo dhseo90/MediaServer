@@ -2,7 +2,7 @@
   "schema": "media-server.feature-implementation-evidence.v2",
   "semanticClosureSchema": "media-server.feature-semantic-implementation-closure.v2",
   "expectedFeatureRows": 986,
-  "inventorySha256": "f85a6f6c35e273db25f94845f4409dd04da7122e098b289d0a736263160ecfd6",
+  "inventorySha256": "6b8fd47069bfb5025b615a2c0718283d5db02f56f6fab70ee4e3596acea126fb",
   "generatedFrom": "docs/project-feature-test-inventory.md",
   "generationPolicy": "review4-independent-proof-only; generated discovery cannot approve; source drift becomes review-required",
   "semanticClosurePolicy": "986 external reviewed source-flow proofs joined to an independent approval ledger and revalidated against current source",
@@ -240979,7 +240979,7 @@
         "approvalSource": "review4-independent-source-audit",
         "sourceFlowDigest": "995e4e4ac67138958b7f54cda3cc1acaf3999bcfe3047147b93f88eb83b9bc5f",
         "approvalDigest": "383689c5c83725414392cc5eb420f07a9bd9d65ab719578be6095999d99829c0",
-        "semanticDigest": "62439e8574f0b8a0d7d1184bb3050f40dfb2efb871a9e882732b965f7ea43e9a"
+        "semanticDigest": "d5bd61dfd164152c5b099ef972e37d41e05c227d1c9e0ddf251481141f4fad17"
       },
       "sourceEvidence": {
         "file": "src/core/shared_stream.cpp",
@@ -241062,7 +241062,7 @@
           "assertionKind": "runtime-source-worker-lifecycle",
           "assertionAnchor": "if (shared.sourceLifecycle.activeSessions < 2) {",
           "command": "verify-ops-source-lifecycle",
-          "assertedSemanticDigest": "62439e8574f0b8a0d7d1184bb3050f40dfb2efb871a9e882732b965f7ea43e9a"
+          "assertedSemanticDigest": "d5bd61dfd164152c5b099ef972e37d41e05c227d1c9e0ddf251481141f4fad17"
         },
         "callChain": {
           "schema": "media-server.feature-reviewed-call-chain.v1",
@@ -241349,7 +241349,7 @@
               "owner": {
                 "file": "src/core/shared_stream.cpp",
                 "symbol": "SharedStream::StartSource",
-                "trackedBlobSha256": "487220e9425706cc2956d59f1a8c0d2d0fbb50ee99fc76e20c023d3a8a1c8d29",
+                "trackedBlobSha256": "aa5dda0352235b39233ee4833f5b452969ee6c7eae64c2b7aedfd211c1fd57bc",
                 "enclosingBodySha256": "587315bc55e83fd907d7113eba1005cdf794f57b8aa3411c7a91c392b8b53684",
                 "enclosingBodyStartLine": 235,
                 "enclosingBodyEndLine": 269,
@@ -241358,7 +241358,7 @@
               "dispatch": {
                 "file": "src/core/shared_stream.cpp",
                 "symbol": "SharedStream::StartSource",
-                "trackedBlobSha256": "487220e9425706cc2956d59f1a8c0d2d0fbb50ee99fc76e20c023d3a8a1c8d29",
+                "trackedBlobSha256": "aa5dda0352235b39233ee4833f5b452969ee6c7eae64c2b7aedfd211c1fd57bc",
                 "enclosingBodySha256": "587315bc55e83fd907d7113eba1005cdf794f57b8aa3411c7a91c392b8b53684",
                 "enclosingBodyStartLine": 235,
                 "enclosingBodyEndLine": 269,
@@ -241367,7 +241367,7 @@
               "action": {
                 "file": "src/core/shared_stream.cpp",
                 "symbol": "SharedStream::StartSource",
-                "trackedBlobSha256": "487220e9425706cc2956d59f1a8c0d2d0fbb50ee99fc76e20c023d3a8a1c8d29",
+                "trackedBlobSha256": "aa5dda0352235b39233ee4833f5b452969ee6c7eae64c2b7aedfd211c1fd57bc",
                 "enclosingBodySha256": "587315bc55e83fd907d7113eba1005cdf794f57b8aa3411c7a91c392b8b53684",
                 "enclosingBodyStartLine": 235,
                 "enclosingBodyEndLine": 269,
@@ -241376,7 +241376,7 @@
               "state": {
                 "file": "src/core/shared_stream.cpp",
                 "symbol": "SharedStream::StartSource",
-                "trackedBlobSha256": "487220e9425706cc2956d59f1a8c0d2d0fbb50ee99fc76e20c023d3a8a1c8d29",
+                "trackedBlobSha256": "aa5dda0352235b39233ee4833f5b452969ee6c7eae64c2b7aedfd211c1fd57bc",
                 "enclosingBodySha256": "587315bc55e83fd907d7113eba1005cdf794f57b8aa3411c7a91c392b8b53684",
                 "enclosingBodyStartLine": 235,
                 "enclosingBodyEndLine": 269,

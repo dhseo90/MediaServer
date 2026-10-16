@@ -5246,3 +5246,12 @@ ID/시간/유효 재생 target을 대조한다. 비ns 변환·관측 혼합·eve
 ### V450-MEM130 — 저장 영상 색인 정책 후보와 private 최초 오류
 
 비공개 opt-in FD에서 최초 실제 GError/message/debug를 고정 길이로 보존한다. callback I/O 없이 NULL 뒤 출력하며 일반 로그에는 원문을 남기지 않는다. 합성 오류의 JSON escape/truncation/첫 오류/cleanup 분리와 전체 수집 한도를 확인한다. 동일 보존 원본·target·순서의 Automatic/SoftwareOnly 다중 파일 직접 대조는 실제 factory·RGB 형상/시각·FD/원본 불변을 기록한다. 정책 후보는 macOS 저장 MP4 색인에 한정하며 Linux/실시간/증거 정책은 불변이다. 정책별 파생 cache 분리·같은 정책 재사용·이전 게시본/reader·실패 미게시·현재성/cancel/Stop을 관련 focused 검사로 확인한다. 적격 후보만 기존 source-parallel 외부1회(ready500/전체630)로 초기 게시와 같은 프로세스 후속12응답/aux200/Recorder/게시/Finish를 각각 판정한다. 실패 뒤 재실행·900/45/120분은 하지 않는다.
+
+### V450-MEM131 — 누적 병행 callback/admission 정체와 정상 수용
+
+기존 opt-in bounded 계측에서 주기 retention 준비/잠금/적용, writer 단계의 최대 구간, Recorder 최초 깊이64/손실 및 최대 callback 구간을 같은 단조 시계로 대조한다. 고정 공간·기존 수집 한도에서 콜백 payload/I/O를 추가하지 않는다. R130 종료 원본은125원본+53delta+snapshot16삭제로 재구축하고 같은 software cache의 정상 Load/current validation만 warm 진단에 사용한다. 정상 source-parallel 입력/4client/주기를 유지한 수정 전후 각1회 대조는 cold 최종 PASS가 아니다. 원인에 맞춘 준비/최종 판단 변경 시 정책 제거/quota증감/hold/예약완료·실제free·원문변조/실패/Stop/재Open/마지막소유 회귀를 확인한다. 직접 정상수용·HTTP와 독립 검토 충족 때만 기존cold source-parallel 최종1회 ready500/전체630·12HTTP p95≤2000ms/max≤5000ms·aux2005초·새게시·Recorder·Finish/닫힌원장을 판정한다. 새900/45/120분은 제외한다.
+
+R131 변경 영향 추가: 기존16MiB parsed-segment LRU의 중복 raw 문자열을 현재 인증 raw의 SHA-256/길이로 대체한다. 매 호출의 전체 현재 raw 인증·strict cold fallback·손상 오류·동일ID 변경·LRU/예외/Finish/이전 reader 소유 검사를 유지한다. 회계는 실제 제거된 raw 소유만 줄이며 typed row/ID/LRU node 및 마지막 reader 예약은 유지한다. 원래 before/after의 cache writer mode0644 준비 실패를 보존하고, 다음 소유 사본에서만0600으로 복원한다. 동일 누적 정상 부하 추가 개발 대조는 이 실제 표현 변경 후1회이며, 원문 hash/부하/한도는 같다.
+
+R131 동일 HTTP의 기존3회 source-changed 시도 안에서만 recordings-only rebuild의 검증된 segment-v2 문서span을 재사용한다. 전체 current raw/namespace 인증·현재 lifecycle·새/변경 row strict parse·최종 현재성을 유지하며 이전/새 배치 및 span 소유를 기존64MiB/640MiB에 계상한다. 관련 새 확정/삭제·원문 변경·다른 범위/관측·capacity 실패·부분 이동 뒤 실패·이전 snapshot 불변을 focused 검사로 대조한다. warm 진단의 cache-origin null generation에 대해서도 새 문서 membership이 확인된 게시를 기존30초 안에 기다리며 generation만으로 통과시키지 않는다. 수정 후 정상 병행 개발 대조1회로 응답/수용/실제 게시를 각각 판정한다.
+R131 재사용 경로의 직접 증거는 legacy fixture PASS와 구분한다. 기존 managed writer 입력을 실제 RecordingRuntimeStorage generation/cold 저장소에 확정·checkpoint하고 span 생성/재사용 카운터>0, 독립 full capture의 전체 recording 필드, vector 여유를 포함한 정확한 byte 경계 fallback, 별도 lifecycle 변경, 비어있지 않은 다른 범위, 증가 후 capacity 실패의 단회 소비를 `recording_search_retry_smoke.cpp`로 검증한다. 이 제어된 작은 정확성 검사는 누적 병행 성능을 대신하지 않는다.

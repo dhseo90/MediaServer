@@ -67,6 +67,19 @@ static void V2(const std::filesystem::path& root) {
                 second->start_ns==105&&second->end_ns==115&&second->media_pts==10&&second->uncertainty_ns==9,
                 "v2-mappings-separate-clock-overlap-preserved");
             Check(u&&!u->start_ns&&!u->end_ns&&u->time_provenance=="unknown"&&u->media_pts==0,"v2-unknown-retains-media-axis");
+            SearchSourceBatch first_batch,empty_retry;
+            Check(catalog.CaptureSearchSource({"v2"},nullptr,&first_batch,&error,{},false),"R131 compact boundary source");
+            std::size_t accounted=sizeof(SearchSourceBatch),peak=accounted,capacity=0,count=0;
+            for(const auto& document:first_batch.delta.upserts){
+                Check(AccountOwnedSearchDocument(document,&accounted,SIZE_MAX),"R131 independent document accounting");
+                const auto required=++count;
+                const auto next_capacity=capacity<required?required+std::min(capacity?capacity-1:std::size_t{0},std::size_t{1023}):capacity;
+                peak=std::max(peak,accounted+(next_capacity-required+(capacity<required?capacity:0))*sizeof(SearchDocument));capacity=next_capacity;
+            }
+            SearchSourceBatch bounded;
+            Check(catalog.CaptureSearchSource({"v2"},nullptr,&bounded,&error,{100000,peak},false,&empty_retry)&&
+                bounded.delta.upserts.size()==first_batch.delta.upserts.size(),
+                "R131 optional span metadata yields to exact existing document/vector envelope");
             const auto held=model;
             Check(catalog.RequestDeletion("multi","continuous-capacity",&error)&&
                 search.Refresh({"v2"},model,&model,&error)&&model->Find("s2:5:multi5:first")->unavailable_reason=="deletion-pending",
