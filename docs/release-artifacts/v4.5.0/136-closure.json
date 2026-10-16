@@ -1,0 +1,78 @@
+{
+  "schema": "media-server.v450.r136.closure.v1",
+  "preservationCommit": "1a79175019803d324f2e83ac0aac0bf4a38b7a82",
+  "verifiedRemoteAtPreservation": "1a79175019803d324f2e83ac0aac0bf4a38b7a82",
+  "remoteBytes": [
+    {
+      "path": "docs/development-backlog.md",
+      "blob": "6e759e64f3451ddeb2a3615506d359da86fc81ea",
+      "bytes": 61789,
+      "sha256": "e50c320bd193195690448889f619aa08ad7c423c07b7aef6a7ea477e32a92d86",
+      "match": true
+    },
+    {
+      "path": "docs/release-artifacts/v4.5.0/136-validation.json",
+      "blob": "b8c7a0a4830191acf48d508f75e747f0e1772cf4",
+      "bytes": 32054,
+      "sha256": "4346c8ca8acf6369621d2c4d5277aa86b03786c9d024ca9ff4f2a759fba6725b",
+      "match": true
+    },
+    {
+      "path": "docs/release-artifacts/v4.5.0/136-independent-review.json",
+      "blob": "c986ea6922b28020bfb6438380c857e507e980f0",
+      "bytes": 3446,
+      "sha256": "d44595e5496eaff2a1af993489e98e9695ab072674778d9da0fddda367917a69",
+      "match": true
+    },
+    {
+      "path": "docs/release-artifacts/v4.5.0/136-execution.tar.gz",
+      "blob": "fe6b9ab08ee17574f99243cc27ae0c88ad442bda",
+      "bytes": 39894841,
+      "sha256": "36c8b343a26d1ef4126937dd0385e33b9b3afdd99fea10392ea5437e66ff98ce",
+      "match": true
+    }
+  ],
+  "ownedRootIdentity": {
+    "dev": 16777232,
+    "ino": 175520564,
+    "uid": 501
+  },
+  "postrunAbsence": {
+    "processes": [
+      {
+        "pid": 47215,
+        "absent": true
+      },
+      {
+        "pid": 47256,
+        "absent": true
+      }
+    ],
+    "ports": [
+      {
+        "port": 57046,
+        "connectEx": 61,
+        "closed": true
+      },
+      {
+        "port": 57047,
+        "connectEx": 61,
+        "closed": true
+      }
+    ],
+    "containersCreated": false
+  },
+  "cleanup": {
+    "safeCanonicalOwnedRoot": true,
+    "fdSafeRmtree": true,
+    "onlyOwnedRootMarkerAndBuildLog": true,
+    "userSettingsPrivateBackupsModelsSDK": "excluded untouched",
+    "rootAbsent": true,
+    "markerAbsent": true,
+    "temporaryBuildLogAbsent": true
+  },
+  "memoryP0": "HOLD attribution insufficient",
+  "readiness45": "HOLD",
+  "releaseHold": true,
+  "completedAtUtc": "2026-10-16T16:41:38.517746+00:00"
+}
