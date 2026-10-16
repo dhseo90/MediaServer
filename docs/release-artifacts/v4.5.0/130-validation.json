@@ -879,6 +879,10 @@
       "inputMap": "run/input-map.json",
       "changedFiles": "run/recording-delta.json"
     },
-    "privateRawIncluded": false
+    "privateRawIncluded": false,
+    "preservationSupplement": "130-preservation-supplement.json",
+    "reconstructionDeletedPaths": [
+      "snapshot-16.jsonl"
+    ]
   }
 }

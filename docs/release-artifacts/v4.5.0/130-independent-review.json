@@ -38,5 +38,13 @@
     "aux200/fresh publication check/closed journal on same execution",
     "memoryP0",
     "releasehold"
-  ]
+  ],
+  "preservationReview": {
+    "archiveShaAndAllMembers": "PASS",
+    "findings": [
+      "deleted snapshot-16.jsonl must be recorded for faithful delta reconstruction",
+      "final three-record synthetic observation must be distinguished from early two-record result"
+    ],
+    "resolution": "130-preservation-supplement.json from existing bytes only; private raw excluded; no new execution"
+  }
 }

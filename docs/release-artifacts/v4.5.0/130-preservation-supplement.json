@@ -1,0 +1,36 @@
+{
+  "schema": "media-server.r130.preservation-supplement.v1",
+  "scope": "read-only derivation after archive review; no new product/test run",
+  "recordingReconstruction": {
+    "base": "125-execution.tar.gz observer recordings + run/recording-delta.json changed/new files in130 archive",
+    "deletedPaths": [
+      "snapshot-16.jsonl"
+    ],
+    "deletedOriginalHashes": {
+      "snapshot-16.jsonl": "1f2b553509f56871698db72f09cc9f5c89b9fdd092fa0f67841468ffd14c0363"
+    },
+    "meaning": "remove these paths from reconstructed final tree; historical original bytes remain in125 archive"
+  },
+  "finalSyntheticDiagnostic": {
+    "originalRelativePath": "recording_frame_bus_detail_smoke-case/private.jsonl",
+    "bytes": 3792,
+    "sha256": "e02b6a5fed4bd7ea7386659387ec4257e5966a87248e1119b2ee2cf095d776ed",
+    "records": 3,
+    "decoderCalls": 0,
+    "firstErrorRetained": true,
+    "actualSyntheticMessageDiffersFromCanonical": true,
+    "cleanupSeparate": true,
+    "sampledSuccessCleanupRecorded": true,
+    "truncationLengths": {
+      "message": 1023,
+      "debug": 2047
+    },
+    "truncationFlags": true,
+    "JSONRoundTrip": true,
+    "publicLogRawAbsent": true,
+    "publicOutputMember": "run/recording_frame_bus_detail_smoke-case/output.log",
+    "sourceMember": "source/scripts/internal/recording_frame_bus_detail_smoke.cpp",
+    "privateRawExcluded": true,
+    "olderUnitResult": "archive run/unit-result.json is earlier two-record result, not this final three-record observation"
+  }
+}
