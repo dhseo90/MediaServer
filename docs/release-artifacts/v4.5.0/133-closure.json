@@ -1,0 +1,71 @@
+{
+  "schema": "media-server.v450.r133.closure.v1",
+  "remoteEvidence": {
+    "evidenceCommit": "8af95f8b9b891028c165db42553b08cd61f2d5cf",
+    "actualRemoteSha": "8af95f8b9b891028c165db42553b08cd61f2d5cf",
+    "transport": "GitHub git/blobs base64 decoded bytes at exact committed blob IDs",
+    "files": [
+      {
+        "path": "docs/release-artifacts/v4.5.0/133-execution.tar.gz",
+        "gitBlob": "232b6a4307df1051a220043809c775f64ad53339",
+        "bytes": 5822801,
+        "sha256": "2c5742336be8116f380f13d271f31afcfe0081a14eb87005fcfeafb753a37842",
+        "remoteByteEqual": true
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/133-validation.json",
+        "gitBlob": "36f7a87e4705c5d883f392cb0d5992abbb8023da",
+        "bytes": 14390,
+        "sha256": "6ea00a0db4c4963590fd6cd9c0dbf09c0d6d75d88deddd5e5a87b426e3181a93",
+        "remoteByteEqual": true
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/133-independent-review.json",
+        "gitBlob": "1ef97d0f107a6fb61cd08e55a26b437a9c850f4f",
+        "bytes": 2632,
+        "sha256": "af15a571085915a86de77f3739b7abf16cfb286959532efbcfefc4d64aa20f64",
+        "remoteByteEqual": true
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/133-binding.json",
+        "gitBlob": "6cd0278baf2148f7b9f55309f67e07094b7f060e",
+        "bytes": 11735,
+        "sha256": "abf6f6a979774f5341e5f4d07637b844ef5da60bdeacffd689c3b11753de2b0e",
+        "remoteByteEqual": true
+      }
+    ]
+  },
+  "cleanup": {
+    "ownedRootAbsent": true,
+    "ownedRootIdentity": {
+      "dev": 16777232,
+      "ino": 175418953,
+      "uid": 501
+    },
+    "recordedPidsAbsent": [
+      {
+        "run": "r133warm-run",
+        "pid": 33994,
+        "absent": true
+      },
+      {
+        "run": "r133warm-finalbuild",
+        "pid": 33860,
+        "absent": true
+      },
+      {
+        "run": "r133warm-build",
+        "pid": 33648,
+        "absent": true
+      }
+    ],
+    "wrapperGroupAbsent": true,
+    "portScope": "recorded helper process/groups gone; their sockets released; no claim for unrelated ports",
+    "containersCreated": 0,
+    "symlinksUnlinkedWithoutFollowing": [],
+    "method": "exact realpath/UID/inode verified; recorded PIDs absent; fd-safe rmtree on own root only",
+    "preserved": "repository build/runtime and user settings/private backups/models/SDK untouched"
+  },
+  "decision": "warm FAIL oracle not constructible; cold/longruns not-run; R132 FAIL maintained",
+  "finalRemoteSha": "closure commit SHA verified after normal push and reported in final response"
+}
