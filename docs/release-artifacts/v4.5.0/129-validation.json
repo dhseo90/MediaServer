@@ -1,0 +1,321 @@
+{
+  "schema": "media-server.v450.r129.validation.v1",
+  "status": "INITIAL_PUBLICATION_FAIL_FOLLOWUP_DIRECT_NOT_RUN",
+  "baseline": "a2d5ebc4358ce246c6526bdc984e36efdfb03818",
+  "implementationCommit": "cfa2a7ce6737cbc9f94e2be626684e0cd77ee3ef",
+  "executionHead": "cfa2a7ce6737cbc9f94e2be626684e0cd77ee3ef",
+  "executionTree": "8b73582954c4f8d129349ad127ab4b4e5aa343b8",
+  "entry": "clean branch v4.5.0; actual origin same baseline; no user changes overwritten",
+  "model": {
+    "mainRequested": "gpt-6-astra/high",
+    "mainToolAccepted": null,
+    "mainActualModel": null,
+    "mainActualEffort": null,
+    "reviewRequested": "gpt-6-astra/high",
+    "reviewToolAccepted": "gpt-6-astra/high",
+    "reviewActualModel": null,
+    "reviewActualEffort": null
+  },
+  "procedure": "one external source-parallel; initial publication evaluated inside ready phase, same-process followup conditional on ready; no preflight publication/standalone decoder warmup",
+  "binding": {
+    "head": "a2d5ebc4358ce246c6526bdc984e36efdfb03818",
+    "sourceFiles": {
+      "src/recording/visual_frame_decoder.cpp": "8ba37798ad9380553fcd0d3877659919bd2eae48ff08cc686a084de37949c0b2",
+      "src/recording/visual_index_worker.cpp": "934f10f2ff2e44420c02033ca89c0a5241cb3eba0c241a3adbfea8d909187567",
+      "scripts/internal/recording_degraded_http_smoke.cpp": "4662f4de7958ca03b5b677b92861b6a27f999559f5bf844e60cb3d7e295b7dd5",
+      "scripts/internal/recording_degraded_http_run.py": "49e61537442a3da1150e14bfd80712f4c71e316dbcaa90bd44bafe0b5f54ddaf",
+      "scripts/internal/recording_degraded_http_qualification.py": "3c1af2f7064e74964f6e3999ff0945d2252268d1dad29a1becca048252bbbf57",
+      "scripts/internal/recording_frame_bus_detail_smoke.cpp": "263cd79b18867951de6b238609536c740645de1628ce1de40169e83528053592",
+      "scripts/internal/recording_source_http_fixture.h": "cc47474eb994b8caba9f5cc4c3a0c4c7c3d8f965565aa1eda4162dfa26c8e2da",
+      "docs/project-feature-test-inventory.md": "8b7fc89d4999cfad52742da24ea1ab568c7345b38939bbf58e7468ea2b79f1cc"
+    },
+    "sourceFingerprint": "14c567b3fafa8ef1bb98a416efd1d2f12f02a734192c400a5bec35739516484d",
+    "linkedRuntimeSha256": "2c937664032cbf065cab9bb8bcc8dedbbb2b377bd1518fe648e7a9810c4929a0",
+    "binarySha256": "3203e7eb66e44e6d2737caedae7c0972772e2fd1b972426e1d7f61ed16bc1cd4",
+    "inputSha256": "50a5b9127e5b5a46ecc1b625e2778cc72068844979acfa6dfff34a0aff46b0b7",
+    "buildExecution": "r129-build/execution.json",
+    "runtimePath": "/Users/dhseo/Workspace/mediaServer/build-gst-onnx/libmedia_server_runtime.a",
+    "model": "existing repo/models/v430-siglip2",
+    "buildMode": "existing CMake flags unchanged",
+    "policy": "Automatic; observed factory determined in external run",
+    "fixedExecutionHead": "cfa2a7ce6737cbc9f94e2be626684e0cd77ee3ef",
+    "fixedTree": "8b73582954c4f8d129349ad127ab4b4e5aa343b8",
+    "worktreeClean": true
+  },
+  "input": {
+    "archive": "125-execution.tar.gz",
+    "archiveSha256": "39eeb7708486378f919c10c82e4a3ba059d0c82f7874a1617559e7beb95eb83b",
+    "files": 2851,
+    "matches127InputMap": true,
+    "inputSha256": "50a5b9127e5b5a46ecc1b625e2778cc72068844979acfa6dfff34a0aff46b0b7",
+    "copy": "exclusive owned copy, reject traversal/symlink/nonregular/overwrite; exact before-run hashes matchseed",
+    "cache": "original layout preserved; no completed cache/embedding added; index remainednull",
+    "historicalFailedFile": "fbb3074b-9328-4b87-bb5e-313e1805b5f3 preserved; actual successful processing not established by bounded trace"
+  },
+  "execution": {
+    "runs": 1,
+    "command": [
+      "/private/tmp/media-server-r129-xiz87d62/http-r129",
+      "/private/tmp/media-server-r129-xiz87d62/r129-run",
+      "/Users/dhseo/Workspace/mediaServer/models/v430-siglip2",
+      "source-parallel"
+    ],
+    "launcher": "python3 scripts/internal/recording_degraded_http_run.py run PARENT --label r129-run --scale cycle --mode source-parallel",
+    "readyLimitSeconds": 500,
+    "totalLimitSeconds": 630,
+    "elapsedSeconds": 527.0644736660179,
+    "exit": 1,
+    "externalTimeout": false,
+    "overflow": false,
+    "pid": 8728,
+    "policy": "Automatic",
+    "factoryObserved": "vtdec_hw:applemedia:1.28.1 in2success representative traces and2busfailures plusterminalcancel; not every frame factory observed",
+    "platform": "same authorized hardware-capable macOS execution path; no registry/rank/runtime/OS security setting change",
+    "sourceBeforeAfterEqual": true
+  },
+  "initialPublication": {
+    "result": "FAIL index-ready",
+    "origin": null,
+    "generation": null,
+    "documents": null,
+    "lastStatus": {
+      "enabled": true,
+      "state": "indexing",
+      "error": "",
+      "searchAvailable": false,
+      "sampleSeconds": 1,
+      "scanSeconds": 1,
+      "eventSnapshots": "disabled",
+      "index": null,
+      "refresh": {
+        "state": "indexing",
+        "attemptState": "running",
+        "attemptStartedAtMs": 1792124654639,
+        "attemptFinishedAtMs": null,
+        "lastSuccessAtMs": null,
+        "error": "",
+        "usingPreviousPublication": false
+      },
+      "channels": [
+        {
+          "channelId": "9101",
+          "indexedFrames": null,
+          "unknownTimeFrames": null,
+          "firstSampleTimeNs": null,
+          "lastSampleTimeNs": null,
+          "sourceCountsState": "unknown",
+          "examinedSegments": null,
+          "unsupportedSegments": null,
+          "examinedSnapshots": null,
+          "unsupportedSnapshots": null
+        },
+        {
+          "channelId": "9201",
+          "indexedFrames": null,
+          "unknownTimeFrames": null,
+          "firstSampleTimeNs": null,
+          "lastSampleTimeNs": null,
+          "sourceCountsState": "unknown",
+          "examinedSegments": null,
+          "unsupportedSegments": null,
+          "examinedSnapshots": null,
+          "unsupportedSnapshots": null
+        }
+      ]
+    },
+    "internalAttemptsObserved": 3,
+    "attempts": [
+      "row159 bus-error",
+      "row2618 bus-error",
+      "row811 cancelled during ready-failure teardown"
+    ],
+    "sourceCollection": "encode stage reached each observed attempt; no complete publication"
+  },
+  "busFailures": [
+    {
+      "candidateRow": 159,
+      "channel": "9101",
+      "segment": "d97a90bc-b393-4a70-8a45-8044cde110f7",
+      "bytes": 2654,
+      "sha256": "f5a5b68aa093f3ed450cd19ed849ecbe98cca261e226397e4413bc8a72044e55",
+      "targetNs": 0,
+      "elapsedUs": 6556,
+      "decodedSamples": 0,
+      "domainName": "gst-stream-error-quark",
+      "code": 7,
+      "sourceElement": "vtdechw158",
+      "first": "bus-error",
+      "publicCode": "visual-frame-unavailable",
+      "cleanupBeforeError": false,
+      "canonicalDescription": "Could not decode stream.",
+      "rawGErrorDebugCaptured": false,
+      "truncated": false,
+      "postHashMatches125AndCandidate": true
+    },
+    {
+      "candidateRow": 2618,
+      "channel": "9201",
+      "segment": "c29c6958-aac4-4c67-9909-b235339005d4",
+      "bytes": 2654,
+      "sha256": "d2b62fe27cbbeaafde13e7b159967853034edfc0624f6fb23260a0077a68d657",
+      "targetNs": 0,
+      "elapsedUs": 6241,
+      "decodedSamples": 0,
+      "domainName": "gst-stream-error-quark",
+      "code": 7,
+      "sourceElement": "vtdechw2776",
+      "first": "bus-error",
+      "publicCode": "visual-frame-unavailable",
+      "cleanupBeforeError": false,
+      "canonicalDescription": "Could not decode stream.",
+      "rawGErrorDebugCaptured": false,
+      "truncated": false,
+      "postHashMatches125AndCandidate": true
+    }
+  ],
+  "classification": "new worker Automatic stream decode bus failures on two different preserved files; generic error class established, underlying cause and historical127 equivalence unconfirmed",
+  "followup": {
+    "original12Http": "not-run",
+    "original12LatencyGate": "not-run",
+    "auxLimit200": "not-run",
+    "RecorderExpectedAcceptance": "not-run",
+    "newDurableWrites": "not-run",
+    "newMembershipPublicQuery": "not-run",
+    "explicitStopFinish": "not-run",
+    "newClosedJournal": "not-run",
+    "900s": "not-run",
+    "45min": "not-run",
+    "120min": "not-run"
+  },
+  "collection": {
+    "receivedBytes": 1119037,
+    "savedBytes": 1119037,
+    "processResourceSamples": 520,
+    "processResourceEndedObserved": true,
+    "monitorExit": 0,
+    "runnerError": null,
+    "collectionError": null,
+    "qualificationError": "AssertionError:",
+    "qualificationMeaning": "existing full12count assertion rejects zeroHTTP; preserved separate from product index-ready failure; not missing-module recurrence",
+    "cleanupError": null,
+    "holderTrace": {
+      "complete": false,
+      "records": 0,
+      "loss": true,
+      "windows": [
+        0,
+        0,
+        0
+      ],
+      "ends": [
+        0,
+        0,
+        0
+      ],
+      "scope": "no selected HTTP executed; not a complete Catalog holder observation"
+    }
+  },
+  "resources": {
+    "phaseSummary": {
+      "initial": {
+        "count": 22,
+        "rssFirst": 32768,
+        "rssLast": 63766528,
+        "rssMax": 63766528
+      },
+      "model": {
+        "count": 4,
+        "rssFirst": 54034432,
+        "rssLast": 512901120,
+        "rssMax": 512901120
+      },
+      "live": {
+        "count": 494,
+        "rssFirst": 3162554368,
+        "rssLast": 1720844288,
+        "rssMax": 3232792576
+      }
+    },
+    "afterStorageDestruction": {
+      "pid": 8728,
+      "seq": 1,
+      "phase": "after-storage-destruction",
+      "elapsedMs": 524946,
+      "ram": 0,
+      "ramPeak": 60551810,
+      "ramLimit": 671088640,
+      "ramRejected": 0,
+      "scratchDisk": 0,
+      "scratchDiskPeak": 105013248,
+      "scratchDiskLimit": 162261856256,
+      "scratchFd": 0,
+      "scratchFdPeak": 6,
+      "scratchFdLimit": 1048572,
+      "scratchRam": 0,
+      "preservedDisk": 0,
+      "preservedFd": 0,
+      "readerCleanupHealthy": true
+    },
+    "scope": "preparation/index-only. Initial startup32KiB is an early process sample, not steady state. Logical0 is destructor ownership result; no explicitFinish/whole heap or longrun assertion."
+  },
+  "directTests": {
+    "syntheticBus": {
+      "exit": 0,
+      "jsonRecords": 2,
+      "decoderCalls": 0,
+      "rawSecretAbsent": true,
+      "scope": "canonical format/privacy/first error/cleanup only"
+    },
+    "worker": {
+      "exit": 0,
+      "checks": 58
+    },
+    "wrapper": "current repo modules import/help PASS and same current wrapper used, no copy/stub",
+    "build": "same existing SDK/CMake mode; final runtime incremental build+wrapper build exit0; no compiler/tests overlapped performance",
+    "linux": "R128 unchanged model/cursor/decoder scope reused; new diagnostic Linux direct execution not run"
+  },
+  "independentReview": "129-independent-review.json",
+  "approvalBinding": {
+    "candidateDigest": "8977e9b6ac618c7e0233823f6acb6ab1fcf7461206ee5d8b2a4149a643519e3a",
+    "unchanged": true,
+    "producerPass": 51,
+    "producerFail": 0,
+    "finalReadbackErrors": 0,
+    "finalReadbackNegativePass": 15,
+    "coveragePass": 9,
+    "coverageFail": 0,
+    "manifestSemanticChange": "inventorySha256 only",
+    "preservedDevelopmentFailure": "premature readback before producer applied new inventory hash failed; final readback executed after producer exit passed. Not product failure."
+  },
+  "reused": [
+    "128 restricted diagnostics/wrapper/Linux/binding within unchanged scope",
+    "127 limited model reuse/cursor progress",
+    "R126 closed5008rows40poll existing proof only, not new journal observation",
+    "111/112/114/116/123/124 scoped historical proofs unchanged"
+  ],
+  "remaining": [
+    "initial Automatic worker publication",
+    "historical127 root cause",
+    "concurrent structured5s and full direct performance",
+    "normal Recorder acceptance and longrun recording gaps",
+    "memoryP0",
+    "release hold"
+  ],
+  "cleanup": {
+    "status": "PENDING_REMOTE_VERIFICATION",
+    "ownedRoot": "/private/tmp/media-server-r129-xiz87d62",
+    "childGroupAbsent": true,
+    "monitorExited": true,
+    "httpPort": "not allocated; helper failed before HTTPserver stage",
+    "excluded": "user settings/private backups/models/SDK/original archives"
+  },
+  "notExpandedTo": "new900/45/120, full memoryP0 or release completion",
+  "archive": {
+    "path": "docs/release-artifacts/v4.5.0/129-execution.tar.gz",
+    "bytes": 7943926,
+    "sha256": "8bb9d31395c207852cf760285b6287d192b322b25a4681377bba1d1cebd1e4e3",
+    "members": 52,
+    "readback": "every allowlisted member bytes/hash verified",
+    "inputs": "125 original archive retained; no model/SDK/private settings/backup included"
+  }
+}

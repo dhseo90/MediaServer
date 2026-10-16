@@ -1,0 +1,33 @@
+{
+  "schema": "media-server.v450.r129.independent-review.v1",
+  "decision": "INITIAL_PUBLICATION_FAIL_FOLLOWUP_NOT_RUN_DIAGNOSTIC_SAFE",
+  "reviewer": {
+    "agent": "/root/independent_r129",
+    "requested": "gpt-6-astra/high",
+    "toolAccepted": "gpt-6-astra/high",
+    "actualModel": null,
+    "actualEffort": null,
+    "independence": "read-only; no implementation/test writing/execution/delegation"
+  },
+  "preExecution": {
+    "finding": "unsupported candidate could remain attached to subsequent build/save/cancel failure",
+    "resolution": "invalidate each row and after handled unsupported; independently reread",
+    "diagnosticSafety": "no remaining confirmed issue; opt-in bounded canonical domain/error class and candidate identity; no raw GError/debug, selection/fallback/timeout/return contract change",
+    "checksRead": "synthetic bus2 JSON, decoderCalls0; worker58checks; exact2851seed map",
+    "eligibility": "initial publication preproof not required; evaluate ready500 then same-process continuation within630"
+  },
+  "resultReview": {
+    "initial": "searchAvailable=false/index=null at500s; whole527.064s exit1; not630s external timeout",
+    "errors": "two matching traces/attempt windows/file hashes/inodes; gst-stream-error-quark/code7/vtdec_hw decode classification only; no file corruption/root-cause or historical equivalence conclusion",
+    "thirdAttempt": "cancelled after ready failure during destruction",
+    "followup": "12HTTP/aux200/Recorder/new publication/explicitFinish/new closed journal not-run",
+    "collection": "520process/resource samples complete; received=saved1119037; monitor0/groupAbsenttrue/cleanupErrornull",
+    "holder": "records0/loss=true/windows0/ends0; not complete holder observation",
+    "qualification": "zeroHTTP fails existing request count assertion; no missing-module evidence",
+    "ownership": "after-storage-destruction logical0 is not explicitFinish or whole heap leak proof",
+    "platform": "R128 unchanged Linux scope reused; new diagnostic Linux execution not run"
+  },
+  "binding": "candidate unchanged; final producer51/0 readback0errors15negative coverage9/0; binding is not publication/performance proof",
+  "remaining": "one external run exhausted; no new execution/product change without explicit follow-up scope",
+  "cleanup": "process group receipt reviewed; owned filesystem cleanup pending remote byte verification"
+}

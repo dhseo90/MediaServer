@@ -17,6 +17,12 @@
 
 ## v4.5.0 잔여 개발과 릴리즈 순서
 
+[129 동일 프로세스 source-parallel 재개](release-artifacts/v4.5.0/129-validation.json)는 **초기 게시 FAIL·후속 직접 검사 not-run**이다.
+초기 게시의 별도 사전 PASS를 요구하지 않고, 고정 후보에서 외부1회를 실행했다. 500초 ready 한도에서 `index=null/searchAvailable=false`, 전체527.064초·exit1로 종료했다.
+내부 시도에서 서로 다른 보존 파일2개의 target0이 Automatic `vtdec_hw:applemedia:1.28.1`의 `gst-stream-error-quark/code7`로 실패했고, 세 번째 시도는 종료 과정에서 취소됐다. 이는 stream decode 오류 분류이며 원본 손상·decoder 결함·과거127과 동일 원인을 확정하지 않는다.
+원래12응답·limit200·Recorder·새 게시·명시Finish·새 닫힌 원장은 미실행이다. 자원520표본과 프로세스 회수는 확인했으나 holder는 records0/loss=true이며, 소멸 후 논리owner0은 명시Finish나 메모리P0 해소가 아니다.
+[독립 판단](release-artifacts/v4.5.0/129-independent-review.json)과 진단 영향 회귀·결속을 보존한다. 같은 실행의 반복·제품 수정·새900/45/120분은 하지 않았다. 다음은 이 실제 worker 실패 경계에 대한 별도 원인 조사 승인이고, 병행 지연·녹화 품질·전체 직접·메모리P0·출시 보류는 유지한다.
+
 [128 초기 색인 실패 직접 조사](release-artifacts/v4.5.0/128-validation.json)는 **과거 bus 오류 미재현·래퍼 복구/관련 플랫폼 회귀 완료, 초기 게시 적격성 미확정**이다.
 보존2654B 원본의 target0 sample과 원장/hash를 확인했고, 실제 Automatic `vtdec_hw:applemedia:1.28.1`의 단일 직접 호출은 성공했다. sandbox에서 avdec로 전환된 호출 및 SoftwareOnly 대조는 별도 결과다. 과거6.35ms bus 오류의 상세 메시지는 미보존이며, 현재 성공을 원인 해소나 초기 index 게시 PASS로 승격하지 않는다.
 실제 후처리 모듈과 오류 분리 보존을 복구하고 R127 관련 Linux 회귀를 마감했다. [독립 판단](release-artifacts/v4.5.0/128-independent-review.json)에 따라 최종 source-parallel은 not-run이다. 다음은 동일 Automatic의 실제 source→encode→게시 준비 경계에 대한 근거 확보이며, 구조화 두 요청의5초 실패·Recorder 수용·전체 직접 목표는 별도 잔여다. 새900/45/120분은 실행하지 않았다.
