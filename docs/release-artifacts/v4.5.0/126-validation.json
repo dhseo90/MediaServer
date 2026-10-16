@@ -326,11 +326,18 @@
     "contents": "original bounded outputs/development failures; calculated input/resource/http analysis; exact changed/new durable originals as delta and per-file hash map; unchanged125 bytes referenced; derived sqlite/visual cache excluded explicitly; current source/binary hashes"
   },
   "cleanup": {
-    "status": "pending remote evidence verification before root removal",
+    "status": "COMPLETE",
     "ownedRoot": "/private/tmp/media-server-r126-q92jknrk",
-    "processes": "no owned test/helper process remained in final process inventory",
-    "container": "media-server-r126-linux2 exited0 and removed after Linux logs copied; first container --rm",
-    "settingsBackupsModelsSDK": "not accessed, archived or removed"
+    "rootAbsent": true,
+    "removedOwnedRegularFiles": 26091,
+    "removedOwnedRegularBytes": 1412385299,
+    "symlinks": 0,
+    "foreignOwners": 0,
+    "ownedProcessesPresent": false,
+    "ownedContainersPresent": false,
+    "ports": "owned HTTP/helper processes absent; no surviving owner socket, no unrelated listener terminated",
+    "settingsBackupsModelsSDK": "unchanged; excluded from archive/cleanup",
+    "existingBuildOutputs": "same-source build outputs retained in existing build directory; no SDK/model replacement"
   },
   "developmentFailures": [
     {
@@ -365,5 +372,22 @@
   "commits": {
     "implementation": "1b73f1f93195ebf32b1f822852d6456a138bb9e0",
     "testsAndBinding": "e306b0d0919253bb65af89d1349a651378959506"
+  },
+  "remoteEvidenceReadbackBeforeCleanup": {
+    "remoteCommit": "20ad4e7d645e712dc2a8a3623b17ac511937648f",
+    "files": {
+      "126-execution.tar.gz": {
+        "bytes": 5358602,
+        "sha256": "d0268179e45bc959074056b6b829729e3570764bd70de303ef5c9b2a64508f55"
+      },
+      "126-validation.json": {
+        "bytes": 14095,
+        "sha256": "d858804e1687e29c205cf0a71d5a2677bebb70d6ecde8f95535dc1126a332813"
+      },
+      "126-independent-review.json": {
+        "bytes": 2490,
+        "sha256": "53adfdab65bcfe49e356ff019e0516c2f44fc8f87793bb6eca89b54111442640"
+      }
+    }
   }
 }
