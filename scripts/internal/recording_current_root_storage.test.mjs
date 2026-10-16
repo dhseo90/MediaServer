@@ -138,6 +138,56 @@ try{
     assert.equal(fs.lstatSync(final).nlink,2);
     fs.unlinkSync(partial);fs.unlinkSync(final);fs.rmdirSync(directory);
   });
+  check('R135 diagnostic-only expected RED: recording publication rejected by default managed root',()=>{
+    const dir=path.join(root,'recording','channel');fs.mkdirSync(dir,{recursive:true});
+    const final=path.join(dir,'segment.mp4'),partial=final+'.partial.12345678-1234-1234-1234-123456789abc';
+    fs.writeFileSync(partial,Buffer.alloc(23));fs.linkSync(partial,final);
+    try{assert.throws(()=>measureCurrentRootStable(root),e=>{const d=e.collectorDiagnostic;
+      assert.equal(e.message,'root-unsafe-file');assert.equal(d.top,'recording');assert.equal(d.category,'other');assert.equal(d.type,'regular');assert.equal(d.nlink,2);
+      assert(d.counterpart.sameDev&&d.counterpart.sameIno);assert.equal(d.scan.attempt,1);
+      const text=JSON.stringify(d);assert(!text.includes('segment')&&!text.includes(root));console.log('[R135-expected-red] '+text);return true;});}
+    finally{fs.unlinkSync(partial);fs.unlinkSync(final);fs.rmdirSync(dir);fs.rmdirSync(path.dirname(dir));}
+  });
+  check('R135 explicit managed root: media restart, helpers, defaults and unsafe negatives',()=>{
+    for(const top of ['recordings','recording']){
+      const base=fs.mkdtempSync(path.join(root,'managed-')),dir=path.join(base,top,'channel');fs.mkdirSync(dir,{recursive:true});
+      const opts={recordingTop:top},final=path.join(dir,'segment.mp4'),partial=final+'.partial.12345678-1234-1234-1234-123456789abc';
+      fs.writeFileSync(final,Buffer.alloc(23));
+      if(top==='recordings')assert.deepEqual(measureCurrentRootStable(base),measureCurrentRootStable(base,opts));
+      assert.equal(measureCurrentRoot(base,opts).categories.media.bytes,23);
+      fs.linkSync(final,partial);let reads=0;
+      const m=measureCurrentRootStable(base,{...opts,lstat:file=>{if((file===final||file===partial)&&++reads===4)fs.unlinkSync(partial);return fs.lstatSync(file);}});
+      assert(m.transientTreeRetries>=1);assert.equal(m.categories.media.bytes,23);assert.equal(m.categories.mediaPartial.bytes,0);assert.equal(m.ownership.productRecording.bytes,23);
+      fs.linkSync(final,partial);assert.throws(()=>measureCurrentRootStable(base,opts),/root-media-publication-retry-exhausted/);fs.unlinkSync(partial);
+      // Keep the unrelated second link outside the measured base: only the intended media operand can reject.
+      const alias=path.join(root,'outside-alias-'+top);fs.linkSync(final,alias);
+      const rejectMedia=(counterpart,nlink=2)=>assert.throws(()=>measureCurrentRootStable(base,opts),e=>{
+        const d=e.collectorDiagnostic;assert.equal(e.message,'root-unsafe-file');assert.equal(d.category,'media');assert.equal(d.top,top);assert.equal(d.type,'regular');assert.equal(d.nlink,nlink);assert.equal(d.ino,fs.lstatSync(final).ino);counterpart(d.counterpart);return true;
+      });
+      rejectMedia(c=>assert.equal(c.exists,false)); // unrelated external pair
+      fs.writeFileSync(partial,'different');rejectMedia(c=>{assert.equal(c.type,'regular');assert.equal(c.sameIno,false);});fs.unlinkSync(partial);
+      fs.mkdirSync(partial);rejectMedia(c=>assert.equal(c.type,'directory'));fs.rmdirSync(partial);
+      fs.symlinkSync(final,partial);rejectMedia(c=>assert.equal(c.type,'symlink'));fs.unlinkSync(partial);
+      fs.linkSync(final,partial);rejectMedia(c=>assert(c.sameIno),3);fs.unlinkSync(partial);fs.unlinkSync(alias);
+      fs.linkSync(final,final+'.partial.invalid');rejectMedia(c=>assert.equal(c.exists,false));fs.unlinkSync(final+'.partial.invalid');
+      for(const other of ['tmp','other']){fs.mkdirSync(path.join(base,other));const link=path.join(base,other,'hardlink');fs.linkSync(final,link);assert.throws(()=>measureCurrentRootStable(base,opts),/root-unsafe-file/);fs.unlinkSync(link);}
+      const outside=path.join(root,'outside.mp4.partial.12345678-1234-1234-1234-123456789abc');fs.linkSync(final,outside);assert.throws(()=>measureCurrentRootStable(base,opts),/root-unsafe-file/);fs.unlinkSync(outside);
+      // Device/socket stats must reach the same fail-closed nonregular branch; no device creation is needed.
+      for(const type of ['socket','device']){fs.writeFileSync(final,'nonregular-stat');assert.throws(()=>measureCurrentRootStable(base,{...opts,lstat:file=>{const st=fs.lstatSync(file);return file===final?Object.assign(Object.create(st),{isFile:()=>false,isDirectory:()=>false,isSymbolicLink:()=>false,isSocket:()=>type==='socket',isCharacterDevice:()=>type==='device'}):st;}}),e=>e.message==='root-unsafe-file'&&e.collectorDiagnostic.type==='other');fs.unlinkSync(final);}
+      const fifo=path.join(dir,'fifo');assert.equal(spawnSync('mkfifo',[fifo]).status,0);assert.throws(()=>measureCurrentRootStable(base,opts),e=>e.message==='root-unsafe-file'&&e.collectorDiagnostic.type==='other');fs.unlinkSync(fifo);
+      const symlink=path.join(dir,'escape');fs.symlinkSync(root,symlink);assert.throws(()=>measureCurrentRootStable(base,opts),/root-unsafe-symlink/);fs.unlinkSync(symlink);
+      const journal=path.join(base,top,'recording-generation-catalog.sqlite3-journal');
+      assert(isTransientSqliteJournalMiss(base,journal,{code:'ENOENT'},opts));assert(!isTransientSqliteJournalMiss(base,path.join(base,top==='recording'?'recordings':'recording','recording-generation-catalog.sqlite3-journal'),{code:'ENOENT'},opts));
+      assert.equal(statCurrentRunEntry(base,journal,()=>{throw Object.assign(Error(),{code:'ENOENT'});},opts),null);
+      fs.writeFileSync(path.join(base,top,'recording-generation.json'),'marker');fs.writeFileSync(path.join(base,top,'recording-generation-catalog.sqlite3'),'db');
+      assert.equal(measureCurrentSqlitePages(base,(_b,args)=>{assert.equal(args[1],path.join(base,top,'recording-generation-catalog.sqlite3'));return {status:0,stdout:'4096 1 0'};},opts).liveBytes,4096);
+      const stage=path.join(base,top,'.recording-generation-prepare-'+ 'a'.repeat(32));fs.mkdirSync(stage);const staged=path.join(stage,'snapshot-9.jsonl'),promoted=path.join(base,top,'snapshot-9.jsonl');fs.writeFileSync(staged,'snapshot');fs.linkSync(staged,promoted);
+      const receipt=path.join(base,top,'.recording-generation-transaction.json');fs.writeFileSync(receipt,'receipt');let observed=false;
+      const g=measureCurrentRootStable(base,{...opts,lstat:file=>{const st=fs.lstatSync(file);if(file===receipt&&!observed){observed=true;fs.unlinkSync(staged);}return st;}});assert(observed&&g.transientTreeRetries>=1);assert.equal(g.categories.generationSnapshot.bytes,8);
+      fs.rmSync(base,{recursive:true});
+    }
+    for(const recordingTop of ['../recording','/recording','tmp','',null])assert.throws(()=>measureCurrentRoot(root,{recordingTop}),/root-recording-top-invalid/);
+  });
   check('LP26-O06-A disjoint categories preserve exact aggregate and redact names',()=>{
     const files=[['input/private-source.mp4','input'],['recordings/channel/segment.mp4','media'],['recordings/recording-v2-mutations.jsonl','journal'],
       ['recordings/.recording-checkpoint.tmp','checkpoint'],['recordings/recording-catalog.sqlite3','sqlite'],['recordings/recording-catalog.sqlite3-wal','wal'],

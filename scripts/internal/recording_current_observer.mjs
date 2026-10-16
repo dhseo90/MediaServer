@@ -11,12 +11,14 @@ export const CURRENT_ROOT_CAP_BYTES=448*1024*1024;
 // 격리 실행 root의 live 디렉터리를 비원자적으로 순회할 때만 사용한다.
 // SQLite rollback journal은 목록화 직후 트랜잭션 종료로 사라질 수 있다.
 // 정확한 한 파일의 ENOENT만 측정 시점의 부재로 취급하고 다른 오류는 숨기지 않는다.
-export function isTransientSqliteJournalMiss(root,file,error){
-  return error?.code==='ENOENT'&&file===path.join(root,'recordings','recording-generation-catalog.sqlite3-journal');
+const managedTop=top=>{need(top==='recordings'||top==='recording','root-recording-top-invalid');return top;};
+export function isTransientSqliteJournalMiss(root,file,error,{recordingTop='recordings'}={}){
+  managedTop(recordingTop);
+  return error?.code==='ENOENT'&&file===path.join(root,recordingTop,'recording-generation-catalog.sqlite3-journal');
 }
-export function statCurrentRunEntry(root,file,stat=fs.lstatSync){
+export function statCurrentRunEntry(root,file,stat=fs.lstatSync,options={}){
   try{return stat(file);}catch(error){
-    if(isTransientSqliteJournalMiss(root,file,error))return null;
+    if(isTransientSqliteJournalMiss(root,file,error,options))return null;
     throw error;
   }
 }
@@ -25,9 +27,9 @@ export const CURRENT_JOURNAL_MUTATION_TYPES=Object.freeze(['segment_finalized','
 const categoryTotal=(categories,names)=>names.reduce((total,name)=>({bytes:total.bytes+categories[name].bytes,files:total.files+categories[name].files}),{bytes:0,files:0});
 const generationManagedCategory=category=>['generationSnapshot','generationIdentity','generationEvidence','generationManifest','generationTransaction'].includes(category);
 const mediaPartialName=/^(.+\.(?:mp4|webm))\.partial\.[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/;
-function currentGenerationTransactionActive(root,lstat){
+function currentGenerationTransactionActive(root,lstat,recordingTop='recordings'){
   for(const name of ['.recording-generation-transaction.json','.recording-generation-transaction.stage']){
-    try{const stat=lstat(path.join(root,'recordings',name));if(stat.isFile()&&!stat.isSymbolicLink()&&stat.nlink===1)return true;return false;}
+    try{const stat=lstat(path.join(root,recordingTop,name));if(stat.isFile()&&!stat.isSymbolicLink()&&stat.nlink===1)return true;return false;}
     catch(error){if(error?.code!=='ENOENT')throw error;}
   }
   return false;
@@ -46,12 +48,31 @@ function currentMediaPublicationActive(file,stat,lstat){
   return false;
 }
 function retryMediaPublication(){throw Object.assign(Error('root-media-publication'),{code:'EAGAIN'});}
+// Rejection-only, fixed shape. Never publish paths/names; diagnostic probing cannot change rejection.
+function rootFileRejection(root,file,parts,category,stat,lstat,recordingTop){
+  const kind=s=>s.isSymbolicLink()?'symlink':s.isFile()?'regular':s.isDirectory()?'directory':'other';
+  const name=path.basename(file),partial=mediaPartialName.exec(name);
+  const d={schema:'root-file-rejection-v1',top:['recording','recordings','input','tmp'].includes(parts[0])?parts[0]:'other',category,depth:parts.length,
+    type:kind(stat),nlink:stat.nlink,size:stat.size,dev:stat.dev,ino:stat.ino,
+    extension:partial?'partial':/\.mp4$/.test(name)?'mp4':/\.webm$/.test(name)?'webm':/\.sqlite3(?:-wal|-shm|-journal)?$/.test(name)?'sqlite':/\.jsonl$/.test(name)?'jsonl':'other',
+    partialPattern:!!partial,counterpart:null,generationTransactionActive:null,probeComplete:false};
+  try{
+    // Only one matching counterpart is reported. Names never escape this function.
+    let candidate=partial?.[1];
+    if(!candidate){const dir=fs.opendirSync(path.dirname(file));try{for(let n=0;n<100000;n++){const entry=dir.readSync();if(!entry)break;if(mediaPartialName.exec(entry.name)?.[1]===name){candidate=entry.name;break;}}}finally{dir.closeSync();}}
+    if(candidate){try{const s=lstat(path.join(path.dirname(file),candidate));d.counterpart={exists:true,type:kind(s),nlink:s.nlink,sameDev:s.dev===stat.dev,sameIno:s.ino===stat.ino};}catch(e){if(e.code!=='ENOENT')throw e;d.counterpart={exists:false};}}
+    else d.counterpart={exists:false};
+    d.generationTransactionActive=currentGenerationTransactionActive(root,lstat,recordingTop);d.probeComplete=true;
+  }catch{ /* Preserve original rejection even if a diagnostic read races/fails. */ }
+  return Object.assign(Error('root-unsafe-file'),{collectorDiagnostic:d});
+}
 // sqlite3는 read-only PRAGMA만 수행한다. 실행기를 찾지 못하거나 live DB를 읽지 못하면 관측을 실패로 만들지 않고 unavailable로 남긴다.
-export function measureCurrentSqlitePages(root,run=spawnSync){
+export function measureCurrentSqlitePages(root,run=spawnSync,{recordingTop='recordings'}={}){
+  managedTop(recordingTop);
   // 파일 용량 관측만 담당한다. manifest 존재는 Catalog 유효성 판정이 아니다.
   // B가 선택된 root에서는 보존된 구형 cache를 현재 사용량으로 대체하지 않는다.
-  const cache=fs.existsSync(path.join(root,'recordings','recording-generation.json'))?'recording-generation-catalog.sqlite3':'recording-catalog.sqlite3';
-  const main=path.join(root,'recordings',cache),wal=path.join(root,'recordings',cache+'-wal');
+  const cache=fs.existsSync(path.join(root,recordingTop,'recording-generation.json'))?'recording-generation-catalog.sqlite3':'recording-catalog.sqlite3';
+  const main=path.join(root,recordingTop,cache),wal=path.join(root,recordingTop,cache+'-wal');
   const mainBytes=fs.existsSync(main)?fs.lstatSync(main).size:0,walBytes=fs.existsSync(wal)?fs.lstatSync(wal).size:0;
   if(mainBytes===0)return {status:'absent',mainBytes,walBytes,pageSize:null,pageCount:null,freePageCount:null,livePageCount:null,liveBytes:null,freeBytes:null};
   let result;try{result=run('sqlite3',['-readonly',main,'PRAGMA page_size; PRAGMA page_count; PRAGMA freelist_count;'],{encoding:'utf8',timeout:3000,maxBuffer:1024,env:{PATH:process.env.PATH}});}catch{return {status:'unavailable',mainBytes,walBytes,pageSize:null,pageCount:null,freePageCount:null,livePageCount:null,liveBytes:null,freeBytes:null};}
@@ -74,7 +95,8 @@ export function summarizeFixtureGeneration(result,{elapsedMs,outputBytes=null}){
       macosService:/Connection Invalid|com\.apple\.hiservices-xpcservice|LSNotification/i.test(stderr)},rawBodyPublished:false};
 }
 // 고정 범주만 내보낸다. 파일명/경로/본문은 비민감 관측 결과에 포함하지 않는다.
-export function measureCurrentRoot(root,{sqlitePages=false,lstat=fs.lstatSync}={}){
+export function measureCurrentRoot(root,{sqlitePages=false,lstat=fs.lstatSync,recordingTop='recordings'}={}){
+  managedTop(recordingTop);
   const categories=Object.fromEntries(['input','media','mediaPartial','journal','checkpoint','generationSnapshot','generationIdentity','generationEvidence','generationManifest','generationTransaction','sqlite','wal','sqliteAux','tmp','log','state','events','cache','tools','recordingsOther','other'].map(k=>[k,{bytes:0,files:0}]));
   let totalBytes=0,entries=0,transientJournalMisses=0;
   function category(parts){
@@ -85,7 +107,7 @@ export function measureCurrentRoot(root,{sqlitePages=false,lstat=fs.lstatSync}={
     if(top==='state'||top==='events')return top;
     if(parts.length===1&&/^server-\d+\.private\.log$/.test(name))return 'log';
     if(parts.length===1&&['normalize','process-metrics'].includes(name))return 'tools';
-    if(top==='recordings'){
+    if(top===recordingTop){
       if(name==='.recording-generation-transaction.json'||name==='.recording-generation-transaction.stage'||parts.some(part=>/^\.recording-generation-prepare-[a-f0-9]{32}$/.test(part)))return 'generationTransaction';
       if(name==='.recording-checkpoint.tmp')return 'checkpoint';
       if(/^recording-(?:generation-)?catalog\.sqlite3$/.test(name))return 'sqlite';
@@ -105,7 +127,7 @@ export function measureCurrentRoot(root,{sqlitePages=false,lstat=fs.lstatSync}={
   }
   function visit(file,parts){
     need(++entries<=100000,'root-entry-bound');
-    const stat=statCurrentRunEntry(root,file,lstat);
+    const stat=statCurrentRunEntry(root,file,lstat,{recordingTop});
     if(!stat){transientJournalMisses++;return;}
     const itemCategory=category(parts);
     if(stat.isSymbolicLink())need(parts.length>1&&parts[0]==='gst-cache','root-unsafe-symlink');
@@ -118,22 +140,22 @@ export function measureCurrentRoot(root,{sqlitePages=false,lstat=fs.lstatSync}={
       // root fsync와 stage unlink를 수행한다. 관리 파일의 정확한 두 링크만 재확인하며,
       // transaction 종료 또는 활성 receipt가 입증되면 부분 합산하지 않고 전체를 다시 잰다.
       if(stat.nlink===2&&generationManagedCategory(itemCategory)){
-        const current=statCurrentRunEntry(root,file,lstat);
+        const current=statCurrentRunEntry(root,file,lstat,{recordingTop});
         if(!current)throw Object.assign(Error('generation entry changed during scan'),{code:'ENOENT'});
         if(current.isFile()&&!current.isSymbolicLink()&&current.nlink===1)retryGenerationTransition();
-        if(current.isFile()&&!current.isSymbolicLink()&&current.nlink===2&&currentGenerationTransactionActive(root,lstat))retryGenerationTransition();
+        if(current.isFile()&&!current.isSymbolicLink()&&current.nlink===2&&currentGenerationTransactionActive(root,lstat,recordingTop))retryGenerationTransition();
       }
-      // FinalizeRecordingFile은 동일 디렉터리에서 검증한 partial을 final 이름으로
+      // PublishValidatedReady은 동일 디렉터리에서 검증한 partial을 final 이름으로
       // no-replace link한 뒤 디렉터리를 fsync하고 partial을 unlink한다. 정확한 이름·inode의
       // 두 링크만 게시 중으로 인정하고, 한 항목만 더하지 않도록 전체 측정을 다시 시작한다.
       if(stat.nlink===2&&(itemCategory==='media'||itemCategory==='mediaPartial')){
-        const current=statCurrentRunEntry(root,file,lstat);
+        const current=statCurrentRunEntry(root,file,lstat,{recordingTop});
         if(!current)throw Object.assign(Error('media entry changed during scan'),{code:'ENOENT'});
         if(current.isFile()&&!current.isSymbolicLink()&&current.nlink===1)retryMediaPublication();
         if(current.isFile()&&!current.isSymbolicLink()&&current.nlink===2&&currentMediaPublicationActive(file,current,lstat))retryMediaPublication();
       }
-      need(stat.nlink===1,'root-unsafe-file');
-    }else need(false,'root-unsafe-file');
+      if(stat.nlink!==1)throw rootFileRejection(root,file,parts,itemCategory,stat,lstat,recordingTop);
+    }else throw rootFileRejection(root,file,parts,itemCategory,stat,lstat,recordingTop);
     need(Number.isSafeInteger(stat.size)&&stat.size>=0&&Number.isSafeInteger(totalBytes+stat.size),'root-size-bound');
     const item=categories[itemCategory];item.bytes+=stat.size;item.files++;totalBytes+=stat.size;
   }
@@ -143,7 +165,7 @@ export function measureCurrentRoot(root,{sqlitePages=false,lstat=fs.lstatSync}={
     runtimeSupport:categoryTotal(categories,['log','state','events']),other:categoryTotal(categories,['other'])};
   need(Object.values(ownership).reduce((sum,item)=>sum+item.bytes,0)===totalBytes,'root-category-aggregate');
   return {totalBytes,capBytes:CURRENT_ROOT_CAP_BYTES,capExceeded:totalBytes>=CURRENT_ROOT_CAP_BYTES,entries,categories,ownership,transientJournalMisses,
-    ...(sqlitePages?{sqlitePages:measureCurrentSqlitePages(root)}:{}),measurement:'logical-file-bytes-nonatomic',rawPathsPublished:false};
+    ...(sqlitePages?{sqlitePages:measureCurrentSqlitePages(root,spawnSync,{recordingTop})}:{}),measurement:'logical-file-bytes-nonatomic',rawPathsPublished:false};
 }
 // live writer의 rename/unlink와 비원자 순회가 교차하면 일부 항목을 생략하지 않고 전체 측정을 다시 시작한다.
 // 지속 ENOENT와 다른 권한/형식 오류는 고정 코드로 실패시켜 root 상한을 완화하지 않는다.
@@ -151,6 +173,7 @@ export function measureCurrentRootStable(root,options={}){
   let transientTreeRetries=0,missingRetries=0,generationRetries=0,mediaPublicationRetries=0;
   for(;;)try{return {...measureCurrentRoot(root,options),transientTreeRetries};}
   catch(error){
+    if(error.collectorDiagnostic?.schema==='root-file-rejection-v1')error.collectorDiagnostic.scan={attempt:transientTreeRetries+1,missingRetries,generationRetries,mediaPublicationRetries};
     if(error?.code==='ENOENT'){
       if(missingRetries++>=2)throw Error('root-snapshot-retry-exhausted');transientTreeRetries++;continue;
     }

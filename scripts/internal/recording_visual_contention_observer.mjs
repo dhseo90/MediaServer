@@ -18,7 +18,7 @@ try {
   start??=metrics.startIdentity;
   const completedPhase=fs.readFileSync(root+'/resource-phase','utf8').trim();
   if(!['initial','model','live'].includes(phase))throw Error('resource-phase-invalid');
-  const storage=measureCurrentRootStable(root);
+  const storage=measureCurrentRootStable(root,{recordingTop:'recording'});
   // All ordinary run files retain live448 admission. Only the documented,
   // synchronous model FD/session construction uses the existing total8GiB.
   let bounds;

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """R101 collector/result rejection cases; synthetic events are not product runs."""
-import copy,json,unittest
+import copy,json,unittest,pathlib
 from recording_visual_contention_contract import validate_output
 
 def fixture():
@@ -25,6 +25,12 @@ def fixture():
     return '\n'.join(records)+'\n'
 
 class Contract(unittest.TestCase):
+    def test_explicit_storage_contract(self):
+        here=pathlib.Path(__file__).parent
+        self.assertIn("measureCurrentRootStable(root,{recordingTop:'recording'})",(here/'recording_visual_contention_observer.mjs').read_text())
+        for name in ('recording_degraded_http_smoke.cpp','recording_visual_contention_smoke.cpp'):
+            self.assertIn('root/"recording"',(here/name).read_text())
+        with self.assertRaises(AssertionError):validate_output(fixture()+'[R101-space-failure] root-unsafe-file\n','parallel','4')
     def test_normal(self):self.assertEqual(validate_output(fixture(),'parallel','4')['requests'],12)
     def test_visual_pair(self):
         text='\n'.join(l for l in fixture().splitlines() if not (l.startswith('[R101-request] ') and 'visual=0 ' in l))+'\n'
