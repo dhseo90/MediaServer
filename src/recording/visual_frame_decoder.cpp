@@ -18,6 +18,10 @@
 #include <gst/video/video.h>
 #endif
 namespace recording {
+#if defined(RECORDING_FRAME_DIAGNOSTIC) && MEDIA_SERVER_USE_GSTREAMER
+// Only the isolated diagnostic TU defines this sink; never enabled in the product build.
+void RecordVisualFrameBusDiagnostic(GstMessage*, bool);
+#endif
 namespace {
 bool Fail(std::string* error,const char* reason){if(error)*error=reason;return false;}
 #if MEDIA_SERVER_USE_GSTREAMER
@@ -102,6 +106,9 @@ struct DecodeTrace {
     static GstBusSyncReply Bus(GstBus*,GstMessage* message,gpointer user){auto& t=*static_cast<DecodeTrace*>(user);
         if(GST_MESSAGE_TYPE(message)==GST_MESSAGE_ASYNC_DONE)t.edges.async_done[t.edges.phase.load()].Put(t.edges.Now(),gst_message_get_seqnum(message));
         if(GST_MESSAGE_TYPE(message)==GST_MESSAGE_ERROR&&!t.bus_seen.exchange(true)){
+#ifdef RECORDING_FRAME_DIAGNOSTIC
+            RecordVisualFrameBusDiagnostic(message,t.closing.load());
+#endif
             GError* problem=nullptr;gst_message_parse_error(message,&problem,nullptr);t.bus.kind="bus-error";
             if(problem){t.bus.a=problem->domain;t.bus.b=problem->code;g_error_free(problem);}
             Text(t.bus.text,GST_MESSAGE_SRC(message)?GST_OBJECT_NAME(GST_MESSAGE_SRC(message)):"unknown");t.bus.c=t.closing;if(!t.closing)t.First("bus-error",t.bus.a,t.bus.b);

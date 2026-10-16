@@ -170,7 +170,8 @@ bool RecordingSearchReader::WithEventFacts(const RecordingSearchModel& source,
                 const auto& old=facts[i-1];const auto& fact=facts[i];
                 if(std::tie(old.channel_id,old.track_id,old.stream_epoch_id,old.event_type,old.scenario_name)!=
                    std::tie(fact.channel_id,fact.track_id,fact.stream_epoch_id,fact.event_type,fact.scenario_name)) {
-                    if(error)*error="search-event-evidence-conflict";return false;
+                    if(error)*error="search-event-evidence-conflict";
+                    return false;
                 }
             }
             for(const auto index:channel.second) {

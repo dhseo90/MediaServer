@@ -5231,3 +5231,10 @@ R127 읽기 경계 반례: 무후보·ns 녹화 전용 source의 실제 불변 �
 ID/시간/유효 재생 target을 대조한다. 비ns 변환·관측 혼합·event 후보는 기존 경로를 유지하며,
 호출자 문서/byte 거부·삭제 후 stale 거부·실패 output 불변을 확인한다. 서비스 state 잠금과
 단일 준비 잠금을 분리하되 동시 준비 상한을 늘리지 않고 cursor/seek의 state 획득을 대조한다.
+
+### V450-MEM128 — 초기 색인 실패 재개와 래퍼 결속
+
+내부 직접 진단: 보존2654B MP4/hash/target0을 고정하고 Automatic1회→SoftwareOnly1회, 정상 이웃 Automatic1회 순으로 실행한다. 각 호출5초·총제어120초·로그4MiB이며 성공까지 반복하지 않는다. 기존정책/전역rank/원문은 불변이다. 최초 bus의 source/domain/code와 격리된 제한 메시지를 분리한다. Automatic 미재현은 과거 원인 해결이 아니며 정책차이는 채택 승인과 구분한다.
+래퍼는 제품 시작 전 실제 후처리 import/인자파싱, 보존127 FAIL의 후처리 거부와 제품/실행/후처리/정리 오류 분리를 확인한다. 임의PASS stub은 금지한다.
+127 Linux source/generation/cursor/playback/application/scope 및 decoder 영향 회귀를 수행한다. 원본손상/부재/cancel/Stop·현재권한·과거게시본 불변은 기존 해당 focused검사의 범위로 대조한다.
+같은Automatic 원본의 초기 게시 적격근거와 독립검토 이후에만 기존 source-parallel1회, ready500초/전체630초·원래12실제200 p95≤2000ms/max≤5000ms·aux2005초·게시/Recorder/Finish/닫힌원장을 기존대로 판단한다. 새900/45/120과UI는 제외한다.
