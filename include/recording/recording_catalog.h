@@ -288,6 +288,9 @@ public:
                                                   std::int64_t end_ms) const override;
 
 private:
+    bool CaptureSearchSourceImpl(const std::vector<std::string>& channels,
+        const RecordingSearchModel* previous, SearchSourceBatch* result, std::string* error,
+        SearchModelLimits limits, bool include_observations, SearchSourceBatch* retry_capture, bool allow_raw_cut) const;
     bool EvidenceRowsLocked(const EvidenceSnapshot&,std::vector<ReferencedObservationV1>*,
         std::vector<std::string>*,std::string*) const;
     bool EvidenceDependenciesLocked(const EvidenceSnapshot&,std::vector<std::string>*,std::string*) const;
@@ -589,7 +592,7 @@ private:
     struct RetentionSnapshot RetentionCandidatesFromCut(RetentionSnapshotSelection,const std::string&,
         std::array<std::uint64_t,4>*,VisualSourceScan* visual=nullptr) const;
     struct RetentionSnapshot RetentionSnapshotPrepared(RetentionSnapshotSelection,const std::string&,
-        const std::function<bool(std::string*)>& before_current={}) const;
+        const std::function<bool(std::string*)>& before_current={},VisualSourceScan* visual=nullptr) const;
 #if MEDIA_SERVER_RECORDING_GENERATION_TESTING
     static thread_local std::function<void()> retention_prepared_hook_;
 #endif

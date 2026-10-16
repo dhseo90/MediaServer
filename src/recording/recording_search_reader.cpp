@@ -131,7 +131,36 @@ bool RecordingSearchReader::Refresh(const std::vector<std::string>& channels,
         batch.delta.source_instance, batch.delta.revision, &next, error, limits) :
         RecordingSearchModel::ApplyDelta(*previous, batch.delta, &next, error, limits);
     // 정렬/복사 동안 발생한 원본 상태 변경도 완료 직전에 거부한다.
-    if (!built || !catalog_.ValidateSearchSource(batch, error)) return false;
+    if(!built)return false;
+#ifdef RECORDING_SEARCH_TESTING
+    if(search_after_build_test)search_after_build_test();
+#endif
+    if(!catalog_.ValidateSearchSource(batch,error)) {
+        // Only this unpublished, exclusively owned source model can be reclaimed.
+        // No WithPlayback/event projection or published snapshot reaches here.
+        // Its old revision is never accepted: retry traverses/authenticates all
+        // current raw again and checks the current lifecycle before using spans.
+        if(retry_capture&&!include_observations&&batch.rebuild&&!batch.segment_spans_.empty()&&
+           error&&*error=="search-source-changed"&&next.use_count()==1){
+            auto owned=std::const_pointer_cast<RecordingSearchModel>(std::move(next));
+            batch.delta.upserts=std::move(owned->documents_);
+            // Build sorted the vector. Restore contiguous segment groups; the
+            // next Build restores the public time/channel/ID order unchanged.
+            std::sort(batch.delta.upserts.begin(),batch.delta.upserts.end(),[](const auto& a,const auto& b){
+                return std::tie(a.segment_id,a.id)<std::tie(b.segment_id,b.id);
+            });
+            for(auto& entry:batch.segment_spans_){entry.second.begin=0;entry.second.count=0;}
+            for(std::size_t i=0;i<batch.delta.upserts.size();++i){
+                const auto found=batch.segment_spans_.find(batch.delta.upserts[i].segment_id);
+                if(found!=batch.segment_spans_.end()){
+                    if(!found->second.count)found->second.begin=i;
+                    ++found->second.count;
+                }
+            }
+            *retry_capture=std::move(batch);
+        }
+        return false;
+    }
     *output = std::move(next);if(error)error->clear();return true;
 }
 bool RecordingSearchReader::WithEventFacts(const RecordingSearchModel& source,

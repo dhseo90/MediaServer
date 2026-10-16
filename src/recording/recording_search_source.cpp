@@ -3,6 +3,7 @@
 #include "recording/recording_search_diagnostic.h"
 #include "recording/recording_latency_trace.h"
 #include <algorithm>
+#include "domain/strict_json.h"
 #include <limits>
 #include <new>
 #include <stdexcept>
@@ -14,20 +15,25 @@ namespace recording {
 namespace {
 // Narrow verification record, emitted only after the Catalog lock is released.
 // Counts are per capture, not the whole HTTP request or a CPU-time estimate.
+struct OptionalCaptureCapacity {};
 struct CaptureCost {
     bool enabled=latency::SubcostEnabled(),complete=false;
     std::uint64_t rows=0,excluded=0,memo=0,reused=0,begin=enabled?latency::Now():0;
+    std::uint64_t vector_hint=0,growths=0,relocated=0;
+    std::uint64_t cut_rows=0,raw_bytes=0,cut_charge=0,read_ns=0,outside_ns=0;
     std::array<std::uint64_t,4> decode=latency::segment_decode_cost;
     ~CaptureCost() {
         if(!enabled)return;
         static std::atomic<unsigned> records{0};if(records.fetch_add(1)>=12)return;
-        char line[512];const int n=std::snprintf(line,sizeof(line),
-            "[search-capture-cost] {\"rows\":%llu,\"excluded\":%llu,\"memoExcluded\":%llu,\"reusedSegments\":%llu,\"decodeCalls\":%llu,\"decodeHits\":%llu,\"parseNs\":%llu,\"elapsedNs\":%llu,\"complete\":%s}\n",
+        char line[1024];const int n=std::snprintf(line,sizeof(line),
+            "[search-capture-cost] {\"rows\":%llu,\"excluded\":%llu,\"memoExcluded\":%llu,\"reusedSegments\":%llu,\"decodeCalls\":%llu,\"decodeHits\":%llu,\"parseNs\":%llu,\"elapsedNs\":%llu,\"cutRows\":%llu,\"rawBytes\":%llu,\"cutCharge\":%llu,\"cutReadNs\":%llu,\"outsideNs\":%llu,\"vectorHint\":%llu,\"vectorGrowths\":%llu,\"relocatedDocuments\":%llu,\"complete\":%s}\n",
             (unsigned long long)rows,(unsigned long long)excluded,(unsigned long long)memo,(unsigned long long)reused,
             (unsigned long long)(latency::segment_decode_cost[0]-decode[0]),
             (unsigned long long)(latency::segment_decode_cost[1]-decode[1]),
             (unsigned long long)(latency::segment_decode_cost[2]-decode[2]),
-            (unsigned long long)(latency::Now()-begin),complete?"true":"false");
+            (unsigned long long)(latency::Now()-begin),
+            (unsigned long long)cut_rows,(unsigned long long)raw_bytes,(unsigned long long)cut_charge,
+            (unsigned long long)read_ns,(unsigned long long)outside_ns,(unsigned long long)vector_hint,(unsigned long long)growths,(unsigned long long)relocated,complete?"true":"false");
         if(n>0&&n<int(sizeof(line)))SearchDiagnostic::Write(line,static_cast<std::size_t>(n));
     }
 };
@@ -95,6 +101,10 @@ bool RecordingCatalog::ValidateSearchSource(const SearchSourceBatch& batch, std:
 
 bool RecordingCatalog::CaptureSearchSource(const std::vector<std::string>& channels,
     const RecordingSearchModel* previous, SearchSourceBatch* result, std::string* error, SearchModelLimits limits, bool include_observations, SearchSourceBatch* retry_capture) const {
+    return CaptureSearchSourceImpl(channels,previous,result,error,limits,include_observations,retry_capture,true);
+}
+bool RecordingCatalog::CaptureSearchSourceImpl(const std::vector<std::string>& channels,
+    const RecordingSearchModel* previous, SearchSourceBatch* result, std::string* error, SearchModelLimits limits, bool include_observations, SearchSourceBatch* retry_capture,bool allow_raw_cut) const {
     if (!result || result==retry_capture || channels.empty() || channels.size() > 32) return Fail(error, "search-invalid-channels");
     // Consume the prior attempt once, including exceptions/partial moves. It
     // cannot be offered again after an interrupted current namespace traversal.
@@ -105,6 +115,7 @@ bool RecordingCatalog::CaptureSearchSource(const std::vector<std::string>& chann
     SearchDiagnostic::Stage("capture-source");
     SearchCapacityBegin("capture-source",limits.max_documents,limits.max_bytes,0,0);
     CaptureCost costs;
+    bool optional_cut_owned=false;
     try {
         latency::Lock lock(mu_,latency::Source::Catalog,__LINE__,false,__func__);
         if (!opened_ || !CanReadLocked(error) || !source_snapshot_revision_valid_ || !search_instance_ ||
@@ -149,7 +160,7 @@ bool RecordingCatalog::CaptureSearchSource(const std::vector<std::string>& chann
         std::array<unsigned char,32> raw_digest{};std::size_t raw_size=0;
         bool raw_valid=false;
         std::size_t bytes = sizeof(batch),span_bytes=0;
-        bool remember_spans=remember;
+        bool remember_spans=remember,optional_vector=false;
         const auto drop_spans=[&] {batch.segment_spans_.clear();bytes-=span_bytes;span_bytes=0;remember_spans=false;};
         const auto remember_span=[&](const std::string& id,RecordingLifecycle lifecycle,std::size_t begin) {
             if(!remember_spans||!raw_valid)return true;
@@ -161,21 +172,36 @@ bool RecordingCatalog::CaptureSearchSource(const std::vector<std::string>& chann
             return true;
         };
         const auto add = [&](SearchDocument d) {
-            // Optional retry evidence must neither displace a valid document nor
-            // use the vector's unoccupied/relocation storage as free memory.
-            const auto& documents=batch.delta.upserts;
-            if(span_bytes&&documents.size()<limits.max_documents){
-                auto next=bytes;
-                if(AccountOwnedSearchDocument(d,&next,std::numeric_limits<std::size_t>::max())){
-                    const auto required=documents.size()+1;
-                    const auto capacity=documents.capacity()<required?
-                        required+std::min({documents.capacity()?documents.capacity()-1:std::size_t{0},
-                            std::size_t{1023},limits.max_documents-required}):documents.capacity();
-                    const auto extra=capacity-required+(documents.capacity()<required?documents.capacity():0);
-                    if(next>limits.max_bytes||extra>(limits.max_bytes-next)/sizeof(SearchDocument))drop_spans();
-                }
+            // Validate/account once, then discard optional span ownership before
+            // allocating if it would displace a valid document. The previous
+            // implementation validated every field twice while spans existed.
+            auto& documents=batch.delta.upserts;
+            search_capacity_diagnostic.documents=documents.size();
+            search_capacity_diagnostic.capacity=documents.capacity();
+            search_capacity_diagnostic.index=documents.size();
+            const auto refused=[&](){if(optional_vector)throw OptionalCaptureCapacity{};return false;};
+            if(documents.size()>=limits.max_documents){SearchCapacityReject("document-count",documents.size(),1);return refused();}
+            auto next=bytes;
+            if(!AccountOwnedSearchDocument(d,&next,SIZE_MAX))return refused();
+            const auto required=documents.size()+1;
+            const auto capacity=documents.capacity()<required?
+                required+std::min({documents.capacity()?documents.capacity()-1:std::size_t{0},
+                    std::size_t{1023},limits.max_documents-required}):documents.capacity();
+            const auto extra=capacity-required+(documents.capacity()<required?documents.capacity():0);
+            if(span_bytes&&(next>limits.max_bytes||extra>(limits.max_bytes-next)/sizeof(SearchDocument))){
+                next-=span_bytes;drop_spans();
             }
-            return AppendOwnedSearchDocument(&batch.delta.upserts,std::move(d),&bytes,limits);
+            if(next>limits.max_bytes||extra>(limits.max_bytes-next)/sizeof(SearchDocument)){
+                SearchCapacityReject("vector-relocation",next,extra>SIZE_MAX/sizeof(SearchDocument)?SIZE_MAX:extra*sizeof(SearchDocument));return refused();
+            }
+            if(documents.capacity()<required){
+                if(costs.enabled){++costs.growths;costs.relocated+=documents.size();}
+                documents.reserve(capacity);
+            }
+            if(documents.capacity()-required>(limits.max_bytes-next)/sizeof(SearchDocument)){
+                SearchCapacityReject("vector-capacity",next,(documents.capacity()-required)*sizeof(SearchDocument));return refused();
+            }
+            documents.push_back(std::move(d));bytes=next;return true;
         };
         // 저장된 locator의 시각만 소비한다. 여기서 미확정 관측의 epoch/시각을 새로 추정하지 않는다.
         const auto locate = [&](SearchDocument& d, const FrameLocatorV1& locator) {
@@ -225,9 +251,52 @@ bool RecordingCatalog::CaptureSearchSource(const std::vector<std::string>& chann
             // The same Catalog cut protects the authenticated cursor and each
             // charged row. Do not repeat root/chunk traversal for iterator++ or
             // reacquire the segment merely to prove the presence just observed.
-            const bool complete=segments_v2_.ForEachChannelEntry(channels,[&](const auto& id,const auto& s) {
+            // A bounded cut retains the already authenticated raw rows by move.
+            // No history clone or second raw copy; each row releases its 64KiB
+            // read workspace before retention. If the optional cut cannot fit,
+            // use the original locked traversal and its unchanged admission.
+            struct CutRow {SearchModelResidency::Reservation key_memory;std::string id;RecordingColdRow raw;RecordingLifecycle lifecycle;};
+            SearchModelResidency::Reservation cut_memory;
+            std::vector<CutRow> cut;
+            std::optional<decltype(segments_v2_)> view;
+            std::size_t cut_bytes=0;
+            bool detached=false;
+            if(allow_raw_cut&&!include_observations&&segments_v2_.cold()){
+                const auto count=segments_v2_.size();
+                if(count<=limits.max_bytes/sizeof(CutRow)){
+                    const auto meta=count*sizeof(CutRow);
+                    const auto used=limits.residency->used();
+                    if(used<=limits.residency->limit()&&meta<=limits.residency->limit()-used){
+                        auto ticket=limits.residency->ReserveOwned(meta);
+                        if(ticket){
+                            cut_memory=std::move(*ticket);cut.reserve(count);cut_bytes=meta;
+                            const auto read_begin=costs.enabled?latency::Now():0;
+                            try { detached=segments_v2_.VisitRawOwned([&](const auto& id,RecordingColdRow& row){
+                                const auto retained=row.bytes.capacity()+1;
+                                const auto key=2*(id.size()+1);
+                                if(cut.size()==count||retained>limits.max_bytes-cut_bytes||key>limits.max_bytes-cut_bytes-retained)return false;
+                                // Key/control storage is charged independently of raw workspace.
+                                // Row workspace is already larger than raw + bounded ID.
+                                auto key_owner=row.memory.Split(key);
+                                auto owned=row.memory.Split(retained);
+                                row.memory=std::move(owned);
+                                cut_bytes+=retained+key;costs.raw_bytes+=row.bytes.size();
+                                const auto lifecycle=EffectiveLifecycleV2Locked(id,true);
+                                cut.push_back({std::move(key_owner),id,std::move(row),lifecycle});
+                                return true;
+                            }); } catch(const RecordingResourceUnavailable&) { detached=false; }
+                            costs.read_ns+=costs.enabled?latency::Now()-read_begin:0;
+                            if(detached){optional_cut_owned=true;view.emplace(segments_v2_.ColdReadView());costs.cut_rows=cut.size();costs.cut_charge=cut_bytes;}
+                            else {std::vector<CutRow>{}.swap(cut);cut_memory={};cut_bytes=0;}
+                        }
+                    }
+                }
+            }
+            RecordingLifecycle cut_lifecycle=RecordingLifecycle::Unknown;
+            const auto current_lifecycle=[&](const auto& id){return detached?cut_lifecycle:EffectiveLifecycleV2Locked(id,true);};
+            const auto consume=[&](const auto& id,const auto& s) {
                 ++costs.rows;
-                const auto lifecycle=EffectiveLifecycleV2Locked(id,true);
+                const auto lifecycle=current_lifecycle(id);
                 const auto begin=batch.delta.upserts.size();
                 if (lifecycle==RecordingLifecycle::Deleted) return remember_span(id,lifecycle,begin);
                 const auto segment = [&](const RecordingUtcMappingV1* m) {
@@ -242,11 +311,13 @@ bool RecordingCatalog::CaptureSearchSource(const std::vector<std::string>& chann
                 if (s.mappings.empty()) {if(!segment(nullptr))return false;}
                 else for(const auto& mapping:s.mappings)if(!segment(&mapping))return false;
                 return remember_span(id,lifecycle,begin);
-            },[&](const auto& id){
+            };
+            const auto excluded=[&](const auto& id){
                 // Channel exclusion never suppresses current lifecycle errors.
                 ++costs.rows;++costs.excluded;
-                (void)EffectiveLifecycleV2Locked(id,true);return true;
-            },&costs.memo,[&](const std::string& id,const std::string& raw)->std::optional<bool>{
+                (void)current_lifecycle(id);return true;
+            };
+            const auto raw_consumer=[&](const std::string& id,const std::string& raw)->std::optional<bool>{
                 raw_valid=false;
                 if(!remember)return {};
 #if MEDIA_SERVER_USE_OPENSSL
@@ -259,7 +330,7 @@ bool RecordingCatalog::CaptureSearchSource(const std::vector<std::string>& chann
                 if(prior==prior_capture.segment_spans_.end())return {};
                 const auto span=prior->second;
                 if(span.raw_bytes!=raw_size||span.digest!=raw_digest)return {};
-                const auto lifecycle=EffectiveLifecycleV2Locked(id,true);
+                const auto lifecycle=current_lifecycle(id);
                 // State is separate from segment raw. A changed lifecycle takes
                 // the strict path; deleted rows are never moved into the result.
                 if(lifecycle!=span.lifecycle)return {};
@@ -273,7 +344,62 @@ bool RecordingCatalog::CaptureSearchSource(const std::vector<std::string>& chann
                     if(!add(std::move(prior_capture.delta.upserts[i])))return false;
                 prior_capture.segment_spans_.erase(prior);++costs.rows;++costs.reused;++batch.reused_segments_;
                 return remember_span(id,lifecycle,begin);
-            });
+            };
+            bool complete=true;
+            if(detached){
+                latency::Lock::Unlocked outside(lock);
+                const auto outside_begin=costs.enabled?latency::Now():0;
+#ifdef RECORDING_SEARCH_TESTING
+                if(search_outside_raw_cut_test)search_outside_raw_cut_test();
+#endif
+                // All arrays include mappings plus codec metadata. This is only
+                // an upper allocation hint, never a parser or document count.
+                // It avoids repeatedly relocating the complete document vector.
+                std::size_t hint=reuse?prior_capture.delta.upserts.size():batch.delta.upserts.size();
+                // A retry already owns an authenticated previous vector size.
+                // Use it only as an allocation hint; new/changed/deleted rows
+                // still take the identical complete raw/lifecycle checks below.
+                if(!reuse)for(const auto& row:cut){
+                    const auto choice=view->RawChannelSelection(row.id,row.raw.bytes,channels);
+                    if(choice&&!*choice)continue;
+                    const auto n=std::max(std::size_t{1},ingress::InspectStrictJsonStorageShape(row.raw.bytes).array_elements);
+                    if(n>limits.max_documents-hint){hint=0;break;}
+                    hint+=n;
+                }
+                const auto old_capacity=batch.delta.upserts.capacity();
+                if(hint>old_capacity&&bytes<=limits.max_bytes&&
+                   old_capacity<=(limits.max_bytes-bytes)/sizeof(SearchDocument)&&
+                   hint<=(limits.max_bytes-bytes)/sizeof(SearchDocument)-old_capacity){
+                    optional_vector=true;
+                    batch.delta.upserts.reserve(hint);
+                    if(batch.delta.upserts.capacity()>(limits.max_bytes-bytes)/sizeof(SearchDocument))
+                        throw OptionalCaptureCapacity{};
+                    costs.vector_hint=hint;
+                }
+                for(auto& row:cut){
+                    cut_lifecycle=row.lifecycle;
+                    if(!view->ConsumeOwnedChannelEntry(row.id,std::move(row.raw),channels,consume,excluded,&costs.memo,raw_consumer)){
+                        complete=false;break;
+                    }
+                }
+                if(complete&&optional_vector){
+                    // Do not pass hint slack to BuildOwned's separate index
+                    // admission. Compact with both buffers charged by this batch;
+                    // if that cannot fit, unwind to the original streaming path.
+                    auto& documents=batch.delta.upserts;
+                    if(documents.capacity()>documents.size()){
+                        if(bytes>limits.max_bytes||documents.capacity()>(limits.max_bytes-bytes)/sizeof(SearchDocument))
+                            throw OptionalCaptureCapacity{};
+                        std::vector<SearchDocument> compact;
+                        compact.reserve(documents.size());
+                        if(compact.capacity()!=documents.size())throw OptionalCaptureCapacity{};
+                        for(auto& document:documents)compact.push_back(std::move(document));
+                        documents.swap(compact);
+                        if(costs.enabled){++costs.growths;costs.relocated+=documents.size();}
+                    }
+                }
+                costs.outside_ns+=costs.enabled?latency::Now()-outside_begin:0;
+            }else complete=segments_v2_.ForEachChannelEntry(channels,consume,excluded,&costs.memo,raw_consumer);
             if(!complete)return Fail(error,"search-capacity-exceeded");
             if(include_observations&&(!observations_.ForEach(v1)||!observations_v2_.ForEach(v2)||!referenced_observations_.ForEach(referenced)))
                 return Fail(error,"search-capacity-exceeded");
@@ -291,6 +417,16 @@ bool RecordingCatalog::CaptureSearchSource(const std::vector<std::string>& chann
         }
         SearchDiagnostic::Source(batch.catalog_instance,batch.resolution_revision,source_snapshot_revision_,search_instance_,true,batch.rebuild,batch.delta.upserts.size(),batch.pending.size());
         *result=std::move(batch);costs.complete=true;if(error)error->clear();return true;
+    } catch(const OptionalCaptureCapacity&) {
+        prior_capture=SearchSourceBatch{};
+        return CaptureSearchSourceImpl(channels,previous,result,error,limits,include_observations,nullptr,false);
+    } catch(const RecordingResourceUnavailable&) {
+        if(!optional_cut_owned)throw;
+        // All cut/batch owners and the Catalog lock have unwound. Optional
+        // retained raw must not turn streaming headroom into a new rejection.
+        // A partially consumed retry is discarded; one strict locked attempt.
+        prior_capture=SearchSourceBatch{};
+        return CaptureSearchSourceImpl(channels,previous,result,error,limits,include_observations,nullptr,false);
     } catch(const RecordingRetainedReadError&) {return Fail(error,"search-source-unavailable");}
       catch(const std::bad_alloc&) {SearchCapacityReject("allocation-exception",0,0);return Fail(error,"search-capacity-exceeded");}
       catch(const std::length_error&) {SearchCapacityReject("length-exception",0,0);return Fail(error,"search-capacity-exceeded");}

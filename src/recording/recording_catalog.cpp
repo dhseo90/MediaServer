@@ -2791,7 +2791,12 @@ bool RecordingCatalog::CaptureVisualSourceKeys(const std::set<std::string>& chan
     if(full_status_validation){
         if(!derived_job_state_authoritative_)return Fail(error,"recording status snapshot 미확인");
         VisualSourceScan scan{channels,keys,unsupported};
-        const auto checked=RetentionSnapshotLocked(RetentionSnapshotSelection::All,{},nullptr,&scan);
+        // Use the same authenticated private cut/current rebase as retention.
+        // No mutable Catalog row survives the unlock; keys are committed only
+        // after the complete current raw and lifecycle validation succeeds.
+        struct RetentionSnapshot checked;
+        {recording::latency::Lock::Unlocked outside(lock);
+            checked=RetentionSnapshotPrepared(RetentionSnapshotSelection::All,{}, {},&scan);}
         if(!checked.authoritative)return Fail(error,checked.error.empty()?"recording status capacity 미확인":checked.error);
         *output=std::move(keys);*legacy=std::move(unsupported);if(error)error->clear();return true;
     }
@@ -4507,7 +4512,7 @@ void RecordingCatalog::NoteRetentionChangeLocked(const char* kind,const std::str
 thread_local std::function<void()> RecordingCatalog::retention_prepared_hook_;
 #endif
 RetentionSnapshot RecordingCatalog::RetentionSnapshotPrepared(RetentionSnapshotSelection selection,const std::string& id,
-    const std::function<bool(std::string*)>& before_current) const {
+    const std::function<bool(std::string*)>& before_current,VisualSourceScan* visual) const {
     struct RetentionSnapshot result;
     std::unique_ptr<RetentionReadState> read;
     std::unique_ptr<RecordingCatalog> frozen;
@@ -4531,7 +4536,7 @@ RetentionSnapshot RecordingCatalog::RetentionSnapshotPrepared(RetentionSnapshotS
                 if(before_current){recording::latency::Lock::Unlocked unlocked(lock);
                     if(!before_current(&first))throw CatalogHistoryError(first);}
                 std::array<std::uint64_t,4> cost{};
-                result=RetentionSnapshotLocked(selection,id,recording::latency::HolderEnabled()?&cost:nullptr);
+                result=RetentionSnapshotLocked(selection,id,recording::latency::HolderEnabled()?&cost:nullptr,visual);
                 lock.HolderRetentionCosts("RetentionLegacy",cost);return result;
             }
             if(!opened_||!CanReadLocked(&first))throw CatalogHistoryError(first.empty()?"retention authority unavailable":first);
@@ -4558,7 +4563,7 @@ RetentionSnapshot RecordingCatalog::RetentionSnapshotPrepared(RetentionSnapshotS
         // No mutable iterator crosses mu_. The private scratch holds a byte copy
         // and the in-process authenticated root. Descendant coverage is checked
         // by the same complete cursors/joins as the locked implementation.
-        result=frozen->RetentionCandidatesFromCut(selection,id,nullptr);
+        result=frozen->RetentionCandidatesFromCut(selection,id,nullptr,visual);
         if(!result.authoritative)throw CatalogHistoryError(result.error);
         // The private bytes are owned; the coordinator acquires its decision
         // lock here, before current authentication and changed-ID rebasing.
@@ -4574,9 +4579,28 @@ RetentionSnapshot RecordingCatalog::RetentionSnapshotPrepared(RetentionSnapshotS
             // All committed relevant writes during the private scan are folded
             // into the result. No full scan retry; reservations and runtime holds
             // are read only now, under this same current Catalog cut.
+            // Keep removed key tickets until the old vector capacity is gone.
+            // Remove every old changed key before inserting any current one, so
+            // a full key set can replace/delete rows without a transient 100001.
+            SearchModelResidency::Reservation replaced_memory;
+            std::vector<VisualSourceKey> replaced_keys;
+            struct KeyBufferGuard {
+                VisualSourceScan* visual;bool ready=false;
+                ~KeyBufferGuard(){if(visual&&!ready)std::vector<VisualSourceKey>{}.swap(visual->keys);}
+            } key_buffer{visual};
+            if(visual&&read->count){
+                auto charge=search_residency_->ReserveOwned(read->count*sizeof(VisualSourceKey));
+                if(!charge)throw RecordingResourceUnavailable();
+                replaced_memory=std::move(*charge);replaced_keys.reserve(read->count);
+                for(std::size_t n=0;n<read->count;++n){
+                    const auto found=std::find_if(visual->keys.begin(),visual->keys.end(),
+                        [&](const auto& key){return key.id==read->changed[n].data();});
+                    if(found!=visual->keys.end()){replaced_keys.push_back(std::move(*found));visual->keys.erase(found);}
+                }
+            }
             for(std::size_t n=0;n<read->count;++n){
                 const std::string changed=read->changed[n].data();
-                auto current=RetentionSnapshotLocked(RetentionSnapshotSelection::Candidate,changed,nullptr);
+                auto current=RetentionSnapshotLocked(RetentionSnapshotSelection::Candidate,changed,nullptr,visual);
                 if(!current.authoritative)throw CatalogHistoryError(current.error);
                 result.candidates.erase(std::remove_if(result.candidates.begin(),result.candidates.end(),
                     [&](const auto& candidate){return candidate.Id()==changed;}),result.candidates.end());
@@ -4584,6 +4608,32 @@ RetentionSnapshot RecordingCatalog::RetentionSnapshotPrepared(RetentionSnapshotS
                     if(selection==RetentionSnapshotSelection::All||candidate.Channel()==id)
                         result.candidates.push_back(std::move(candidate));
             }
+            if(visual){
+                // Legacy counts have no per-ID output slot. Recount at the final
+                // cut, including missing paths and excluding current V2 aliases.
+                // This does not replace the full private/current authentication.
+                visual->legacy.clear();
+                segments_.ForEachEntry([&](const auto& key,const auto& row){
+                    if(row.lifecycle==RecordingLifecycle::Finalized&&visual->channels.count(row.channel_id)&&!segments_v2_.count(key))
+                        ++visual->legacy[row.channel_id];
+                    return true;
+                });
+                const auto key_less=[](const auto& a,const auto& b){
+                    const auto common=std::min(a.id.size(),b.id.size());const auto order=a.id.compare(0,common,b.id,0,common);
+                    if(order)return order<0;
+                    if(a.id.size()==b.id.size())return false;
+                    return a.id.size()==common?'/'<b.id[common]:a.id[common]<'/';
+                };
+                std::sort(visual->keys.begin(),visual->keys.end(),key_less);
+                if(!replaced_keys.empty()){
+                    // Existing per-key tickets cover old/new vector relocation;
+                    // removed tickets remain alive through the old buffer free.
+                    std::vector<VisualSourceKey> compact;compact.reserve(visual->keys.size());
+                    for(auto& key:visual->keys)compact.push_back(std::move(key));
+                    visual->keys.swap(compact);
+                }
+            }
+            key_buffer.ready=true;
             for(auto& candidate:result.candidates){
                 const auto hold=hold_counts_.find(candidate.Id());candidate.hold_count=hold==hold_counts_.end()?0:hold->second;
                 if(candidate.segment_v2&&DerivedJobProtectsLocked(candidate.Id())&&candidate.hold_count<UINT64_MAX)++candidate.hold_count;

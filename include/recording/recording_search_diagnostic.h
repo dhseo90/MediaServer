@@ -17,6 +17,8 @@ namespace recording {
 #ifdef RECORDING_SEARCH_TESTING
 // Linked only by the focused test's reader translation unit; no product request can set it.
 inline thread_local std::function<void()> search_after_capture_test;
+inline thread_local std::function<void()> search_outside_raw_cut_test;
+inline thread_local std::function<void()> search_after_build_test;
 #endif
 // 최초 거부의 실제 Add 피연산자. thread-local 고정 크기이며 원문을 보유하지 않는다.
 struct SearchCapacityDiagnostic {

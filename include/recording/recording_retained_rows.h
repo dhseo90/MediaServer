@@ -301,6 +301,40 @@ public:
         if(!ok&&!refused)throw RecordingRetainedReadError(error);
         return ok;
     }
+    // A cold-only view owns the store/cache handles, never a live container
+    // iterator. The caller captures charged raw rows under its authority lock.
+    RecordingRetainedRows ColdReadView() const {
+        if(!store_)throw std::logic_error("cold read view requires retained rows");
+        RecordingRetainedRows view;view.Bind(store_,kind_,decoded_store_);return view;
+    }
+    template<class F> bool VisitRawOwned(F&& visitor) const {
+        if(!store_)throw std::logic_error("raw read requires retained rows");
+        bool refused=false;std::string error;
+        const bool ok=store_->VisitOwned(kind_,[&](const auto& id,RecordingColdRow& row,std::string*){
+            if(!visitor(id,row)){refused=true;return false;}return true;
+        },&error);
+        if(!ok&&!refused)throw RecordingRetainedReadError(error);
+        return ok;
+    }
+    // Optional allocation hint only. Unknown selection must not exclude a row;
+    // ConsumeOwnedChannelEntry still performs its normal authentication/parse.
+    std::optional<bool> RawChannelSelection(const std::string& id,const std::string& raw,
+        const std::vector<std::string>& channels)const {
+        static_assert(std::is_same_v<T,RecordingSegmentV2>);
+        const auto& decoded=decoded_store_?decoded_store_:store_;
+        return decoded->VerifiedSegmentChannelSelection(id,raw,channels);
+    }
+    template<class F,class E,class R> bool ConsumeOwnedChannelEntry(const std::string& id,RecordingColdRow row,
+        const std::vector<std::string>& channels,F&& visitor,E&& excluded,std::uint64_t* memo_excluded,R&& raw_consumer)const {
+        static_assert(std::is_same_v<T,RecordingSegmentV2>);
+        const auto& decoded=decoded_store_?decoded_store_:store_;
+        const auto selection=decoded->VerifiedSegmentChannelSelection(id,row.bytes,channels);
+        if(selection&&!*selection){if(memo_excluded)++*memo_excluded;return excluded(id);}
+        if(const auto used=raw_consumer(id,row.bytes))return *used;
+        const auto value=Decode(id,std::move(row));
+        return std::find(channels.begin(),channels.end(),value->second.channel_id)!=channels.end()
+            ?visitor(value->first,value->second):excluded(id);
+    }
     // Same authenticated namespace and caller-held cut as ForEachEntry. An
     // exact-raw exclusion avoids only the typed DTO; the caller must still
     // perform its normal lifecycle/retirement checks in excluded(id).

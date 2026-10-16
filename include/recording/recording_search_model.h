@@ -93,6 +93,7 @@ struct RecordingSearchMatches {
 
 // 원본 snapshot의 일관성과 event 연결 검증은 adapter 책임이다. 이 모델은 파일 재생 증명이 아니다.
 class RecordingSearchModel {
+    friend class RecordingSearchReader;
 public:
     RecordingSearchModel()=default;
     RecordingSearchModel(const RecordingSearchModel&)=delete;
