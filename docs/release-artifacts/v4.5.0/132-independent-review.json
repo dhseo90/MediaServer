@@ -1,0 +1,43 @@
+{
+  "schema": "media-server.v450.r132.independent-review.v1",
+  "reviewer": {
+    "agent": "/root/independent_r132",
+    "requested": "gpt-6-astra/high",
+    "toolAccepted": "gpt-6-astra/high",
+    "actualModel": null,
+    "actualEffort": null,
+    "independence": "read-only source/results; no implementation/test writing/execution/subdelegation"
+  },
+  "decision": "SCOPED_COST_AND_SAFETY_IMPROVEMENT_SUPPORTED_FULL_WARM_FAIL_COLD_NOT_QUALIFIED",
+  "resolvedFindings": [
+    "optional read-cut resource overhead must fall back without new capacity failure; separate raw/key reservations",
+    "hint slack must not create BuildOwned capacity rejection; compact with old/new buffers charged",
+    "visual changed-key removal must retain capacity ownership through normal and exception paths",
+    "remove all replaced visual keys before adding changed current keys to avoid transient 100001 rejection"
+  ],
+  "static": "No unresolved scoped ownership/currentness/error-propagation defect found after fixes; not proof of complete heap safety or full warm qualification.",
+  "result": {
+    "original12": "12actualHTTP200/p95=max1996.1ms",
+    "aux": "actualHTTP200/200items/4385.876708ms",
+    "recorder": "2506/2506/drop0/files42",
+    "publication": "observed immutable generation2/docs3794/new48",
+    "failure": "public top200 fresh0; original assertion FAIL; wrapperexit1",
+    "finish": "exception guard Stop/Finish; not normal completion",
+    "closedJournal": "not-run",
+    "cold": "not-run"
+  },
+  "ranking": "Score descending and ID ascending tie order. In final persisted cache, 12 fresh vectors identical to returned200 all sort after cutoff. Other36 scores not preserved, and cache not proven identical to HTTP immutable view. Membership does not imply fresh top200. Do not change FAIL to PASS.",
+  "nextDecision": "User-approved bounded clarification of fresh verification purpose and independent predeclared ranking expectation, then necessary focused and warm execution; no implicit gate relaxation.",
+  "bindingDecision": "Producer then readback then coverage for changed inventory/source only; previous986 approvals reused where semantics unchanged, not a response qualification.",
+  "preservation": {
+    "decision": "no preservation blocker",
+    "archiveBytes": 24222432,
+    "archiveSha256": "e0be56f02ea18239b66516c77b147c6575f9ca600f6bfb281bed7cf2a1a427c1",
+    "regularUniqueSafeMembers": 383,
+    "payloads": 382,
+    "checks": "all saved/source hashes and sanitizer transforms match; four run seed2900 +45changed -0deleted ->2942final map and actual delta bytes match; 125/130/supplement/131 references verified; final10 source=current=execution binding; runtime/binary/build linkage verified",
+    "binding": "subsequent producer/early-invalid-readback/ordered readback/coverage in132-binding.json; not in original execution archive",
+    "linuxHashSupplement": "132-binding.json preserves omitted native-final-results/runtime-sha256.txt exact64B with source SHA; original execution archive unchanged"
+  },
+  "bindingDiffReview": "Only inventorySha256 scalar changes in implementation evidence; existing986 flows/approvals unchanged."
+}

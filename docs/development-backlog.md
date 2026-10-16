@@ -17,6 +17,11 @@
 
 ## v4.5.0 잔여 개발과 릴리즈 순서
 
+[132 원본 읽기 소유·재준비 비용 보완](release-artifacts/v4.5.0/132-validation.json)은 **한정 개선 및 같은 warm의 12응답·aux200 시간 기준 충족, 전체 warm FAIL**이다.
+현재 raw 전체 인증·lifecycle을 유지하는 소유 cut에서 strict parse/문서화를 Catalog 밖으로 옮겼고, 독점 미게시 모델의 postBuild 재시도 문서를 재사용했다. 실제 aux 대기와 겹친 visual 전체 source 수집도 기존 authenticated prepared 경계에 연결했다. 131 retention/admission·130 decoder 정책과 모든 한도는 유지했다.
+네 차례 실제 변경별 개발 실행을 보존했다. 마지막 동일 실행은 12개 HTTP200 p95/max1996.1ms, aux200 실제200·200항목·4385.88ms, Recorder2506/2506·drop0·42파일, immutable generation2/docs3794/new48을 확인했다. 그러나 공개 top200 fresh0 assertion이 실패했다. 새 게시 자체는 확인했으며, 동일 embedding인 새12개가 동점 ID 경계 뒤인 근거와 나머지36개 점수 미관측을 구분한다. 게시만으로 top200 fresh를 보장하는 검사 기대는 별도 결정이 필요하며 기존 FAIL을 완화하지 않았다.
+예외 경로 Stop/Finish와 최종 논리 소유 반환은 확인했지만 정상 성공 종료·닫힌 journal·최종cold는 미완료다. [독립 판단](release-artifacts/v4.5.0/132-independent-review.json), macOS/Linux 영향 회귀와 모든 개발 실패를 보존한다. 짧은 단회 시간 PASS·drop0은 장기 여유·무손실·전체 heap 수렴의 증명이 아니며, 900/45/120분·메모리P0·출시 보류는 유지한다.
+
 [131 주기 준비·검색 재준비 비용 보완](release-artifacts/v4.5.0/131-validation.json)은 **한정 개선·warm 정상 Recorder 수용 확인, 전체 병행 직접 FAIL**이다.
 주기 retention의 긴 인증 준비를 admission 잠금 밖으로 분리하되 최종 정책·예약·실제 공간·삭제 판단을 유지했다. 현재 raw 인증을 유지한 parsed row 소유 축소와 동일 HTTP의 preBuild 재시도 문서 재사용을 연결했다.
 같은 R130 종료 상태의 warm 비교에서 baseline2472중2296수용/queue drop107에서 최종2498/2498·drop0·42파일로 개선됐다. 현재 새 게시generation2/3798문서/new52와 예외 경로 Stop/Finish·최종 논리owner0은 확인했다. 이는 지속 무손실·전체 heap 수렴의 증명이 아니다.
