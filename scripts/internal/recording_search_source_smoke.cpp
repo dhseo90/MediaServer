@@ -71,6 +71,11 @@ static void V2(const std::filesystem::path& root) {
             Check(catalog.RequestDeletion("multi","continuous-capacity",&error)&&
                 search.Refresh({"v2"},model,&model,&error)&&model->Find("s2:5:multi5:first")->unavailable_reason=="deletion-pending",
                 "v2-deletion-pending-refresh");
+            RecordingSearchQuery playback_query;playback_query.channels={"v2"};playback_query.start_time_ms=0;
+            playback_query.end_time_ms=1;playback_query.include_unplaced=true;
+            auto unchanged=held;
+            Check(!search.WithPlayback(held,playback_query,&unchanged,&error)&&error=="search-source-changed"&&unchanged==held,
+                "R127 deletion invalidates reusable source and preserves prior output");
             RecordingTombstoneV2 tomb;tomb.tombstone_id="gone";tomb.segment=*catalog.FindSegmentV2ById("multi");
             tomb.deletion_reason="continuous-capacity";tomb.deleted_at_ms=9;
             const bool deleted=catalog.CompleteDeletionV2(tomb,&error);
@@ -160,6 +165,30 @@ int main(int argc,char**argv) {
          std::shared_ptr<const RecordingSearchModel> playback;
          Check(search.WithPlayback(*only_recordings,query,&playback,&error)&&playback->documents().size()==1,
              "MEM83 recording-only playback guard preserves source mode");
+         const auto rebuilt_playback=playback;
+         Check(search.WithPlayback(only_recordings,query,&playback,&error)&&playback==only_recordings,
+             "R127 no-candidate ns recording source shares immutable model");
+         const auto& original=playback->documents().front();const auto& rebuilt=rebuilt_playback->documents().front();
+         Check(original.id==rebuilt.id&&original.segment_id==rebuilt.segment_id&&original.start_ns==rebuilt.start_ns&&
+             original.end_ns==rebuilt.end_ns&&original.media_pts==rebuilt.media_pts&&original.media_end_pts==rebuilt.media_end_pts&&
+             original.time_base_num==rebuilt.time_base_num&&original.time_base_den==rebuilt.time_base_den&&
+             original.playback_segment_id.empty()&&rebuilt.playback_segment_id==original.segment_id&&
+             original.playback_event_id==rebuilt.playback_event_id&&original.playback_job_id==rebuilt.playback_job_id,
+             "R127 shared model preserves identity time and effective original playback");
+         Check(!search.WithPlayback(only_recordings,query,&playback,&error,{0,64*1024*1024})&&
+             error=="search-capacity-exceeded"&&playback==only_recordings&&
+             !search.WithPlayback(only_recordings,query,&playback,&error,{100000,only_recordings->accounted_bytes()-1})&&
+             error=="search-capacity-exceeded"&&playback==only_recordings,
+             "R127 shared model respects caller document and byte limits without replacing output");
+         auto non_ns=only_recordings->documents();non_ns.front().media_pts=1000;non_ns.front().media_end_pts=2000;
+         non_ns.front().time_base_den=1000;std::shared_ptr<const RecordingSearchModel> converted;
+         Check(RecordingSearchModel::Build(non_ns,only_recordings->source_instance(),only_recordings->revision(),&converted,&error,
+                 {100000,64*1024*1024,only_recordings->residency()})&&
+             search.WithPlayback(converted,query,&playback,&error)&&playback!=converted&&
+             playback->documents().front().media_pts==1000000000&&playback->documents().front().time_base_den==1000000000,
+             "R127 non-ns input retains conversion path");
+         Check(search.WithPlayback(model,query,&playback,&error)&&playback!=model&&playback->documents().size()==1,
+             "R127 mixed source retains recording-only projection");
          Check(search.Refresh({"channel-one"},only_recordings,&all_again,&error)&&all_again->documents().size()==2&&
              all_again->Find("o2:7:obs-one")&&model->documents().size()==2,"MEM83 query-kind switch rebuilds complete observation source and preserves old reader");}
         observation=catalog.ResolveObservationV2(observation);

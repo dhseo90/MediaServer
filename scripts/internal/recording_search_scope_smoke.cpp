@@ -19,6 +19,11 @@ int main(int argc,char** argv) {
         auto observation=[](const std::string& id){recording::AnalysisObservationV2 o;o.observation_id=id;o.source_id="probe-channel";o.channel_id="probe-channel";o.analysis_namespace="scope";o.track_id="track";o.class_label="person";o.confidence=.8;o.bbox={0,0,.5,.5};o.selection_reasons={"track-start"};return o;};
         check(store.catalog.PutObservationV2(observation("selected"),&error),"selected observation fixture");
         const auto before=app.Search(query,"owner","scope",auth);check(before.status==200,"baseline actual search");
+        Query paging=query;paging.erase("object");paging["limit"]="1";
+        const auto page=app.Search(paging,"page-owner","page-scope",auth);
+        const auto saved_cursor=Field(Json(page.body),"nextCursor");
+        check(page.status==200&&!saved_cursor.empty()&&saved_cursor!="null","R127 prior immutable snapshot has a next page");
+        paging["cursor"]=saved_cursor;
         auto input=Encode(30,false,false);Shift(input,7000000000ULL);
         recording::GStreamerSegmentWriter::Options options(store.root,1000);options.managed_journal=&store.journal;options.managed_catalog=&store.catalog;options.managed_store_id="probe-store";
         recording::GStreamerSegmentWriter writer(options);
@@ -30,11 +35,19 @@ int main(int argc,char** argv) {
         bool changed=false;
         try {
             if(captured.get_future().wait_for(std::chrono::seconds(10))!=std::future_status::ready)throw std::runtime_error("capture latch deadline");
+            // Long source preparation is held by the other thread. A prior cursor
+            // must finish before that latch is released; release before join on failure.
+            auto cursor_request=std::async(std::launch::async,[&]{return app.Search(paging,"page-owner","page-scope",auth);});
+            const bool concurrent=cursor_request.wait_for(std::chrono::seconds(2))==std::future_status::ready;
+            if(!concurrent){released.set_value();thread.join();(void)cursor_request.get();throw std::runtime_error("R127 cursor blocked on source preparation");}
+            check(cursor_request.get().status==200,"R127 prior cursor progresses while a new preparation is held");
+            check(app.Search(paging,"other-owner","page-scope",auth).status==403,
+                "R127 independent cursor principal binding remains enforced during preparation");
             for(const auto& packet:input.packets)writer.Push(packet,0);
             writer.Stop();
             const auto rows=store.Segments();
             changed=std::any_of(rows.begin(),rows.end(),[](const auto& s){return s.channel_id=="other-channel";});
-        } catch(...) {released.set_value();thread.join();throw;}
+        } catch(...) {if(thread.joinable()){released.set_value();thread.join();}throw;}
         released.set_value();thread.join();if(child_error)std::rethrow_exception(child_error);
         check(changed&&response.status==200&&captures==1,"unrelated real writer finalization preserves one-attempt selected search");
         check(Field(Json(response.body),"unplacedCount")==Field(Json(before.body),"unplacedCount"),"selected membership unchanged independently");

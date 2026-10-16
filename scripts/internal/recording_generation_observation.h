@@ -16,9 +16,12 @@
 #include <chrono>
 #include <functional>
 #include <unordered_set>
+#include <cstdio>
+#include <cstdlib>
 
 namespace generation_observation {
 using namespace recording;
+inline void Phase(const char* name) {if(std::getenv("MEDIA_SERVER_VERIFY_OBSERVER_PHASE")){std::fprintf(stderr,"[observer-phase] %s %lld\n",name,(long long)std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now().time_since_epoch()).count());std::fflush(stderr);}}
 constexpr std::uint64_t kBytes=32ULL*1024*1024;
 inline void Need(bool ok){if(!ok)throw std::runtime_error("observer-generation-invalid");}
 struct Fd {int n;explicit Fd(int value):n(value){Need(n>=0);}~Fd(){::close(n);}Fd(const Fd&)=delete;};
@@ -152,7 +155,7 @@ inline std::string Observe(const std::filesystem::path& root,std::size_t seen,
     const std::function<std::string(const std::string&)>& normalize,
     const std::function<void()>& after_manifest={},SessionCache* cache=nullptr,bool delta_prefix=false){
     const auto started=std::chrono::steady_clock::now();
-    Reader files(root,cache);if(files.Pending())return "{\"busy\":true}";
+    Phase("entry");Reader files(root,cache);if(files.Pending())return "{\"busy\":true}";
     const auto marker=files.Read(".recording-store-format",65536),manifest_bytes=files.Read("recording-generation.json",65536);
     // 검증 전용 경계: 이전 manifest를 잡은 reader와 checkpoint 게시를 결정적으로 교차시킨다.
     if(after_manifest)after_manifest();
@@ -160,12 +163,12 @@ inline std::string Observe(const std::filesystem::path& root,std::size_t seen,
         ingress::StrictJsonObjectDocument mark;RecordingGenerationManifest manifest;std::string error;
         Need(ingress::ParseStrictJsonObjectDocument(marker,&mark,nullptr)&&mark.members.size()==3&&ingress::StrictJsonStringField(mark,"format")=="media-server.managed-recording-store.v2"&&
             ingress::StrictJsonStringField(mark,"manifest")=="recording-generation.json"&&ParseRecordingGenerationManifest(manifest_bytes,&manifest,&error)&&ingress::StrictJsonStringField(mark,"storeId")==manifest.store_id);
-        RecordingGenerationFile identity_head;const auto reused=cache?cache->ReuseSnapshot(files.root.n,manifest_bytes,manifest):std::nullopt;
+        Phase("snapshot");RecordingGenerationFile identity_head;const auto reused=cache?cache->ReuseSnapshot(files.root.n,manifest_bytes,manifest):std::nullopt;
         if(reused)identity_head=*reused;
         else {struct stat snapshot_stat{};const auto snapshot_bytes=files.Verified(manifest.snapshot,&snapshot_stat);RecordingCatalogSnapshot parsed_snapshot;
             if(cache)identity_head=cache->Snapshot(snapshot_bytes,manifest_bytes,manifest,snapshot_stat);
             else {Need(ParseRecordingCatalogSnapshot(snapshot_bytes,kBytes,&parsed_snapshot,&error)&&ValidateRecordingCatalogSnapshotManifest(parsed_snapshot,manifest,&error));identity_head=parsed_snapshot.identity_head;}}
-        const auto snapshot_done=std::chrono::steady_clock::now();
+        Phase("active");const auto snapshot_done=std::chrono::steady_clock::now();
         auto active=files.Read(manifest.active.name,kBytes,true);Need(active.size()>=manifest.active.size&&Digest(active.substr(0,manifest.active.size))==manifest.active.sha256);
         const auto lf=active.rfind('\n'),complete=lf==std::string::npos?0:lf+1,partial=active.size()-complete;Need(manifest.active.size<=complete&&(!manifest.active.size||active[manifest.active.size-1]=='\n'));
         active.resize(complete);RecordingIdentityShard immutable_head;struct stat head_stat{};
@@ -184,7 +187,7 @@ inline std::string Observe(const std::filesystem::path& root,std::size_t seen,
             if(m.mutation_type==RecordingMutationType::RecordingOrderReserved){RecordingOrderReservationV1 order;Need(ParseRecordingOrderReservationV1(m.payload_json,&order,&error));r.reservation=order;}
             active_rows.push_back(std::move(r));off=end+1;
         }
-        const auto active_done=std::chrono::steady_clock::now();
+        Phase("chain");const auto active_done=std::chrono::steady_clock::now();
         const RecordingIdentityChainLimits limits{kBytes,100000,100000};RecordingIdentityChainResult immutable_chain,chain;
         const RecordingIdentityChainResult* base=nullptr;const auto cached=cache?cache->VerifiedChain(files.root.n):nullptr;
         if(cached&&cache->ChainHeadMatches(identity_head)){cache->NoteChainHit();base=cached;}
@@ -204,7 +207,7 @@ inline std::string Observe(const std::filesystem::path& root,std::size_t seen,
         }
         const RecordingGenerationFile active_file{manifest.active.name,active.size(),Digest(active)};
         Need(ValidateRecordingIdentityActiveExtension(*base,active_file,active_rows,limits,&chain,&error));
-        const auto chain_done=std::chrono::steady_clock::now();
+        Phase("output");const auto chain_done=std::chrono::steady_clock::now();
         auto& all=chain.first_acceptances;std::sort(all.begin(),all.end(),[](const auto& a,const auto& b){return a.first_global_ordinal<b.first_global_ordinal;});Need(seen<=all.size());
         const auto end=std::min(all.size(),seen+128);std::ostringstream out;out<<"{\"busy\":false,\"storeHash\":"<<Q(Digest(manifest.store_id))<<",\"generation\":"<<Q(std::to_string(manifest.generation));
         if(delta_prefix)out<<",\"prefixStart\":"<<seen<<",\"prefixHash\":"<<Q(PrefixDigest(all,seen))<<",\"prefixEndHash\":"<<Q(PrefixDigest(all,end));
@@ -227,7 +230,7 @@ inline std::string Observe(const std::filesystem::path& root,std::size_t seen,
         out<<'}';
         files.Bound();if(files.Pending()||files.Read("recording-generation.json",65536)!=manifest_bytes)return "{\"busy\":true}";
         if(cache)cache->VerifySnapshot(files.root.n,manifest_bytes,manifest);
-        Need(files.Read(".recording-store-format",65536)==marker);const auto result=out.str();Need(result.size()<=kBytes);return result;
+        Need(files.Read(".recording-store-format",65536)==marker);const auto result=out.str();Need(result.size()<=kBytes);Phase("complete");return result;
     }catch(const Busy&){return "{\"busy\":true}";}
     catch(...){if(files.Pending()||files.Read("recording-generation.json",65536)!=manifest_bytes)return "{\"busy\":true}";throw;}
 }
