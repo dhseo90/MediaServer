@@ -1,0 +1,448 @@
+{
+  "schema": "media-server.v450.r149-prep.validation.v1",
+  "decision": "PASS_TIMING_CONTRACT_FOCUSED",
+  "timingContract": "PASS",
+  "realOsBenefit": "OBSERVED",
+  "baselineHead": "d3aa4ab3a10d77279c6506dc71bc4e394bb17d7e",
+  "branch": "v4.5.0",
+  "baselineClean": true,
+  "remoteBaselineMatched": true,
+  "preflightNetwork": "initial sandbox DNS failed; same read-only ls-remote with network access matched; no sudo/security configuration change",
+  "model": {
+    "main": {
+      "requested": {
+        "model": "gpt-6-astra",
+        "effort": "high"
+      },
+      "toolAccepted": null,
+      "actualRuntime": {
+        "model": null,
+        "effort": null
+      }
+    },
+    "independent": {
+      "requested": {
+        "model": "gpt-6-astra",
+        "effort": "high"
+      },
+      "toolAccepted": {
+        "model": "gpt-6-astra",
+        "effort": "high",
+        "provenance": "existing separate independent_r147 creation; sequential reuse"
+      },
+      "actualRuntime": {
+        "model": null,
+        "effort": null
+      }
+    }
+  },
+  "change": {
+    "scope": "external process metrics collector, test hooks/fixtures/consumer tests/inventory only",
+    "algorithm": "macOS previous vnode EBADF/ENOENT only: common attempt absolute steady_clock minimum offsets0/25/100/250ms. Past targets add no sleep. Capacity consumes same4 rounds without a delay. Hard failures unchanged. Linux immediate behavior unchanged.",
+    "publicJsonSchemaChanged": false,
+    "productionFunctionSourcesChanged": false,
+    "productExecutions": 0,
+    "productRuntimeRebuilds": 0,
+    "limits": {
+      "rounds": 4,
+      "collectorBufferBytes": 8388608,
+      "consumerTimeoutMs": 3000,
+      "consumerMaxBufferBytes": 16384
+    },
+    "accounting": "Every failed roster/detail round discarded. Independent new roster/dev+ino aggregation, current size/allocated values, final identity remain mandatory. Sequential complete round is not an atomic snapshot."
+  },
+  "tdd": {
+    "baseline": {
+      "passed": 11,
+      "failed": 0,
+      "exit": 0
+    },
+    "red": {
+      "passed": 5,
+      "failed": 7,
+      "exit": 1,
+      "reason": "only missing candidate timing effects; capacity/hard/stable contracts already pass",
+      "sourceProvenanceLimit": "RED output and test binary hash are preserved. Exact intermediate collector source bytes (baseline plus clock/list TESTING hooks before spreading implementation) were not snapshotted. Baseline and final sources are preserved; neither is represented as the RED intermediate source. No reconstructed source is claimed original."
+    },
+    "green": {
+      "passed": 12,
+      "failed": 0,
+      "exit": 0
+    },
+    "windows": {
+      "75ms": {
+        "baselineStarts": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "baseline": "incomplete",
+        "candidateStarts": [
+          0,
+          25,
+          100
+        ],
+        "candidateSleepMs": [
+          24,
+          74
+        ],
+        "candidate": "complete8192B/1inode"
+      },
+      "300ms": {
+        "candidateStarts": [
+          0,
+          25,
+          100,
+          250
+        ],
+        "result": "incomplete; all4 discarded"
+      },
+      "slow160ms": {
+        "candidateStarts": [
+          0,
+          160,
+          161,
+          250
+        ],
+        "candidateSleepMs": [
+          88
+        ],
+        "result": "complete"
+      },
+      "mixed": {
+        "capacityAttempts": [
+          0,
+          2
+        ],
+        "candidateStarts": [
+          0,
+          0,
+          100,
+          100
+        ],
+        "result": "complete; capacity2/churn1, common4budget"
+      },
+      "stable": "one round/no sleep",
+      "hardFailure": "EACCES/EPERM/short structure one round/no sleep",
+      "identity": "after successful retry final injected mismatch still rejects"
+    },
+    "limit": "Clock/result overrides model a time window; these are not actual OS close events."
+  },
+  "focused": {
+    "macOS": {
+      "metrics": {
+        "passed": 82,
+        "failed": 0,
+        "elapsedMs": 2797
+      },
+      "consumerReviewed": {
+        "passed": 43,
+        "failed": 0,
+        "exit": 0,
+        "elapsedMs": 5076
+      }
+    },
+    "Linux": {
+      "metrics": {
+        "passed": 67,
+        "failed": 0,
+        "elapsedMs": 842
+      },
+      "consumerReviewed": {
+        "passed": 43,
+        "failed": 0,
+        "exit": 0,
+        "elapsedMs": 3335
+      },
+      "nonTestingPreprocessedByteIdentical": true,
+      "preprocessedSha256": "89736083cfe96e908337ebb823c8da97f3124749517214563adab1572d953bf8",
+      "image": "sha256:ce72c8a15363984da642e9964189957896812061c6af1d0ef67e87b38ad5a588",
+      "isolation": "uid65534:65534; network none; read-only root/repo; all capabilities dropped; no-new-privileges; owned128MiB tmpfs"
+    },
+    "reviewCorrection": {
+      "finding": "initial oversize test malformed JSON could pass without maxBuffer cap",
+      "fix": "valid complete JSON with padding, require ERR_CHILD_PROCESS_STDIO_MAXBUFFER",
+      "rechecks": "consumer only once each platform after actual test correction; initial logs retained; actual OS pair not repeated"
+    }
+  },
+  "osPair": {
+    "runs": {
+      "baseline": 1,
+      "candidate": 1
+    },
+    "driver": "recording_process_metrics_os_timing_fixture.cpp",
+    "baselineBinding": "fixed R148 source plus symmetric TESTING-only round exit timestamps, no algorithm/timing/syscall result modification",
+    "candidateBinding": "final collector source, real steady_clock sleep measured through test hooks without overriding FD results",
+    "child": "128 /dev/null vnode slots independently open/close in75ms monotonic window with100us pauses; stable8192B unlinked duplicate inode retained through observation",
+    "results": [
+      {
+        "mode": "baseline",
+        "nativeElapsedMs": 0.146,
+        "consumerElapsedMs": 379.107041,
+        "stdoutBytes": 904,
+        "valid": false,
+        "rounds": 4,
+        "closedRetries": 4,
+        "detailCalls": 12,
+        "fdCount": null,
+        "anonymousBytes": null,
+        "anonymousAllocatedBytes": null,
+        "anonymousFiles": null,
+        "roundsRelativeMs": [
+          {
+            "start": 0.0,
+            "end": 0.025167
+          },
+          {
+            "start": 0.025292,
+            "end": 0.03925
+          },
+          {
+            "start": 0.039334,
+            "end": 0.04775
+          },
+          {
+            "start": 0.047792,
+            "end": 0.055667
+          }
+        ],
+        "sleepsMs": [],
+        "childChurnRelativeMs": [
+          -0.002208,
+          75.120167
+        ],
+        "opens": 9600,
+        "closes": 9728,
+        "childExitedZero": true,
+        "childPid": 94383,
+        "failures": [
+          {
+            "fd": 28,
+            "listedType": 1,
+            "returned": 0,
+            "errno": 9,
+            "nextType": 0,
+            "at": 1792229730053
+          },
+          {
+            "fd": 73,
+            "listedType": 1,
+            "returned": 0,
+            "errno": 9,
+            "nextType": 0,
+            "at": 1792229730053
+          },
+          {
+            "fd": 93,
+            "listedType": 1,
+            "returned": 0,
+            "errno": 9,
+            "nextType": 0,
+            "at": 1792229730053
+          },
+          {
+            "fd": 110,
+            "listedType": 1,
+            "returned": 0,
+            "errno": 9,
+            "nextType": -1,
+            "at": 1792229730053
+          }
+        ]
+      },
+      {
+        "mode": "candidate",
+        "nativeElapsedMs": 30.1431,
+        "consumerElapsedMs": 308.24954199999996,
+        "stdoutBytes": 649,
+        "valid": true,
+        "rounds": 2,
+        "closedRetries": 1,
+        "detailCalls": 16,
+        "fdCount": 18,
+        "anonymousBytes": 8192,
+        "anonymousAllocatedBytes": 8192,
+        "anonymousFiles": 1,
+        "roundsRelativeMs": [
+          {
+            "start": 0.000167,
+            "end": 0.02525
+          },
+          {
+            "start": 30.017875,
+            "end": 30.097708
+          }
+        ],
+        "sleepsMs": [
+          {
+            "target": 25.0,
+            "start": 0.0255,
+            "end": 30.015833,
+            "actualElapsed": 29.990333
+          }
+        ],
+        "childChurnRelativeMs": [
+          -0.026083,
+          75.205292
+        ],
+        "opens": 9216,
+        "closes": 9344,
+        "childExitedZero": true,
+        "childPid": 94385,
+        "failures": [
+          {
+            "fd": 75,
+            "listedType": 1,
+            "returned": 0,
+            "errno": 9,
+            "nextType": 0,
+            "at": 1792229730361
+          }
+        ]
+      }
+    ],
+    "interpretation": "Both modes encountered actual EBADF under comparable configured workload. Baseline exhausted4; candidate obtained a complete second sequential round within the ongoing churn window. OBSERVED means only this pair showed failed versus complete observation; no proof of a quiet interval, identical syscall timeline counterfactual, general success probability, latency reduction, R147 cause or45minute readiness.",
+    "timingLimit": "consumer time includes startup/fixture child drain/output; candidate native time exceeds baseline, not a latency speedup"
+  },
+  "cadence": {
+    "phaseAt": "after collectProcess; additional retry wait can extend successive completion intervals and is not guaranteed to consume existing pause",
+    "limits": "5second target/15second gap unchanged; longrun cadence not verified",
+    "timeout": "unchanged real collectProcess rejects its nonresponding substitute with SIGKILL at3000ms; oversize valid JSON rejects specifically on maxBuffer",
+    "notAtomic": true
+  },
+  "binary": {
+    "productSha256": "33f516d35d56cb2f6cafc75647b6c37d2ced67115302d1205cca23bf51ab7f79",
+    "runtimeSha256": "2d91cf35fe7e805e0c06e00d16779c86849b35db635e087582277e1b676d198c",
+    "beforeAfterMatch": true,
+    "testBinaries": [
+      {
+        "name": "timing-red",
+        "bytes": 258008,
+        "sha256": "6d475a8b7678132c0a566b271f52cff779bed6e1f946da7f164b3ed02c1fdf54",
+        "archiveBytes": false
+      },
+      {
+        "name": "timing-green",
+        "bytes": 258672,
+        "sha256": "c4d18c63a42f5dfbc7f74ddcc25a900c2ea99dbc4d0906ad1ae14ee35919dd30",
+        "archiveBytes": false
+      },
+      {
+        "name": "os-baseline",
+        "bytes": 172280,
+        "sha256": "d224c9fd6e6956b9746a1e59ee11163b86b832245c9751d8699ea146eb65d22b",
+        "archiveBytes": false
+      },
+      {
+        "name": "os-candidate",
+        "bytes": 209808,
+        "sha256": "21a328a152fd39a7acf6b3fdefa47711c37021895e10113baff32fb2539f9a94",
+        "archiveBytes": false
+      }
+    ]
+  },
+  "sourceBinding": [
+    {
+      "path": "scripts/internal/recording_process_metrics.cpp",
+      "bytes": 21433,
+      "sha256": "1baaace8a0d48f359659807b04e622bc9bb2d8de9d3c2d721ba8a9372c818548"
+    },
+    {
+      "path": "scripts/internal/recording_process_metrics_timing_fixture.cpp",
+      "bytes": 6426,
+      "sha256": "ffffffef256bd07127c80098468aaae4b52d1f8e41886cca8238b49019e57511"
+    },
+    {
+      "path": "scripts/internal/recording_process_metrics_os_timing_fixture.cpp",
+      "bytes": 6732,
+      "sha256": "8f9d9d75b3c366c21e978ab14d88af1b8ed8d05e8477a6ea25f56ab910c0a7ce"
+    },
+    {
+      "path": "scripts/internal/recording_process_metrics.test.mjs",
+      "bytes": 8074,
+      "sha256": "98ac044f061e582b0146d9ad1108b46f9ddc024aa7c0cc1842e03542de41faa3"
+    },
+    {
+      "path": "scripts/internal/recording_foundation_observer.test.mjs",
+      "bytes": 12321,
+      "sha256": "85784bc95149552c0af3a6c52800d06f5eac714a378c323e2dc3091fd0d388b3"
+    },
+    {
+      "path": "scripts/internal/recording_foundation_observer.mjs",
+      "bytes": 7338,
+      "sha256": "508c971558a73fa20fb4f6602abbbee754200e1421898d57b80321b0ca6c7d42"
+    },
+    {
+      "path": "scripts/internal/recording_process_metrics_fixture.cpp",
+      "bytes": 15674,
+      "sha256": "23f9f6304f672deebc7c03045af7b0c0b3456836e1f1be631368b99e27442360"
+    },
+    {
+      "path": "scripts/internal/recording_current_observer.mjs",
+      "bytes": 52848,
+      "sha256": "74af90b6e9903533619cfb4ea08437fe746a43ed6934d00e5f470b2796752f13"
+    },
+    {
+      "path": "scripts/internal/v450_recording_a_mixed.mjs",
+      "bytes": 56149,
+      "sha256": "7d3aa023351dfe0038e468eae6e0c60949cdf3296d3e4ce1fdd18ca39d6ebaa4"
+    },
+    {
+      "path": "docs/project-feature-test-inventory.md",
+      "bytes": 1087169,
+      "sha256": "51a29408a9033744605cde178e71d47d44bedb57ebf9a6058336145e13eff8fc"
+    }
+  ],
+  "binding": {
+    "sequence": "producer actual exit0 -> readback actual exit0 -> coverage actual exit0",
+    "producer": {
+      "passed": 51,
+      "failed": 0
+    },
+    "readback": {
+      "validationErrors": 0,
+      "review4GlobalErrors": 0,
+      "negativeFixtures": "15/15"
+    },
+    "coverage": {
+      "covered": 986,
+      "missing": 0,
+      "passed": 9,
+      "failed": 0
+    },
+    "manifestChange": "inventorySha256 only;986 items and original formatting unchanged",
+    "scope": "collector/test/inventory binding, not a new runtime qualification or986 independent reviews",
+    "inventory": {
+      "passed": 18,
+      "failed": 0,
+      "exit": 0
+    }
+  },
+  "independentReview": "149-prep-independent-review.json; agrees behavior and final43payload preservation/binding; RED intermediate source-byte limitation explicit",
+  "archive": {
+    "path": "docs/release-artifacts/v4.5.0/149-prep-execution.tar.gz",
+    "bytes": 373003,
+    "sha256": "629f4be86b4ea5c6c254edabab6ee9f424389807f9c47e34d08d2f0a4d52a0c4",
+    "members": 44,
+    "payloads": 43,
+    "manifestVerified": true,
+    "rawAndSanitizedDistinguished": true,
+    "binaries": "test binary hashes only; actual product/runtime unchanged and not archived"
+  },
+  "cleanup": "children94383/94385 exited0 and absent; fixture roots removed; evidence root retained until remote verification",
+  "historical": {
+    "R145": "INCOMPLETE",
+    "R146": "PASS_COMPLETION_CONTRACT_FOCUSED",
+    "R147": "INCOMPLETE_45_COLLECTION_FAILURE",
+    "R148": "HOLD_FD_COLLECTOR_REMEDIATION"
+  },
+  "functional45": "INCOMPLETE",
+  "collection45": "FAIL_R147",
+  "memoryP0": "HOLD",
+  "readiness120": "HOLD",
+  "release": "HOLD",
+  "r149Actual45": "NOT_RUN / HOLD; requires separate authorization",
+  "residual": "R147 actual FD35/36 caller and churn duration unknown; sustained churn can still exhaust4; whole heap/no-leak and Memory P0 not evaluated",
+  "codeCommit": "3d47456186e987100185651d3c6dfe1d6d6aa2e4"
+}
