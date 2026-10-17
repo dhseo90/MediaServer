@@ -11,7 +11,7 @@ def replace(s,old,new,count=1):
 def generate(out):
     out.mkdir(mode=0o700)
     result={}
-    names=['src/recording/recording_catalog.cpp','src/recording/recording_search_reader.cpp','src/ingress/recording_search_application_service.cpp','src/ingress/webrtc_http_server_runtime.cpp','scripts/internal/recording_accumulated_http_smoke.cpp']
+    names=['src/recording/recording_catalog.cpp','src/recording/recording_search_reader.cpp','src/ingress/recording_search_application_service.cpp','src/ingress/webrtc_http_server_runtime.cpp','src/ingress/webrtc_http_server.cpp','scripts/internal/recording_accumulated_http_smoke.cpp']
     for name in names:
         raw=(REPO/name).read_text();s=raw
         if name.endswith('recording_catalog.cpp'):
@@ -47,10 +47,13 @@ def generate(out):
             s=s[:start]+f+s[end:]
         elif name.endswith('recording_search_application_service.cpp'):
             s=replace(s,'recording::SearchDiagnostic diagnostic(catalog_.SearchResidency().get());','recording::SearchDiagnostic diagnostic(catalog_.SearchResidency().get());r154::Search search_probe(diagnostic);')
+        elif name.endswith('webrtc_http_server.cpp'):
+            s=replace(s,'std::optional<HttpRequest> ReadHttpRequest(int client_fd, HttpResponse* error_response) {','std::optional<HttpRequest> ReadHttpRequest(int client_fd, HttpResponse* error_response) {\n    r154::header_count=0;')
+            s=replace(s,'        request.headers[key] = value;','        r154::HeaderSeen(key);request.headers[key] = value;')
         elif name.endswith('webrtc_http_server_runtime.cpp'):
             s=replace(s,'            const auto accepted_at =','            const auto r154_accepted=r154::Tick();\n            const auto accepted_at =')
             s=replace(s,'site_request_diagnostic_enabled, accepted_at] {','site_request_diagnostic_enabled, accepted_at,r154_accepted] {')
-            s=replace(s,'auto request_opt = ReadHttpRequest(client_fd, &response);','auto request_opt = ReadHttpRequest(client_fd, &response);\n                const auto correlation=request_opt?request_opt->headers.find("x-r154-id"):std::unordered_map<std::string,std::string>::const_iterator{};\n                r154::Server r154_request(request_opt&&correlation!=request_opt->headers.end()?r154::Identity(correlation->second):0,r154_accepted);')
+            s=replace(s,'auto request_opt = ReadHttpRequest(client_fd, &response);','auto request_opt = ReadHttpRequest(client_fd, &response);\n                r154::Server r154_request(request_opt?r154::Correlation(HeaderValue(*request_opt,"x-r154-id")):0,r154_accepted);')
             s=replace(s,'site_diagnostic.Emit(SiteOperationsRequestDiagnostic::Phase::HandlerBegin);','r154_request.handler=r154::Tick();site_diagnostic.Emit(SiteOperationsRequestDiagnostic::Phase::HandlerBegin);')
             s=replace(s,'site_diagnostic.Emit(SiteOperationsRequestDiagnostic::Phase::HandlerEnd);','r154_request.prepared=r154::Tick();site_diagnostic.Emit(SiteOperationsRequestDiagnostic::Phase::HandlerEnd);')
             s=replace(s,'const bool sent = SendAllObserved(client_fd, encoded, observation.get());','r154_request.sendBegin=r154::Tick();const bool sent = SendAllObserved(client_fd, encoded, observation.get());r154_request.sendEnd=r154::Tick();r154_request.sent=sent;')

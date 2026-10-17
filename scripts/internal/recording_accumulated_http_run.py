@@ -140,7 +140,7 @@ def build(parent):
               'binaries':{n:digest(parent/n) for n in ('fixture','seed','process-metrics')}}
     (parent/'build-binding.json').write_text(json.dumps(record,indent=2)+'\n')
 
-def run(parent):
+def run(parent, line_callback=None):
     binding = json.loads((parent/'build-binding.json').read_text())
     if binding['products'] != fixed_products() or binding['sources'] != sources():
         raise ValueError('stale build binding')
@@ -154,14 +154,17 @@ def run(parent):
     record = {'schema':'media-server.r153.execution.v1','products':fixed_products(),
               'buildBinding':binding,'seedStarts':0,'fixtureStarts':0,'productStarts':0,
               'limitSeconds':180,'logCapBytes':CAP,'firstFailure':None,'cleanupErrors':[],
+              'firstDiagnosticFailure':None,'termination':[],
               'pids':[], 'collectorStarts':0, 'processes':[], 'runnerFailure':None, 'diagnosticErrors':[], 'cleanupEvents':[]}
     output = bytearray();children=[];rows=[]
     def stop(p):
         if p.poll() is None:
+            record['termination'].append({'pid':p.pid,'signal':'SIGTERM','elapsedSeconds':time.monotonic()-t})
             try: os.killpg(p.pid,signal.SIGTERM)
             except ProcessLookupError: pass
             try:p.wait(timeout=5)
             except subprocess.TimeoutExpired:
+                record['termination'].append({'pid':p.pid,'signal':'SIGKILL','elapsedSeconds':time.monotonic()-t})
                 os.killpg(p.pid,signal.SIGKILL);p.wait(timeout=2)
     def launch(cmd, limit, observer=False):
         proc_record={'role':'fixture' if observer else 'confirmed-seed','limitSeconds':limit,'startElapsedSeconds':time.monotonic()-t}
@@ -173,7 +176,7 @@ def run(parent):
         if observer:
             monitor=subprocess.Popen(['node',str(REPO/'scripts/internal/recording_visual_contention_observer.mjs'),str(root),str(p.pid),str(parent/'process-metrics')],cwd=root,env=env,stdout=subprocess.PIPE,stderr=subprocess.STDOUT,start_new_session=True)
             children.append(monitor);record['collectorStarts']+=1;sel.register(monitor.stdout,selectors.EVENT_READ,'observer')
-        end=min(deadline,time.monotonic()+limit); saved_start=len(output)
+        end=min(deadline,time.monotonic()+limit); saved_start=len(output);line_numbers={'child':0,'observer':0}
         try:
             while sel.get_map():
                 if time.monotonic()>=end: raise TimeoutError('bounded process deadline')
@@ -185,6 +188,13 @@ def run(parent):
                     output.extend(data);buffers[key.data]+=data
                     while b'\n' in buffers[key.data]:
                         line,buffers[key.data]=buffers[key.data].split(b'\n',1)
+                        line_numbers[key.data]+=1
+                        if line_callback:
+                            context={'stream':key.data,'line':line_numbers[key.data],'pid':p.pid if key.data=='child' else monitor.pid,'detectionElapsedSeconds':time.monotonic()-t,'failurePhase':proc_record['role']}
+                            try:line_callback(line,context)
+                            except Exception as e:
+                                if record['firstDiagnosticFailure'] is None:record['firstDiagnosticFailure']=getattr(e,'failure',dict(context,code='stream-callback-error',source='collector'))
+                                raise
                         if line.startswith(b'[R153] '):
                             row=json.loads(line[7:]);rows.append(row)
                             if row.get('phase')=='first-failure' and record['firstFailure'] is None:record['firstFailure']=row.get('error')
@@ -198,11 +208,23 @@ def run(parent):
             rc=p.wait(timeout=1);proc_record['exit']=rc
             if monitor and monitor.wait(timeout=1)!=0:raise ValueError('observer nonzero exit')
             if rc:raise ValueError('child exit '+str(rc))
+        except Exception as e:
+            if line_callback and record['firstDiagnosticFailure'] is None:
+                record['firstDiagnosticFailure']={'code':str(e),'source':'collector','failurePhase':proc_record['role'],'detectionElapsedSeconds':time.monotonic()-t}
+            raise
         finally:
             for child in (p,monitor):
-                if child:stop(child)
+                if child:
+                    try:stop(child)
+                    except Exception as e:record['cleanupErrors'].append(str(e))
             proc_record['elapsedSeconds']=time.monotonic()-t-proc_record['startElapsedSeconds'];proc_record['finalExit']=p.poll()
             sel.close()
+            for child in (p,monitor):
+                if child:
+                    for pipe in (child.stdin,child.stdout,child.stderr):
+                        if pipe:
+                            try:pipe.close()
+                            except Exception as e:record['cleanupErrors'].append(str(e))
     try:
         record['seedStarts']+=1;launch([str(parent/'seed'),str(root)],10)
         record['seedSeconds']=time.monotonic()-t
@@ -218,7 +240,9 @@ def run(parent):
             try:stop(child)
             except Exception as e:record['cleanupErrors'].append(str(e))
         if record['fixtureStarts'] and record['firstFailure']:
-            try:record.update(failure_summary(rows))
+            try:
+                summary=failure_summary(rows);record['cleanupEvents']=summary['cleanupEvents']
+                record['firstFailure']=record['firstFailure'] or summary['firstFailure']
             except Exception as e:record['diagnosticErrors'].append(str(e))
         record['productsAfter']=fixed_products()
         record['elapsedSeconds']=time.monotonic()-t

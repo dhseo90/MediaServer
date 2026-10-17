@@ -10,6 +10,63 @@ COUNTERS=['BindingsTotal','Scanned','NonNull','SegmentLookups','LifecycleChecks'
 
 def classify(i):return 1 if i in (10,11) else 2 if i in (12,13) else 3 if i==60 else 4 if 20<=i<60 else 5 if i>=61 else 6
 
+class DiagnosticFailure(ValueError):
+    def __init__(self,failure):
+        self.failure=failure
+        super().__init__('diagnostic '+failure['code'])
+
+class LiveTrace:
+    """Only facts decidable from emitted records; absent terminals are final-only."""
+    def __init__(self):
+        self.first=None
+        self.seen={k:set() for k in ('client','server','search')}
+    def __call__(self,line,context):
+        if self.first:raise DiagnosticFailure(self.first)
+        kind=None;r=None
+        try:
+            text=line.decode('utf-8',errors='strict')
+            if text.startswith(('[R154-loss]','[search-cost-loss]','[search-failure-loss]','[R153-output-failure]')):raise ValueError('trace-loss-marker')
+            for k in self.seen:
+                if text.startswith('[R154-'+k+']'):
+                    kind=k;r=json.loads(text[len(k)+8:]);break
+            if kind is None:return
+            if not isinstance(r,dict):raise ValueError('record-shape')
+            i=r.get('id')
+            if type(i)!=int or not 1<=i<=128:raise ValueError('request-identity')
+            if i in self.seen[kind]:raise ValueError('duplicate-identity')
+            if r.get('loss') is not False:raise ValueError('trace-loss')
+            if kind!='search' and r.get('class')!=classify(i):raise ValueError('request-class')
+            def num(n):
+                if type(n)!=int or not 0<=n<2**64:raise ValueError('numeric-bound')
+            def order(keys):
+                v=[r[k] for k in keys]
+                for n in v:num(n)
+                if not all(v) or sorted(v)!=v:raise ValueError('record-order')
+            if kind=='client':
+                order(['begin','sendBegin','sendEnd','header','receiveEnd','end'])
+                order(['connectBegin','connectEnd','sendBegin'])
+                if r['error'] or not r['bytes'] or r['receiveEnd']-r['begin']>5000000000:raise ValueError('HTTP-timeout-error')
+            elif kind=='server':
+                order(['accepted','parsed','handler','prepared','end'])
+                if len(r['metrics'])!=len(METRICS) or len(r['counts'])!=len(COUNTERS):raise ValueError('counter-shape')
+                for pair in r['metrics']:
+                    if len(pair)!=2:raise ValueError('metric-shape')
+                    for n in pair:num(n)
+                for n in r['counts']:num(n)
+            else:
+                order(['begin','end'])
+                if i not in (10,11,60) or type(r['diagnosticId'])!=int or not 1<=r['diagnosticId']<=128:raise ValueError('search-identity')
+                if len(r['phases'])>40:raise ValueError('phase-cap')
+                for name,b,e in r['phases']:
+                    num(b);num(e)
+                    if not isinstance(name,str) or not b or b>e or e>r['end']:raise ValueError('phase-order')
+            self.seen[kind].add(i)
+        except Exception as e:
+            ident=r.get('id') if isinstance(r,dict) else None
+            self.first=dict(context,code=str(e) if isinstance(e,ValueError) and not isinstance(e,json.JSONDecodeError) else 'malformed-record',source=kind or 'marker')
+            if type(ident)==int and 1<=ident<=128:self.first['requestId']=ident
+            raise DiagnosticFailure(self.first) from e
+
 def qualify_trace(lines,events):
     tables={k:{} for k in ('client','server','search')}
     for line in lines:
@@ -32,7 +89,7 @@ def qualify_trace(lines,events):
         if not all(v) or sorted(v)!=v:raise ValueError('phase order/missing')
     for i,c in clients.items():
         s=servers[i];order([c[k] for k in ['begin','sendBegin','sendEnd','header','receiveEnd','end']]);order([c['connectBegin'],c['connectEnd'],c['sendBegin']]);order([s[k] for k in ['accepted','parsed','handler','prepared','end']])
-        order([c['connectBegin'],s['accepted'],s['parsed']]);order([c['sendBegin'],s['parsed']]);order([s['end'],c['receiveEnd']])
+        order([c['connectBegin'],s['accepted'],s['parsed']]);order([c['sendBegin'],s['parsed']]);order([s['accepted'],c['receiveEnd']])
         if c['status']!=http[i]['status'] or c['error'] or not c['bytes'] or http[i]['ms']>5000:raise ValueError('HTTP timeout/error')
         if c['receiveEnd']-c['begin']>5000000000:raise ValueError('late complete')
         if i in (10,11,12,13,60):
@@ -104,13 +161,14 @@ def build(parent):
     native='#include "recording_http_cost_probe.h"\n'+native.replace(anchor,injection+anchor)
     (parent/'focused.cpp').write_text(native)
     compile([*common,'-MMD','-MF',str(parent/'focused.d'),str(parent/'focused.cpp'),*objects,archive,*libs,'-o',str(parent/'focused')],'focused-build')
+    compile([*common,'-I'+str(REPO/'src/ingress'),'-MMD','-MF',str(parent/'parser.d'),str(REPO/'scripts/internal/recording_http_cost_parser_smoke.cpp'),*objects,archive,*libs,'-o',str(parent/'parser')],'parser-build')
     mapping=(parent/'fixture.map').read_text()
     for name in overlays:
         if name.startswith('scripts/'):continue
         if str(parent/(Path(name).name+'.o')) not in mapping:raise ValueError('overlay object absent from map')
         if '('+Path(name).name+'.o)' in mapping:raise ValueError('original archive member also linked')
     nm=subprocess.check_output(['nm','-gU',str(parent/'fixture')],text=True);(parent/'symbols.txt').write_text(nm)
-    for key in ['ResolveOriginalSample','RecordingApplicationService6Search','RecordingSearchReader7Refresh']:
+    for key in ['ResolveOriginalSample','RecordingApplicationService6Search','RecordingSearchReader7Refresh','ReadHttpRequest']:
         matches=[l for l in nm.splitlines() if key in l and ' T ' in l]
         if len(matches)!=1:raise ValueError('symbol uniqueness '+key+str(matches))
     from recording_build_freshness import depfile
@@ -124,7 +182,7 @@ def build(parent):
     for p in Path(__file__).parent.glob('recording_http_cost*'):deps[str(p.resolve().relative_to(REPO))]=base.digest(p)
     binding={'products':base.fixed_products(),'sources':base.sources(),'dependencies':deps,'binaries':{n:base.digest(parent/n) for n in ['fixture','seed','process-metrics']}}
     (parent/'build-binding.json').write_text(json.dumps(binding,indent=2)+'\n')
-    (parent/'instrumentation.json').write_text(json.dumps({'overlays':overlays,'commands':commands,'objects':{Path(o).name:base.digest(o) for o in objects},'fixtureSha256':base.digest(parent/'fixture'),'mapSha256':base.digest(parent/'fixture.map'),'symbolSha256':base.digest(parent/'symbols.txt'),'focusedSha256':base.digest(parent/'focused'),'focusedSourceSha256':base.digest(parent/'focused.cpp')},indent=2)+'\n')
+    (parent/'instrumentation.json').write_text(json.dumps({'overlays':overlays,'commands':commands,'objects':{Path(o).name:base.digest(o) for o in objects},'fixtureSha256':base.digest(parent/'fixture'),'mapSha256':base.digest(parent/'fixture.map'),'symbolSha256':base.digest(parent/'symbols.txt'),'parserSha256':base.digest(parent/'parser'),'focusedSha256':base.digest(parent/'focused'),'focusedSourceSha256':base.digest(parent/'focused.cpp')},indent=2)+'\n')
 
 def run(parent):
     binding=json.loads((parent/'instrumentation.json').read_text());assert base.digest(parent/'fixture')==binding['fixtureSha256']
@@ -134,11 +192,17 @@ def run(parent):
     def env(p):
         e=old(p);e['MEDIA_SERVER_VERIFY_RECORDING_SEARCH_TRACE']='1';return e
     base.environment=env
-    rc=base.run(parent);root=parent/'run';result={'fixtureExit':rc,'decision':'FAIL_BOUNDED_HTTP_CONTRACT'}
+    live=LiveTrace()
+    try:rc=base.run(parent,line_callback=live)
+    finally:base.environment=old
+    root=parent/'run';result={'fixtureExit':rc,'decision':'FAIL_BOUNDED_HTTP_CONTRACT'}
     try:
         if rc:raise ValueError('fixture failed')
-        result['traces']=qualify_trace((root/'output.log').read_text().splitlines(),json.loads((root/'events.json').read_text()));result['decision']='ATTRIBUTION_REVIEW_PENDING'
+        result['traces']=qualify_trace((root/'output.log').read_text().splitlines(),json.loads((root/'events.json').read_text()))
+        if any(len(result['traces'][k])!=n for k,n in [('client',28),('server',28),('search',3)]):raise ValueError('required 28/28/3 record count')
+        result['decision']='ATTRIBUTION_REVIEW_PENDING'
     except Exception as e:result['error']=str(e);rc=1
+    result['firstDiagnosticFailure']=json.loads((root/'execution.json').read_text()).get('firstDiagnosticFailure')
     (root/'attribution.json').write_text(json.dumps(result,indent=2)+'\n');return rc
 
 if __name__=='__main__':

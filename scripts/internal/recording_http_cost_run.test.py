@@ -43,6 +43,101 @@ class Contract(unittest.TestCase):
  def test_bad_source(self):self.bad(lambda r,e:r[2][1].update(sources=[None]))
  def test_bad_source_counter(self):self.bad(lambda r,e:r[2][1].update(sources=[[-1,1,1,1,True,True]]))
  def test_bad_source_bool(self):self.bad(lambda r,e:r[2][1].update(sources=[[1,1,1,1,1,True]]))
- def test_cross_clock_order(self):self.bad(lambda r,e:r[1][1].update(end=95))
+ def test_cross_clock_order(self):self.bad(lambda r,e:r[1][1].update(accepted=95))
  def test_product_hash(self):self.assertEqual(m.base.fixed_products(),m.base.PRODUCTS)
+
+
+class Streaming(unittest.TestCase):
+ valid=Contract.valid
+ def test_live_parallel_order(self):
+  rows,_=self.valid();live=m.LiveTrace()
+  # Search precedes Server, and parallel requests complete in reverse ID order.
+  for k,r in sorted(rows,key=lambda v:(-v[1]['id'],v[0]!='search')):
+   live(('[R154-'+k+'] '+json.dumps(r)).encode(),{'line':1})
+  self.assertIsNone(live.first)
+ def test_live_invalids(self):
+  rows,_=self.valid()
+  mutations=[lambda r:r.update(id=0),lambda r:r.update(id=129),lambda r:r.update(loss=True),lambda r:r.update({'class':9}),lambda r:r.update(end=1),lambda r:r.update(metrics=[[1,2**64]]*len(m.METRICS))]
+  for mutate in mutations:
+   live=m.LiveTrace();r=copy.deepcopy(rows[1][1]);mutate(r)
+   with self.assertRaises(m.DiagnosticFailure):live(('[R154-server] '+json.dumps(r)).encode(),{'line':1})
+ def test_live_sticky(self):
+  live=m.LiveTrace()
+  with self.assertRaises(m.DiagnosticFailure):live(b'[R154-loss]',{'line':1})
+  first=live.first.copy()
+  with self.assertRaises(m.DiagnosticFailure):live(b'[R154-loss] secondary',{'line':2})
+  self.assertEqual(live.first,first)
+ def test_real_streaming_children(self):
+  import tempfile,os,sys,time
+  from unittest.mock import patch
+  rows,_=self.valid();valid='[R154-server] '+json.dumps(rows[1][1])+'\n'
+  bad=copy.deepcopy(rows[1][1]);bad['id']=0
+  loss=copy.deepcopy(rows[1][1]);loss['loss']=True
+  cases={
+   'id0':['[R154-server] '+json.dumps(bad)+'\n'],
+   'loss':['[R154-server] '+json.dumps(loss)+'\n'],
+   'explicit':['[R154-loss]\n'],
+   'overflow':['[search-cost-loss]\n'],
+   'split':['[R154-lo','ss]\n'],
+   'valid-invalid':[valid,'[R154-loss]\n'],
+   'invalid-valid':['[R154-loss]\n',valid],
+   'duplicate':[valid,valid],
+   'malformed':['[R154-server] {oops}\n'],
+   'cap':['x'*(m.base.CAP+1)],
+   'partial':['[R154-server] {'],
+   'output':['[R153-output-failure]\n'],
+   'cleanup-error':['[R154-loss]\n'],
+   'parallel-order':['[R154-'+k+'] '+json.dumps(r)+'\n' for k,r in sorted(rows,key=lambda v:(-v[1]['id'],v[0]!='search'))]+['[R154-loss]\n']}
+
+  parent=Path(os.environ['R155_FOCUSED_ROOT']);summaries=[]
+  for name,chunks in cases.items():
+   with self.subTest(name=name):
+    root=parent/('stream-'+name);root.mkdir(mode=0o700)
+    script='#!'+sys.executable+'\nimport os,time\n'
+    script+='parts='+repr(chunks)+'\n'
+    script+='for p in parts:\n os.write(1,p.encode());time.sleep(.04)\n'
+    if name!='partial':script+='time.sleep(4)\nos.write(1,b"UNEXPECTED_CONTINUATION\\n")\n'
+    (root/'seed').write_text(script);(root/'seed').chmod(0o700)
+    (root/'build-binding.json').write_text(json.dumps(dict(products={},sources={},binaries={},dependencies={})))
+    live=m.LiveTrace();start=time.monotonic()
+    # Binding stubs concern the synthetic child only. Collector/selector/signals are real.
+    real_killpg=os.killpg;injected=[]
+    def killpg(pid,sig):
+     if name=='cleanup-error' and sig and not injected:
+      injected.append(True);raise OSError('injected cleanup signal failure')
+     return real_killpg(pid,sig)
+    with patch.object(m.base,'fixed_products',return_value={}),patch.object(m.base,'sources',return_value={}),patch.object(m.base.os,'killpg',side_effect=killpg):
+     rc=m.base.run(root,line_callback=live)
+
+    record=json.loads((root/'run/execution.json').read_text());output=(root/'run/output.log').read_bytes()
+    self.assertEqual(rc,1);self.assertTrue(record['groupsAbsent']);self.assertEqual(record['seedStarts'],1);self.assertEqual(record['fixtureStarts'],0)
+    if name=='parallel-order':self.assertEqual(record['firstDiagnosticFailure']['line'],len(rows)+1)
+    if name=='cleanup-error':
+     self.assertEqual(record['firstDiagnosticFailure']['code'],'trace-loss-marker');self.assertTrue(record['cleanupErrors']);self.assertEqual(record['firstFailure'],'diagnostic trace-loss-marker')
+    self.assertIsNotNone(record['firstDiagnosticFailure']);self.assertNotIn(b'UNEXPECTED_CONTINUATION',output)
+    self.assertLess(time.monotonic()-start,3)
+    if name!='partial':
+     self.assertTrue(record['termination'])
+     delay=record['termination'][0]['elapsedSeconds']-record['firstDiagnosticFailure']['detectionElapsedSeconds']
+     self.assertGreaterEqual(delay,0);self.assertLess(delay,.5)
+    summaries.append(dict(case=name,first=record['firstDiagnosticFailure'],termination=record['termination'],groupsAbsent=record['groupsAbsent'],elapsed=record['elapsedSeconds'],outputBytes=record['outputBytes'],cleanupErrors=record['cleanupErrors'],firstFailure=record['firstFailure']))
+  (parent/'stream-results.json').write_text(json.dumps(summaries,indent=2)+'\n')
+
+ def test_fixture_log_cap(self):
+  import os,sys,subprocess
+  from unittest.mock import patch
+  root=Path(os.environ['R155_FOCUSED_ROOT'])/'stream-fixture-cap';root.mkdir(mode=0o700)
+  for name,body in [('seed','pass'),('fixture','import os,time;os.write(1,b"x"*'+str(m.base.CAP+1)+');time.sleep(4)')]:
+   (root/name).write_text('#!'+sys.executable+'\n'+body+'\n');(root/name).chmod(0o700)
+  (root/'build-binding.json').write_text(json.dumps(dict(products={},sources={},binaries={},dependencies={})))
+  real_popen=subprocess.Popen
+  def popen(cmd,**kw):
+   if cmd[0]=='node':cmd=[sys.executable,'-c','import time;time.sleep(4)']
+   return real_popen(cmd,**kw)
+  with patch.object(m.base,'fixed_products',return_value={}),patch.object(m.base,'sources',return_value={}),patch.object(m.base.subprocess,'Popen',side_effect=popen):
+   rc=m.base.run(root,line_callback=m.LiveTrace())
+  r=json.loads((root/'run/execution.json').read_text())
+  self.assertEqual(rc,1);self.assertEqual(r['firstDiagnosticFailure']['code'],'process output cap');self.assertEqual(r['firstDiagnosticFailure']['failurePhase'],'fixture');self.assertTrue(r['groupsAbsent']);self.assertEqual(r['collectorStarts'],1);self.assertEqual(r['logCapBytes'],4194304)
+  self.assertEqual(r['outputBytes'],m.base.CAP)
+
 if __name__=='__main__':unittest.main()

@@ -2,7 +2,7 @@
   "schema": "media-server.feature-implementation-evidence.v2",
   "semanticClosureSchema": "media-server.feature-semantic-implementation-closure.v2",
   "expectedFeatureRows": 986,
-  "inventorySha256": "5452ec4668b54216015c1da9eaa4907ada01ab9a8fc2fa893b822882db0b756e",
+  "inventorySha256": "efbcd86abb9bfb7fb5bb28f3b39944c180af26a6295bc87a37ba66b66dff3b79",
   "generatedFrom": "docs/project-feature-test-inventory.md",
   "generationPolicy": "review4-independent-proof-only; generated discovery cannot approve; source drift becomes review-required",
   "semanticClosurePolicy": "986 external reviewed source-flow proofs joined to an independent approval ledger and revalidated against current source",
