@@ -217,7 +217,7 @@
     "manifestChange": "inventorySha256 only; all986 items and original formatting preserved",
     "scope": "source/inventory binding, not runtime/performance proof"
   },
-  "cleanup": "pending remote preservation",
+  "cleanup": "complete: remote bytes matched, exclusive root and marker removed, Linux containers absent, no product process/port created",
   "sourceBinding": [
     {
       "path": "scripts/internal/recording_completion_trace.mjs",
@@ -293,5 +293,6 @@
     "readback": "every member byte-equal to selected payload",
     "originalVsSanitized": "manifest records original and sanitized hashes; R145 exact fixture unchanged"
   },
-  "consumerTestCommit": "964a37b2b07758f0cf56651f13f24ba939755261"
+  "consumerTestCommit": "964a37b2b07758f0cf56651f13f24ba939755261",
+  "closure": "146-closure.json"
 }

@@ -1,0 +1,71 @@
+{
+  "schema": "media-server.v450.r146.closure.v1",
+  "decision": "PASS_COMPLETION_CONTRACT_FOCUSED",
+  "remoteVerificationBeforeCleanup": {
+    "commit": "3d5859d813b60b1b031a32de3e69e21b633dd2e0",
+    "remote": "3d5859d813b60b1b031a32de3e69e21b633dd2e0",
+    "verifiedBytes": [
+      {
+        "path": "docs/release-artifacts/v4.5.0/146-execution.tar.gz",
+        "bytes": 22316,
+        "sha256": "7c352a219375d0c0260384c20aab31d22b8156c75e12f6255ecf2d57f8cd1196"
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/146-validation.json",
+        "bytes": 11041,
+        "sha256": "8c0a87522d1056f97cb925c8083ea8e5aa9423043e3a4f0e10dff000607e641c"
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/146-independent-review.json",
+        "bytes": 1495,
+        "sha256": "f50ee2765e8714690e16ae573ad5194ba9dbd8dd638c40464248fef01e59277c"
+      },
+      {
+        "path": "scripts/internal/recording_completion_trace.mjs",
+        "bytes": 8890,
+        "sha256": "82aaed56bcc2e01f4ee91bc72ee3aacea3d541a2dde15a7f25d2fdeb610a2453"
+      },
+      {
+        "path": "scripts/internal/recording_completion_contract.test.mjs",
+        "bytes": 5543,
+        "sha256": "819c4ded485e737b404df04274bfed210f2a027845dc69746a27441049ef2788"
+      },
+      {
+        "path": "test/fixtures/recording_completion_r145.jsonl",
+        "bytes": 321,
+        "sha256": "b01e2ea1b1c56799db0fbf38d69fe95c8a721c708708a1cb7b6f5cecbdbea455"
+      }
+    ],
+    "ownedContainersAbsent": true
+  },
+  "cleanup": {
+    "ownedRoot": "/private/tmp/media-server-r146-5rjj8084",
+    "uid": 501,
+    "inode": 175665444,
+    "removedFiles": 56,
+    "removedBytes": 135353,
+    "removedDirectories": 3,
+    "rootAbsent": true,
+    "ownedMarkerAbsent": true,
+    "containersAbsent": true,
+    "productProcessesStarted": 0,
+    "portsBound": 0,
+    "focusedProcesses": "all completed; early readback143 terminated and excluded; native fixture directories cleaned by existing successful tests"
+  },
+  "productRuntimeBinary": {
+    "build-gst-onnx/media_server": {
+      "bytes": 38000080,
+      "sha256": "33f516d35d56cb2f6cafc75647b6c37d2ced67115302d1205cca23bf51ab7f79"
+    },
+    "build-gst-onnx/libmedia_server_runtime.a": {
+      "bytes": 113126688,
+      "sha256": "2d91cf35fe7e805e0c06e00d16779c86849b35db635e087582277e1b676d198c"
+    }
+  },
+  "scope": "consumer/diagnostic tests only; no C++ product changes or product build/run",
+  "longRun45": "NOT_RUN",
+  "memoryP0": "HOLD",
+  "release": "HOLD",
+  "history": "R145 INCOMPLETE and missing-probe/NOT_RUN preserved",
+  "finalRemoteVerification": "final closure/validation/archive and local/remote SHA checked after final push"
+}
