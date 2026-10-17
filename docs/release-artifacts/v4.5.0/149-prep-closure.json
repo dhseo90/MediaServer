@@ -1,0 +1,107 @@
+{
+  "schema": "media-server.v450.r149-prep.closure.v1",
+  "decision": "PASS_TIMING_CONTRACT_FOCUSED",
+  "timingContract": "PASS",
+  "realOsBenefit": "OBSERVED_one_pair_only",
+  "baselineHead": "d3aa4ab3a10d77279c6506dc71bc4e394bb17d7e",
+  "codeCommit": "3d47456186e987100185651d3c6dfe1d6d6aa2e4",
+  "preservationCommit": "9cee6a972d00c96caf57aab75f36b7a9fca60ecf",
+  "remoteVerification": {
+    "commit": "9cee6a972d00c96caf57aab75f36b7a9fca60ecf",
+    "method": "HTTPS raw.githubusercontent.com pinned commit; downloaded bytes equal local bytes",
+    "files": [
+      {
+        "path": "docs/development-backlog.md",
+        "bytes": 73471,
+        "sha256": "edf9665f244dfb094d110117f08113dfdc3d921009f147f265582756d5d8bd3a"
+      },
+      {
+        "path": "docs/project-feature-test-inventory.md",
+        "bytes": 1087169,
+        "sha256": "51a29408a9033744605cde178e71d47d44bedb57ebf9a6058336145e13eff8fc"
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/149-prep-execution.tar.gz",
+        "bytes": 373003,
+        "sha256": "629f4be86b4ea5c6c254edabab6ee9f424389807f9c47e34d08d2f0a4d52a0c4"
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/149-prep-independent-review.json",
+        "bytes": 2823,
+        "sha256": "8c5acf4d0b538387c39e12cd3305703d11b7594993f7a483925151eec33a8596"
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/149-prep-validation.json",
+        "bytes": 14621,
+        "sha256": "bb8bf5c25ee9928953335f46e6ef80af6668f9681162c2a43de4ed236849032e"
+      },
+      {
+        "path": "scripts/internal/recording_foundation_observer.test.mjs",
+        "bytes": 12321,
+        "sha256": "85784bc95149552c0af3a6c52800d06f5eac714a378c323e2dc3091fd0d388b3"
+      },
+      {
+        "path": "scripts/internal/recording_process_metrics.cpp",
+        "bytes": 21433,
+        "sha256": "1baaace8a0d48f359659807b04e622bc9bb2d8de9d3c2d721ba8a9372c818548"
+      },
+      {
+        "path": "scripts/internal/recording_process_metrics.test.mjs",
+        "bytes": 8074,
+        "sha256": "98ac044f061e582b0146d9ad1108b46f9ddc024aa7c0cc1842e03542de41faa3"
+      },
+      {
+        "path": "scripts/internal/recording_process_metrics_os_timing_fixture.cpp",
+        "bytes": 6732,
+        "sha256": "8f9d9d75b3c366c21e978ab14d88af1b8ed8d05e8477a6ea25f56ab910c0a7ce"
+      },
+      {
+        "path": "scripts/internal/recording_process_metrics_timing_fixture.cpp",
+        "bytes": 6426,
+        "sha256": "ffffffef256bd07127c80098468aaae4b52d1f8e41886cca8238b49019e57511"
+      },
+      {
+        "path": "test/fixtures/project_feature_implementation_evidence.json",
+        "bytes": 26350232,
+        "sha256": "49c8d6b933a06f771a3bd9eaea8670309b4382274cc93d3542d65ae0f06d5655"
+      }
+    ]
+  },
+  "cleanup": {
+    "root": "/private/tmp/media-server-r149-prep-ostsrexz",
+    "uid": 501,
+    "rootIdentityVerified": true,
+    "filesRemoved": 57,
+    "bytesRemoved": 3784660,
+    "directoriesRemoved": 1,
+    "symlinksFound": 0,
+    "rootAbsent": true,
+    "childrenAbsent": [
+      94383,
+      94385
+    ],
+    "containersAbsent": [
+      "media-server-r149-prep-focused",
+      "media-server-r149-prep-consumer-reviewed"
+    ],
+    "testPortsCreated": 0,
+    "productExecutions": 0,
+    "productRuntimeRebuilds": 0,
+    "scope": "only identity/ownership-verified experiment files; user settings/private backups/models/SDK untouched",
+    "completedUtc": "2026-10-17T09:49:18.192539+00:00"
+  },
+  "held": {
+    "R147": "INCOMPLETE_45_COLLECTION_FAILURE",
+    "Functional45": "INCOMPLETE",
+    "Collection45": "FAIL_R147",
+    "R149Actual45": "NOT_RUN/HOLD",
+    "MemoryP0": "HOLD",
+    "Readiness120": "HOLD",
+    "Release": "HOLD"
+  },
+  "limits": [
+    "One OS pair does not establish quiet interval, general success probability, R147 actual caller, or long-run cadence qualification.",
+    "Exact RED intermediate collector source bytes not preserved; original output/binary hash preserved; no reconstructed source claimed original."
+  ],
+  "closureCommit": "This file is committed separately after remote byte verification and cleanup; final local/remote commit reported externally."
+}
