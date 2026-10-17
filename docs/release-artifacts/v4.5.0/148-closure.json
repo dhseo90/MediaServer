@@ -1,0 +1,79 @@
+{
+  "schema": "media-server.v450.r148.closure.v1",
+  "decision": "HOLD_FD_COLLECTOR_REMEDIATION",
+  "testCommit": "3917223e0885b26dce7afbdae7196846ad4531dd",
+  "evidenceCommit": "f1c761e2d51d8b294f8330e1df254b23f969f8fd",
+  "remotePreservation": {
+    "head": "f1c761e2d51d8b294f8330e1df254b23f969f8fd",
+    "remote": "f1c761e2d51d8b294f8330e1df254b23f969f8fd",
+    "files": [
+      {
+        "path": "docs/release-artifacts/v4.5.0/148-validation.json",
+        "gitBlob": "3a79f0e952e022f151786a4a27146359b8ad0a41",
+        "bytes": 16995,
+        "sha256": "2d87c8b978c1d8ac6281f565784e77b9d902c0717d8bf2cffd6010247bd01e0d",
+        "remoteByteExact": true
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/148-independent-review.json",
+        "gitBlob": "aadca2d9b4e22f33fbfccecdb205c3c07ad621b6",
+        "bytes": 2068,
+        "sha256": "6cc8335bb88a180a1150a57834e4fb46fcca677f8f02c028147102df7a2c84e6",
+        "remoteByteExact": true
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/148-execution.tar.gz",
+        "gitBlob": "6ea5cac0e64d5a033864d9ba2fa3353ea1230f98",
+        "bytes": 61879,
+        "sha256": "9ea0db235095c7de554aaf11ab6137dbb3fa6e3452158e3a98c48d738ee70a2b",
+        "remoteByteExact": true
+      },
+      {
+        "path": "scripts/internal/recording_process_metrics.cpp",
+        "gitBlob": "1ef8b55df87ceb3931fb1712930110f5d0bcedf9",
+        "bytes": 19795,
+        "sha256": "f80c0dc4441237c48163207b0df97e9a824d254aec970de53edb6f529048cfe6",
+        "remoteByteExact": true
+      },
+      {
+        "path": "scripts/internal/recording_process_metrics_fixture.cpp",
+        "gitBlob": "cce1bd2ef0f0c9980b4a93cb8457e89f6bbfa7a5",
+        "bytes": 15674,
+        "sha256": "23f9f6304f672deebc7c03045af7b0c0b3456836e1f1be631368b99e27442360",
+        "remoteByteExact": true
+      }
+    ]
+  },
+  "cleanup": {
+    "ownedRoot": "/private/tmp/media-server-r148-oz1931b9",
+    "uid": 501,
+    "dev": 16777232,
+    "inode": 175682170,
+    "removedFiles": 19,
+    "removedBytes": 532965,
+    "removedDirectories": 1,
+    "symlinks": 0,
+    "rootAbsent": true,
+    "fixtureChildren": "test outputs confirm normal child exits; macOS91003 absent by ps",
+    "testTemporaryRoots": "all absent according to metrics/consumer output",
+    "container": "media-server-r148-focused absent",
+    "productProcessesOrPortsCreated": 0
+  },
+  "productExecutions": 0,
+  "productRuntimeRebuilds": 0,
+  "collectorAlgorithmChanged": false,
+  "limitsUnchanged": {
+    "rounds": 4,
+    "memoryBytes": 8388608,
+    "consumerTimeoutMs": 3000
+  },
+  "independentReview": "148-independent-review.json: agrees HOLD after source/test/archive/binding read-only review; remote/cleanup verified by main",
+  "binding": "producer exit0 -> readback exit0 -> coverage exit0; finalinventory18/0",
+  "historicalR147": "INCOMPLETE_45_COLLECTION_FAILURE",
+  "functional45": "INCOMPLETE",
+  "collection45": "FAIL_R147",
+  "memoryP0": "HOLD",
+  "readiness120": "HOLD",
+  "release": "HOLD",
+  "r149": "NOT_RUN; separate authorization required; no proven remediation yet"
+}
