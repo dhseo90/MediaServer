@@ -1,0 +1,2260 @@
+{
+  "schema": "media-server.v450.r149.validation.v1",
+  "decision": "FAIL_STATE_DIAGNOSTIC45_HTTP_TIMEOUT",
+  "functional45": "FAIL",
+  "collection45": "INCOMPLETE",
+  "fdCollectorQualification": "INCOMPLETE_OR_FAILED",
+  "memoryP0": "HOLD",
+  "readiness120": "HOLD",
+  "release": "HOLD",
+  "baselineHead": "bb3f221ae60c5cbb31c56b44bc80bcaf036c7252",
+  "branch": "v4.5.0",
+  "model": {
+    "main": {
+      "requested": "gpt-6-astra/high",
+      "toolAccepted": null,
+      "actualRuntime": null
+    },
+    "reviewer": {
+      "requested": "gpt-6-astra/high",
+      "toolAccepted": "existing independent_r147 gpt-6-astra/high",
+      "actualRuntime": null
+    }
+  },
+  "preflight": {
+    "head": "bb3f221ae60c5cbb31c56b44bc80bcaf036c7252",
+    "branch": "v4.5.0",
+    "worktreeClean": true,
+    "remoteBaselineMatched": true,
+    "root": "$RUN_PARENT",
+    "rootIdentity": {
+      "dev": 16777232,
+      "ino": 175700840,
+      "uid": 501,
+      "mode": "0o700"
+    },
+    "freshness": "PASS_TARGET_AWARE_PREFLIGHT",
+    "freshnessGraphSha256": "7d7137440a8c7ee02fcd438834103ff13ffdf16ed919065e4af200bb4ef36d73",
+    "bindings": {
+      "build-gst-onnx/media_server": {
+        "bytes": 38000080,
+        "sha256": "33f516d35d56cb2f6cafc75647b6c37d2ced67115302d1205cca23bf51ab7f79"
+      },
+      "build-gst-onnx/libmedia_server_runtime.a": {
+        "bytes": 113126688,
+        "sha256": "2d91cf35fe7e805e0c06e00d16779c86849b35db635e087582277e1b676d198c"
+      },
+      "scripts/internal/run_v450_recording_a_mixed.py": {
+        "bytes": 12571,
+        "sha256": "af2c5cf6dffa4f7ffbb96f26ff2d0c7f4ce7bc79d1145e2fe47922afaf373008"
+      },
+      "scripts/internal/verify_v450_recording_a_mixed.sh": {
+        "bytes": 4118,
+        "sha256": "81d87186c43eda51ca2b51d7e215b97bc2b53e93b910cd72029f4fa6be1045d8"
+      },
+      "scripts/internal/recording_process_metrics.cpp": {
+        "bytes": 21433,
+        "sha256": "1baaace8a0d48f359659807b04e622bc9bb2d8de9d3c2d721ba8a9372c818548"
+      },
+      "scripts/internal/recording_completion_collection.mjs": {
+        "bytes": 3019,
+        "sha256": "b9dd0d5d80e7f9912f93cf65b404681a58c917ac89be08b196cac8b760b07557"
+      },
+      "scripts/internal/recording_memory_attribution.mjs": {
+        "bytes": 8112,
+        "sha256": "deeb80f7ebf2e34196956ea7e170adabca07edbd781b2d0b6a1dbec262831139"
+      },
+      "scripts/internal/v450_recording_a_mixed.mjs": {
+        "bytes": 56149,
+        "sha256": "7d3aa023351dfe0038e468eae6e0c60949cdf3296d3e4ce1fdd18ca39d6ebaa4"
+      },
+      "scripts/internal/recording_longrun_progress.mjs": {
+        "bytes": 22971,
+        "sha256": "b7635f864c34aabdf291dde989a7c106cf6513db7a7b2b7a94e30cb408c5192e"
+      }
+    },
+    "plan": {
+      "wrapperMaximum": 1,
+      "productMaximum": 1,
+      "observationSeconds": 2700,
+      "budgetSeconds": 2880,
+      "memoryIntervalsSeconds": [
+        [
+          0,
+          300
+        ],
+        [
+          300,
+          900
+        ],
+        [
+          900,
+          1500
+        ],
+        [
+          1500,
+          2100
+        ],
+        [
+          2100,
+          2700
+        ]
+      ],
+      "noChangesDuringRun": true,
+      "cleanup": "wrapper owns process groups; inspect receipts and port closure; preserve sanitized bytes remotely before identity-checked root removal"
+    },
+    "model": {
+      "main": {
+        "requested": "gpt-6-astra/high",
+        "toolAccepted": null,
+        "actualRuntime": null
+      },
+      "reviewer": {
+        "requested": "gpt-6-astra/high",
+        "toolAccepted": "existing independent_r147 gpt-6-astra/high",
+        "actualRuntime": null
+      }
+    }
+  },
+  "execution": {
+    "preparationContractVersion": 2,
+    "resultScope": "existing mixed mode",
+    "command": [
+      "bash",
+      "$REPO/scripts/internal/verify_v450_recording_a_mixed.sh",
+      "--state-diagnostic"
+    ],
+    "startedAt": "2026-10-17T11:00:29.914335+00:00",
+    "status": "FAIL",
+    "source": {
+      "head": "bb3f221ae60c5cbb31c56b44bc80bcaf036c7252",
+      "fixtureProfile": "continuous-r114",
+      "fixtureProfileSourceSha256": "b7635f864c34aabdf291dde989a7c106cf6513db7a7b2b7a94e30cb408c5192e",
+      "tree": "35aec457eeb62b99bf45883970aa3d3b4a4c12a7",
+      "sourceSha256": "fbbb7860a2ae9bb6934f7058c6bd8886914e3830320e5eaa420425ae6a886106",
+      "binarySha256": "33f516d35d56cb2f6cafc75647b6c37d2ced67115302d1205cca23bf51ab7f79"
+    },
+    "timeoutSeconds": 2880,
+    "observationSeconds": 2700,
+    "wrapperSha256": "af2c5cf6dffa4f7ffbb96f26ff2d0c7f4ce7bc79d1145e2fe47922afaf373008",
+    "resourceTrendPass": false,
+    "reviewRequired": true,
+    "uiFulltestPass": false,
+    "processGroup": 97502,
+    "childExit": 1,
+    "exit": 1,
+    "executionElapsedSeconds": 1718.4024640829302,
+    "elapsedSeconds": 1718.4040684159845,
+    "timedOut": false,
+    "interruptedSignals": [],
+    "residualGroupAfterCommand": false,
+    "cleanupSignals": [],
+    "processGroupAbsent": true,
+    "cleanupErrors": [],
+    "cleanupOnlySeconds": 2.3833010345697403e-05,
+    "registeredGroupsAbsent": true,
+    "residualRegisteredGroups": false,
+    "registeredGroupSignals": [],
+    "registeredGroupCleanupSeconds": 0.001508709043264389,
+    "finishedAt": "2026-10-17T11:29:08.541779+00:00",
+    "sourceEnd": {
+      "head": "bb3f221ae60c5cbb31c56b44bc80bcaf036c7252",
+      "fixtureProfile": "continuous-r114",
+      "fixtureProfileSourceSha256": "b7635f864c34aabdf291dde989a7c106cf6513db7a7b2b7a94e30cb408c5192e",
+      "tree": "35aec457eeb62b99bf45883970aa3d3b4a4c12a7",
+      "sourceSha256": "fbbb7860a2ae9bb6934f7058c6bd8886914e3830320e5eaa420425ae6a886106",
+      "binarySha256": "33f516d35d56cb2f6cafc75647b6c37d2ced67115302d1205cca23bf51ab7f79"
+    },
+    "totalWithFinalBindingSeconds": 1718.8868213749956,
+    "rootDisposition": "preserved-for-byte-review-and-owned-cleanup"
+  },
+  "firstFailure": {
+    "code": "http-header-timeout",
+    "http": {
+      "method": "GET",
+      "routeClass": "other",
+      "status": null,
+      "headerElapsedMs": null,
+      "bodyElapsedMs": null,
+      "totalElapsedMs": 5004,
+      "bytes": 0,
+      "phase": "header",
+      "outcome": "timeout",
+      "routeKind": "/ops/api/recordings/search"
+    },
+    "aSlot": {
+      "slot": 28,
+      "state": "failed",
+      "elapsedMs": 1685142.270208,
+      "error": "http-header-timeout"
+    },
+    "classification": "A prepare current structured search channel1 synthetic-target; not original4client population; client headers/status absent. Server completion not proven.",
+    "estimatedFailureElapsedMs": 1690146.270208,
+    "timeLimit": "A elapsed before request includes budget overhead; failure sum is approximate, exact request-start monotonic timestamp not emitted"
+  },
+  "lastSuccessfulObservationElapsedMs": 1680348.675708,
+  "officialObservationDuration": null,
+  "counts": {
+    "wrapper": 1,
+    "product": 1,
+    "reruns": 0
+  },
+  "search": {
+    "originalPopulation": {
+      "count": 452,
+      "p95Ms": 2648.3669579999987,
+      "maxMs": 4041.4486660000402
+    },
+    "visual": {
+      "count": 226,
+      "p95Ms": 1768.0540000000037,
+      "maxMs": 2098.572666999884
+    },
+    "structured": {
+      "count": 226,
+      "p95Ms": 3140.2605000000913,
+      "maxMs": 4041.4486660000402
+    },
+    "perClient": [
+      113,
+      113,
+      113,
+      113
+    ],
+    "originalUnavailable": 0,
+    "originalTimeout": 0,
+    "auxiliaryAHeaderTimeout": 1,
+    "officialLatencyGate": "NOT_RUN",
+    "partialDiagnosticOnly": true
+  },
+  "fd": {
+    "samples": 331,
+    "allComplete": true,
+    "identities": [
+      "macos:1792234849:14798"
+    ],
+    "roundCounts": {
+      "1": 314,
+      "2": 17
+    },
+    "closedRetries": 17,
+    "capacityRetries": 0,
+    "fdElapsedMs": {
+      "count": 331,
+      "first": 0,
+      "last": 0,
+      "min": 0,
+      "max": 36,
+      "delta": 0
+    },
+    "gapsMs": {
+      "count": 330,
+      "first": 5003.355791,
+      "last": 5004.130708000157,
+      "min": 5000.984415999963,
+      "max": 10030.347624999937,
+      "delta": 0.7749170001570747
+    },
+    "retrySamples": [
+      {
+        "observationElapsedMs": 250435.019542,
+        "fd": {
+          "scope": "complete-round-sequential-v1",
+          "complete": true,
+          "startIdentity": "macos:1792234849:14798",
+          "startedAt": 1792235105284,
+          "completedAt": 1792235105320,
+          "roundStartedAt": 1792235105319,
+          "roundCompletedAt": 1792235105320,
+          "rounds": 2,
+          "capacityRetries": 0,
+          "closedRetries": 1,
+          "detailCalls": 32,
+          "failures": [
+            {
+              "fd": 32,
+              "listedType": 1,
+              "returned": 0,
+              "errno": 9,
+              "nextType": 1,
+              "at": 1792235105284
+            }
+          ]
+        }
+      },
+      {
+        "observationElapsedMs": 365561.61904200003,
+        "fd": {
+          "scope": "complete-round-sequential-v1",
+          "complete": true,
+          "startIdentity": "macos:1792234849:14798",
+          "startedAt": 1792235220412,
+          "completedAt": 1792235220447,
+          "roundStartedAt": 1792235220447,
+          "roundCompletedAt": 1792235220447,
+          "rounds": 2,
+          "capacityRetries": 0,
+          "closedRetries": 1,
+          "detailCalls": 29,
+          "failures": [
+            {
+              "fd": 33,
+              "listedType": 1,
+              "returned": 0,
+              "errno": 9,
+              "nextType": 0,
+              "at": 1792235220412
+            }
+          ]
+        }
+      },
+      {
+        "observationElapsedMs": 450665.337375,
+        "fd": {
+          "scope": "complete-round-sequential-v1",
+          "complete": true,
+          "startIdentity": "macos:1792234849:14798",
+          "startedAt": 1792235305516,
+          "completedAt": 1792235305551,
+          "roundStartedAt": 1792235305551,
+          "roundCompletedAt": 1792235305551,
+          "rounds": 2,
+          "capacityRetries": 0,
+          "closedRetries": 1,
+          "detailCalls": 29,
+          "failures": [
+            {
+              "fd": 25,
+              "listedType": 1,
+              "returned": 0,
+              "errno": 9,
+              "nextType": 0,
+              "at": 1792235305516
+            }
+          ]
+        }
+      },
+      {
+        "observationElapsedMs": 460701.816958,
+        "fd": {
+          "scope": "complete-round-sequential-v1",
+          "complete": true,
+          "startIdentity": "macos:1792234849:14798",
+          "startedAt": 1792235315558,
+          "completedAt": 1792235315587,
+          "roundStartedAt": 1792235315587,
+          "roundCompletedAt": 1792235315587,
+          "rounds": 2,
+          "capacityRetries": 0,
+          "closedRetries": 1,
+          "detailCalls": 18,
+          "failures": [
+            {
+              "fd": 4,
+              "listedType": 1,
+              "returned": 0,
+              "errno": 9,
+              "nextType": 1,
+              "at": 1792235315558
+            }
+          ]
+        }
+      },
+      {
+        "observationElapsedMs": 615897.672958,
+        "fd": {
+          "scope": "complete-round-sequential-v1",
+          "complete": true,
+          "startIdentity": "macos:1792234849:14798",
+          "startedAt": 1792235470756,
+          "completedAt": 1792235470783,
+          "roundStartedAt": 1792235470783,
+          "roundCompletedAt": 1792235470783,
+          "rounds": 2,
+          "capacityRetries": 0,
+          "closedRetries": 1,
+          "detailCalls": 36,
+          "failures": [
+            {
+              "fd": 37,
+              "listedType": 1,
+              "returned": 0,
+              "errno": 9,
+              "nextType": 0,
+              "at": 1792235470756
+            }
+          ]
+        }
+      },
+      {
+        "observationElapsedMs": 620930.919292,
+        "fd": {
+          "scope": "complete-round-sequential-v1",
+          "complete": true,
+          "startIdentity": "macos:1792234849:14798",
+          "startedAt": 1792235475787,
+          "completedAt": 1792235475817,
+          "roundStartedAt": 1792235475817,
+          "roundCompletedAt": 1792235475817,
+          "rounds": 2,
+          "capacityRetries": 0,
+          "closedRetries": 1,
+          "detailCalls": 18,
+          "failures": [
+            {
+              "fd": 4,
+              "listedType": 1,
+              "returned": 0,
+              "errno": 9,
+              "nextType": 0,
+              "at": 1792235475787
+            }
+          ]
+        }
+      },
+      {
+        "observationElapsedMs": 891123.0933749999,
+        "fd": {
+          "scope": "complete-round-sequential-v1",
+          "complete": true,
+          "startIdentity": "macos:1792234849:14798",
+          "startedAt": 1792235745977,
+          "completedAt": 1792235746010,
+          "roundStartedAt": 1792235746010,
+          "roundCompletedAt": 1792235746010,
+          "rounds": 2,
+          "capacityRetries": 0,
+          "closedRetries": 1,
+          "detailCalls": 29,
+          "failures": [
+            {
+              "fd": 29,
+              "listedType": 1,
+              "returned": 0,
+              "errno": 9,
+              "nextType": 0,
+              "at": 1792235745977
+            }
+          ]
+        }
+      },
+      {
+        "observationElapsedMs": 901166.374542,
+        "fd": {
+          "scope": "complete-round-sequential-v1",
+          "complete": true,
+          "startIdentity": "macos:1792234849:14798",
+          "startedAt": 1792235756018,
+          "completedAt": 1792235756053,
+          "roundStartedAt": 1792235756053,
+          "roundCompletedAt": 1792235756053,
+          "rounds": 2,
+          "capacityRetries": 0,
+          "closedRetries": 1,
+          "detailCalls": 29,
+          "failures": [
+            {
+              "fd": 33,
+              "listedType": 1,
+              "returned": 0,
+              "errno": 9,
+              "nextType": 0,
+              "at": 1792235756018
+            }
+          ]
+        }
+      },
+      {
+        "observationElapsedMs": 926212.8982919999,
+        "fd": {
+          "scope": "complete-round-sequential-v1",
+          "complete": true,
+          "startIdentity": "macos:1792234849:14798",
+          "startedAt": 1792235781071,
+          "completedAt": 1792235781100,
+          "roundStartedAt": 1792235781100,
+          "roundCompletedAt": 1792235781100,
+          "rounds": 2,
+          "capacityRetries": 0,
+          "closedRetries": 1,
+          "detailCalls": 31,
+          "failures": [
+            {
+              "fd": 33,
+              "listedType": 1,
+              "returned": 0,
+              "errno": 9,
+              "nextType": 0,
+              "at": 1792235781071
+            }
+          ]
+        }
+      },
+      {
+        "observationElapsedMs": 956262.6365,
+        "fd": {
+          "scope": "complete-round-sequential-v1",
+          "complete": true,
+          "startIdentity": "macos:1792234849:14798",
+          "startedAt": 1792235811122,
+          "completedAt": 1792235811150,
+          "roundStartedAt": 1792235811150,
+          "roundCompletedAt": 1792235811150,
+          "rounds": 2,
+          "capacityRetries": 0,
+          "closedRetries": 1,
+          "detailCalls": 36,
+          "failures": [
+            {
+              "fd": 38,
+              "listedType": 1,
+              "returned": 0,
+              "errno": 9,
+              "nextType": 0,
+              "at": 1792235811122
+            }
+          ]
+        }
+      },
+      {
+        "observationElapsedMs": 1066373.900375,
+        "fd": {
+          "scope": "complete-round-sequential-v1",
+          "complete": true,
+          "startIdentity": "macos:1792234849:14798",
+          "startedAt": 1792235921231,
+          "completedAt": 1792235921261,
+          "roundStartedAt": 1792235921261,
+          "roundCompletedAt": 1792235921261,
+          "rounds": 2,
+          "capacityRetries": 0,
+          "closedRetries": 1,
+          "detailCalls": 26,
+          "failures": [
+            {
+              "fd": 11,
+              "listedType": 1,
+              "returned": 0,
+              "errno": 9,
+              "nextType": 1,
+              "at": 1792235921231
+            }
+          ]
+        }
+      },
+      {
+        "observationElapsedMs": 1234698.376958,
+        "fd": {
+          "scope": "complete-round-sequential-v1",
+          "complete": true,
+          "startIdentity": "macos:1792234849:14798",
+          "startedAt": 1792236089551,
+          "completedAt": 1792236089586,
+          "roundStartedAt": 1792236089586,
+          "roundCompletedAt": 1792236089586,
+          "rounds": 2,
+          "capacityRetries": 0,
+          "closedRetries": 1,
+          "detailCalls": 28,
+          "failures": [
+            {
+              "fd": 25,
+              "listedType": 1,
+              "returned": 0,
+              "errno": 9,
+              "nextType": 0,
+              "at": 1792236089551
+            }
+          ]
+        }
+      },
+      {
+        "observationElapsedMs": 1302130.3784999999,
+        "fd": {
+          "scope": "complete-round-sequential-v1",
+          "complete": true,
+          "startIdentity": "macos:1792234849:14798",
+          "startedAt": 1792236156985,
+          "completedAt": 1792236157018,
+          "roundStartedAt": 1792236157018,
+          "roundCompletedAt": 1792236157018,
+          "rounds": 2,
+          "capacityRetries": 0,
+          "closedRetries": 1,
+          "detailCalls": 63,
+          "failures": [
+            {
+              "fd": 40,
+              "listedType": 1,
+              "returned": 0,
+              "errno": 9,
+              "nextType": 0,
+              "at": 1792236156985
+            }
+          ]
+        }
+      },
+      {
+        "observationElapsedMs": 1427433.554375,
+        "fd": {
+          "scope": "complete-round-sequential-v1",
+          "complete": true,
+          "startIdentity": "macos:1792234849:14798",
+          "startedAt": 1792236282296,
+          "completedAt": 1792236282322,
+          "roundStartedAt": 1792236282321,
+          "roundCompletedAt": 1792236282322,
+          "rounds": 2,
+          "capacityRetries": 0,
+          "closedRetries": 1,
+          "detailCalls": 58,
+          "failures": [
+            {
+              "fd": 40,
+              "listedType": 1,
+              "returned": 0,
+              "errno": 9,
+              "nextType": 0,
+              "at": 1792236282296
+            }
+          ]
+        }
+      },
+      {
+        "observationElapsedMs": 1508750.5233749999,
+        "fd": {
+          "scope": "complete-round-sequential-v1",
+          "complete": true,
+          "startIdentity": "macos:1792234849:14798",
+          "startedAt": 1792236363609,
+          "completedAt": 1792236363640,
+          "roundStartedAt": 1792236363639,
+          "roundCompletedAt": 1792236363640,
+          "rounds": 2,
+          "capacityRetries": 0,
+          "closedRetries": 1,
+          "detailCalls": 22,
+          "failures": [
+            {
+              "fd": 8,
+              "listedType": 1,
+              "returned": 0,
+              "errno": 9,
+              "nextType": 1,
+              "at": 1792236363609
+            }
+          ]
+        }
+      },
+      {
+        "observationElapsedMs": 1670304.548833,
+        "fd": {
+          "scope": "complete-round-sequential-v1",
+          "complete": true,
+          "startIdentity": "macos:1792234849:14798",
+          "startedAt": 1792236525159,
+          "completedAt": 1792236525194,
+          "roundStartedAt": 1792236525194,
+          "roundCompletedAt": 1792236525194,
+          "rounds": 2,
+          "capacityRetries": 0,
+          "closedRetries": 1,
+          "detailCalls": 26,
+          "failures": [
+            {
+              "fd": 11,
+              "listedType": 1,
+              "returned": 0,
+              "errno": 9,
+              "nextType": 1,
+              "at": 1792236525159
+            }
+          ]
+        }
+      },
+      {
+        "observationElapsedMs": 1675344.545,
+        "fd": {
+          "scope": "complete-round-sequential-v1",
+          "complete": true,
+          "startIdentity": "macos:1792234849:14798",
+          "startedAt": 1792236530199,
+          "completedAt": 1792236530234,
+          "roundStartedAt": 1792236530234,
+          "roundCompletedAt": 1792236530234,
+          "rounds": 2,
+          "capacityRetries": 0,
+          "closedRetries": 1,
+          "detailCalls": 35,
+          "failures": [
+            {
+              "fd": 30,
+              "listedType": 1,
+              "returned": 0,
+              "errno": 9,
+              "nextType": 0,
+              "at": 1792236530199
+            }
+          ]
+        }
+      }
+    ],
+    "scope": "periodic raw FD records; status admission also uses collector but does not persist every full record. No45min qualification; native observation timestamps wall clock, wrapper/cycle intervals monotonic.",
+    "consumerMetricsMs": {
+      "count": 331,
+      "min": 1.8236670000478625,
+      "max": 224.55133399999977
+    }
+  },
+  "evidence": {
+    "windows": [
+      {
+        "structured": 1180,
+        "visual": 2360,
+        "evidence": 59,
+        "visualEvidence": 59
+      },
+      {
+        "structured": 1060,
+        "visual": 2120,
+        "evidence": 53,
+        "visualEvidence": 53
+      },
+      {
+        "structured": 0,
+        "visual": 0,
+        "evidence": 0,
+        "visualEvidence": 0
+      }
+    ],
+    "cycles": 112,
+    "searchSuccess": 452,
+    "searchUnavailable": 0,
+    "searchSuccessByClient": [
+      113,
+      113,
+      113,
+      113
+    ],
+    "createComplete": 112,
+    "createPartial": 0,
+    "createSuccess": 112,
+    "createBusy": 112,
+    "retainedChecks": 224,
+    "deletedSourceObserved": false,
+    "visualResults": 4480,
+    "visualCreated": 112,
+    "visualExpired": 0
+  },
+  "aCompleted": 28,
+  "recording": {
+    "scope": "post-stop read-only CRC/length checked active journals and every bound file hash; not native closed-journal or current catalog reOpen gate",
+    "mutationTypes": {
+      "recording_order_reserved": 1686,
+      "segment_v2_bound_finalized": 1686,
+      "referenced_observation_put": 2
+    },
+    "filesChecked": 1686,
+    "allMatched": true,
+    "perChannel": {
+      "1": 1,
+      "9201": 842,
+      "9101": 843
+    },
+    "bytesByChannel": {
+      "9101": 28968296,
+      "9201": 28944351,
+      "1": 28161
+    },
+    "sourceBindingSamples": 101003,
+    "internalOrdinalGaps": [],
+    "sameGenerationPairs": 842,
+    "betweenOrdinalGaps": [],
+    "generationGroups": 843,
+    "unknown": "upstream input/queue/callback/drop totals and final source tail not exposed; no lossless claim"
+  },
+  "recorderObservation": {
+    "input": null,
+    "queue": null,
+    "drops": null,
+    "callback": null,
+    "scope": "state mode has no exhaustive queue/callback counters",
+    "deliveryLossLogCount": 0
+  },
+  "collection": {
+    "summaries": {
+      "recording-state-summary": [
+        {
+          "status": "captured",
+          "count": 6,
+          "events": [
+            {
+              "seq": 0,
+              "atUs": 1542086123810,
+              "channel": "9101",
+              "phase": "session-created",
+              "reason": "epoch-9101-1-1792234854787"
+            },
+            {
+              "seq": 1,
+              "atUs": 1542086202949,
+              "channel": "9101",
+              "phase": "writer-started",
+              "reason": "ok"
+            },
+            {
+              "seq": 2,
+              "atUs": 1542086205951,
+              "channel": "9201",
+              "phase": "session-created",
+              "reason": "epoch-9201-1-1792234854869"
+            },
+            {
+              "seq": 3,
+              "atUs": 1542086213408,
+              "channel": "9201",
+              "phase": "writer-started",
+              "reason": "ok"
+            },
+            {
+              "seq": 4,
+              "atUs": 1543778182560,
+              "channel": "9201",
+              "phase": "stop-channel",
+              "reason": "requested"
+            },
+            {
+              "seq": 5,
+              "atUs": 1543779412910,
+              "channel": "9101",
+              "phase": "stop-channel",
+              "reason": "requested"
+            }
+          ],
+          "issues": []
+        }
+      ],
+      "server-diagnostic": [
+        {
+          "pid": 97595,
+          "bytes": 1807060,
+          "capturedBytes": 1807060,
+          "sha256": "d01907f0082b662587906186091b94af76d46bf26fb5a8f3cc1629c9668729dd",
+          "overflow": false,
+          "captureError": null,
+          "categories": [
+            {
+              "code": "file evidence unavailable",
+              "count": 0
+            },
+            {
+              "code": "storageBlocked",
+              "count": 0
+            },
+            {
+              "code": "shutdown",
+              "count": 0
+            },
+            {
+              "code": "ERROR",
+              "count": 0
+            },
+            {
+              "code": "WARNING",
+              "count": 0
+            }
+          ],
+          "rawBodyPublished": false,
+          "privateCaptureDisposition": "eligible-for-wrapper-cleanup"
+        }
+      ],
+      "completion-collection-summary": [
+        {
+          "status": "captured",
+          "rows": 1533,
+          "bytes": 277183,
+          "receipt": {
+            "v": 1,
+            "rows": 1533,
+            "bytes": 277183,
+            "lost": false,
+            "writeError": false,
+            "complete": true
+          }
+        }
+      ],
+      "resource-trace-summary": [
+        {
+          "status": "captured",
+          "count": 341,
+          "final": {
+            "pid": 97595,
+            "seq": 340,
+            "phase": "after-storage-destruction",
+            "elapsedMs": 1698846,
+            "ram": 0,
+            "ramPeak": 369983220,
+            "ramLimit": 671088640,
+            "ramRejected": 0,
+            "scratchDisk": 0,
+            "scratchDiskPeak": 293666816,
+            "scratchDiskLimit": 160785760256,
+            "scratchFd": 0,
+            "scratchFdPeak": 19,
+            "scratchFdLimit": 1048572,
+            "scratchRam": 0,
+            "preservedDisk": 0,
+            "preservedFd": 0,
+            "readerCleanupHealthy": true
+          },
+          "scope": "actual shared product owner; logical charges, not total heap or RSS; sequential counter reads"
+        }
+      ],
+      "memory-attribution-summary": [
+        {
+          "status": "captured",
+          "pid": 97595,
+          "count": 341,
+          "phases": {
+            "opened": 1,
+            "sample": 337,
+            "before-Finish": 1,
+            "after-Finish": 1,
+            "after-storage-destruction": 1
+          },
+          "finalOwnerZero": true,
+          "resourcePaired": true,
+          "allocatorRequired": true
+        }
+      ],
+      "search-failure-summary": [
+        {
+          "status": "captured",
+          "probes": 1,
+          "failures": [],
+          "issues": []
+        }
+      ],
+      "frame-trace-summary": [
+        {
+          "status": "captured",
+          "mode": "bounded",
+          "required": true,
+          "records": 1,
+          "successes": 1,
+          "failures": 0,
+          "issues": []
+        }
+      ],
+      "process-cleanup": [
+        {
+          "schema": "recording-process-cleanup-v1",
+          "attemptCount": 1,
+          "pid": 97595,
+          "exitCode": 0,
+          "signalCode": null,
+          "exitedObserved": true,
+          "stopCode": "complete",
+          "forcedTermination": "not-used",
+          "normalExitPass": true,
+          "normalShutdownPass": true,
+          "archiveSafe": true,
+          "ports": [
+            {
+              "kind": "http",
+              "port": 59148,
+              "status": "pass",
+              "code": "closed",
+              "closed": true
+            },
+            {
+              "kind": "rtsp",
+              "port": 59149,
+              "status": "pass",
+              "code": "closed",
+              "closed": true
+            }
+          ]
+        }
+      ]
+    },
+    "visualRequests": {
+      "status": "captured",
+      "probes": 1,
+      "completion": {
+        "started": 226,
+        "completed": 226
+      },
+      "lockCountersRequireRecordingLatencyTrace": true,
+      "overlappingPhasesNotAdditive": true,
+      "unmeasured": [
+        "HTTP send",
+        "unwrapped syscalls/bytes",
+        "background per-request cost"
+      ]
+    },
+    "memoryWire": {
+      "count": 341,
+      "maxBytes": 3854,
+      "versions": [
+        2
+      ],
+      "maxEventDelta": 13,
+      "sequenceContinuous": true,
+      "allLossFalse": true
+    },
+    "scope": "Observed interval captured with terminal receipt; full45 and native closed journal not reached. No collector failure observed."
+  },
+  "memoryWindows": [
+    {
+      "intervalSeconds": [
+        0,
+        300
+      ],
+      "status": "OBSERVED_INTERVAL",
+      "sampleCount": 60,
+      "elapsedMs": {
+        "count": 60,
+        "first": 224.80916700000125,
+        "last": 295470.45504200005,
+        "min": 224.80916700000125,
+        "max": 295470.45504200005,
+        "delta": 295245.64587500005
+      },
+      "rssBytes": {
+        "count": 60,
+        "first": 3180838912,
+        "last": 1794637824,
+        "min": 1733214208,
+        "max": 3208609792,
+        "delta": -1386201088
+      },
+      "footprintBytes": {
+        "count": 60,
+        "first": 3132869872,
+        "last": 1737099568,
+        "min": 1679182080,
+        "max": 3159788808,
+        "delta": -1395770304
+      },
+      "logicalRamBytes": {
+        "count": 60,
+        "first": 1192675,
+        "last": 34100169,
+        "min": 1192675,
+        "max": 70969337,
+        "delta": 32907494
+      },
+      "scratchDiskBytes": {
+        "count": 60,
+        "first": 81920,
+        "last": 11612160,
+        "min": 81920,
+        "max": 11612160,
+        "delta": 11530240
+      },
+      "scratchFd": {
+        "count": 60,
+        "first": 4,
+        "last": 4,
+        "min": 4,
+        "max": 4,
+        "delta": 0
+      },
+      "fdCount": {
+        "count": 60,
+        "first": 34,
+        "last": 34,
+        "min": 34,
+        "max": 39,
+        "delta": 0
+      },
+      "anonymousBytes": {
+        "count": 60,
+        "first": 47104,
+        "last": 8080384,
+        "min": 47104,
+        "max": 12041728,
+        "delta": 8033280
+      },
+      "anonymousAllocatedBytes": {
+        "count": 60,
+        "first": 57344,
+        "last": 8417280,
+        "min": 57344,
+        "max": 12795904,
+        "delta": 8359936
+      },
+      "workspaceBytes": {
+        "count": 60,
+        "first": 23149015,
+        "last": 47339057,
+        "min": 23149015,
+        "max": 47339057,
+        "delta": 24190042
+      },
+      "mutations": {
+        "count": 60,
+        "first": 6,
+        "last": 594,
+        "min": 6,
+        "max": 594,
+        "delta": 588
+      },
+      "ownerLagNs": {
+        "count": 60,
+        "first": 49675875,
+        "last": 3887049709,
+        "min": -48264917,
+        "max": 4954771583,
+        "delta": 3837373834
+      },
+      "searchResidencyBytes": {
+        "count": 60,
+        "first": 1192675,
+        "last": 34100169,
+        "min": 1192675,
+        "max": 70969337,
+        "delta": 32907494
+      },
+      "allocatorInUseBytes": {
+        "count": 60,
+        "first": 1606903488,
+        "last": 1649732720,
+        "min": 1606903488,
+        "max": 1651601184,
+        "delta": 42829232
+      },
+      "allocatorAllocatedBytes": {
+        "count": 60,
+        "first": 1666695168,
+        "last": 1743192064,
+        "min": 1666695168,
+        "max": 1743192064,
+        "delta": 76496896
+      },
+      "currentModelBytes": {
+        "count": 60,
+        "first": 0,
+        "last": 6733341,
+        "min": 0,
+        "max": 6733341,
+        "delta": 6733341
+      },
+      "allLiveModelBytes": {
+        "count": 60,
+        "first": 0,
+        "last": 24424731,
+        "min": 0,
+        "max": 24424731,
+        "delta": 24424731
+      },
+      "snapshotUniqueBytes": {
+        "count": 60,
+        "first": 0,
+        "last": 24424731,
+        "min": 0,
+        "max": 24424731,
+        "delta": 24424731
+      },
+      "snapshotUniqueModels": {
+        "count": 60,
+        "first": 0,
+        "last": 5,
+        "min": 0,
+        "max": 5,
+        "delta": 5
+      },
+      "visualDocs": {
+        "count": 60,
+        "first": 1,
+        "last": 573,
+        "min": 1,
+        "max": 573,
+        "delta": 572
+      },
+      "visualCurrentBytes": {
+        "count": 60,
+        "first": 6128,
+        "last": 2850888,
+        "min": 6128,
+        "max": 2850888,
+        "delta": 2844760
+      },
+      "visualRetiredBytes": {
+        "count": 60,
+        "first": 0,
+        "last": 0,
+        "min": 0,
+        "max": 0,
+        "delta": 0
+      },
+      "unattributedSearchBytes": {
+        "count": 60,
+        "first": 676,
+        "last": 2699166,
+        "min": 676,
+        "max": 19889256,
+        "delta": 2698490
+      },
+      "channelsFirst": {
+        "9101": {
+          "finalized": 0,
+          "deleted": 0,
+          "lastAt": 8833.060333,
+          "order": "0",
+          "store": null,
+          "knownMappings": 0,
+          "unknownMappings": 0
+        },
+        "9201": {
+          "finalized": 0,
+          "deleted": 0,
+          "lastAt": 8833.060333,
+          "order": "0",
+          "store": null,
+          "knownMappings": 0,
+          "unknownMappings": 0
+        }
+      },
+      "channelsLast": {
+        "9101": {
+          "finalized": 147,
+          "deleted": 0,
+          "lastAt": 304303.515375,
+          "order": "295",
+          "store": "fe5863dd43faa008b36ea5a03d09aff5d875e2e2373f6fcb5a49804765659d48",
+          "knownMappings": 108,
+          "unknownMappings": 4168
+        },
+        "9201": {
+          "finalized": 147,
+          "deleted": 0,
+          "lastAt": 304303.515375,
+          "order": "294",
+          "store": "fe5863dd43faa008b36ea5a03d09aff5d875e2e2373f6fcb5a49804765659d48",
+          "knownMappings": 107,
+          "unknownMappings": 4270
+        }
+      },
+      "aCompletedInInterval": 5,
+      "aCompletedCumulativeAtLastSample": 5
+    },
+    {
+      "intervalSeconds": [
+        300,
+        900
+      ],
+      "status": "OBSERVED_INTERVAL",
+      "sampleCount": 120,
+      "elapsedMs": {
+        "count": 120,
+        "first": 300475.456583,
+        "last": 896126.531167,
+        "min": 300475.456583,
+        "max": 896126.531167,
+        "delta": 595651.0745839999
+      },
+      "rssBytes": {
+        "count": 120,
+        "first": 1794981888,
+        "last": 2108719104,
+        "min": 1794981888,
+        "max": 2108719104,
+        "delta": 313737216
+      },
+      "footprintBytes": {
+        "count": 120,
+        "first": 1737345328,
+        "last": 2046233216,
+        "min": 1737345328,
+        "max": 2046233216,
+        "delta": 308887888
+      },
+      "logicalRamBytes": {
+        "count": 120,
+        "first": 34192260,
+        "last": 88621402,
+        "min": 34192260,
+        "max": 109627611,
+        "delta": 54429142
+      },
+      "scratchDiskBytes": {
+        "count": 120,
+        "first": 25505792,
+        "last": 38948864,
+        "min": 12972032,
+        "max": 81866752,
+        "delta": 13443072
+      },
+      "scratchFd": {
+        "count": 120,
+        "first": 15,
+        "last": 4,
+        "min": 4,
+        "max": 15,
+        "delta": -11
+      },
+      "fdCount": {
+        "count": 120,
+        "first": 34,
+        "last": 42,
+        "min": 24,
+        "max": 44,
+        "delta": 8
+      },
+      "anonymousBytes": {
+        "count": 120,
+        "first": 9228288,
+        "last": 27913216,
+        "min": 9228288,
+        "max": 76350464,
+        "delta": 18684928
+      },
+      "anonymousAllocatedBytes": {
+        "count": 120,
+        "first": 9412608,
+        "last": 29077504,
+        "min": 9412608,
+        "max": 76738560,
+        "delta": 19664896
+      },
+      "workspaceBytes": {
+        "count": 120,
+        "first": 50033808,
+        "last": 104271251,
+        "min": 50033808,
+        "max": 104271251,
+        "delta": 54237443
+      },
+      "mutations": {
+        "count": 120,
+        "first": 606,
+        "last": 1794,
+        "min": 606,
+        "max": 1794,
+        "delta": 1188
+      },
+      "ownerLagNs": {
+        "count": 120,
+        "first": 3858730500,
+        "last": 1213623709,
+        "min": 1213623709,
+        "max": 3858730500,
+        "delta": -2645106791
+      },
+      "searchResidencyBytes": {
+        "count": 120,
+        "first": 34192260,
+        "last": 88621402,
+        "min": 34192260,
+        "max": 109652879,
+        "delta": 54429142
+      },
+      "allocatorInUseBytes": {
+        "count": 120,
+        "first": 1651207152,
+        "last": 1682811184,
+        "min": 1649487680,
+        "max": 1697421920,
+        "delta": 31604032
+      },
+      "allocatorAllocatedBytes": {
+        "count": 120,
+        "first": 1743192064,
+        "last": 1808990208,
+        "min": 1743192064,
+        "max": 1808990208,
+        "delta": 65798144
+      },
+      "currentModelBytes": {
+        "count": 120,
+        "first": 6733341,
+        "last": 22490973,
+        "min": 5525,
+        "max": 22490973,
+        "delta": 15757632
+      },
+      "allLiveModelBytes": {
+        "count": 120,
+        "first": 24424731,
+        "last": 66076804,
+        "min": 24424731,
+        "max": 75869155,
+        "delta": 41652073
+      },
+      "snapshotUniqueBytes": {
+        "count": 120,
+        "first": 24424731,
+        "last": 66076804,
+        "min": 24424731,
+        "max": 75869155,
+        "delta": 41652073
+      },
+      "snapshotUniqueModels": {
+        "count": 120,
+        "first": 5,
+        "last": 4,
+        "min": 4,
+        "max": 5,
+        "delta": -1
+      },
+      "visualDocs": {
+        "count": 120,
+        "first": 581,
+        "last": 1757,
+        "min": 581,
+        "max": 1757,
+        "delta": 1176
+      },
+      "visualCurrentBytes": {
+        "count": 120,
+        "first": 2887816,
+        "last": 8521032,
+        "min": 2887816,
+        "max": 8521032,
+        "delta": 5633216
+      },
+      "visualRetiredBytes": {
+        "count": 120,
+        "first": 0,
+        "last": 0,
+        "min": 0,
+        "max": 0,
+        "delta": 0
+      },
+      "unattributedSearchBytes": {
+        "count": 120,
+        "first": 813525,
+        "last": 3293294,
+        "min": 500436,
+        "max": 10504915,
+        "delta": 2479769
+      },
+      "channelsFirst": {
+        "9101": {
+          "finalized": 150,
+          "deleted": 0,
+          "lastAt": 309308.516916,
+          "order": "301",
+          "store": "fe5863dd43faa008b36ea5a03d09aff5d875e2e2373f6fcb5a49804765659d48",
+          "knownMappings": 109,
+          "unknownMappings": 4280
+        },
+        "9201": {
+          "finalized": 150,
+          "deleted": 0,
+          "lastAt": 309308.516916,
+          "order": "300",
+          "store": "fe5863dd43faa008b36ea5a03d09aff5d875e2e2373f6fcb5a49804765659d48",
+          "knownMappings": 110,
+          "unknownMappings": 4400
+        }
+      },
+      "channelsLast": {
+        "9101": {
+          "finalized": 447,
+          "deleted": 0,
+          "lastAt": 904959.5915,
+          "order": "895",
+          "store": "fe5863dd43faa008b36ea5a03d09aff5d875e2e2373f6fcb5a49804765659d48",
+          "knownMappings": 331,
+          "unknownMappings": 13446
+        },
+        "9201": {
+          "finalized": 447,
+          "deleted": 0,
+          "lastAt": 904959.5915,
+          "order": "894",
+          "store": "fe5863dd43faa008b36ea5a03d09aff5d875e2e2373f6fcb5a49804765659d48",
+          "knownMappings": 323,
+          "unknownMappings": 13806
+        }
+      },
+      "aCompletedInInterval": 10,
+      "aCompletedCumulativeAtLastSample": 15
+    },
+    {
+      "intervalSeconds": [
+        900,
+        1500
+      ],
+      "status": "OBSERVED_INTERVAL",
+      "sampleCount": 117,
+      "elapsedMs": {
+        "count": 117,
+        "first": 901166.374542,
+        "last": 1495755.422792,
+        "min": 901166.374542,
+        "max": 1495755.422792,
+        "delta": 594589.04825
+      },
+      "rssBytes": {
+        "count": 117,
+        "first": 1837236224,
+        "last": 2108325888,
+        "min": 1837236224,
+        "max": 2243182592,
+        "delta": 271089664
+      },
+      "footprintBytes": {
+        "count": 117,
+        "first": 1741376008,
+        "last": 1930283624,
+        "min": 1716275672,
+        "max": 2087799472,
+        "delta": 188907616
+      },
+      "logicalRamBytes": {
+        "count": 117,
+        "first": 91172299,
+        "last": 107955263,
+        "min": 78444096,
+        "max": 338257832,
+        "delta": 16782964
+      },
+      "scratchDiskBytes": {
+        "count": 117,
+        "first": 62312448,
+        "last": 67305472,
+        "min": 39321600,
+        "max": 189001728,
+        "delta": 4993024
+      },
+      "scratchFd": {
+        "count": 117,
+        "first": 5,
+        "last": 4,
+        "min": 4,
+        "max": 16,
+        "delta": -1
+      },
+      "fdCount": {
+        "count": 117,
+        "first": 31,
+        "last": 78,
+        "min": 26,
+        "max": 78,
+        "delta": 47
+      },
+      "anonymousBytes": {
+        "count": 117,
+        "first": 28012544,
+        "last": 134321152,
+        "min": 28012544,
+        "max": 134321152,
+        "delta": 106308608
+      },
+      "anonymousAllocatedBytes": {
+        "count": 117,
+        "first": 29077504,
+        "last": 136216576,
+        "min": 29077504,
+        "max": 136216576,
+        "delta": 107139072
+      },
+      "workspaceBytes": {
+        "count": 117,
+        "first": 104689532,
+        "last": 161954167,
+        "min": 104689532,
+        "max": 161954167,
+        "delta": 57264635
+      },
+      "mutations": {
+        "count": 117,
+        "first": 1803,
+        "last": 2990,
+        "min": 1803,
+        "max": 2990,
+        "delta": 1187
+      },
+      "ownerLagNs": {
+        "count": 117,
+        "first": 1220199500,
+        "last": 1853858209,
+        "min": -403035417,
+        "max": 4704162917,
+        "delta": 633658709
+      },
+      "searchResidencyBytes": {
+        "count": 117,
+        "first": 91172299,
+        "last": 107955263,
+        "min": 78444096,
+        "max": 338335955,
+        "delta": 16782964
+      },
+      "allocatorInUseBytes": {
+        "count": 117,
+        "first": 1684493616,
+        "last": 1710804656,
+        "min": 1679769392,
+        "max": 1786523248,
+        "delta": 26311040
+      },
+      "allocatorAllocatedBytes": {
+        "count": 117,
+        "first": 1813184512,
+        "last": 1917042688,
+        "min": 1813184512,
+        "max": 1978269696,
+        "delta": 103858176
+      },
+      "currentModelBytes": {
+        "count": 117,
+        "first": 22490973,
+        "last": 43905701,
+        "min": 5525,
+        "max": 43905701,
+        "delta": 21414728
+      },
+      "allLiveModelBytes": {
+        "count": 117,
+        "first": 66076804,
+        "last": 87262604,
+        "min": 54116340,
+        "max": 87262604,
+        "delta": 21185800
+      },
+      "snapshotUniqueBytes": {
+        "count": 117,
+        "first": 66076804,
+        "last": 87262604,
+        "min": 54110815,
+        "max": 87262604,
+        "delta": 21185800
+      },
+      "snapshotUniqueModels": {
+        "count": 117,
+        "first": 4,
+        "last": 2,
+        "min": 2,
+        "max": 4,
+        "delta": -2
+      },
+      "visualDocs": {
+        "count": 117,
+        "first": 1777,
+        "last": 2869,
+        "min": 1777,
+        "max": 2869,
+        "delta": 1092
+      },
+      "visualCurrentBytes": {
+        "count": 117,
+        "first": 8613544,
+        "last": 14063624,
+        "min": 8613544,
+        "max": 14063624,
+        "delta": 5450080
+      },
+      "visualRetiredBytes": {
+        "count": 117,
+        "first": 0,
+        "last": 0,
+        "min": 0,
+        "max": 13325064,
+        "delta": 0
+      },
+      "unattributedSearchBytes": {
+        "count": 117,
+        "first": 4128291,
+        "last": 659124,
+        "min": 541396,
+        "max": 21137436,
+        "delta": -3469167
+      },
+      "channelsFirst": {
+        "9101": {
+          "finalized": 449,
+          "deleted": 0,
+          "lastAt": 909999.434875,
+          "order": "899",
+          "store": "fe5863dd43faa008b36ea5a03d09aff5d875e2e2373f6fcb5a49804765659d48",
+          "knownMappings": 332,
+          "unknownMappings": 13530
+        },
+        "9201": {
+          "finalized": 450,
+          "deleted": 0,
+          "lastAt": 909999.434875,
+          "order": "900",
+          "store": "fe5863dd43faa008b36ea5a03d09aff5d875e2e2373f6fcb5a49804765659d48",
+          "knownMappings": 326,
+          "unknownMappings": 13928
+        }
+      },
+      "channelsLast": {
+        "9101": {
+          "finalized": 746,
+          "deleted": 0,
+          "lastAt": 1504588.483125,
+          "order": "1493",
+          "store": "fe5863dd43faa008b36ea5a03d09aff5d875e2e2373f6fcb5a49804765659d48",
+          "knownMappings": 527,
+          "unknownMappings": 26094
+        },
+        "9201": {
+          "finalized": 746,
+          "deleted": 0,
+          "lastAt": 1504588.483125,
+          "order": "1492",
+          "store": "fe5863dd43faa008b36ea5a03d09aff5d875e2e2373f6fcb5a49804765659d48",
+          "knownMappings": 519,
+          "unknownMappings": 26636
+        }
+      },
+      "aCompletedInInterval": 10,
+      "aCompletedCumulativeAtLastSample": 25
+    },
+    {
+      "intervalSeconds": [
+        1500,
+        2100
+      ],
+      "status": "PARTIAL",
+      "sampleCount": 34,
+      "elapsedMs": {
+        "count": 34,
+        "first": 1500759.253417,
+        "last": 1680348.675708,
+        "min": 1500759.253417,
+        "max": 1680348.675708,
+        "delta": 179589.42229100014
+      },
+      "rssBytes": {
+        "count": 34,
+        "first": 2108669952,
+        "last": 2070249472,
+        "min": 1933983744,
+        "max": 2236186624,
+        "delta": -38420480
+      },
+      "footprintBytes": {
+        "count": 34,
+        "first": 1930627688,
+        "last": 1842940520,
+        "min": 1706625568,
+        "max": 2058144408,
+        "delta": -87687168
+      },
+      "logicalRamBytes": {
+        "count": 34,
+        "first": 125635785,
+        "last": 80272786,
+        "min": 73112012,
+        "max": 201308517,
+        "delta": -45362999
+      },
+      "scratchDiskBytes": {
+        "count": 34,
+        "first": 149422080,
+        "last": 122642432,
+        "min": 67686400,
+        "max": 237543424,
+        "delta": -26779648
+      },
+      "scratchFd": {
+        "count": 34,
+        "first": 6,
+        "last": 5,
+        "min": 4,
+        "max": 16,
+        "delta": -1
+      },
+      "fdCount": {
+        "count": 34,
+        "first": 28,
+        "last": 38,
+        "min": 24,
+        "max": 73,
+        "delta": 10
+      },
+      "anonymousBytes": {
+        "count": 34,
+        "first": 163382272,
+        "last": 87998464,
+        "min": 49822720,
+        "max": 167682048,
+        "delta": -75383808
+      },
+      "anonymousAllocatedBytes": {
+        "count": 34,
+        "first": 165117952,
+        "last": 88363008,
+        "min": 50753536,
+        "max": 169508864,
+        "delta": -76754944
+      },
+      "workspaceBytes": {
+        "count": 34,
+        "first": 162514960,
+        "last": 180215024,
+        "min": 162514960,
+        "max": 180215024,
+        "delta": 17700064
+      },
+      "mutations": {
+        "count": 34,
+        "first": 3002,
+        "last": 3358,
+        "min": 3002,
+        "max": 3358,
+        "delta": 356
+      },
+      "ownerLagNs": {
+        "count": 34,
+        "first": 1815153792,
+        "last": 227394416,
+        "min": -784092875,
+        "max": 4907297958,
+        "delta": -1587759376
+      },
+      "searchResidencyBytes": {
+        "count": 34,
+        "first": 125635785,
+        "last": 80272786,
+        "min": 73112012,
+        "max": 201308517,
+        "delta": -45362999
+      },
+      "allocatorInUseBytes": {
+        "count": 34,
+        "first": 1722815408,
+        "last": 1688863904,
+        "min": 1685041232,
+        "max": 1759841680,
+        "delta": -33951504
+      },
+      "allocatorAllocatedBytes": {
+        "count": 34,
+        "first": 1925758976,
+        "last": 1924694016,
+        "min": 1910259712,
+        "max": 1950564352,
+        "delta": -1064960
+      },
+      "currentModelBytes": {
+        "count": 34,
+        "first": 43905701,
+        "last": 50426615,
+        "min": 5525,
+        "max": 50426615,
+        "delta": 6520914
+      },
+      "allLiveModelBytes": {
+        "count": 34,
+        "first": 87262604,
+        "last": 50426615,
+        "min": 45077828,
+        "max": 97582468,
+        "delta": -36835989
+      },
+      "snapshotUniqueBytes": {
+        "count": 34,
+        "first": 87262604,
+        "last": 50426615,
+        "min": 45077828,
+        "max": 97576943,
+        "delta": -36835989
+      },
+      "snapshotUniqueModels": {
+        "count": 34,
+        "first": 2,
+        "last": 1,
+        "min": 1,
+        "max": 3,
+        "delta": -1
+      },
+      "visualDocs": {
+        "count": 34,
+        "first": 2869,
+        "last": 3229,
+        "min": 2869,
+        "max": 3229,
+        "delta": 360
+      },
+      "visualCurrentBytes": {
+        "count": 34,
+        "first": 14063624,
+        "last": 15725384,
+        "min": 14063624,
+        "max": 15725384,
+        "delta": 1661760
+      },
+      "visualRetiredBytes": {
+        "count": 34,
+        "first": 0,
+        "last": 0,
+        "min": 0,
+        "max": 0,
+        "delta": 0
+      },
+      "unattributedSearchBytes": {
+        "count": 34,
+        "first": 9725588,
+        "last": 5542551,
+        "min": 4247278,
+        "max": 23473926,
+        "delta": -4183037
+      },
+      "channelsFirst": {
+        "9101": {
+          "finalized": 749,
+          "deleted": 0,
+          "lastAt": 1509592.31375,
+          "order": "1498",
+          "store": "fe5863dd43faa008b36ea5a03d09aff5d875e2e2373f6fcb5a49804765659d48",
+          "knownMappings": 529,
+          "unknownMappings": 26244
+        },
+        "9201": {
+          "finalized": 749,
+          "deleted": 0,
+          "lastAt": 1509592.31375,
+          "order": "1499",
+          "store": "fe5863dd43faa008b36ea5a03d09aff5d875e2e2373f6fcb5a49804765659d48",
+          "knownMappings": 521,
+          "unknownMappings": 26754
+        }
+      },
+      "channelsLast": {
+        "9101": {
+          "finalized": 838,
+          "deleted": 0,
+          "lastAt": 1689181.736041,
+          "order": "1677",
+          "store": "fe5863dd43faa008b36ea5a03d09aff5d875e2e2373f6fcb5a49804765659d48",
+          "knownMappings": 584,
+          "unknownMappings": 30084
+        },
+        "9201": {
+          "finalized": 838,
+          "deleted": 0,
+          "lastAt": 1689181.736041,
+          "order": "1676",
+          "store": "fe5863dd43faa008b36ea5a03d09aff5d875e2e2373f6fcb5a49804765659d48",
+          "knownMappings": 579,
+          "unknownMappings": 30612
+        }
+      },
+      "aCompletedInInterval": 3,
+      "aCompletedCumulativeAtLastSample": 28
+    },
+    {
+      "intervalSeconds": [
+        2100,
+        2700
+      ],
+      "status": "NOT_OBSERVED",
+      "sampleCount": 0,
+      "elapsedMs": {
+        "count": 0,
+        "first": null,
+        "last": null,
+        "min": null,
+        "max": null,
+        "delta": null
+      },
+      "rssBytes": {
+        "count": 0,
+        "first": null,
+        "last": null,
+        "min": null,
+        "max": null,
+        "delta": null
+      },
+      "footprintBytes": {
+        "count": 0,
+        "first": null,
+        "last": null,
+        "min": null,
+        "max": null,
+        "delta": null
+      },
+      "logicalRamBytes": {
+        "count": 0,
+        "first": null,
+        "last": null,
+        "min": null,
+        "max": null,
+        "delta": null
+      },
+      "scratchDiskBytes": {
+        "count": 0,
+        "first": null,
+        "last": null,
+        "min": null,
+        "max": null,
+        "delta": null
+      },
+      "scratchFd": {
+        "count": 0,
+        "first": null,
+        "last": null,
+        "min": null,
+        "max": null,
+        "delta": null
+      },
+      "fdCount": {
+        "count": 0,
+        "first": null,
+        "last": null,
+        "min": null,
+        "max": null,
+        "delta": null
+      },
+      "anonymousBytes": {
+        "count": 0,
+        "first": null,
+        "last": null,
+        "min": null,
+        "max": null,
+        "delta": null
+      },
+      "anonymousAllocatedBytes": {
+        "count": 0,
+        "first": null,
+        "last": null,
+        "min": null,
+        "max": null,
+        "delta": null
+      },
+      "workspaceBytes": {
+        "count": 0,
+        "first": null,
+        "last": null,
+        "min": null,
+        "max": null,
+        "delta": null
+      },
+      "mutations": {
+        "count": 0,
+        "first": null,
+        "last": null,
+        "min": null,
+        "max": null,
+        "delta": null
+      },
+      "ownerLagNs": {
+        "count": 0,
+        "first": null,
+        "last": null,
+        "min": null,
+        "max": null,
+        "delta": null
+      },
+      "searchResidencyBytes": {
+        "count": 0,
+        "first": null,
+        "last": null,
+        "min": null,
+        "max": null,
+        "delta": null
+      },
+      "allocatorInUseBytes": {
+        "count": 0,
+        "first": null,
+        "last": null,
+        "min": null,
+        "max": null,
+        "delta": null
+      },
+      "allocatorAllocatedBytes": {
+        "count": 0,
+        "first": null,
+        "last": null,
+        "min": null,
+        "max": null,
+        "delta": null
+      },
+      "currentModelBytes": {
+        "count": 0,
+        "first": null,
+        "last": null,
+        "min": null,
+        "max": null,
+        "delta": null
+      },
+      "allLiveModelBytes": {
+        "count": 0,
+        "first": null,
+        "last": null,
+        "min": null,
+        "max": null,
+        "delta": null
+      },
+      "snapshotUniqueBytes": {
+        "count": 0,
+        "first": null,
+        "last": null,
+        "min": null,
+        "max": null,
+        "delta": null
+      },
+      "snapshotUniqueModels": {
+        "count": 0,
+        "first": null,
+        "last": null,
+        "min": null,
+        "max": null,
+        "delta": null
+      },
+      "visualDocs": {
+        "count": 0,
+        "first": null,
+        "last": null,
+        "min": null,
+        "max": null,
+        "delta": null
+      },
+      "visualCurrentBytes": {
+        "count": 0,
+        "first": null,
+        "last": null,
+        "min": null,
+        "max": null,
+        "delta": null
+      },
+      "visualRetiredBytes": {
+        "count": 0,
+        "first": null,
+        "last": null,
+        "min": null,
+        "max": null,
+        "delta": null
+      },
+      "unattributedSearchBytes": {
+        "count": 0,
+        "first": null,
+        "last": null,
+        "min": null,
+        "max": null,
+        "delta": null
+      },
+      "channelsFirst": null,
+      "channelsLast": null,
+      "aCompletedInInterval": 0,
+      "aCompletedCumulativeAtLastSample": null
+    }
+  ],
+  "memoryInterpretation": {
+    "observedReturn": "RSS fell multiple times before any deletion; allocator live and logical model reservations also fluctuate. No monotonic RSS claim.",
+    "accumulation": "active originals, journal mutations and visual documents grow; retained evidence/A persist. No steady dataset after deletion.",
+    "endRelease": {
+      "afterFinishRamBytes": 52642913,
+      "afterStorageDestructionRamBytes": 0,
+      "afterStorageDestructionRssBytes": 672940032,
+      "afterStorageDestructionAllocatorInUseBytes": 13062928,
+      "afterStorageDestructionAllocatorAllocatedBytes": 335544320
+    },
+    "attribution": "No allocation stack/full heap census; no cache/ORT/allocator/OS causal attribution from correlation. Site witness classifies logical reservations, not all process allocation.",
+    "nextMinimum": "Diagnose the bounded A current-source structured search timeout with existing request/lock evidence first. For Memory P0, compare live allocations at fixed retained data and last-reader boundaries, and obtain actual post-deletion interval under separate approval; no automatic120min."
+  },
+  "memoryLimitations": [
+    "No observed deletion;1500-2100 partial;2100-2700 absent; convergence not proven",
+    "owner sample nearest existing sample, lag preserved; RSS/scan/resource fields not atomic",
+    "current/all model/snapshot bytes overlap and must not be added",
+    "allocator process-wide live/allocated values not wholeheap attribution",
+    "final owner0 is logical release only"
+  ],
+  "notRun": [
+    "2700s completion",
+    "final A/work-window/latency/progress/sample coverage gate",
+    "deletion gate",
+    "both channel disable settings",
+    "normal45 success Finish",
+    "native closed journal",
+    "120min",
+    "UI"
+  ],
+  "shutdownScope": "exit0 and Finish/destruction in failure cleanup only",
+  "sourceBinding": {
+    "startEqualsEnd": true,
+    "productRuntimeBeforeAfterEqual": true,
+    "productEdits": 0,
+    "collectorEdits": 0,
+    "fixtureEdits": 0,
+    "gateChanges": 0,
+    "productRebuilds": 0,
+    "bindings": {
+      "build-gst-onnx/media_server": {
+        "bytes": 38000080,
+        "sha256": "33f516d35d56cb2f6cafc75647b6c37d2ced67115302d1205cca23bf51ab7f79"
+      },
+      "build-gst-onnx/libmedia_server_runtime.a": {
+        "bytes": 113126688,
+        "sha256": "2d91cf35fe7e805e0c06e00d16779c86849b35db635e087582277e1b676d198c"
+      },
+      "scripts/internal/run_v450_recording_a_mixed.py": {
+        "bytes": 12571,
+        "sha256": "af2c5cf6dffa4f7ffbb96f26ff2d0c7f4ce7bc79d1145e2fe47922afaf373008"
+      },
+      "scripts/internal/verify_v450_recording_a_mixed.sh": {
+        "bytes": 4118,
+        "sha256": "81d87186c43eda51ca2b51d7e215b97bc2b53e93b910cd72029f4fa6be1045d8"
+      },
+      "scripts/internal/recording_process_metrics.cpp": {
+        "bytes": 21433,
+        "sha256": "1baaace8a0d48f359659807b04e622bc9bb2d8de9d3c2d721ba8a9372c818548"
+      },
+      "scripts/internal/recording_completion_collection.mjs": {
+        "bytes": 3019,
+        "sha256": "b9dd0d5d80e7f9912f93cf65b404681a58c917ac89be08b196cac8b760b07557"
+      },
+      "scripts/internal/recording_memory_attribution.mjs": {
+        "bytes": 8112,
+        "sha256": "deeb80f7ebf2e34196956ea7e170adabca07edbd781b2d0b6a1dbec262831139"
+      },
+      "scripts/internal/v450_recording_a_mixed.mjs": {
+        "bytes": 56149,
+        "sha256": "7d3aa023351dfe0038e468eae6e0c60949cdf3296d3e4ce1fdd18ca39d6ebaa4"
+      },
+      "scripts/internal/recording_longrun_progress.mjs": {
+        "bytes": 22971,
+        "sha256": "b7635f864c34aabdf291dde989a7c106cf6513db7a7b2b7a94e30cb408c5192e"
+      }
+    }
+  },
+  "bindingProcedure": {
+    "producer": "NOT_RUN; no code/test/inventory changes",
+    "readbackCoverage": "R149-Prep unchanged scope reused; not runtime PASS",
+    "documentChecks": "JSON parse/archive payload hashes/diff check"
+  },
+  "archive": {
+    "path": "docs/release-artifacts/v4.5.0/149-execution.tar.gz",
+    "bytes": 14213695,
+    "sha256": "47689cbb01cec1cda46ecfec1c4092bdf24bc3ccdd2f875666c4ff45024e9b43",
+    "payloads": 56,
+    "rawAndSanitizedSeparate": true,
+    "exclusions": [
+      "auth/state files",
+      "user settings/private backups",
+      "models/SDK/libraries",
+      "compiled binary bytes (hashes only)",
+      "media bytes (file hash map only)",
+      "SQLite/persisted cache",
+      "duplicate snapshot/identity/evidence history files"
+    ],
+    "fullStore": false
+  },
+  "independentReview": "149-independent-review.json",
+  "cleanup": {
+    "processGroupAbsent": true,
+    "productPidAbsent": true,
+    "portsClosed": [
+      59148,
+      59149
+    ],
+    "rootRetained": "remote byte verification pending; follow 149-closure.json for final disposition"
+  },
+  "historical": "R145/R146/R147/R148/R149-Prep unchanged; this new actual45 execution failed on A HTTP timeout",
+  "preservationApproval": {
+    "scope": "R149 sanitized archive Git preservation, normal push, remote byte verification then owned cleanup",
+    "bytes": 14213695,
+    "sha256": "47689cbb01cec1cda46ecfec1c4092bdf24bc3ccdd2f875666c4ff45024e9b43",
+    "source": "explicit user approval after result report"
+  },
+  "closure": "149-closure.json"
+}

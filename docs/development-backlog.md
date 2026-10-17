@@ -17,6 +17,8 @@
 
 ## v4.5.0 잔여 개발과 릴리즈 순서
 
+[R149 단회45분](release-artifacts/v4.5.0/149-validation.json)은 **Functional45 FAIL / Collection45 INCOMPLETE**다. wrapper/제품 각1회, 총1718.887초·마지막 정상표본1680.349초에서 A slot28의 현재 구조화 검색 준비 요청이5초 header timeout으로 중단됐다. 원래 성공 검색452건의 부분 p95 2648.367ms·최대4041.449ms를 보존하며 최종 지연gate는 미실행이다. 정기 FD331표본은 모두complete(17표본 재시도 회복), 최대간격10.030초였으나45분 수집 적격성은 미완료다. 구조화/장면 증거각112·A28·종료후 양채널843/842확정과 관측 가능한ordinal공백0을 확인했고 삭제0·정상비활성화/닫힌원장 미실행이다. 실패정리의exit0·논리owner0을 정상45분 종료로 확대하지 않는다. 삭제 후 안정구간과전체heap귀속이 없어 Memory P0·120분·출시 HOLD를 유지하며 재실행/수정은 하지 않았다.
+
 [R149-Prep 제한 시간 분산](release-artifacts/v4.5.0/149-prep-validation.json)은 **PASS_TIMING_CONTRACT_FOCUSED**다. macOS vnode 경합 뒤에만 공통4회 내 절대 단조 시각0/25/100/250ms를 적용하며 완전한 새 round·실패 round 폐기·8MiB/부모3초/16KiB를 유지한다. 결정적 시간창과 macOS/Linux 영향 회귀·독립 검토를 통과했다. 실제 OS 한 쌍은 기준4회 EBADF 거부와 후보 두 번째 완전 순차 관측의 차이를 보였지만, 경합창 종료·일반 성공률·R147 호출자 규명의 증거는 아니다. 제품/runtime bytes·Linux 수집 동작은 불변이고 제품 실행0이다. R149 실제45분은 별도 승인 전 NOT_RUN/HOLD이며 R147 Collection45 FAIL·Functional45 INCOMPLETE·Memory P0·120분·출시 HOLD를 유지한다.
 
 [R148 FD 관측 분석](release-artifacts/v4.5.0/148-validation.json)은 **HOLD_FD_COLLECTOR_REMEDIATION**이다. macOS/Linux의 제어된 별도 child에서 교대 close/reuse·4회 불완전 거부·이전 round 비용 폐기·identity 실패 전파를 확인했다. R147의 구체적인 FD 변경 작업과 안전한 개선법은 미확정이므로 수집 알고리즘은 바꾸지 않았다. 시험 전용 identity hook과 focused 반례만 추가했으며 제품 실행·재빌드0, 기존4회/8MiB/소비자3초는 유지한다. 다음은 실제 변경 작업과 관측 순서의 제한된 추가 근거 또는 별도 수집 설계 결정이다. R149 실행은 별도 승인 전까지 보류하며 R147·Memory P0·120분·출시 상태를 승격하지 않는다.

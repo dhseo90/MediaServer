@@ -1,0 +1,30 @@
+{
+  "schema": "media-server.v450.r149.closure.v1",
+  "status": "PRESERVED_LOCAL_REMOTE_VERIFICATION_PENDING",
+  "baselineHead": "bb3f221ae60c5cbb31c56b44bc80bcaf036c7252",
+  "decision": "FAIL_STATE_DIAGNOSTIC45_HTTP_TIMEOUT",
+  "functional45": "FAIL",
+  "collection45": "INCOMPLETE",
+  "memoryP0": "HOLD",
+  "readiness120": "HOLD",
+  "release": "HOLD",
+  "archive": {
+    "path": "docs/release-artifacts/v4.5.0/149-execution.tar.gz",
+    "bytes": 14213695,
+    "sha256": "47689cbb01cec1cda46ecfec1c4092bdf24bc3ccdd2f875666c4ff45024e9b43",
+    "manifestPayloads": 56,
+    "storedAndOriginalHashesVerified": true,
+    "explicitUserPreservationApproval": true
+  },
+  "sourceChanges": false,
+  "additionalTestsOrProductRuns": 0,
+  "remoteVerification": "PENDING",
+  "ownedRootCleanup": "PENDING_REMOTE_VERIFICATION",
+  "checks": [
+    "JSON parse",
+    "git diff --check",
+    "manifest sizes/hashes/original mapping/sanitization flags",
+    "approved product/runtime SHA unchanged"
+  ],
+  "scanNote": "Initial case-insensitive path scan matched literal /ops/api/users/ in archived source; inspected as public route, not a personal filesystem path. Case-sensitive personal path and credential-field scans passed. Independent review also examined decoded journal payloads."
+}
