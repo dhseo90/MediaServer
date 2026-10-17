@@ -17,6 +17,8 @@
 
 ## v4.5.0 잔여 개발과 릴리즈 순서
 
+[R143 45분 진입](release-artifacts/v4.5.0/143-validation.json)은 **INCOMPLETE_45 — 실행 전 차단**이다. 지정 HEAD·제품/runtime 해시는 일치하지만, launcher가 application 전용 진단 헤더의 시각을 변경되지 않은 runtime archive와 비교해 `stale-product-build` 조건에 해당한다. 실제 wrapper/제품 호출0·관측0초이며 새로운 기능/수집/메모리 결과는 없다. 제품 bytes 불일치나45분 실행FAIL로 확대하지 않는다. 동일소스 실제 재빌드·재결속 또는 별도 의존성guard 보완 결정이 필요하며 guard 우회/mtime변경/자동재실행은 하지 않았다. R142와 과거 기능 근거·Memory P0/120/출시 HOLD를 유지한다.
+
 [R142 손실 없는 이벤트 delta](release-artifacts/v4.5.0/142-validation.json)는 **COMPACT_DIAGNOSTIC_PASS_CAPACITY_UNPROVEN**이다. state-diagnostic만 명시적v2를 사용하며 최근32개 이벤트를 정확히 복원하고 gap/overwrite/중복/역순을 거부한다. R137 보존124표본의 passive replay는297,266→178,386B(39.991%)이며 새 제품 실행이 아니다. 기존 cap/receipt/owner 의미와v1 호환은 유지한다. 580대표 시나리오는 용량 보장이 아니며 외부runtime·삭제 간접출력·동시 소유 상한은 미확정이다. 다음45분은 별도 승인된 잔여 overflow 위험을 수용한 단일 fail-closed 진단으로만 제안하며, Memory P0·45/120·출시 HOLD를 유지한다.
 
 [R141 수집 계약 보완](release-artifacts/v4.5.0/141-validation.json)은 **COLLECTOR_FIXED_CAPACITY_HOLD**다. 개행 포함16383B·UTF-8 분할, completion/evidence 손실과 공통 terminal receipt의 행/byte/쓰기 오류 검증을 보완했고 macOS/Linux 집중 검사와 진단 빌드를 확인했다. 제품 서버·장시간 실행은 없으며 receipt는 정상종료/닫힌 journal의 대체가 아니다. [소유·출력 근거](release-artifacts/v4.5.0/141-collection-budget.md)에서 정상45분 동시 소유/간접 출력/외부 runtime 총량은 여전히 미확정이다. R140 HOLD와 과거 기능 PASS, 메모리 P0·45분/120분·출시 보류를 유지한다.

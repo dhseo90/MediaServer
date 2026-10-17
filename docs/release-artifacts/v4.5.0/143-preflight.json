@@ -1,0 +1,87 @@
+{
+  "head": "9bd160b60629095e182c5fcedd91e49fb5aec9ae",
+  "branch": "v4.5.0",
+  "clean": true,
+  "files": [
+    {
+      "path": "include/recording/recording_memory_diagnostic_output.h",
+      "bytes": 7028,
+      "sha256": "f738fc055f2c8208710c5f94238df38311877f20751e3f2c9fdbcd01909e1b78",
+      "mtimeNs": 1792211532250514329
+    },
+    {
+      "path": "include/recording/recording_resource_trace.h",
+      "bytes": 3960,
+      "sha256": "bcae51153ae4db208777afb54635bfb65aaee2e74c942d61aa4580490089de18",
+      "mtimeNs": 1792211532250983247
+    },
+    {
+      "path": "scripts/internal/verify_v450_recording_a_mixed.sh",
+      "bytes": 4540,
+      "sha256": "379a4f79a622bdb38e94ae7bddce3fcf964bd58588baf753c8086ed12109d23b",
+      "mtimeNs": 1792169781530927762
+    },
+    {
+      "path": "scripts/internal/run_v450_recording_a_mixed.py",
+      "bytes": 12571,
+      "sha256": "af2c5cf6dffa4f7ffbb96f26ff2d0c7f4ce7bc79d1145e2fe47922afaf373008",
+      "mtimeNs": 1792169781530641220
+    },
+    {
+      "path": "scripts/internal/v450_recording_a_mixed.mjs",
+      "bytes": 56149,
+      "sha256": "7d3aa023351dfe0038e468eae6e0c60949cdf3296d3e4ce1fdd18ca39d6ebaa4",
+      "mtimeNs": 1792211532251488000
+    },
+    {
+      "path": "build-gst-onnx/media_server",
+      "bytes": 38000080,
+      "sha256": "33f516d35d56cb2f6cafc75647b6c37d2ced67115302d1205cca23bf51ab7f79",
+      "mtimeNs": 1792211642521014068
+    },
+    {
+      "path": "build-gst-onnx/libmedia_server_runtime.a",
+      "bytes": 113126688,
+      "sha256": "2d91cf35fe7e805e0c06e00d16779c86849b35db635e087582277e1b676d198c",
+      "mtimeNs": 1792208862848044272
+    },
+    {
+      "path": "build-gst-onnx/CMakeFiles/media_server.dir/src/application/media_server_application.cpp.o",
+      "bytes": 716472,
+      "sha256": "c29b5343e89a54ebffbcfce72cccc1aba58794504cedc9f01e2d2beff8b511cd",
+      "mtimeNs": 1792211642179998940
+    },
+    {
+      "path": "build-gst-onnx/CMakeFiles/media_server.dir/src/application/media_server_application.cpp.o.d",
+      "bytes": 106187,
+      "sha256": "292271784e821efd81c5482e5ce4b89374c934400c510b0015a92b25ce061b4c",
+      "mtimeNs": 1792211642180519609
+    }
+  ],
+  "guard": "every include/recording or src/recording .h/.hpp/.cpp mtime <= libmedia_server_runtime.a mtime",
+  "guardResult": "FAIL_stale-product-build",
+  "newerSource": [
+    {
+      "path": "include/recording/recording_memory_diagnostic_output.h",
+      "bytes": 7028,
+      "sha256": "f738fc055f2c8208710c5f94238df38311877f20751e3f2c9fdbcd01909e1b78",
+      "mtimeNs": 1792211532250514329
+    },
+    {
+      "path": "include/recording/recording_resource_trace.h",
+      "bytes": 3960,
+      "sha256": "bcae51153ae4db208777afb54635bfb65aaee2e74c942d61aa4580490089de18",
+      "mtimeNs": 1792211532250983247
+    }
+  ],
+  "runtimeDependencyFilesReferencingEitherHeader": [],
+  "applicationDependencyContainsBoth": true,
+  "wrapperInvocations": 0,
+  "productExecutions": 0,
+  "reason": "Exact binary/runtime hashes match R142. Both new diagnostic headers belong to application object dependency, which is newer and linked into expected binary; timestamp guard uses unchanged runtime archive instead. No gate bypass or rebuild performed.",
+  "schema": "media-server.v450.r143.preflight.v1",
+  "evaluation": "기존 wrapper 조건식의 읽기 전용 사전 대조; wrapper는 호출하지 않음",
+  "wrapperExit": null,
+  "remoteHead": "9bd160b60629095e182c5fcedd91e49fb5aec9ae",
+  "tree": "a0447b8ed5f2600b67d31fc63c277b0f1b667e57"
+}

@@ -1,0 +1,134 @@
+{
+  "schema": "media-server.v450.r143.validation.v1",
+  "decision": "INCOMPLETE_45",
+  "reason": "preflight blocked: launcher timestamp guard",
+  "baselineHead": "9bd160b60629095e182c5fcedd91e49fb5aec9ae",
+  "baselineTree": "a0447b8ed5f2600b67d31fc63c277b0f1b667e57",
+  "authorizedScope": "기존45분 state-diagnostic 단1회, observation2700초/total2880초, 잔여로그overflow 위험 수용, 기존모든cap/gate유지. MemoryP0/출시 위험 수용 아님.",
+  "model": {
+    "requestedMain": "GPT-6 Astra / High",
+    "mainToolAccepted": null,
+    "actualMainModel": null,
+    "actualMainEffort": null,
+    "requestedReviewer": "GPT-6 Astra / High",
+    "reviewerTask": "/root/independent_r142",
+    "reviewerToolAccepted": "gpt-6-astra/high, same independent read-only agent reused",
+    "actualReviewerModel": null,
+    "actualReviewerEffort": null
+  },
+  "preflight": "143-preflight.json",
+  "sourceAndBinary": {
+    "headMatchesRequestedAndRemote": true,
+    "entryWorktreeIndexClean": true,
+    "productSha256": "33f516d35d56cb2f6cafc75647b6c37d2ced67115302d1205cca23bf51ab7f79",
+    "runtimeSha256": "2d91cf35fe7e805e0c06e00d16779c86849b35db635e087582277e1b676d198c",
+    "bothHashesMatchR142": true,
+    "diagnosticCommit": "16fb51cb7bfe88e0aee4bc483ef0a537f2383540",
+    "featureBaseline": "c438911431c631d239580367eee4a2c7e22045de",
+    "sourceChanges": false,
+    "builds": 0,
+    "runtimeFactoryModelSettings": "not observed in a new product process",
+    "profile": "existing continuous-r114 launcher contract, not executed"
+  },
+  "blocker": {
+    "condition": "any include/recording or src/recording .h/.hpp/.cpp mtime > runtime.a mtime",
+    "runtimeMtimeNs": 1792208862848044272,
+    "newerHeaders": [
+      {
+        "path": "include/recording/recording_memory_diagnostic_output.h",
+        "bytes": 7028,
+        "sha256": "f738fc055f2c8208710c5f94238df38311877f20751e3f2c9fdbcd01909e1b78",
+        "mtimeNs": 1792211532250514329
+      },
+      {
+        "path": "include/recording/recording_resource_trace.h",
+        "bytes": 3960,
+        "sha256": "bcae51153ae4db208777afb54635bfb65aaee2e74c942d61aa4580490089de18",
+        "mtimeNs": 1792211532250983247
+      }
+    ],
+    "actualDependency": "두 헤더는 application.cpp.o.d에 포함; runtime *.d에는 없음. application 객체 및 기대 제품 바이너리는 헤더보다 나중에 빌드됨.",
+    "interpretation": "stale product bytes가 입증된 것이 아니라 기존wrapper시각guard의 선행조건 불충족",
+    "wrapperFailureActuallyExecuted": false,
+    "bypassTouchRebuild": false,
+    "rule": "AGENTS: 실패한 선행 조건을 건너뛰지 않음; 사용자 요청: 기존gate 변경 금지/새구현은 이번실행승인외"
+  },
+  "execution": {
+    "requestedCommand": "python3 scripts/internal/run_v450_recording_a_mixed.py --state-diagnostic <new-owned-parent/nonexistent-run>",
+    "wrapperInvocations": 0,
+    "productExecutions": 0,
+    "observationSeconds": 0,
+    "runElapsedSeconds": null,
+    "runLog": null,
+    "executionReceipt": null,
+    "firstRuntimeFailure": null,
+    "reason": "run child를 만들거나 호출하기 전에 guard조건을 읽기전용으로 확인하여 중단"
+  },
+  "results": {
+    "Functional45": "NOT_RUN",
+    "Collection": "NOT_RUN",
+    "Memory": "attribution insufficient — no new runtime samples",
+    "searchP95Ms": null,
+    "searchMaxMs": null,
+    "searchErrors": null,
+    "evidenceA": "NOT_RUN",
+    "deletionByChannel": {
+      "9101": null,
+      "9201": null
+    },
+    "recorderContinuity": "NOT_RUN",
+    "v2DeltaReceiptLogBytes": "NOT_RUN",
+    "normalFinish": "NOT_RUN",
+    "closedJournal": "NOT_RUN",
+    "finalRuntimeOwners": "NOT_RUN",
+    "fixedMemoryWindows": [
+      {
+        "startSeconds": 0,
+        "endSeconds": 300,
+        "samples": 0,
+        "metrics": null,
+        "reason": "NOT_RUN"
+      },
+      {
+        "startSeconds": 300,
+        "endSeconds": 900,
+        "samples": 0,
+        "metrics": null,
+        "reason": "NOT_RUN"
+      },
+      {
+        "startSeconds": 900,
+        "endSeconds": 1500,
+        "samples": 0,
+        "metrics": null,
+        "reason": "NOT_RUN"
+      },
+      {
+        "startSeconds": 1500,
+        "endSeconds": 2100,
+        "samples": 0,
+        "metrics": null,
+        "reason": "NOT_RUN"
+      },
+      {
+        "startSeconds": 2100,
+        "endSeconds": 2700,
+        "samples": 0,
+        "metrics": null,
+        "reason": "NOT_RUN"
+      }
+    ]
+  },
+  "nextDecision": [
+    "동일소스 실제 재빌드 및 산출물 재결속 별도 승인. 단순증분build는runtime시각을갱신하지않을수있고hash가달라지면새candidate결정필요.",
+    "또는 별도작업에서 guard를실제target의존성에맞게수정하고focused검증. 두헤더예외처리/mtime touch/guard생략은제안하지않음."
+  ],
+  "readiness120": "HOLD; not authorized or executed",
+  "memoryP0": "HOLD",
+  "release": "HOLD",
+  "historicalEvidence": "R135/R136/R137 historical PASS, R138 attribution, R139–R141 HOLD, R142 compact PASS/capacity unproven unchanged",
+  "binding": "not required: product/diagnostic/test/inventory unchanged; documentation-only diff and referenced hash review",
+  "independentReview": "143-independent-review.json",
+  "cleanup": "pending remote evidence verification; only owned preflight-record root, no product process/port/container",
+  "closure": "143-closure.json"
+}
