@@ -189,7 +189,7 @@
     "payloadFiles": 18,
     "localArchiveReadback": "all members byte-equal to declared preserved payload; raw/sanitized hash mapping in manifest"
   },
-  "cleanup": "pending remote byte verification",
+  "cleanup": "complete: remote bytes matched before owned root/marker/new helper bytecode deletion; no product process/port created; focused container absent",
   "closure": "144-closure.json",
   "guardCommit": "ed265d2105a0dca908207b74358cfcbbc0a0047a"
 }

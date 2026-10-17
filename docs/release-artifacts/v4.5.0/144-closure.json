@@ -1,0 +1,62 @@
+{
+  "schema": "media-server.v450.r144.closure.v1",
+  "decision": "PASS_TARGET_AWARE_PREFLIGHT",
+  "remoteVerificationBeforeCleanup": {
+    "commit": "b83dea3d223bece073559567b0504c6aa1583ff4",
+    "remote": "b83dea3d223bece073559567b0504c6aa1583ff4",
+    "verifiedBytes": [
+      {
+        "path": "docs/release-artifacts/v4.5.0/144-execution.tar.gz",
+        "bytes": 42010,
+        "sha256": "aba36297413e460230db41e24aec789a9432bd7e3c786da35cb2f2355a238432"
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/144-validation.json",
+        "bytes": 8392,
+        "sha256": "2bf067a7c53edddf7251139ab0ce6591d1dc3f4ad730b9322a2f8eecb7eb13df"
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/144-independent-review.json",
+        "bytes": 1477,
+        "sha256": "60aa614ccc48498ad9aa2a09a680ad165e0c36f65e34ef56cd648b763249d71e"
+      },
+      {
+        "path": "scripts/internal/recording_build_freshness.py",
+        "bytes": 13928,
+        "sha256": "9c992e105da163de807d7f5129880e63e8ac2b834c386025182f5c5c3a3a22d6"
+      },
+      {
+        "path": "scripts/internal/test_recording_build_freshness.py",
+        "bytes": 10254,
+        "sha256": "a32f5b5252ff77aca62c54a56f945a4c92d6f748ec525fe53dce9823fd50ec61"
+      },
+      {
+        "path": "scripts/internal/verify_v450_recording_a_mixed.sh",
+        "bytes": 4118,
+        "sha256": "81d87186c43eda51ca2b51d7e215b97bc2b53e93b910cd72029f4fa6be1045d8"
+      }
+    ]
+  },
+  "cleanup": {
+    "ownedRoot": "/private/tmp/media-server-r144-cxa_uwds",
+    "uid": 501,
+    "inode": 175653172,
+    "removedFiles": 19,
+    "removedBytes": 175466,
+    "allOriginalFilesMatchedArchiveManifest": true,
+    "rootAbsent": true,
+    "extraOwnedFilesRemoved": [
+      "/private/tmp/media-server-r144-active-path",
+      "scripts/internal/__pycache__/recording_build_freshness.cpython-314.pyc"
+    ],
+    "container": "media-server-r144-focused absent (docker ps -a exact name filter empty)",
+    "productProcessesStarted": 0,
+    "portsBound": 0,
+    "productBuilds": 0
+  },
+  "guardCommit": "ed265d2105a0dca908207b74358cfcbbc0a0047a",
+  "history": "R143 remains INCOMPLETE_45_PREFLIGHT_BLOCKED; R135–R142 unchanged",
+  "longRun45": "NOT_RUN",
+  "memoryP0": "HOLD",
+  "finalRemoteVerification": "final commit SHA and closure/validation/archive bytes checked after push; reported in final response"
+}
