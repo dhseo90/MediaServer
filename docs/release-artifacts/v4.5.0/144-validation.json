@@ -1,0 +1,195 @@
+{
+  "schema": "media-server.v450.r144.validation.v1",
+  "decision": "PASS_TARGET_AWARE_PREFLIGHT",
+  "scope": "build freshness guard and focused verification only",
+  "baselineHead": "bd16411f950d1f475ce44856f94f882c5f303434",
+  "baselineBranch": "v4.5.0",
+  "baselineWorktreeIndexClean": true,
+  "baselineRemoteHeadMatched": true,
+  "model": {
+    "requestedMain": "GPT-6 Astra / High",
+    "mainToolAccepted": null,
+    "actualMainModel": null,
+    "actualMainEffort": null,
+    "requestedIndependent": "GPT-6 Astra / High",
+    "reviewerToolAccepted": "gpt-6-astra / high",
+    "actualReviewerModel": null,
+    "actualReviewerEffort": null
+  },
+  "source": [
+    {
+      "path": "scripts/internal/recording_build_freshness.py",
+      "sha256": "9c992e105da163de807d7f5129880e63e8ac2b834c386025182f5c5c3a3a22d6",
+      "bytes": 13928
+    },
+    {
+      "path": "scripts/internal/test_recording_build_freshness.py",
+      "sha256": "a32f5b5252ff77aca62c54a56f945a4c92d6f748ec525fe53dce9823fd50ec61",
+      "bytes": 10254
+    },
+    {
+      "path": "scripts/internal/verify_v450_recording_a_mixed.sh",
+      "sha256": "81d87186c43eda51ca2b51d7e215b97bc2b53e93b910cd72029f4fa6be1045d8",
+      "bytes": 4118
+    },
+    {
+      "path": "docs/project-feature-test-inventory.md",
+      "sha256": "e6e305220d1a8de9e10c7a3fcc458ffd0d72923806a8ad187ed6a21f93f24cef",
+      "bytes": 1084094
+    }
+  ],
+  "guardContract": {
+    "runtime": "CMake target dependency tuples + compiler depfiles → every runtime object → archive",
+    "application": "CMake target dependency tuples + compiler depfiles → application/main objects → executable",
+    "link": "generated build.make prerequisites and explicit link.txt input set agree; every required object/archive/library exists and is not newer than output",
+    "configuration": "CMakeCache/CMakeLists and all generated config inputs → cmake.check_cache; target flags/DependInfo/build rules → objects; link rules → outputs; cache roots/compiler/four feature options agree",
+    "failClosed": "missing or malformed depfile, source/object/target mismatch, missing configuration inputs/output declarations, unsupported parsing/link forms all return nonzero UNVERIFIED",
+    "supportedGenerator": "CMake Unix Makefiles; unsupported generators/link options are UNVERIFIED, never skipped",
+    "observer": "no scripts/internal dependency in actual product depfiles; wrapper compiles current observer sources and instrumented catalog after guard; wrapper not executed in this task",
+    "noHardcodedHeaderExceptions": true,
+    "noTouchOrRebuild": true,
+    "limits": "Timestamp-based standard generated-build metadata contract, not tamper-resistant proof against forged timestamps or a deliberately rewritten dependency graph."
+  },
+  "actualPreflight": {
+    "graphSha256": "7d7137440a8c7ee02fcd438834103ff13ffdf16ed919065e4af200bb4ef36d73",
+    "observer": "not prebuilt product dependency unless present in compiler depfiles; wrapper compiles current observer sources after this guard",
+    "schema": "media-server.build-freshness.v1",
+    "scope": "CMake Unix Makefiles timestamp dependency contract; no build or product execution",
+    "status": "PASS_TARGET_AWARE_PREFLIGHT",
+    "targets": {
+      "media_server": {
+        "artifactSha256": "33f516d35d56cb2f6cafc75647b6c37d2ced67115302d1205cca23bf51ab7f79",
+        "buildDependencies": 0,
+        "externalDependencies": 1024,
+        "linkInputs": 26,
+        "objects": 2,
+        "repoDependencies": 120,
+        "uniqueDependencies": 1144
+      },
+      "media_server_runtime": {
+        "artifactSha256": "2d91cf35fe7e805e0c06e00d16779c86849b35db635e087582277e1b676d198c",
+        "buildDependencies": 0,
+        "externalDependencies": 1716,
+        "linkInputs": 178,
+        "objects": 176,
+        "repoDependencies": 395,
+        "uniqueDependencies": 2111
+      }
+    }
+  },
+  "actualPreflightTiming": {
+    "exit": 0,
+    "elapsedSeconds": 14.002334457822144,
+    "productExecutions": 0,
+    "builds": 0
+  },
+  "r143Comparison": {
+    "headerConsumers": {
+      "include/recording/recording_memory_diagnostic_output.h": [
+        {
+          "target": "media_server",
+          "source": "$REPO/src/application/media_server_application.cpp",
+          "object": "CMakeFiles/media_server.dir/src/application/media_server_application.cpp.o",
+          "objectMtimeNs": 1792211642179998940,
+          "headerMtimeNs": 1792211532250514329
+        }
+      ],
+      "include/recording/recording_resource_trace.h": [
+        {
+          "target": "media_server",
+          "source": "$REPO/src/application/media_server_application.cpp",
+          "object": "CMakeFiles/media_server.dir/src/application/media_server_application.cpp.o",
+          "objectMtimeNs": 1792211642179998940,
+          "headerMtimeNs": 1792211532250983247
+        }
+      ]
+    },
+    "observerConsumers": [],
+    "productSha256": "33f516d35d56cb2f6cafc75647b6c37d2ced67115302d1205cca23bf51ab7f79",
+    "runtimeSha256": "2d91cf35fe7e805e0c06e00d16779c86849b35db635e087582277e1b676d198c",
+    "runtimeObjects": 176,
+    "applicationObjects": 2,
+    "oldGuardConditionSatisfied": false,
+    "wrapperExecuted": false,
+    "observerBoundary": "wrapper after guard: current recording_catalog.cpp instrumented copy + recording_current_observer_native.cpp, recording_process_metrics.cpp, va_review_smoke.cpp compile commands; no reuse of old observer binary"
+  },
+  "focused": {
+    "macOS": {
+      "exit": 0,
+      "tests": 22,
+      "pass": 22
+    },
+    "Linux": {
+      "exit": 0,
+      "tests": 22,
+      "pass": 22,
+      "image": "python:3.12-slim (existing local image)",
+      "uid": 65534,
+      "network": "none",
+      "repository": "read-only",
+      "rootFilesystem": "read-only",
+      "tmpfsMiB": 64,
+      "privileges": "cap-drop ALL / no-new-privileges",
+      "scope": "guard synthetic filesystem/parse tests; no product platform run"
+    },
+    "staleCases": "requested cases 1–8 reject; case9 application-only passes; case10 observer independent/current compile boundary verified; linked-library/hash/Make escapes/malformed/missing config supplemental cases pass",
+    "firstDevelopmentFailure": {
+      "result": "15 assertion failures + 2 errors in 20 tests",
+      "cause": "synthetic macOS /var vs /private/var alias not normalized; fixture fixed. Empty Make assignment regex also corrected by inspection.",
+      "outerShellExit": 0,
+      "unittestExitSeparatelyCaptured": false,
+      "rawLog": "focused-macos-initial.log",
+      "historicalFailurePreserved": true
+    },
+    "secondMacOSAndInitialLinux": "20/20 PASS before adding two required CMake declaration rejection tests; not substituted for final22"
+  },
+  "productSourceChanges": false,
+  "productBuilds": 0,
+  "runtimeBuilds": 0,
+  "productExecutions": 0,
+  "launcherExecutions": 0,
+  "longRuns": {
+    "45min": "NOT_RUN",
+    "600sec": "NOT_RUN",
+    "900sec": "NOT_RUN",
+    "120min": "NOT_RUN"
+  },
+  "functional45": "NOT_RUN",
+  "memoryP0": "HOLD",
+  "release": "HOLD",
+  "historicalR143": "INCOMPLETE_45_PREFLIGHT_BLOCKED unchanged; wrapper/product0/observation0 was a read-only condition evaluation, not observed wrapper exit",
+  "independentReview": "144-independent-review.json",
+  "binding": {
+    "producer": {
+      "exit": 0,
+      "pass": 51,
+      "fail": 0
+    },
+    "readback": {
+      "exit": 0,
+      "validationErrors": 0,
+      "review4GlobalErrors": 0,
+      "negativeFixtures": "15/15"
+    },
+    "coverage": {
+      "exit": 0,
+      "covered": 986,
+      "missing": 0,
+      "pass": 9,
+      "fail": 0
+    },
+    "manifestChange": "inventorySha256 only, original formatting and 986 items preserved; not runtime qualification",
+    "sequence": "producer exit0 → readback exit0 → coverage exit0"
+  },
+  "preservation": {
+    "archive": "144-execution.tar.gz",
+    "rawBuildFiles": "371 build metadata/object/artifact byte hashes/mtime recorded; raw SDK/binary/cache values not uploaded",
+    "archiveBytes": 42010,
+    "archiveSha256": "aba36297413e460230db41e24aec789a9432bd7e3c786da35cb2f2355a238432",
+    "payloadFiles": 18,
+    "localArchiveReadback": "all members byte-equal to declared preserved payload; raw/sanitized hash mapping in manifest"
+  },
+  "cleanup": "pending remote byte verification",
+  "closure": "144-closure.json",
+  "guardCommit": "ed265d2105a0dca908207b74358cfcbbc0a0047a"
+}

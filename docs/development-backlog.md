@@ -17,6 +17,8 @@
 
 ## v4.5.0 잔여 개발과 릴리즈 순서
 
+[R144 빌드 freshness](release-artifacts/v4.5.0/144-validation.json)는 **PASS_TARGET_AWARE_PREFLIGHT**다. CMake의 실제 runtime/application 의존성에서 입력→객체→archive/실행 파일을 대조하고 설정·링크·누락/미해석 자료는 실패로 처리한다. R143 두 헤더는 application 객체에 반영됐고 기존 제품/runtime SHA는 불변이다. macOS/Linux 각22 focused와 읽기 전용 실제 preflight를 확인했다. 재빌드·제품·launcher·45분 실행은 없으며, R143 최초 차단과 Memory P0·45/120·출시 HOLD는 유지한다.
+
 [R143 45분 진입](release-artifacts/v4.5.0/143-validation.json)은 **INCOMPLETE_45 — 실행 전 차단**이다. 지정 HEAD·제품/runtime 해시는 일치하지만, launcher가 application 전용 진단 헤더의 시각을 변경되지 않은 runtime archive와 비교해 `stale-product-build` 조건에 해당한다. 실제 wrapper/제품 호출0·관측0초이며 새로운 기능/수집/메모리 결과는 없다. 제품 bytes 불일치나45분 실행FAIL로 확대하지 않는다. 동일소스 실제 재빌드·재결속 또는 별도 의존성guard 보완 결정이 필요하며 guard 우회/mtime변경/자동재실행은 하지 않았다. R142와 과거 기능 근거·Memory P0/120/출시 HOLD를 유지한다.
 
 [R142 손실 없는 이벤트 delta](release-artifacts/v4.5.0/142-validation.json)는 **COMPACT_DIAGNOSTIC_PASS_CAPACITY_UNPROVEN**이다. state-diagnostic만 명시적v2를 사용하며 최근32개 이벤트를 정확히 복원하고 gap/overwrite/중복/역순을 거부한다. R137 보존124표본의 passive replay는297,266→178,386B(39.991%)이며 새 제품 실행이 아니다. 기존 cap/receipt/owner 의미와v1 호환은 유지한다. 580대표 시나리오는 용량 보장이 아니며 외부runtime·삭제 간접출력·동시 소유 상한은 미확정이다. 다음45분은 별도 승인된 잔여 overflow 위험을 수용한 단일 fail-closed 진단으로만 제안하며, Memory P0·45/120·출시 HOLD를 유지한다.
