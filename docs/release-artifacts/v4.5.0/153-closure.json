@@ -1,10 +1,10 @@
 {
   "schema": "media-server.v450.r153.closure.v1",
   "decision": "PASS_BOUNDED_FIXTURE_QUALIFIED",
-  "status": "PRESERVATION_PENDING",
+  "status": "PRESERVED_AND_OWNED_CLEANUP_COMPLETE",
   "baselineHead": "e996ec06df24f27bff44710d2149d0533c3f54aa",
-  "remoteBytesVerified": false,
-  "ownedTemporaryRootRemoved": false,
+  "remoteBytesVerified": true,
+  "ownedTemporaryRootRemoved": true,
   "processCheck": {
     "18438": "absent",
     "18440": "absent",
@@ -22,5 +22,184 @@
     "new45": "NOT_RUN",
     "R154": "NOT_RUN"
   },
-  "fixtureCommit": "67d61613735fff03e787ab8def0b1f7c5119e983"
+  "fixtureCommit": "67d61613735fff03e787ab8def0b1f7c5119e983",
+  "preservationCommit": "2862fa678ab66ed512143e0eb0d36254c5b19c39",
+  "remoteVerification": {
+    "remoteHead": "2862fa678ab66ed512143e0eb0d36254c5b19c39",
+    "files": [
+      {
+        "path": "docs/release-artifacts/v4.5.0/153-focused-native-reviewed.log",
+        "bytes": 3340,
+        "sha256": "434a9c31e20158c13113058b4684d7f3c7d48a84e7e6cb851aaedcf5c7385f5a",
+        "gitBlob": "706f45bda65c8cc816fb6ca860290d0ba65acec7"
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/153-focused-native-reviewed.json",
+        "bytes": 221,
+        "sha256": "23fdd9442784aa05f8330c8bf4ed5ecbac71c09cd613ff3bbc233520e469ebeb",
+        "gitBlob": "faadb7dc9c7290ec7eab89eb6d49eb40a092db60"
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/153-red.log",
+        "bytes": 39205,
+        "sha256": "40906718c364f38674731a9832a73a3e303d334b4324ef98d35691b65a2b0d30",
+        "gitBlob": "6749cc6274ba61ce589a26ca81794c166974dd5d"
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/153-run-input-binding.json",
+        "bytes": 19664,
+        "sha256": "88967581b2b68f0c830c8f89fbbc97c9e53942a394e2ad986474640efa3ce467",
+        "gitBlob": "09b68752c7c0aef320850d4210682e70cb58dee4"
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/153-closure.json",
+        "bytes": 816,
+        "sha256": "e34bf672698b7325beb187500ae1653192a710179ad11a2aa0caee8151f5211f",
+        "gitBlob": "d4cfefb3afb52f3c85b55203f3e4a6318f597377"
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/153-focused-python.log",
+        "bytes": 125,
+        "sha256": "f380f6b4a7dec6524e5e71cb796ec363678265cee278133b4878f200d4bd24b4",
+        "gitBlob": "2eeb8c934c68bfdb1b202258e174c62ab8030b3b"
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/153-plan.json",
+        "bytes": 678,
+        "sha256": "8df8d75307a10640b924928d7f9ae47bd058a190a77585a610dc14c94827946b",
+        "gitBlob": "ebd4fab0ffd727c951918e8fc99f27f7051fd51e"
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/153-focused-build-command.json",
+        "bytes": 4040,
+        "sha256": "5ecbafa63c67456c67fe1e8251296bcdeabc76888c796cc3ca435848dc3b565f",
+        "gitBlob": "b9eb3a94bb5ec169ebcc01a3553f944d23bdd77a"
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/153-output.log",
+        "bytes": 132924,
+        "sha256": "51cee77be8a6472fa4ed4fcb855c6deed88d21ffb9512a47ec9b2a67670f1e16",
+        "gitBlob": "1a2c3c09552d60a0cdaa914d0d5a95a6d06b2718"
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/153-events.json",
+        "bytes": 14440,
+        "sha256": "7df81b9bc57137f748b0ea749374be915225d47d0dc9860d3c48280afc5ce532",
+        "gitBlob": "238ce3f87f6ff3acc07f77cdf7282a88005f4466"
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/153-input-summary.json",
+        "bytes": 9444,
+        "sha256": "d476470c1b52ece8d05e253d673190874990bdbc6ffb2a55bff426779552884a",
+        "gitBlob": "bef078b78b1ec20d5468f1aae4589b5f282cc6fe"
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/153-focused-native-second-result.json",
+        "bytes": 68,
+        "sha256": "5cce936c432903a2400a86323e78b3feb1503c11a6a1c6437c414aa34d91e092",
+        "gitBlob": "ff0afcdcfff21d2a3b7b171548f589a58ab45170"
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/153-focused-native-final.json",
+        "bytes": 379,
+        "sha256": "96a86f58ac1efe455fe09998aaa5fdbc583f4397aa2027121d9008eeccfa4c32",
+        "gitBlob": "663f760a1b6c91d2df4b3a7cdfdc1d907f6d16a5"
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/153-readback.log",
+        "bytes": 1141,
+        "sha256": "f004e8a145e0b287322992e5f2f9c356c12a495834505e9ea79a414fd1f6b6f7",
+        "gitBlob": "b4a5d89f075d1ed245bcb2d4a761fd44a69e2ce9"
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/153-producer.log",
+        "bytes": 12812,
+        "sha256": "d044f8ac77f4e3e0a7ee0672c9d63381151b9f522393a0aa536f910913ef258f",
+        "gitBlob": "f64b18be08c71f24698fe7cfc589c488254cf151"
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/153-focused-native-final.log",
+        "bytes": 3340,
+        "sha256": "48b081ef235c1c0cca5dd68a7d14d7862851e4a9cff78d15d4caf21f7bda9830",
+        "gitBlob": "797d95f97cb65d7439d53737599fbd3c2e2e1e5f"
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/153-independent-review.json",
+        "bytes": 2921,
+        "sha256": "6d8db25bb3d6fbc9fbb87abc8ae2c8cd344fae4dc2d6e5d356e1a201422c464d",
+        "gitBlob": "2797d80fd268808f4e68fcfc455a6379ab8b708c"
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/153-execution.json",
+        "bytes": 20264,
+        "sha256": "d770c979ab1e37c660bbc4de5f50672bbb92910b92debd89fb0b2c7026b85764",
+        "gitBlob": "1400cd0e1f881d3985f72ea73507e9d24165c722"
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/153-readback-premature-failure.log",
+        "bytes": 1258,
+        "sha256": "4eee0e7faf5a337d9ff89b54db455ca74f61292ac4c2243bc4b305214b9e990b",
+        "gitBlob": "6f5378ec4d8133243ccc24ee219130ead4c941c9"
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/153-validation.json",
+        "bytes": 16903,
+        "sha256": "0ad0cae3e98bd6fceb0fddf9c4331b99cd615255ab0a91136b702f00389d1a8c",
+        "gitBlob": "fca73e8257302c70757690c8e39dd53bdaea765f"
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/153-process-check.json",
+        "bytes": 203,
+        "sha256": "9654b6a6e47e4b71ffcd814c0ca867e1a8ba4e9c272aaf3ab030157844dbb238",
+        "gitBlob": "cc9e567c8c65b9bdde7668d553fd82dfff6a1575"
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/153-focused-python-final.log",
+        "bytes": 129,
+        "sha256": "8c507533531f971ea18df9a9fd268ff88f8a6662d4a36cce0854ff4e70069e0a",
+        "gitBlob": "945c9b7b074720766c006d5f2e7394cbe87e049b"
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/153-focused-native-first-result.json",
+        "bytes": 68,
+        "sha256": "c46e0b3f786ffbd0d479add23545d1f9da1653bc43a2e472599c3eac084814e5",
+        "gitBlob": "81aef85b700a550f323d22901b567ef5a89120f8"
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/153-focused-native-second.log",
+        "bytes": 3340,
+        "sha256": "0b7a2bc4e64f7faeb4f5e5ee805631569d621c77bc25cba1730c90923965f0c1",
+        "gitBlob": "17057ad424d6edba937dd828b9391e8f079be505"
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/153-coverage.log",
+        "bytes": 604,
+        "sha256": "f3dd9d2ec3cd35ce7a806a391b6918dddd2c2377ca3039afa624f484985f9bce",
+        "gitBlob": "5b68f8366d7bc18014c071e7513e9c80dafb8cfc"
+      }
+    ],
+    "totalBytes": 288327,
+    "byteExact": true
+  },
+  "cleanup": {
+    "rootBasename": "media-server-r153-f8nie6if",
+    "device": 16777232,
+    "inode": 175798802,
+    "uidMatched": true,
+    "entries": 265,
+    "regularFileBytes": 248704621,
+    "symlinksOrForeignOwners": [],
+    "pathAbsentAfterRemoval": true,
+    "recordedPidsAbsent": [
+      18438,
+      18440
+    ],
+    "ownedProcessMatches": [],
+    "port": 51235,
+    "connectResult": 61,
+    "noOwnedContainersCreated": true,
+    "removed": "only this task owned synthetic media, temporary native binaries/build outputs and raw logs after sanitized evidence remote byte verification",
+    "preservedOutsideRoot": "user settings/private backups/models/SDK unchanged"
+  },
+  "closedAt": "2026-10-17T18:46:40.561189+00:00"
 }
