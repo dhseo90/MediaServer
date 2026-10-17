@@ -1,0 +1,72 @@
+{
+  "schema": "media-server.v450.r140.closure.v1",
+  "decision": "HOLD_45_LOG_BUDGET_PROOF_GAP",
+  "sourceTestCommit": "f6e2f438daa9e98c546827d8e14aafe27051ec10",
+  "evidenceCommit": "f7180dd7b30aaada74e4f04b1bf9321d36cfbba2",
+  "remotePreservation": {
+    "localSha": "f7180dd7b30aaada74e4f04b1bf9321d36cfbba2",
+    "remoteSha": "f7180dd7b30aaada74e4f04b1bf9321d36cfbba2",
+    "files": [
+      {
+        "path": "docs/release-artifacts/v4.5.0/140-validation.json",
+        "bytes": 8981,
+        "sha256": "f1155d4dcdeb699a52a9d9b6bc5a00aac2a46f215f9a65db7837d3b0933a9842",
+        "remoteBytesEqual": true
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/140-independent-review.json",
+        "bytes": 2393,
+        "sha256": "77213ccfb49e1f6f11b646353055ee2c4529f1d57a745cbcfa8bef940484c616",
+        "remoteBytesEqual": true
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/140-log-budget.md",
+        "bytes": 17243,
+        "sha256": "16b0f79688d5d8aef4aa030e91e4830d6719cc36f5f3315653ef206c4ac8ac50",
+        "remoteBytesEqual": true
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/140-execution.tar.gz",
+        "bytes": 24990,
+        "sha256": "27c020c48cbef17c8310c6a4ae307cdd6d6fef0d9bc7c9e7ec4209f6706b77b0",
+        "remoteBytesEqual": true
+      },
+      {
+        "path": "scripts/internal/recording_log_budget_preflight.py",
+        "bytes": 4310,
+        "sha256": "3debdf13f08880341a905e142f53a101f77db41f66d65785b741c64c1298c0bd",
+        "remoteBytesEqual": true
+      },
+      {
+        "path": "scripts/internal/recording_log_budget_preflight.test.mjs",
+        "bytes": 4961,
+        "sha256": "f73ed3b5be084316ec286a4889ab878c12232328ad5d2b3f646d307deabcd7e6",
+        "remoteBytesEqual": true
+      },
+      {
+        "path": "scripts/internal/recording_log_budget_native_smoke.cpp",
+        "bytes": 1403,
+        "sha256": "8d35eef99ca530542c58716ff2d5ef51b25b23c6edc4f7f2724738329ccb33ed",
+        "remoteBytesEqual": true
+      }
+    ]
+  },
+  "cleanup": {
+    "ownedRootRemoved": true,
+    "absenceVerified": true,
+    "uidDeviceInodeChecked": true,
+    "rootPathSha256": "ea18961c0f33061dd446701c8a49b21bae04245dfce07917e932072507f02b50",
+    "productServerProcessesCreated": 0,
+    "listeningPortsCreated": 0,
+    "containersCreated": 0,
+    "testHelperProcesses": "native/compiler/node/analysis/binding and remote-readback invocations completed; no retained running session",
+    "unrelatedSettingsBackupsModelsSDK": "not modified or cleaned"
+  },
+  "productExecutions": 0,
+  "45minExecutions": 0,
+  "600s900s120minExecutions": 0,
+  "worktreeAtEvidenceCommit": "clean",
+  "finalClosureCommit": "reported by final git/remote readback; no self-referential SHA",
+  "memoryP0": "HOLD",
+  "release": "HOLD"
+}
