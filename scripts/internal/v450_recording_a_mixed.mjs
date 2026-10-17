@@ -1,4 +1,4 @@
-import {memoryAttributionCollector,collectMemoryAttribution,memoryAttributionSnapshot,finishMemoryAttribution} from './recording_memory_attribution.mjs';
+import {memoryObservationMode,memoryAttributionCollector,collectMemoryAttribution,memoryAttributionSnapshot,finishMemoryAttribution} from './recording_memory_attribution.mjs';
 import {catalogHolderSummary} from './recording_latency_trace.mjs';
 import {resourceTraceCollector,collectResourceTrace,currentResourceTrace,finishResourceTrace} from './recording_resource_trace.mjs';
 // 파일 용도: 기존 혼합 실행기에 인증된 A 확인·저장 부하만 연결한 제한 관측. 짧은 준비 실행은 장시간/자원/UI PASS가 아니다.
@@ -26,6 +26,7 @@ const root=process.argv[2],args=process.argv.slice(3),short=args.length===1&&arg
 const stateDiagnose=args.length===1&&args[0]==='--state-diagnostic';
 const contentionDiagnose=args.length===1&&args[0]==='--contention-diagnostic';
 const memoryDiagnose=args.length===1&&args[0]==='--memory-attribution-diagnostic';
+const memoryObserve=memoryObservationMode(args); // 관측만 공유하며 state의 기능/삭제/지연 gate는 유지한다.
 const diagnose=memoryDiagnose||contentionDiagnose||stateDiagnose||(args.length===1&&args[0]==='--frame-diagnostic');
 const frameTraceMode='bounded';
 const preparationContract=mixedPreparationContract(args);
@@ -70,7 +71,7 @@ function rootDiagnostic(reason,measurement=storageNow(),final=false){const journ
   console.log('[root-storage] '+JSON.stringify({reason,final,elapsedMs:Math.round(performance.now()-start),journalMutationTypes,journalMutationTypesCoverage,...measurement}));return measurement;}
 function cadence(){if(observationStart!==null){const now=performance.now(),previous=samples.at(-1)?.phaseAt??observationStart;
   if(now-previous>15000){console.log('[sample-gap] '+JSON.stringify({previousAt:previous,observedAt:now,gapMs:now-previous,limitMs:15000}));throw Error('sample-gap');}}}
-function budget(){if(cancelled)throw Error('observation-cancelled');if(performance.now()>deadline)throw Error('observation-deadline');cadence();const storage=storageNow();if(storage.capExceeded){rootDiagnostic('root-cap');throw Error('observation-root-cap');}const traceFailure=processes.find(p=>p.resourceTrace?.error);if(traceFailure)throw Error('resource-trace-collection:'+traceFailure.resourceTrace.error);if(processes.some(p=>p.overflow))throw Error('private-log-cap');cadence();}
+function budget(){if(cancelled)throw Error('observation-cancelled');if(performance.now()>deadline)throw Error('observation-deadline');cadence();const storage=storageNow();if(storage.capExceeded){rootDiagnostic('root-cap');throw Error('observation-root-cap');}const traceFailure=processes.find(p=>p.resourceTrace?.error||(memoryObserve&&p.memoryTrace?.error));if(traceFailure)throw Error('resource-trace-collection:'+(traceFailure.resourceTrace.error||traceFailure.memoryTrace.error));if(processes.some(p=>p.overflow))throw Error('private-log-cap');cadence();}
 async function until(fn,ms=15000){const end=performance.now()+ms;while(performance.now()<end){budget();const v=await fn();if(v)return v;await pause(100);}throw Error('observation-wait-timeout');}
 function environment(http,rtsp,stun){const env={PATH:process.env.PATH,HOME:process.env.HOME,TMPDIR:path.join(root,'tmp')};
   const values={SKIP_LOCAL_ENV:1,SKIP_BUILD:1,SKIP_ENV_CHECK:1,BUILD_DIR:path.join(repo,'build-gst-onnx'),BIN_PATH:path.join(repo,'build-gst-onnx/media_server'),AUTH_MODE:'auto',ENABLE_AI:0,ENABLE_LAB:0,ENABLE_OPS:1,ENABLE_CLIENT:0,ENABLE_YOUTUBE_SOURCE:0,
@@ -82,7 +83,8 @@ function environment(http,rtsp,stun){const env={PATH:process.env.PATH,HOME:proce
     VA_REVIEW_ENABLED:1,VA_REVIEW_LOCAL_ENDPOINT:'http://127.0.0.1:1',VISUAL_SEARCH_ENABLED:1,VISUAL_SEARCH_MODEL_DIRECTORY:path.join(repo,'models/v430-siglip2'),VISUAL_SEARCH_SCAN_SECONDS:1,VISUAL_SEARCH_SAMPLE_SECONDS:1,EVIDENCE_ENABLED:1,RECORDING_ENABLED:1,RECORDING_STORAGE_ROOT:path.join(root,'recordings'),RECORDING_SEGMENT_DURATION_SECONDS:2,RECORDING_RESERVED_FREE_BYTES:0,RECORDING_RETENTION_INTERVAL_MS:1000,
     VERIFY_RECORDING_STATE_TRACE:1,VERIFY_CATALOG_HOLDER_TRACE:diagnose&&!stateDiagnose?1:0,VERIFY_VISUAL_REQUEST_TRACE:1,VERIFY_RECORDING_SEARCH_TRACE:1,VERIFY_VISUAL_LATENCY_TRACE:short?1:0,VERIFY_RECORDING_RESOURCE_TRACE:1,VERIFY_FRAME_TRACE:frameTraceMode,VERIFY_RECORDING_LATENCY_TRACE:1,VERIFY_RECORDING_LATENCY_SLOW_ONLY:1,
     GST_CACHE_DIR:path.join(root,'gst-cache'),GST_PLUGIN_PROFILE:'headless',WEBRTC_STUN_SERVER:`stun://127.0.0.1:${stun}`,WEBRTC_TURN_SERVER:''};
-  if(memoryDiagnose){values.VERIFY_MEMORY_ATTRIBUTION=1;values.VERIFY_CATALOG_SUBCOSTS=1;}
+  if(memoryObserve)values.VERIFY_MEMORY_ATTRIBUTION=1;
+  if(memoryDiagnose)values.VERIFY_CATALOG_SUBCOSTS=1;
   if(contentionDiagnose||memoryDiagnose)values.VERIFY_CATALOG_HOLDER_WHOLE_REQUESTS='slow-first';
   for(const [k,v] of Object.entries(values))env['MEDIA_SERVER_'+k]=String(v);return env;
 }
@@ -161,10 +163,10 @@ async function launch(stun,requiresFrameTrace=true){const http=await reservePort
   const child=spawn(path.join(repo,'server.sh'),['foreground'],{cwd:repo,env:childEnv,stdio:['ignore','pipe','pipe']});
   console.log('[decoder-trace-settings] '+JSON.stringify({pid:child.pid,generatedMode:childEnv.MEDIA_SERVER_VERIFY_FRAME_TRACE,expectedMode:frameTraceMode,observationMs:duration}));
   const log=path.join(root,`server-${processes.length+1}.private.log`),logFd=fs.openSync(log,'wx',0o600);
-  const app={child,http,rtsp,base:`http://127.0.0.1:${http}`,bytes:0,log,logFd,requiresFrameTrace,memoryTrace:memoryAttributionCollector(child.pid),resourceTrace:resourceTraceCollector(child.pid)};processes.push(app);
+  const app={child,http,rtsp,base:`http://127.0.0.1:${http}`,bytes:0,log,logFd,requiresFrameTrace,memoryTrace:memoryAttributionCollector(child.pid,{strict:stateDiagnose}),resourceTrace:resourceTraceCollector(child.pid)};processes.push(app);
   app.cleanup=createProcessCleanup({child,ports:[{kind:'http',port:http},{kind:'rtsp',port:rtsp}],stopServer,assertPortClosed});
   child.on('error',()=>{app.error=true;});child.on('close',()=>{app.closed=true;});
-  for(const stream of [child.stdout,child.stderr])stream.on('data',chunk=>{captureBoundedProcessLog(app,chunk,bytes=>fs.writeSync(app.logFd,bytes),()=>child.kill('SIGTERM'));if(stream===child.stderr){collectResourceTrace(app.resourceTrace,chunk);if(memoryDiagnose)collectMemoryAttribution(app.memoryTrace,chunk);}if(app.resourceTrace.error||(memoryDiagnose&&app.memoryTrace.error))child.kill('SIGTERM');});
+  for(const stream of [child.stdout,child.stderr])stream.on('data',chunk=>{captureBoundedProcessLog(app,chunk,bytes=>fs.writeSync(app.logFd,bytes),()=>child.kill('SIGTERM'));if(stream===child.stderr){collectResourceTrace(app.resourceTrace,chunk);if(memoryObserve)collectMemoryAttribution(app.memoryTrace,chunk);}if(app.resourceTrace.error||(memoryObserve&&app.memoryTrace.error))child.kill('SIGTERM');});
   await until(async()=>{if(app.closed||app.error)throw Error('server-start-failed');try{return !!await request(app,'GET','/health');}catch{return false;}});
   if(!auth)auth=await bootstrapRecordingUiAuth(app.base,passwords);
   else{const response=await fetch(app.base+'/login',{method:'POST',body:new URLSearchParams({username:'admin',password:passwords[0]}),redirect:'manual',signal:AbortSignal.timeout(5000)});check(response.status===302,'A restart authenticated login');auth.cookies[0]=response.headers.getSetCookie().map(v=>v.split(';',1)[0]).join('; ');await response.arrayBuffer();}
@@ -183,7 +185,7 @@ async function sample(app){const sampleStartNs=Number(process.hrtime.bigint());c
   assertSampleStep(previous,point,observationStart,app.child.pid);
   const drainStart=performance.now();let r;try{r=await drain(phaseAt);point.mutationCount=r.mutationCount;}finally{drainMs=performance.now()-drainStart;}
   const storageStart=performance.now();try{const storage=rootDiagnostic('sample');
-    if(memoryDiagnose)console.log('[memory-attribution-cycle] '+JSON.stringify({sampleStartNs,owner:memoryAttributionSnapshot(app.memoryTrace),processCapturedNs,sampleEndNs:Number(process.hrtime.bigint()),metrics:m,workspace:{variableBytes:storage.variableBytes,totalBytes:storage.totalBytes},mutationCount:r.mutationCount,typeCounts:r.typeCounts}));
+    if(memoryObserve)console.log('[memory-attribution-cycle] '+JSON.stringify({sampleStartNs,owner:memoryAttributionSnapshot(app.memoryTrace),processCapturedNs,sampleEndNs:Number(process.hrtime.bigint()),metrics:m,workspace:{variableBytes:storage.variableBytes,totalBytes:storage.totalBytes},mutationCount:r.mutationCount,typeCounts:r.typeCounts}));
     admitWorkspaceSnapshot({storage,baseline:workspace??{fixedBytes:0,capBytes:448*1024*1024},metrics:point,
       expectedPid:app.child.pid,expectedStart:previous?.pid===app.child.pid?previous.startIdentity:null,
       context:{kind:'sample',sampleIndex:samples.length,runStartedAt:start,drainStartedAt:drainStart,drainCompletedAt:storageStart,productOwner:point.productOwner}},workspaceFailure);
@@ -321,9 +323,9 @@ try{
   phaseResult=progress.status(end);if(!short&&!diagnose)check(phaseResult.elapsedMs>=7200000,"V440 actual120 duration");
   check(Object.values(phaseResult.channels).every(c=>c.finalized>0&&(!preparationContract.requiresDeletion||c.deleted>0)),'LP26-O05 both channels retained and progressed');
   summary=summarizeCurrentSamples(samples);observationStart=null;if(!diagnose)await aLoad.controls(first,passwords[1]);progress.setActive(performance.now(),false);
-  if(memoryDiagnose)console.log('[memory-attribution-boundary] '+JSON.stringify({phase:'before-disable',atNs:Number(process.hrtime.bigint()),nearestOwner:memoryAttributionSnapshot(first.memoryTrace)}));
+  if(memoryObserve)console.log('[memory-attribution-boundary] '+JSON.stringify({phase:'before-disable',atNs:Number(process.hrtime.bigint()),nearestOwner:memoryAttributionSnapshot(first.memoryTrace)}));
   await settings(first,false);
-  if(memoryDiagnose)console.log('[memory-attribution-boundary] '+JSON.stringify({phase:'after-disable',atNs:Number(process.hrtime.bigint()),nearestOwner:memoryAttributionSnapshot(first.memoryTrace)}));
+  if(memoryObserve)console.log('[memory-attribution-boundary] '+JSON.stringify({phase:'after-disable',atNs:Number(process.hrtime.bigint()),nearestOwner:memoryAttributionSnapshot(first.memoryTrace)}));
   await stop(first);
   const tail=await drain(performance.now());check(closedJournalComplete(tail),'LP26-O02 closed journal no partial tail');
   if(!diagnose){const before=await snapshot();
@@ -348,7 +350,7 @@ finally{
     console.log('[server-diagnostic] '+JSON.stringify({pid:app.child.pid,bytes:app.bytes,capturedBytes:Buffer.byteLength(text),sha256:fileHash(app.log),overflow:!!app.overflow,captureError:app.captureError??null,categories,rawBodyPublished:false,privateCaptureDisposition:blocked?'preserved-with-owned-root':'eligible-for-wrapper-cleanup'}));
     if(!processLogCaptureComplete(app,Buffer.byteLength(text))){failed++;console.log('[fail] process-log-collection');}
     console.log('[resource-trace-summary] '+JSON.stringify(finishResourceTrace(app.resourceTrace)));
-    if(memoryDiagnose)console.log('[memory-attribution-summary] '+JSON.stringify(finishMemoryAttribution(app.memoryTrace)));
+    if(memoryObserve)console.log('[memory-attribution-summary] '+JSON.stringify(finishMemoryAttribution(app.memoryTrace)));
     const searchFailure=searchFailureSummary(text,app.requiresFrameTrace);console.log('[search-failure-summary] '+JSON.stringify(searchFailure));
     if(searchFailure.status==='incomplete'){failed++;console.log('[fail] structured-failure-collection');}
     if(diagnose&&!stateDiagnose){const holders=catalogHolderSummary(text,app.requiresFrameTrace,contentionDiagnose||memoryDiagnose?'slow-first':null);fs.writeFileSync(path.join(root,`catalog-holders-${app.child.pid}.json`),JSON.stringify(holders),{flag:'wx',mode:0o600});if(holders.status==='incomplete'){failed++;console.log('[fail] catalog-holder-collection '+holders.code);}}
