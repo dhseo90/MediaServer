@@ -83,6 +83,8 @@ inline std::function<void(unsigned)> before_fd_round;
 inline std::function<void(unsigned)> after_fd_list;
 inline std::function<void(int)> before_fd_detail;
 inline std::function<void(int&,int&)> detail_result_override;
+// Tests alter only the identity returned after a real OS identity read.
+inline std::function<void(std::string&)> identity_result_override;
 #endif
 struct Sample { std::string start; std::uint64_t rss{0}, threads{0}, fds{0};
     bool anonymousMeasured{false},footprintMeasured{false};
@@ -110,6 +112,12 @@ std::string Identity(int pid) {
     const int read = proc_pidinfo(pid, PROC_PIDTBSDINFO, 0, &value, sizeof(value));
     if (read != sizeof(value) || value.pbi_pid != static_cast<unsigned>(pid) || value.pbi_start_tvsec == 0 || value.pbi_start_tvusec >= 1000000)
         throw std::runtime_error(IoError("process-identity-unavailable"));
+#ifdef RECORDING_METRICS_TESTING
+    if(identity_result_override){
+        auto identity="macos:"+std::to_string(value.pbi_start_tvsec)+":"+std::to_string(value.pbi_start_tvusec);
+        identity_result_override(identity);return identity;
+    }
+#endif
     return "macos:" + std::to_string(value.pbi_start_tvsec) + ":" + std::to_string(value.pbi_start_tvusec);
 }
 Sample Collect(int pid, Observation* observation=nullptr) {
@@ -219,6 +227,9 @@ std::string Read(const std::string& path) {
 std::string Identity(int pid) {
     std::string value;
     if (!StatStart(Read("/proc/" + std::to_string(pid) + "/stat"), pid, value)) throw std::runtime_error("process-identity-unavailable");
+#ifdef RECORDING_METRICS_TESTING
+    if(identity_result_override)identity_result_override(value);
+#endif
     return value;
 }
 std::uint64_t Count(const std::string& path) {

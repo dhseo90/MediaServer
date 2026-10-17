@@ -67,6 +67,9 @@ int Transitions() {
 #endif
             if(c=='v'){if(dup2(201,200)!=200||ftruncate(201,8192))return 2;}
             if(c=='c'&&close(200))return 2;
+            if(c=='b'){if(dup2(201,200)!=200||dup2(201,202)!=202||ftruncate(201,8192))return 2;}
+            if(c=='x'&&close(202))return 2;
+            if(c=='z'){close(200);close(202);}
             if(c=='g'&&ftruncate(201,16384))return 2;
             if(c=='t'&&ftruncate(201,4096))return 2;
             if(c=='n'||c=='w'){char other[]="metrics-other-XXXXXX";const int f=mkstemp(c=='n'?other:named);if(f<0||ftruncate(f,4096)||dup2(f,200)!=200)return 2;close(f);if(c=='n'){if(unlink(other))return 2;}else named_live=true;}
@@ -75,7 +78,7 @@ int Transitions() {
             if(write(acks[1],&c,1)!=1)return 2;
         }
         if(named_live&&unlink(named)){return 2;}
-        close(200);close(201);return 0;
+        close(200);close(201);close(202);return 0;
     }
     close(commands[0]);close(acks[1]);char ack;if(read(acks[0],&ack,1)!=1)return 2;
     auto send=[&](char c){if(write(commands[1],&c,1)!=1||read(acks[0],&ack,1)!=1)throw std::runtime_error("transition handshake");};
@@ -103,6 +106,48 @@ int Transitions() {
         before_fd_round=[&](unsigned){send('v');};before_fd_detail=[&](int fd){if(fd==200)send('c');};
         Observation d;bool rejected=false;try{(void)Collect(child,&d);}catch(const std::runtime_error& e){rejected=std::string(e.what())==FdExhaustionError(0,4);}
         before_fd_round={};before_fd_detail={};check(rejected&&d.closed==4&&d.rounds==4,"four actual close races remain incomplete, no partial promotion");
+        // Deterministic OS transitions, not injected errno or random churn.
+        // Reset both slots before each fresh roster; retire alternating slots
+        // only after that roster has listed them, immediately before detail.
+        for(const unsigned failed_rounds:{3u,4u}){
+            unsigned round=0,changes=0;
+            before_fd_round=[&](unsigned attempt){round=attempt;send('b');};
+            before_fd_detail=[&](int fd){
+                const int victim=round%2==0?200:202;
+                if(round<failed_rounds&&fd==victim){send(victim==200?'c':'x');++changes;}
+            };
+            Observation alternating;Sample result;bool exhausted=false;
+            try{result=Collect(child,&alternating);}catch(const std::runtime_error& e){
+                if(std::string(e.what())!=FdExhaustionError(0,4))throw;
+                exhausted=true;
+            }
+            before_fd_round={};before_fd_detail={};
+            bool exact=alternating.rounds==4&&alternating.closed==failed_rounds&&changes==failed_rounds;
+            for(unsigned i=0;i<failed_rounds;++i)exact=exact&&alternating.failures[i].fd==(i%2==0?200:202);
+            if(failed_rounds==3)check(exact&&!exhausted&&result.anonymousFiles==1&&result.anonymousBytes==8192,
+                "alternating actual close/reuse converges only on fourth complete roster");
+            else check(exact&&exhausted&&alternating.roundCompleted==0,
+                "alternating four actual close/reuse rounds reject incomplete observation");
+            std::cout<<"[alternating] failures="<<failed_rounds<<" rounds="<<alternating.rounds
+                <<" closed="<<alternating.closed<<" detailCalls="<<alternating.detailCalls<<" exhausted="<<exhausted<<std::endl;
+        }
+        send('z');send('b');send('n');
+        bool old_inode_read=false,retired=false;
+        before_fd_detail=[&](int fd){
+            if(fd==200)old_inode_read=true;
+            if(fd==202&&!retired){retired=true;send('z');}
+        };
+        Observation discarded;const auto clean_round=Collect(child,&discarded);before_fd_detail={};
+        check(old_inode_read&&retired&&discarded.closed==1&&discarded.rounds==2&&
+            clean_round.anonymousFiles==1&&clean_round.anonymousBytes==8192,
+            "failed round distinct inode discarded; fresh roster has only surviving inode");
+        unsigned identity_calls=0;
+        identity_result_override=[&](std::string& identity){if(++identity_calls==2)identity+="-injected-change";};
+        Observation identity_diagnostic;bool identity_rejected=false;
+        try{(void)Collect(child,&identity_diagnostic);}catch(const std::runtime_error& e){identity_rejected=std::string(e.what())=="process-identity-changed";}
+        identity_result_override={};
+        check(identity_rejected&&identity_calls==2&&identity_diagnostic.roundCompleted==0,
+            "injected final PID start identity change rejects otherwise complete real observation");
 #ifdef __APPLE__
         send('v');bool first_closed=false;int first_detail=-1;
         before_fd_round=[&](unsigned attempt){if(attempt==1)send('n');};
@@ -127,7 +172,7 @@ int Transitions() {
         check(aggregate.anonymousFiles==1&&aggregate.anonymousBytes==16&&aggregate.anonymousAllocated==1024,"duplicate maxima same round only");
         bool overflow=false;try{AddObserved(aggregate,seen,1,3,UINT64_MAX,1,4);}catch(const std::runtime_error&){overflow=true;}check(overflow,"maxima sum overflow rejects");
     }catch(const std::exception& e){++failed;std::cout<<"[fail] PM07 "<<e.what()<<std::endl;}
-    before_fd_round={};after_fd_list={};before_fd_detail={};detail_result_override={};const char quit='q';write(commands[1],&quit,1);close(commands[1]);close(acks[0]);int status=0;waitpid(child,&status,0);check(WIFEXITED(status)&&WEXITSTATUS(status)==0,"transition child normal exit");
+    before_fd_round={};after_fd_list={};before_fd_detail={};detail_result_override={};identity_result_override={};const char quit='q';write(commands[1],&quit,1);close(commands[1]);close(acks[0]);int status=0;waitpid(child,&status,0);check(WIFEXITED(status)&&WEXITSTATUS(status)==0,"transition child normal exit");
     return failed?1:0;
 }
 int main(int argc, char** argv) {

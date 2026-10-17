@@ -5034,6 +5034,8 @@ R97-A02는 미선택 대체 후보의 unlink/authority 하드 오류를 거부�
 - `recording_foundation_observer.mjs` → `recording_current_observer.mjs`: 완전성/시각/고정 개수 오류 진단을 부모·동일 공간 피연산자까지 전달한다. 누락·권한·PID 변경·부분 반환/공간 초과는 실패. 순차 sample이며 순간peak/매핑-only 파일 전수 계상이 아니다.
 - 정상 제품·공간/p95/요청 한도 불변. 최종8조건은 수집/플랫폼/독립검토 후 각1회,45분은 전부 통과 뒤1회 조건부. UI/새120분 없음.
 
+R148-F01 사전 정의(기존 MEDIA-012 관측기 영향): 제품 실행0. 기존 PM01~07와 소비자 검사를 macOS/libproc 및 비특권 Linux/procfs에서 각1회 수행한다. child 명령/ack와 기존 detail hook으로 FD200/202를 번갈아 닫고 새 roster 전 재사용한다. 3회 실패 뒤4번째 전수 관측은 성공,4회 실패는 incomplete이며 실패 round의 다른 inode/bytes를 성공 round에 합치지 않는다. 실제 identity 읽기 후 최종 identity만 주입 변경하는 test-only hook은 거부를 확인하며 실제 PID 재활용 재현으로 주장하지 않는다. 기존 close/pipe/동일FD 다른inode·중복/크기변경·권한/short struct/소비자3초·8MiB/4회 조건을 유지한다. R147 실제 원인/안전한 개선이 입증되지 않으면 수집 알고리즘 수정 없이 HOLD하고, 이 focused PASS를45분 PASS나 R147 원인 확정으로 대체하지 않는다.
+
 ### R103-H01 / P01 — 실제 혼합 부하의 후반 보유자와 원인 수정
 
 - H01: 기존 mixed/HTTP/auth/2채널/4client/증거/A 경로에 진단 전용900초(전체1080초)를 연결한다. 요청77/78/79 전체 구간을 사전에 선택하며8192행/4MiB, 누락·손실 거부를 유지한다. 실제 C++ 생성→parser와 실제 자식 환경→종료 수집을 확인한다. 900초의 삭제0은 관측값이며45/120분 삭제 gate는 불변이다.
