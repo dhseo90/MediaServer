@@ -341,7 +341,7 @@
     ],
     "rawDistinction": "manifest retains original/stored hashes; sanitized bytes are not original bytes"
   },
-  "cleanup": "pending remote evidence bytes; owned synthetic root only; no server/ports",
+  "cleanup": "완료:142-closure.json의 원격6파일 byte 대조 후 owned root 제거·부재 확인. 새 제품 서버/포트0.",
   "bindingSequenceCorrection": "첫 readback은 producer 중간 PASS 출력 후 실제 종료 전에 시작해 최종 결속 근거에서 제외; 원출력 보존. producer exit0 확인 후 새 readback→coverage만 최종 근거로 사용.",
   "diagnosticSchema": {
     "old": "version absent (v1) remains readable unchanged",
@@ -371,5 +371,6 @@
     "node scripts/internal/verify_v390_review4_feature_semantic_source_audit.mjs --apply-approved-manifest",
     "node scripts/internal/verify_feature_implementation_evidence.mjs",
     "node scripts/internal/verify_feature_inventory_coverage.mjs"
-  ]
+  ],
+  "closure": "142-closure.json"
 }

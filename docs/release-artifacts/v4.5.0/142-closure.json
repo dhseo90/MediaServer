@@ -1,0 +1,73 @@
+{
+  "schema": "media-server.v450.r142.closure.v1",
+  "decision": "COMPACT_DIAGNOSTIC_PASS_CAPACITY_UNPROVEN",
+  "diagnosticCommit": "16fb51cb7bfe88e0aee4bc483ef0a537f2383540",
+  "evidenceCommit": "80223dcabf4d5e4653e5b59f5fd6fdea5f89cc21",
+  "remoteEvidenceVerification": {
+    "sha": "80223dcabf4d5e4653e5b59f5fd6fdea5f89cc21",
+    "files": [
+      {
+        "path": "docs/release-artifacts/v4.5.0/142-execution.tar.gz",
+        "bytes": 92817,
+        "sha256": "61a27bbcb935d1ea1c100a9b8c38c8f3067a21c032e77314b2da5afeb56f7a11",
+        "remoteByteMatch": true
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/142-validation.json",
+        "bytes": 14698,
+        "sha256": "63510ec8d3325dd26e59c5ff8968c1b28a1b64a872ae9e742f02532d690aa1aa",
+        "remoteByteMatch": true
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/142-independent-review.json",
+        "bytes": 2231,
+        "sha256": "b245ebeff9afcd5777b0c7eff78ed29678e3b6cf3c06c034c226409ee82f2b08",
+        "remoteByteMatch": true
+      },
+      {
+        "path": "test/fixtures/project_feature_implementation_evidence.json",
+        "bytes": 26350232,
+        "sha256": "7d149d9128c15e4015d63a4571e955ffb2238186d166501bbdd3c4f5f8c6761e",
+        "remoteByteMatch": true
+      },
+      {
+        "path": "include/recording/recording_memory_diagnostic_output.h",
+        "bytes": 7028,
+        "sha256": "f738fc055f2c8208710c5f94238df38311877f20751e3f2c9fdbcd01909e1b78",
+        "remoteByteMatch": true
+      },
+      {
+        "path": "scripts/internal/recording_memory_attribution.mjs",
+        "bytes": 8112,
+        "sha256": "deeb80f7ebf2e34196956ea7e170adabca07edbd781b2d0b6a1dbec262831139",
+        "remoteByteMatch": true
+      }
+    ]
+  },
+  "remoteReadbackTransport": "large26MiB manifest contents response omitted base64 body; initial verifier stopped before claiming completion; final exact-ref raw response byte comparison succeeded",
+  "cleanup": {
+    "root": "/private/tmp/media-server-r142-6zik247q",
+    "uid": 501,
+    "device": 16777232,
+    "inode": 175649183,
+    "files": 54,
+    "bytes": 5361646,
+    "method": "ownership/regular-file/no-symlink/inode checks then exact owned rmtree",
+    "absent": true,
+    "ownedProcesses": 0,
+    "ownedContainers": 0,
+    "productServersStarted": 0,
+    "productPortsOpened": 0,
+    "settingsPrivateBackupModelsSDK": "untouched"
+  },
+  "historicalArtifacts": "unchanged",
+  "limits": "16383B/4MiB/2MiB receipt unchanged",
+  "next45": "separate authorization required for single fail-closed diagnostic accepting residual overflow risk; no source-derived capacity guarantee",
+  "holds": [
+    "Memory P0",
+    "45min",
+    "120min",
+    "release"
+  ],
+  "closureCommit": "containing commit; final remote SHA checked after its ordinary push"
+}
