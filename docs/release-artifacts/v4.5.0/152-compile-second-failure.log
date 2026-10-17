@@ -1,0 +1,5 @@
+In file included from <repo>/scripts/internal/recording_accumulated_http_smoke.cpp:3:
+<repo>/scripts/internal/recording_degraded_http_smoke.cpp:64:5: error: unused function 'Request' [-Werror,-Wunused-function]
+   64 | int Request(std::uint16_t port,const std::string& path,bool admin=true){
+      |     ^~~~~~~
+1 error generated.

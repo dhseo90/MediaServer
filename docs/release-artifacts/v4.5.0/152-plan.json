@@ -1,0 +1,54 @@
+{
+  "schema": "media-server.r152.plan.v1",
+  "fixedBeforeRun": "2026-10-17T17:46:17.943898+00:00",
+  "baseline": "869725887616e12941cd10e26158ddbe8c12d4b1",
+  "canonicalStore": "candidate/run/recording",
+  "historicalReplay": false,
+  "seed": {
+    "helperStarts": 1,
+    "mode": "existing ConfirmedSeed",
+    "timeoutSeconds": 10,
+    "capBytes": 1048576,
+    "finalizedChannel1": 1,
+    "samples": 30,
+    "object": "synthetic-target",
+    "track": "track-77"
+  },
+  "ordinary": {
+    "channels": [
+      "9101",
+      "9201"
+    ],
+    "generationsEach": 4,
+    "samplesEachGeneration": 120,
+    "finalizedEach": 8,
+    "samplesEach": 480,
+    "generator": "MixedInput + typed GStreamerSegmentWriter",
+    "background": "existing RunHttpSources count1200; 55s internal ceiling"
+  },
+  "cycle": [
+    "structured2 + visual2 simultaneous",
+    "structured evidence + visual evidence and asset HTTP readback",
+    "A structured query/current hit/snapshot",
+    "A evidence/package/draft/confirm",
+    "background exact acceptance",
+    "Stop/Finish/last owner release"
+  ],
+  "requestSeconds": 5,
+  "normalSearchMaxMs": 2000,
+  "wholeSeconds": 180,
+  "workDeadlineSeconds": 166,
+  "processLogCapBytes": 4194304,
+  "integratedMaximum": 1,
+  "noProductExecution": true,
+  "model": {
+    "mainRequested": "gpt-6-astra/high",
+    "mainToolAccepted": null,
+    "actualRuntimeModel": null,
+    "actualRuntimeEffort": null,
+    "reviewRequested": "gpt-6-astra/high",
+    "reviewToolAccepted": "existing independent_r147 historical acceptance only",
+    "reviewActualRuntime": null
+  },
+  "reviewPreflight": "independent_r147 approved latest binding and code; read-only no execution"
+}

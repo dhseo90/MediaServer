@@ -1,0 +1,41 @@
+
+(gst-plugin-scanner:14477): GLib-GIRepository-WARNING **: 02:50:32.308: Failed to load shared library 'libgobject-2.0.0.dylib' referenced by the typelib: dlopen(libgobject-2.0.0.dylib, 0x0009): tried: 'libgobject-2.0.0.dylib' (no such file), '/System/Volumes/Preboot/Cryptexes/OSlibgobject-2.0.0.dylib' (no such file), '/usr/lib/libgobject-2.0.0.dylib' (no such file, not in dyld cache), 'libgobject-2.0.0.dylib' (no such file)
+
+(gst-plugin-scanner:14477): GLib-GIRepository-WARNING **: 02:50:32.309: Failed to load shared library 'libglib-2.0.0.dylib' referenced by the typelib: dlopen(libglib-2.0.0.dylib, 0x0009): tried: 'libglib-2.0.0.dylib' (no such file), '/System/Volumes/Preboot/Cryptexes/OSlibglib-2.0.0.dylib' (no such file), '/usr/lib/libglib-2.0.0.dylib' (no such file, not in dyld cache), 'libglib-2.0.0.dylib' (no such file)
+
+** (gst-plugin-scanner:14477): CRITICAL **: 02:50:32.311: can't find gi.repository.Gst
+objc[14477]: Class ResultReceiver is implemented in both /opt/homebrew/Cellar/gtk+3/3.24.51/lib/libgtk-3.0.dylib (<address>) and /opt/homebrew/Cellar/gtk4/4.22.1/lib/libgtk-4.1.dylib (<address>). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[14477]: Class GtkApplicationQuartzDelegate is implemented in both /opt/homebrew/Cellar/gtk+3/3.24.51/lib/libgtk-3.0.dylib (<address>) and /opt/homebrew/Cellar/gtk4/4.22.1/lib/libgtk-4.1.dylib (<address>). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[14477]: Class GNSMenuItem is implemented in both /opt/homebrew/Cellar/gtk+3/3.24.51/lib/libgtk-3.0.dylib (<address>) and /opt/homebrew/Cellar/gtk4/4.22.1/lib/libgtk-4.1.dylib (<address>). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[14477]: Class GNSMenu is implemented in both /opt/homebrew/Cellar/gtk+3/3.24.51/lib/libgtk-3.0.dylib (<address>) and /opt/homebrew/Cellar/gtk4/4.22.1/lib/libgtk-4.1.dylib (<address>). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[14477]: Class FilterComboBox is implemented in both /opt/homebrew/Cellar/gtk+3/3.24.51/lib/libgtk-3.0.dylib (<address>) and /opt/homebrew/Cellar/gtk4/4.22.1/lib/libgtk-4.1.dylib (<address>). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[14477]: Class gdkCoreCursor is implemented in both /opt/homebrew/Cellar/gtk+3/3.24.51/lib/libgdk-3.0.dylib (<address>) and /opt/homebrew/Cellar/gtk4/4.22.1/lib/libgtk-4.1.dylib (<address>). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+[pass] K09 isolated recording root
+[pass] K09 actual writer
+[pass] K09 one owned source
+[seed-runtime] core=GStreamer 1.28.1 profile=gst-qtmux-1.28.1-default-v1
+[seed-plugin] factory=h264parse plugin=videoparsersbad version=1.28.1 file=/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstvideoparsersbad.dylib
+[seed-plugin] factory=mp4mux plugin=isomp4 version=1.28.1 file=/opt/homebrew/Cellar/gstreamer/1.28.1/lib/gstreamer-1.0/libgstisomp4.dylib
+[pass] K09 search model
+[pass] K09 search hit
+[pass] K09 unchanged selected samples
+[pass] K09 exact sample
+[pass] K09 exact sample
+[pass] K09 packages ready
+[seed-package] track=track-77 created=1 error=""
+[pass] K09 package A:
+[seed-package] track=track-999 created=1 error=""
+[pass] K09 absent track package:
+[pass] K09 reviews ready
+[pass] K09 existing internal v2 preserved
+[pass] V450-C01 evidence setup
+[pass] V450-C01 input setup
+[pass] K09 v1 record retained
+[pass] K09 catalog checkpoint
+[pass] K08 fixture saved
+[R101-space] {"sequence":0,"phase":"initial","completedPhase":"initial","metrics":{"pid":14478,"startIdentity":"macos:1792259434:341260","rssBytes":32768,"threadCount":1,"fdCount":3,"anonymousFileBytes":0,"anonymousAllocatedBytes":0,"anonymousFiles":0,"footprintBytes":81992,"sampledAt":1792259434596,"valid":true,"error":null,"fdObservation":{"scope":"complete-round-sequential-v1","complete":true,"startIdentity":"macos:1792259434:341260","startedAt":1792259434596,"completedAt":1792259434596,"roundStartedAt":1792259434596,"roundCompletedAt":1792259434596,"rounds":1,"capacityRetries":0,"closedRetries":0,"detailCalls":0,"failures":[]}},"storage":{"totalBytes":1730159,"capBytes":469762048,"capExceeded":false,"entries":38,"categories":{"input":{"bytes":0,"files":0},"media":{"bytes":28161,"files":1},"mediaPartial":{"bytes":0,"files":0},"journal":{"bytes":9935,"files":3},"checkpoint":{"bytes":0,"files":0},"generationSnapshot":{"bytes":6130,"files":1},"generationIdentity":{"bytes":2338,"files":2},"generationEvidence":{"bytes":9935,"files":1},"generationManifest":{"bytes":509,"files":1},"generationTransaction":{"bytes":0,"files":0},"sqlite":{"bytes":57344,"files":1},"wal":{"bytes":0,"files":0},"sqliteAux":{"bytes":0,"files":0},"tmp":{"bytes":0,"files":0},"log":{"bytes":0,"files":0},"state":{"bytes":0,"files":0},"events":{"bytes":0,"files":0},"cache":{"bytes":1509944,"files":1},"tools":{"bytes":0,"files":0},"recordingsOther":{"bytes":73025,"files":12},"other":{"bytes":32838,"files":3}},"ownership":{"productRecording":{"bytes":187377,"files":22},"fixtureInput":{"bytes":0,"files":0},"observerTools":{"bytes":0,"files":0},"cache":{"bytes":1509944,"files":1},"temporary":{"bytes":0,"files":0},"runtimeSupport":{"bytes":0,"files":0},"other":{"bytes":32838,"files":3}},"transientJournalMisses":0,"measurement":"logical-file-bytes-nonatomic","rawPathsPublished":false,"transientTreeRetries":0},"bounds":{"fixedBytes":0,"variableBytes":1730159,"copyBytes":0,"totalBytes":1730159,"combinedBytes":1730159,"rootCapBytes":469762048,"combinedCapBytes":939524096}}
+[R101-space-ready]
+[R152] {"phase":"seed-verified","monoNs":1566666264264666,"segment":"111d1b49-4486-4833-815f-65cf52641137","package":"ep-68382bf938390ed8212999ab6cd8762b1f3c4d5631a56bbf432ead00cbf06fea"}
+[R152] {"phase":"failure-cleanup-finish","monoNs":1566666657062875,"ok":true}
+[R152] {"phase":"first-failure","monoNs":1566666657137666,"error":"media path"}
+[R101-space-end] {"samples":1,"endedObserved":true}

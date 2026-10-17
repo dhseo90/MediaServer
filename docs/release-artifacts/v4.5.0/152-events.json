@@ -1,0 +1,18 @@
+[
+  {
+    "phase": "seed-verified",
+    "monoNs": 1566666264264666,
+    "segment": "111d1b49-4486-4833-815f-65cf52641137",
+    "package": "ep-68382bf938390ed8212999ab6cd8762b1f3c4d5631a56bbf432ead00cbf06fea"
+  },
+  {
+    "phase": "failure-cleanup-finish",
+    "monoNs": 1566666657062875,
+    "ok": true
+  },
+  {
+    "phase": "first-failure",
+    "monoNs": 1566666657137666,
+    "error": "media path"
+  }
+]

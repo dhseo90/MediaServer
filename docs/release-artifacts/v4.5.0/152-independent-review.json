@@ -1,0 +1,50 @@
+{
+  "schema": "media-server.v450.r152.independent-review.v1",
+  "decision": "AGREE_FAIL_FIXTURE_CONTRACT",
+  "reviewer": {
+    "agent": "/root/independent_r147",
+    "requested": "gpt-6-astra/high",
+    "toolAccepted": "existing agent historical astra/high acceptance only",
+    "actualRuntimeModel": null,
+    "actualRuntimeEffort": null
+  },
+  "mode": "read-only; no implementation, test writing/execution, file modification, commit, push or redelegation",
+  "preflight": "latest source8/dependencies142/binaries3/products2 hashes matched; no additional blocker noticed before single run; V1/V2 path mismatch was missed by reviewer",
+  "runtimeReview": {
+    "seedStarts": 1,
+    "fixtureStarts": 1,
+    "elapsedSeconds": 4.778277958044782,
+    "cause": "V2 segment lookup followed by V1-only FindSegmentMediaPath in Manifest152",
+    "postFailureRetrospectiveChecks": "17 MP4 files exist; no general media decode, HTTP or background qualification",
+    "failureOrdering": "preparation exception is reported after failure Finish destructor, so cleanup-before-first-error remains a contract defect",
+    "normalCompletion": false,
+    "ownerZeroAsserted": false,
+    "resourceScope": "one initial complete sample, not full run memory/FD bounds proof",
+    "processGroupsAbsentAtRunnerClosure": true,
+    "productsUnchanged": true
+  },
+  "nextCostExperiment": "BLOCKED",
+  "historical": {
+    "R149Functional45": "FAIL",
+    "R149Collection45": "INCOMPLETE",
+    "MemoryP0": "HOLD",
+    "Readiness120": "HOLD",
+    "Release": "HOLD",
+    "new45": "NOT_RUN",
+    "R150": "conversation read-only analysis; no invented execution artifact"
+  },
+  "actions": {
+    "productRuns": 0,
+    "fixtureRuns": 0,
+    "tests": 0,
+    "fileWrites": 0,
+    "redelegations": 0
+  },
+  "artifactReview": {
+    "decision": "ACCEPT_FAILURE_RECORD",
+    "discrepancies": [],
+    "checked": "14 preserved files original/stored hashes and sizes; 6 changed source bindings; actual 17 MP4 bytes/hash; no HTTP/background/normal Finish qualification; remote preservation and cleanup still pending at review",
+    "runtimePass": false,
+    "cleanupApproval": "record accurately marks pending; not claimed complete"
+  }
+}

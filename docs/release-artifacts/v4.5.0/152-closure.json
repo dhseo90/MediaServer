@@ -1,0 +1,26 @@
+{
+  "schema": "media-server.v450.r152.closure.v1",
+  "decision": "FAIL_FIXTURE_CONTRACT",
+  "status": "PENDING_REMOTE_PRESERVATION",
+  "baselineHead": "869725887616e12941cd10e26158ddbe8c12d4b1",
+  "scope": "preserve failed fixture and evidence; no remediation/rerun",
+  "processes": {
+    "seed": 1,
+    "nativeFixture": 1,
+    "resourceCollector": 1,
+    "productServer": 0,
+    "groupsAbsentAtRunnerExit": true,
+    "portsAllocated": 0
+  },
+  "remoteBytesVerified": false,
+  "ownedTemporaryRootRemoved": false,
+  "historical": {
+    "R149Functional45": "FAIL",
+    "R149Collection45": "INCOMPLETE",
+    "MemoryP0": "HOLD",
+    "Readiness120": "HOLD",
+    "Release": "HOLD",
+    "new45": "NOT_RUN",
+    "R150": "conversation read-only analysis; no invented execution artifact"
+  }
+}

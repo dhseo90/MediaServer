@@ -1,0 +1,4 @@
+<repo>/scripts/internal/recording_accumulated_http_smoke.cpp:52:105: error: no member named 'relative_path' in 'recording::RecordingMemoryValue<recording::RecordingSegmentV2Fields>'
+   52 |   NeedHttp(channel=="1"||channel=="9101"||channel=="9201","channel set");const auto path=store/segment->relative_path;const auto bytes=Read(path);NeedHttp(!bytes.empty(),"media exists");
+      |                                                                                                ~~~~~~~~~^
+1 error generated.
