@@ -1858,7 +1858,7 @@
     "allPayloadReadback": true
   },
   "independentReview": "147-independent-review.json: new independent read-only judgment agrees; final archive/manifest and continuity rechecked",
-  "cleanup": "pending remote byte verification; owned raw root retained",
+  "cleanup": "complete:147-closure.json; remote exact evidence bytes verified before owned root/marker removal, symlink targets untouched, product/group/ports absent",
   "limits": "Functional45 incomplete, Collection45 fail, no MemoryP0/120/release PASS; normal exit from cleanup not success-path completion",
   "continuity": {
     "scope": "post-stop read-only CRC/length-checked active journal sourceBinding samples and matched media hashes; not native closed-journal/current authority gate or upstream packet proof",

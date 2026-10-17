@@ -1,0 +1,64 @@
+{
+  "schema": "media-server.v450.r147.closure.v1",
+  "decision": "INCOMPLETE_45_COLLECTION_FAILURE",
+  "functional45": "INCOMPLETE",
+  "collection45": "FAIL",
+  "memoryP0": "HOLD",
+  "readiness120": "HOLD",
+  "release": "HOLD",
+  "evidenceCommit": "a7da541ebb9f2feb6bcec330c4a382ac49bea1bd",
+  "remotePreservation": {
+    "head": "a7da541ebb9f2feb6bcec330c4a382ac49bea1bd",
+    "remote": "a7da541ebb9f2feb6bcec330c4a382ac49bea1bd",
+    "files": [
+      {
+        "path": "docs/release-artifacts/v4.5.0/147-validation.json",
+        "gitBlob": "4841a451232887d8f7b0dae31406e9fd8a252d36",
+        "bytes": 47402,
+        "sha256": "4e798c8ae7ea5d1eebbc0da16d939741703eed5d77e9b2c840336c9c5fce8a45",
+        "remoteByteExact": true
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/147-independent-review.json",
+        "gitBlob": "00e8e7e0a6af8daae34fa6d9b54a1b089bf3f344",
+        "bytes": 1868,
+        "sha256": "47a8c57370f987f4c072ed1185f37f12a2fa76fe6b1fa5388ca2a17f1bfec130",
+        "remoteByteExact": true
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/147-execution.tar.gz",
+        "gitBlob": "218a6c59a67817ef469a67c23bf99eb9d9613731",
+        "bytes": 2373801,
+        "sha256": "e822ac5c07b75a972e0ec6b8dbf679205a8d048dcebbbf25b26e2242046a541a",
+        "remoteByteExact": true
+      }
+    ],
+    "transportNote": "Initial contents raw JSON text files matched but binary read returned gh transform: short source buffer (exit1); no cleanup then. Git blob base64 endpoint final byte comparison succeeded."
+  },
+  "cleanup": {
+    "ownedRoot": "/private/tmp/media-server-r147-cjrlhklh",
+    "uid": 501,
+    "dev": 16777232,
+    "inode": 175669552,
+    "productPid": 87892,
+    "processGroup": 87845,
+    "processesAbsent": true,
+    "portsClosed": [
+      55472,
+      55473
+    ],
+    "udpClosed": true,
+    "containersCreated": 0,
+    "removedFiles": 278,
+    "removedBytes": 53750354,
+    "removedSymlinks": 277,
+    "removedDirectories": 26,
+    "symlinkTargetsUntouched": true,
+    "rootAbsent": true,
+    "markerAbsent": true
+  },
+  "productOrFixtureChanges": false,
+  "history": "R145 startup INCOMPLETE and R146 focused PASS retained; no retry/extra product run",
+  "independentReview": "147-independent-review.json; agrees with incomplete/collection failure",
+  "binding": "R146 unchanged source/test/inventory binding reused; no new producer required"
+}
