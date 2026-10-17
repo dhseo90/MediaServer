@@ -17,6 +17,8 @@
 
 ## v4.5.0 잔여 개발과 릴리즈 순서
 
+[R145 단회45분 재개](release-artifacts/v4.5.0/145-validation.json)는 **Functional45 INCOMPLETE / Collection45 INCOMPLETE**다. R144 preflight와 고정 bytes는 일치했고 wrapper/제품 각1회 실행했으나, 초기 completion Media 행(`event10/request0/reference hash`)과 소비자 계약 불일치로 본관측 진입 전 차단됐다. 전체26.340초·관측0초이며 검색/증거/A/양채널 삭제/닫힌 원장은 미실행이다. 실패 후 exit0·포트 회수·storage 파괴 뒤 논리owner0은 확인됐지만 정상45분 종료나 전체 heap 검증은 아니다. 최초 오류와 후속 `missing-probe`, 부분 메모리4기록을 보존했으며 수정·재실행은 하지 않았다. 다음은 해당 emitter/consumer 의미의 별도 보완 판단이며 Memory P0·45/120·출시 HOLD와 R135–R144 유효 근거를 유지한다.
+
 [R144 빌드 freshness](release-artifacts/v4.5.0/144-validation.json)는 **PASS_TARGET_AWARE_PREFLIGHT**다. CMake의 실제 runtime/application 의존성에서 입력→객체→archive/실행 파일을 대조하고 설정·링크·누락/미해석 자료는 실패로 처리한다. R143 두 헤더는 application 객체에 반영됐고 기존 제품/runtime SHA는 불변이다. macOS/Linux 각22 focused와 읽기 전용 실제 preflight를 확인했다. 재빌드·제품·launcher·45분 실행은 없으며, R143 최초 차단과 Memory P0·45/120·출시 HOLD는 유지한다.
 
 [R143 45분 진입](release-artifacts/v4.5.0/143-validation.json)은 **INCOMPLETE_45 — 실행 전 차단**이다. 지정 HEAD·제품/runtime 해시는 일치하지만, launcher가 application 전용 진단 헤더의 시각을 변경되지 않은 runtime archive와 비교해 `stale-product-build` 조건에 해당한다. 실제 wrapper/제품 호출0·관측0초이며 새로운 기능/수집/메모리 결과는 없다. 제품 bytes 불일치나45분 실행FAIL로 확대하지 않는다. 동일소스 실제 재빌드·재결속 또는 별도 의존성guard 보완 결정이 필요하며 guard 우회/mtime변경/자동재실행은 하지 않았다. R142와 과거 기능 근거·Memory P0/120/출시 HOLD를 유지한다.
