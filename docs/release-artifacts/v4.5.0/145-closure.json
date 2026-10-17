@@ -1,0 +1,70 @@
+{
+  "schema": "media-server.v450.r145.closure.v1",
+  "decision": "INCOMPLETE_45_COLLECTION_STARTUP_FAILURE",
+  "remoteVerificationBeforeCleanup": {
+    "commit": "c3a61048951bcc6da856e77bbe000a0838f0e152",
+    "remote": "c3a61048951bcc6da856e77bbe000a0838f0e152",
+    "verifiedBytes": [
+      {
+        "path": "docs/release-artifacts/v4.5.0/145-execution.tar.gz",
+        "bytes": 78961,
+        "sha256": "0683019f26ec69607f59b9da7037c01e9abc1c09a5b54bc17f8993f3be8d5fd5"
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/145-validation.json",
+        "bytes": 19274,
+        "sha256": "d20fa6fa645d6fa665f6be2cfd6c91de4148065f37fc0a4140560aae2e6a95a0"
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/145-independent-review.json",
+        "bytes": 1694,
+        "sha256": "7cbb91066684a09e19db3a376d89552186caafecf6d959f64df70ef32e456a5b"
+      },
+      {
+        "path": "docs/development-backlog.md",
+        "bytes": 70331,
+        "sha256": "c743b3e914ba355b91c2b900a4b4cb11a7b941c87d1ed827762218d2f8b6693c"
+      }
+    ]
+  },
+  "cleanup": {
+    "ownedRoot": "/private/tmp/media-server-r145-ur97wvy4",
+    "uid": 501,
+    "inode": 175660220,
+    "removedFiles": 103,
+    "removedFileBytes": 37823325,
+    "removedDirectories": 35,
+    "unlinkedOwnedSymlinks": 277,
+    "externalSymlinkTargets": "not traversed/read/deleted",
+    "rootAbsent": true,
+    "processAndPortAbsence": {
+      "processCheckExit": 1,
+      "processRows": "",
+      "ports": [
+        {
+          "port": 54213,
+          "connectEx": 61,
+          "closed": true
+        },
+        {
+          "port": 54214,
+          "connectEx": 61,
+          "closed": true
+        }
+      ],
+      "scope": "post-run absence check; not normal 45-minute shutdown qualification"
+    },
+    "containersCreated": 0,
+    "scope": "exclusive R145 run outputs only; user settings/private backups/models/SDK unchanged"
+  },
+  "productAndRuntimeUnchanged": true,
+  "productFixtureCollectorGateEdits": false,
+  "newProducerReadbackCoverage": "not required: evidence/docs only",
+  "functional45": "INCOMPLETE",
+  "collection45": "INCOMPLETE",
+  "memoryP0": "HOLD",
+  "readiness120": "HOLD",
+  "release": "HOLD",
+  "historical": "R135–R144 retained in original scope; first failure not repaired or rerun",
+  "finalRemoteVerification": "final closure/validation/archive bytes and local/remote SHA verified after final push"
+}

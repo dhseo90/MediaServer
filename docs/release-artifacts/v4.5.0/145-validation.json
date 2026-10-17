@@ -631,7 +631,7 @@
     "rawVsSanitized": "manifest records original/sanitized hashes; raw diagnostic lines preserved exactly"
   },
   "independentReview": "145-independent-review.json: independent read-only judgment agrees",
-  "cleanup": "process/ports absent; owned root preserved until remote bytes verified",
+  "cleanup": "complete: remote bytes matched before owned root deletion; product/process groups and ports absent; symlink targets untouched",
   "next": "Separately authorize reconciling completion Media event caller semantics with consumer schema using exact preserved row; preserve identity/request distinctions and malformed rejection. No fix or rerun within R145. Then separate45 execution approval required.",
   "postRunBinaryCheck": {
     "build-gst-onnx/media_server": {
@@ -642,5 +642,6 @@
       "bytes": 113126688,
       "sha256": "2d91cf35fe7e805e0c06e00d16779c86849b35db635e087582277e1b676d198c"
     }
-  }
+  },
+  "closure": "145-closure.json"
 }
