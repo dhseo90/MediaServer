@@ -1,0 +1,210 @@
+{
+  "schema": "media-server.v450.r155.closure.v1",
+  "decision": "CLOSED_PRESERVED",
+  "result": "ATTRIBUTION_BOUNDARY_IDENTIFIED",
+  "testCommit": "413300d5bbd2267398ac4194e12fb5885f312048",
+  "evidenceCommit": "f80c2ed249edc22b19934d0430b4cc8c4f6d6cce",
+  "remotePreservation": {
+    "head": "f80c2ed249edc22b19934d0430b4cc8c4f6d6cce",
+    "remoteHead": "f80c2ed249edc22b19934d0430b4cc8c4f6d6cce",
+    "files": [
+      {
+        "path": "docs/release-artifacts/v4.5.0/155-analysis.json",
+        "bytes": 18234,
+        "sha256": "1168e4a6ce5549722cadb7b1f23143d9cca3700ff1d6eaadbf20e5b1edc146cd",
+        "actualRemoteBytesEqual": true
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/155-attribution.json",
+        "bytes": 59381,
+        "sha256": "e2d61b27cf371dc589cf7e81807ac6a7452afa87685a0259de4f17596cafe149",
+        "actualRemoteBytesEqual": true
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/155-build-results.json",
+        "bytes": 1921,
+        "sha256": "7f5e757b34692b1b2e001b877c5d215f11723c7684436eb5627a52255bb0c5ba",
+        "actualRemoteBytesEqual": true
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/155-coverage.log",
+        "bytes": 604,
+        "sha256": "f3dd9d2ec3cd35ce7a806a391b6918dddd2c2377ca3039afa624f484985f9bce",
+        "actualRemoteBytesEqual": true
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/155-events.json",
+        "bytes": 14433,
+        "sha256": "17eb2278d55bf3ec38ee9d5f6d821bf1f619e6405309c386eb5ba8569745d50d",
+        "actualRemoteBytesEqual": true
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/155-execution.json",
+        "bytes": 22666,
+        "sha256": "762824be08c1500f3401f0dbc6702e54f57339d559608c112de4012a4fe46514",
+        "actualRemoteBytesEqual": true
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/155-focused-native.log",
+        "bytes": 3409,
+        "sha256": "4b3c3c0378157f7f6a2c388c28adcb7d5705a18546483739048144dcd0edd765",
+        "actualRemoteBytesEqual": true
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/155-focused-python-final.log",
+        "bytes": 17701,
+        "sha256": "51f39d4f53d2f1978b57aabdb16953e509a67fa59238fe57f615992989282811",
+        "actualRemoteBytesEqual": true
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/155-focused-python-initial.log",
+        "bytes": 14251,
+        "sha256": "2bf0efaeb6269a91af0e8555e96a1bca0c6529251693ed9cc9840adbb66cd0a5",
+        "actualRemoteBytesEqual": true
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/155-focused-python-intermediate.log",
+        "bytes": 19394,
+        "sha256": "b03e40ffd30ffb1ce8519db4c9a8bacb0ea8bdbb84f7b8b967b51618f0fbf207",
+        "actualRemoteBytesEqual": true
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/155-independent-review.json",
+        "bytes": 2209,
+        "sha256": "0d8fa076bc51ad5ae20fa5813fe31fc211296c024e3f4c1ee9af53772de6bae7",
+        "actualRemoteBytesEqual": true
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/155-input-summary.json",
+        "bytes": 8788,
+        "sha256": "8eba36c1b810347523742c8d705702697a5a6b6dddf95a0fd146c8d594d60020",
+        "actualRemoteBytesEqual": true
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/155-instrumentation.json",
+        "bytes": 38348,
+        "sha256": "690b48cf8c393b1fdba2316de2a0aa1fda8341c6e4c07148e45de096801461e9",
+        "actualRemoteBytesEqual": true
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/155-link-summary.json",
+        "bytes": 21759,
+        "sha256": "5b1ee657ee318a51a19d836bd01d6eb4c92e128510d3a764a78ec3e80a9dd3a5",
+        "actualRemoteBytesEqual": true
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/155-output.log",
+        "bytes": 157482,
+        "sha256": "9522adb0d3d931322ae8ad165e3f39eda25d84b47f8d058dc35d478e360a5d15",
+        "actualRemoteBytesEqual": true
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/155-overlay.diff",
+        "bytes": 20066,
+        "sha256": "5f7c58fa79f9122dd793964d7337d1cc40181e3260819ad4bc546fd661fa21ca",
+        "actualRemoteBytesEqual": true
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/155-parser-focused.json",
+        "bytes": 6980,
+        "sha256": "50d794fd3e766ff5fca6162d6e0dc77579aeff233139392ccd980808dff0516c",
+        "actualRemoteBytesEqual": true
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/155-plan.json",
+        "bytes": 2024,
+        "sha256": "f266ae960b026bc06ec2613065c4274202e9297b34384af0bd70cb8eb52cb1bc",
+        "actualRemoteBytesEqual": true
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/155-preservation.json",
+        "bytes": 8018,
+        "sha256": "931034bd87a678c4e3330f3551108a257d2b8920355f034809a7dfd5e27da143",
+        "actualRemoteBytesEqual": true
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/155-process-check.json",
+        "bytes": 129,
+        "sha256": "2b08dfd1c8bb9d905e50fb4b0d686b5e1cdc832689b74e8bb4bedfc2a2990142",
+        "actualRemoteBytesEqual": true
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/155-producer.log",
+        "bytes": 12812,
+        "sha256": "d044f8ac77f4e3e0a7ee0672c9d63381151b9f522393a0aa536f910913ef258f",
+        "actualRemoteBytesEqual": true
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/155-r153-regression.log",
+        "bytes": 129,
+        "sha256": "9e6ab18ec395d55fc7df079f87c6b6c1f9788fba627887914f057e3f76f0e1c4",
+        "actualRemoteBytesEqual": true
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/155-readback.log",
+        "bytes": 1141,
+        "sha256": "f004e8a145e0b287322992e5f2f9c356c12a495834505e9ea79a414fd1f6b6f7",
+        "actualRemoteBytesEqual": true
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/155-red-build-error.log",
+        "bytes": 570,
+        "sha256": "5121ecff51bfe5d0969d3512399c870e89216d9e9e6572551c22eaa6dc1f9802",
+        "actualRemoteBytesEqual": true
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/155-red-command.json",
+        "bytes": 3927,
+        "sha256": "fde925ba500f06d4ae6906f59ca0a95e5d1e2e45bb17692cb591afab3c4b336e",
+        "actualRemoteBytesEqual": true
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/155-red.log",
+        "bytes": 56,
+        "sha256": "eaa2f1e829ce727a25aeb3269a15473c7eeabdc80a4b3e746e2b1746c3b2c90a",
+        "actualRemoteBytesEqual": true
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/155-streaming-focused.json",
+        "bytes": 40534,
+        "sha256": "9d98bb284e359ed9a7efa7acfb2cf48dac8eb1d858d228a920511154e7734f89",
+        "actualRemoteBytesEqual": true
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/155-validation.json",
+        "bytes": 8275,
+        "sha256": "42c87b4c2cd640d60e56839be90a9d35e81a120c41086f819ae3855bdb86d4e6",
+        "actualRemoteBytesEqual": true
+      }
+    ],
+    "totalBytes": 505241
+  },
+  "cleanup": {
+    "remoteVerifiedBeforeDeletion": true,
+    "root": "<OWNED_ROOT>",
+    "rootAbsent": true,
+    "ownedRegularFilesRemoved": 410,
+    "ownedBytesRemoved": 232987974,
+    "foreignUidOrSymlink": false,
+    "ownedProcessesBeforeRemoval": 0,
+    "port": 52520,
+    "portConnectEx": 61,
+    "portClosed": true,
+    "runnerAllGroupsAbsent": true,
+    "containerStarts": 0,
+    "settingsModelsSDK": "untouched",
+    "errors": []
+  },
+  "productsAfterCleanup": {
+    "media_server": "33f516d35d56cb2f6cafc75647b6c37d2ced67115302d1205cca23bf51ab7f79",
+    "libmedia_server_runtime.a": "2d91cf35fe7e805e0c06e00d16779c86849b35db635e087582277e1b676d198c"
+  },
+  "additionalCycles": 0,
+  "new45": "NOT_RUN",
+  "MemoryP0": "HOLD",
+  "Readiness120": "HOLD",
+  "Release": "HOLD",
+  "historicalR154": "FAIL_BOUNDED_HTTP_CONTRACT unchanged",
+  "historicalR149": "Functional45 FAIL / Collection45 INCOMPLETE unchanged",
+  "finalCommitVerification": "closure commit SHA and matching actual remote HEAD reported after its push; immutable closure does not self-hash"
+}
