@@ -1,0 +1,86 @@
+{
+  "schema": "media-server.v450.r141.closure.v1",
+  "decision": "COLLECTOR_FIXED_CAPACITY_HOLD",
+  "diagnosticCommit": "37f191df7d0d1c9340fe7930c78437e54bf03177",
+  "evidenceCommit": "44d0184072fb43ab758e6a25bf40ec1ef80ccc5a",
+  "normalPush": true,
+  "remoteReadbackBeforeCleanup": {
+    "commit": "44d0184072fb43ab758e6a25bf40ec1ef80ccc5a",
+    "remoteHead": "44d0184072fb43ab758e6a25bf40ec1ef80ccc5a",
+    "method": "GitHub contents API base64 actual bytes at exact commit",
+    "files": [
+      {
+        "path": "docs/release-artifacts/v4.5.0/141-execution.tar.gz",
+        "bytes": 88597,
+        "sha256": "225285ced1386f648c049fe11d1cfd3c03b5bd5737a8556fb1de4af550b5bc54",
+        "remoteGitBlob": "e95ea3aead0dd774a76c06296dbeb6125ddb9295",
+        "equal": true
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/141-validation.json",
+        "bytes": 16427,
+        "sha256": "8e937c808c8e52625350b00115fe6b96ec6b62bf874fbfc5a6e3ee4fab93eed4",
+        "remoteGitBlob": "4b149929b573b2d10d2a3a584ad09b5d1e1c91f9",
+        "equal": true
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/141-independent-review.json",
+        "bytes": 2814,
+        "sha256": "b5edee1c59420e76d2b1a833e90d18fad11432052b4708a29aadffe0732562e4",
+        "remoteGitBlob": "1b2a704ce48b7cd665da284ca0f9272e87da5dc5",
+        "equal": true
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/141-collection-budget.md",
+        "bytes": 6814,
+        "sha256": "634c70ed9450d2fc72b96b92713bf3d0fd1deef9834b1b834722446ceb3067c4",
+        "remoteGitBlob": "39e6437a7d498a35cc5e2e3db82a76c02b01edcc",
+        "equal": true
+      },
+      {
+        "path": "src/main.cpp",
+        "bytes": 455,
+        "sha256": "96818cb4a48e5f45b838dbb6eac9afe4462bf99eff9b479ad42fd29dbb6156d2",
+        "remoteGitBlob": "cc0199df6740b281310ecfd589f7ea8f2066da2b",
+        "equal": true
+      },
+      {
+        "path": "include/recording/recording_completion_trace.h",
+        "bytes": 5877,
+        "sha256": "5ef9eda8a3787b6ff7b54c18f43d71ace5a87b57856e6146010e47bd3f9c3ba4",
+        "remoteGitBlob": "fcc71d9d38de4561a88845cf9ade26d351a36075",
+        "equal": true
+      },
+      {
+        "path": "scripts/internal/recording_completion_collection.mjs",
+        "bytes": 3019,
+        "sha256": "b9dd0d5d80e7f9912f93cf65b404681a58c917ac89be08b196cac8b760b07557",
+        "remoteGitBlob": "85fbff5523db52b9b05a72145ae932182098d5e9",
+        "equal": true
+      }
+    ]
+  },
+  "cleanup": {
+    "ownedRoot": "/private/tmp/media-server-r141-9npuvrah",
+    "ownerUid": 501,
+    "inodeChecked": true,
+    "symlinksRefused": true,
+    "removed": true,
+    "absenceConfirmed": true,
+    "files": 69,
+    "bytes": 3152934,
+    "ownedNativeProcessesRemaining": 0,
+    "ownedContainersRemaining": 0,
+    "productServersStarted": 0,
+    "listeningPortsCreated": 0,
+    "helperAndBuildSessions": "all completed; macOS/Linux first test failures preserved and relevant rechecks completed",
+    "settingsPrivateBackupsModelsSDK": "not accessed or cleaned"
+  },
+  "remaining": [
+    "normal45 source total log proof",
+    "45min/120min",
+    "whole memory P0",
+    "release HOLD"
+  ],
+  "finalHead": "this closure commit; verify local/remote SHA after normal push"
+}
