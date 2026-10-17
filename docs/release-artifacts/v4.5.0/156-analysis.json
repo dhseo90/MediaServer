@@ -1,0 +1,651 @@
+{
+  "schema": "media-server.v450.r156.analysis.v1",
+  "decision": "CURRENTNESS_COST_BOUNDARY_IDENTIFIED",
+  "actualCostAttribution": "QUALIFIED",
+  "requests": {
+    "10": {
+      "clientTotalMs": 67.423333,
+      "serverHandlerMs": 67.268125,
+      "searchMs": 67.224083,
+      "currentnessJsonMs": 62.447208,
+      "recordSpanMs": 62.434208,
+      "phaseOutsideRecordMs": 0.01300000000000523,
+      "stages": {
+        "ResponseAdmission": {
+          "calls": 1,
+          "inclusiveMs": 0.000417,
+          "selfMs": 0.000417
+        },
+        "JsonInitialization": {
+          "calls": 1,
+          "inclusiveMs": 0.0165,
+          "selfMs": 0.0165
+        },
+        "AvailabilityKey": {
+          "calls": 8,
+          "inclusiveMs": 0.00821,
+          "selfMs": 0.00821
+        },
+        "AvailabilityCache": {
+          "calls": 16,
+          "inclusiveMs": 0.017497,
+          "selfMs": 0.017497
+        },
+        "MediaResolve": {
+          "calls": 8,
+          "inclusiveMs": 62.318,
+          "selfMs": 0.079329
+        },
+        "FallbackResolve": {
+          "calls": 0,
+          "inclusiveMs": 0.0,
+          "selfMs": 0.0
+        },
+        "DeletedState": {
+          "calls": 0,
+          "inclusiveMs": 0.0,
+          "selfMs": 0.0
+        },
+        "ItemSerialization": {
+          "calls": 8,
+          "inclusiveMs": 0.057124,
+          "selfMs": 0.057124
+        },
+        "ResponseTail": {
+          "calls": 1,
+          "inclusiveMs": 0.00175,
+          "selfMs": 0.00175
+        },
+        "AuthorizationRecheck": {
+          "calls": 1,
+          "inclusiveMs": 0.001625,
+          "selfMs": 0.001625
+        },
+        "JsonTake": {
+          "calls": 1,
+          "inclusiveMs": 8.3e-05,
+          "selfMs": 8.3e-05
+        },
+        "DeletedIdCheck": {
+          "calls": 8,
+          "inclusiveMs": 9.687833,
+          "selfMs": 9.687833
+        },
+        "SegmentLookup": {
+          "calls": 16,
+          "inclusiveMs": 3.017084,
+          "selfMs": 3.017084
+        },
+        "EventLinkLookup": {
+          "calls": 8,
+          "inclusiveMs": 4.889375,
+          "selfMs": 4.889375
+        },
+        "MediaHoldAcquire": {
+          "calls": 8,
+          "inclusiveMs": 11.050251,
+          "selfMs": 11.050251
+        },
+        "ContainedMediaOpen": {
+          "calls": 8,
+          "inclusiveMs": 0.895375,
+          "selfMs": 0.895375
+        },
+        "PhysicalInspection": {
+          "calls": 8,
+          "inclusiveMs": 4.538917,
+          "selfMs": 4.538917
+        },
+        "MediaCurrentValidation": {
+          "calls": 8,
+          "inclusiveMs": 9.46021,
+          "selfMs": 9.46021
+        },
+        "MediaObjectRelease": {
+          "calls": 8,
+          "inclusiveMs": 18.699626,
+          "selfMs": 18.699626
+        }
+      },
+      "counts": {
+        "Positions": 8,
+        "Items": 8,
+        "AvailabilityCalls": 8,
+        "InvalidKeys": 0,
+        "CacheHits": 0,
+        "CacheMisses": 8,
+        "UniqueKeys": 8,
+        "ResolveCalls": 8,
+        "ResolveOK": 8,
+        "ResolveFail": 0,
+        "PreferredChecks": 8,
+        "FallbackChecks": 0,
+        "FallbackOK": 0,
+        "FallbackFail": 0,
+        "DeletedQueries": 0,
+        "ResponseBytes": 4955,
+        "V1Rows": 0,
+        "V2Rows": 8
+      },
+      "catalogApiCombinedMs": 38.104753,
+      "catalogMutexWaitHeld": null,
+      "mediaDestructorBodyMs": 18.699626,
+      "jsonGenerationSelfMs": 0.075457,
+      "unattributedRecordMs": 0.01300200000000018,
+      "mediaResolveUnattributedMs": 0.079329,
+      "responseOwnershipTransfer": null,
+      "inspections": [
+        {
+          "ordinal": 0,
+          "startNs": 1575240114286458,
+          "endNs": 1575240114891708,
+          "elapsedMs": 0.60525,
+          "budgetMs": 5000,
+          "state": 0,
+          "timeoutClass": false
+        },
+        {
+          "ordinal": 1,
+          "startNs": 1575240122589541,
+          "endNs": 1575240123015583,
+          "elapsedMs": 0.426042,
+          "budgetMs": 5000,
+          "state": 0,
+          "timeoutClass": false
+        },
+        {
+          "ordinal": 2,
+          "startNs": 1575240130569458,
+          "endNs": 1575240131073875,
+          "elapsedMs": 0.504417,
+          "budgetMs": 5000,
+          "state": 0,
+          "timeoutClass": false
+        },
+        {
+          "ordinal": 3,
+          "startNs": 1575240138505708,
+          "endNs": 1575240139150375,
+          "elapsedMs": 0.644667,
+          "budgetMs": 5000,
+          "state": 0,
+          "timeoutClass": false
+        },
+        {
+          "ordinal": 4,
+          "startNs": 1575240146423500,
+          "endNs": 1575240146965375,
+          "elapsedMs": 0.541875,
+          "budgetMs": 5000,
+          "state": 0,
+          "timeoutClass": false
+        },
+        {
+          "ordinal": 5,
+          "startNs": 1575240154599000,
+          "endNs": 1575240155329083,
+          "elapsedMs": 0.730083,
+          "budgetMs": 5000,
+          "state": 0,
+          "timeoutClass": false
+        },
+        {
+          "ordinal": 6,
+          "startNs": 1575240163199125,
+          "endNs": 1575240163664541,
+          "elapsedMs": 0.465416,
+          "budgetMs": 5000,
+          "state": 0,
+          "timeoutClass": false
+        },
+        {
+          "ordinal": 7,
+          "startNs": 1575240169026000,
+          "endNs": 1575240169650166,
+          "elapsedMs": 0.624166,
+          "budgetMs": 5000,
+          "state": 0,
+          "timeoutClass": false
+        }
+      ],
+      "existingSearchPhasesMs": {
+        "service-wait": 0.05825,
+        "service-hold": 0.000375,
+        "Capture": 1.710333,
+        "RefreshReuse": 4.2e-05,
+        "Refresh": 1.884666,
+        "PlaybackCandidates": 0.752834,
+        "PlaybackNoCandidates": 4.2e-05,
+        "PlaybackReuse": 4.2e-05,
+        "WithPlayback": 0.912792,
+        "SnapshotBegin": 0.055375,
+        "preparation-wait": 1.798541,
+        "preparation-hold": 2.855667,
+        "CurrentnessJson": 62.447208
+      }
+    },
+    "11": {
+      "clientTotalMs": 68.574875,
+      "serverHandlerMs": 68.451541,
+      "searchMs": 68.404167,
+      "currentnessJsonMs": 66.492042,
+      "recordSpanMs": 66.483083,
+      "phaseOutsideRecordMs": 0.00895900000000438,
+      "stages": {
+        "ResponseAdmission": {
+          "calls": 1,
+          "inclusiveMs": 0.000125,
+          "selfMs": 0.000125
+        },
+        "JsonInitialization": {
+          "calls": 1,
+          "inclusiveMs": 0.0055,
+          "selfMs": 0.0055
+        },
+        "AvailabilityKey": {
+          "calls": 8,
+          "inclusiveMs": 0.007125,
+          "selfMs": 0.007125
+        },
+        "AvailabilityCache": {
+          "calls": 16,
+          "inclusiveMs": 0.018166,
+          "selfMs": 0.018166
+        },
+        "MediaResolve": {
+          "calls": 8,
+          "inclusiveMs": 66.38271,
+          "selfMs": 0.065544
+        },
+        "FallbackResolve": {
+          "calls": 0,
+          "inclusiveMs": 0.0,
+          "selfMs": 0.0
+        },
+        "DeletedState": {
+          "calls": 0,
+          "inclusiveMs": 0.0,
+          "selfMs": 0.0
+        },
+        "ItemSerialization": {
+          "calls": 8,
+          "inclusiveMs": 0.054457,
+          "selfMs": 0.054457
+        },
+        "ResponseTail": {
+          "calls": 1,
+          "inclusiveMs": 0.001583,
+          "selfMs": 0.001583
+        },
+        "AuthorizationRecheck": {
+          "calls": 1,
+          "inclusiveMs": 0.000833,
+          "selfMs": 0.000833
+        },
+        "JsonTake": {
+          "calls": 1,
+          "inclusiveMs": 8.3e-05,
+          "selfMs": 8.3e-05
+        },
+        "DeletedIdCheck": {
+          "calls": 8,
+          "inclusiveMs": 6.836207,
+          "selfMs": 6.836207
+        },
+        "SegmentLookup": {
+          "calls": 16,
+          "inclusiveMs": 2.537043,
+          "selfMs": 2.537043
+        },
+        "EventLinkLookup": {
+          "calls": 8,
+          "inclusiveMs": 4.33,
+          "selfMs": 4.33
+        },
+        "MediaHoldAcquire": {
+          "calls": 8,
+          "inclusiveMs": 12.72575,
+          "selfMs": 12.72575
+        },
+        "ContainedMediaOpen": {
+          "calls": 8,
+          "inclusiveMs": 0.948584,
+          "selfMs": 0.948584
+        },
+        "PhysicalInspection": {
+          "calls": 8,
+          "inclusiveMs": 4.510791,
+          "selfMs": 4.510791
+        },
+        "MediaCurrentValidation": {
+          "calls": 8,
+          "inclusiveMs": 12.902084,
+          "selfMs": 12.902084
+        },
+        "MediaObjectRelease": {
+          "calls": 8,
+          "inclusiveMs": 21.526707,
+          "selfMs": 21.526707
+        }
+      },
+      "counts": {
+        "Positions": 8,
+        "Items": 8,
+        "AvailabilityCalls": 8,
+        "InvalidKeys": 0,
+        "CacheHits": 0,
+        "CacheMisses": 8,
+        "UniqueKeys": 8,
+        "ResolveCalls": 8,
+        "ResolveOK": 8,
+        "ResolveFail": 0,
+        "PreferredChecks": 8,
+        "FallbackChecks": 0,
+        "FallbackOK": 0,
+        "FallbackFail": 0,
+        "DeletedQueries": 0,
+        "ResponseBytes": 4955,
+        "V1Rows": 0,
+        "V2Rows": 8
+      },
+      "catalogApiCombinedMs": 39.331084,
+      "catalogMutexWaitHeld": null,
+      "mediaDestructorBodyMs": 21.526707,
+      "jsonGenerationSelfMs": 0.061623,
+      "unattributedRecordMs": 0.012501000000000317,
+      "mediaResolveUnattributedMs": 0.065544,
+      "responseOwnershipTransfer": null,
+      "inspections": [
+        {
+          "ordinal": 0,
+          "startNs": 1575240109252583,
+          "endNs": 1575240109810166,
+          "elapsedMs": 0.557583,
+          "budgetMs": 5000,
+          "state": 0,
+          "timeoutClass": false
+        },
+        {
+          "ordinal": 1,
+          "startNs": 1575240118310833,
+          "endNs": 1575240118775458,
+          "elapsedMs": 0.464625,
+          "budgetMs": 5000,
+          "state": 0,
+          "timeoutClass": false
+        },
+        {
+          "ordinal": 2,
+          "startNs": 1575240127638875,
+          "endNs": 1575240128280125,
+          "elapsedMs": 0.64125,
+          "budgetMs": 5000,
+          "state": 0,
+          "timeoutClass": false
+        },
+        {
+          "ordinal": 3,
+          "startNs": 1575240135053083,
+          "endNs": 1575240135572416,
+          "elapsedMs": 0.519333,
+          "budgetMs": 5000,
+          "state": 0,
+          "timeoutClass": false
+        },
+        {
+          "ordinal": 4,
+          "startNs": 1575240144393791,
+          "endNs": 1575240145066916,
+          "elapsedMs": 0.673125,
+          "budgetMs": 5000,
+          "state": 0,
+          "timeoutClass": false
+        },
+        {
+          "ordinal": 5,
+          "startNs": 1575240149345583,
+          "endNs": 1575240149844000,
+          "elapsedMs": 0.498417,
+          "budgetMs": 5000,
+          "state": 0,
+          "timeoutClass": false
+        },
+        {
+          "ordinal": 6,
+          "startNs": 1575240160629000,
+          "endNs": 1575240161231500,
+          "elapsedMs": 0.6025,
+          "budgetMs": 5000,
+          "state": 0,
+          "timeoutClass": false
+        },
+        {
+          "ordinal": 7,
+          "startNs": 1575240171856958,
+          "endNs": 1575240172413708,
+          "elapsedMs": 0.55675,
+          "budgetMs": 5000,
+          "state": 0,
+          "timeoutClass": false
+        }
+      ],
+      "existingSearchPhasesMs": {
+        "service-wait": 8.3e-05,
+        "service-hold": 0.050334,
+        "Capture": 1.058833,
+        "BuildOwned": 0.176417,
+        "Refresh": 1.33175,
+        "PlaybackCandidates": 0.373583,
+        "PlaybackNoCandidates": 0.0,
+        "PlaybackReuse": 4.2e-05,
+        "WithPlayback": 0.441584,
+        "SnapshotBegin": 0.024334,
+        "preparation-wait": 4.2e-05,
+        "preparation-hold": 1.798708,
+        "CurrentnessJson": 66.492042
+      }
+    },
+    "60": {
+      "clientTotalMs": 12.841875,
+      "serverHandlerMs": 12.650291,
+      "searchMs": 12.61225,
+      "currentnessJsonMs": 2.744667,
+      "recordSpanMs": 2.735917,
+      "phaseOutsideRecordMs": 0.008750000000000036,
+      "stages": {
+        "ResponseAdmission": {
+          "calls": 1,
+          "inclusiveMs": 0.000417,
+          "selfMs": 0.000417
+        },
+        "JsonInitialization": {
+          "calls": 1,
+          "inclusiveMs": 0.003375,
+          "selfMs": 0.003375
+        },
+        "AvailabilityKey": {
+          "calls": 2,
+          "inclusiveMs": 0.002333,
+          "selfMs": 0.002333
+        },
+        "AvailabilityCache": {
+          "calls": 3,
+          "inclusiveMs": 0.002499,
+          "selfMs": 0.002499
+        },
+        "MediaResolve": {
+          "calls": 1,
+          "inclusiveMs": 2.71125,
+          "selfMs": 0.005209
+        },
+        "FallbackResolve": {
+          "calls": 0,
+          "inclusiveMs": 0.0,
+          "selfMs": 0.0
+        },
+        "DeletedState": {
+          "calls": 0,
+          "inclusiveMs": 0.0,
+          "selfMs": 0.0
+        },
+        "ItemSerialization": {
+          "calls": 2,
+          "inclusiveMs": 0.010958,
+          "selfMs": 0.010958
+        },
+        "ResponseTail": {
+          "calls": 1,
+          "inclusiveMs": 0.001667,
+          "selfMs": 0.001667
+        },
+        "AuthorizationRecheck": {
+          "calls": 1,
+          "inclusiveMs": 0.000583,
+          "selfMs": 0.000583
+        },
+        "JsonTake": {
+          "calls": 1,
+          "inclusiveMs": 4.1e-05,
+          "selfMs": 4.1e-05
+        },
+        "DeletedIdCheck": {
+          "calls": 1,
+          "inclusiveMs": 0.0405,
+          "selfMs": 0.0405
+        },
+        "SegmentLookup": {
+          "calls": 2,
+          "inclusiveMs": 0.195542,
+          "selfMs": 0.195542
+        },
+        "EventLinkLookup": {
+          "calls": 1,
+          "inclusiveMs": 0.311042,
+          "selfMs": 0.311042
+        },
+        "MediaHoldAcquire": {
+          "calls": 1,
+          "inclusiveMs": 0.896458,
+          "selfMs": 0.896458
+        },
+        "ContainedMediaOpen": {
+          "calls": 1,
+          "inclusiveMs": 0.069416,
+          "selfMs": 0.069416
+        },
+        "PhysicalInspection": {
+          "calls": 1,
+          "inclusiveMs": 0.325875,
+          "selfMs": 0.325875
+        },
+        "MediaCurrentValidation": {
+          "calls": 1,
+          "inclusiveMs": 0.193333,
+          "selfMs": 0.193333
+        },
+        "MediaObjectRelease": {
+          "calls": 1,
+          "inclusiveMs": 0.673875,
+          "selfMs": 0.673875
+        }
+      },
+      "counts": {
+        "Positions": 2,
+        "Items": 2,
+        "AvailabilityCalls": 2,
+        "InvalidKeys": 0,
+        "CacheHits": 1,
+        "CacheMisses": 1,
+        "UniqueKeys": 1,
+        "ResolveCalls": 1,
+        "ResolveOK": 1,
+        "ResolveFail": 0,
+        "PreferredChecks": 2,
+        "FallbackChecks": 0,
+        "FallbackOK": 0,
+        "FallbackFail": 0,
+        "DeletedQueries": 0,
+        "ResponseBytes": 1650,
+        "V1Rows": 0,
+        "V2Rows": 1
+      },
+      "catalogApiCombinedMs": 1.6368749999999999,
+      "catalogMutexWaitHeld": null,
+      "mediaDestructorBodyMs": 0.673875,
+      "jsonGenerationSelfMs": 0.016041,
+      "unattributedRecordMs": 0.0027940000000001852,
+      "mediaResolveUnattributedMs": 0.005209,
+      "responseOwnershipTransfer": null,
+      "inspections": [
+        {
+          "ordinal": 0,
+          "startNs": 1575240556014875,
+          "endNs": 1575240556340916,
+          "elapsedMs": 0.326041,
+          "budgetMs": 5000,
+          "state": 0,
+          "timeoutClass": false
+        }
+      ],
+      "existingSearchPhasesMs": {
+        "service-wait": 0.000208,
+        "service-hold": 0.000458,
+        "Capture": 1.784,
+        "BuildOwned": 0.19675,
+        "Refresh": 9.0765,
+        "PlaybackCandidates": 0.556458,
+        "PlaybackNoCandidates": 4.2e-05,
+        "PlaybackBuildOwned": 0.112667,
+        "PlaybackDocuments": 0.173667,
+        "WithPlayback": 0.733417,
+        "SnapshotBegin": 0.042542,
+        "preparation-wait": 4.1e-05,
+        "preparation-hold": 9.854292,
+        "CurrentnessJson": 2.744667
+      }
+    }
+  },
+  "recordCounts": {
+    "client": 28,
+    "server": 28,
+    "search": 3,
+    "currentness": 3
+  },
+  "loss": false,
+  "method": "same-process steady_clock; exact request ID; raw ns preserved separately; inclusive/self aggregation subtracts only direct children",
+  "parents": {
+    "MediaResolve": [
+      "DeletedIdCheck",
+      "SegmentLookup",
+      "EventLinkLookup",
+      "MediaHoldAcquire",
+      "ContainedMediaOpen",
+      "PhysicalInspection",
+      "MediaCurrentValidation",
+      "MediaObjectRelease"
+    ],
+    "FallbackResolve": [
+      "AvailabilityKey",
+      "AvailabilityCache",
+      "MediaResolve"
+    ],
+    "ItemSerialization": [
+      "DeletedState"
+    ]
+  },
+  "findings": [
+    "General structured Currentness is dominated by actual MediaResolve full-expression, including temporary FD/hold destructor body.",
+    "8 unique media/8 inspections per ordinary request; A has2 items,1 cache hit,1 unique media/inspection.",
+    "PhysicalInspection is a minority here; it includes SHA and demux together. Catalog APIs and destructor body dominate collectively, but their internal lock/I/O split is not measured."
+  ],
+  "limits": [
+    "17 initial synthetic media/990samples plus actual background; not R149 accumulated state.",
+    "MediaObjectRelease means destructor body FD close and AdjustHoldCount(-1); member destruction is outside this stage.",
+    "EventLinkLookup times AllLinks retrieval/materialization; traversal after retrieval belongs to MediaResolve self.",
+    "Each inspection budget5000ms is independent of HTTP client5000ms, not a shared request deadline. All observed inspections Healthy, no timeout-class.",
+    "ResponseTransfer whole return/ownership is UNKNOWN; only SearchJson::Take body measured.",
+    "PhaseOutsideRecord includes scope bookkeeping and record emission; diagnostic overhead is not calibrated by matched A/B.",
+    "Native focused costs are not integrated costs. No R149 timeout cause or performance improvement claim."
+  ],
+  "nextSeparateApproval": "One bounded test-only decomposition of Catalog media acquire/current validation and hold-release internals, preserving full authentication/hold/currentness; no optimization yet."
+}

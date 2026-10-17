@@ -1,0 +1,259 @@
+{
+  "schema": "media-server.v450.r156.preservation.v1",
+  "redaction": "owned root/repo/home substitutions only; numeric trace unchanged; no raw media/binary/full map or secrets stored; fixed fixture credential literal in generated diff context replaced with placeholder; trailing line whitespace normalized in output.log and review-only overlay.patch (regenerate exact overlay with tracked generator; this diff is for reading, not applying)",
+  "entries": [
+    {
+      "artifact": "156-output.log",
+      "rawSource": "<OWNED_ROOT>/candidate/run/output.log",
+      "rawBytes": 159888,
+      "rawSha256": "9e426afe365357b0982e12475ebe2a17820e35882890a2da9a58d9f67e72c95e",
+      "storedBytes": 159886,
+      "storedSha256": "e2e02b5b598e0b4d9a70d56a1adf4ca8b06a7f6a2195d80adfbf0a3ec21d0aea",
+      "sameBytes": false
+    },
+    {
+      "artifact": "156-events.json",
+      "rawSource": "<OWNED_ROOT>/candidate/run/events.json",
+      "rawBytes": 14432,
+      "rawSha256": "13f853a6bd28f0e0c770aadfac3c2fb173ca7c5473af696a22eeed3ca9abb8e4",
+      "storedBytes": 14432,
+      "storedSha256": "13f853a6bd28f0e0c770aadfac3c2fb173ca7c5473af696a22eeed3ca9abb8e4",
+      "sameBytes": true
+    },
+    {
+      "artifact": "156-execution.json",
+      "rawSource": "<OWNED_ROOT>/candidate/run/execution.json",
+      "rawBytes": 23682,
+      "rawSha256": "51d9bb9f8a3858ade28b7df475f1bc3f29b370b748602f736586bb18274b2920",
+      "storedBytes": 23682,
+      "storedSha256": "51d9bb9f8a3858ade28b7df475f1bc3f29b370b748602f736586bb18274b2920",
+      "sameBytes": true
+    },
+    {
+      "artifact": "156-trace.json",
+      "rawSource": "<OWNED_ROOT>/candidate/run/attribution.json",
+      "rawBytes": 66748,
+      "rawSha256": "2313f1a8bd9da12266afaa12e8742b6b4ab590aa153423b37e9af63603768715",
+      "storedBytes": 66748,
+      "storedSha256": "2313f1a8bd9da12266afaa12e8742b6b4ab590aa153423b37e9af63603768715",
+      "sameBytes": true
+    },
+    {
+      "artifact": "156-analysis.json",
+      "rawSource": "<OWNED_ROOT>/analysis.json",
+      "rawBytes": 18296,
+      "rawSha256": "6d2a5e9cd5ad7dbb8c2ccddc69e6c0a107d87dd2261965f82987699e33818b8e",
+      "storedBytes": 18296,
+      "storedSha256": "6d2a5e9cd5ad7dbb8c2ccddc69e6c0a107d87dd2261965f82987699e33818b8e",
+      "sameBytes": true
+    },
+    {
+      "artifact": "156-instrumentation.json",
+      "rawSource": "<OWNED_ROOT>/candidate/instrumentation.json",
+      "rawBytes": 50326,
+      "rawSha256": "45246a44682d126cfac47221e13925c1e308d17e2ce79006af2b5420bcc23b0c",
+      "storedBytes": 47303,
+      "storedSha256": "01819fd83aa017e7630c0e00dc542c02d4590b88a0b4ebb52915a90f388a2983",
+      "sameBytes": false
+    },
+    {
+      "artifact": "156-link-verification.json",
+      "rawSource": "<OWNED_ROOT>/link-verification.json",
+      "rawBytes": 1996,
+      "rawSha256": "f44fc538f29ffd4bfe8191cf4babac5a04ffed88ab3954bea37bfbf6f87c3e8d",
+      "storedBytes": 1996,
+      "storedSha256": "f44fc538f29ffd4bfe8191cf4babac5a04ffed88ab3954bea37bfbf6f87c3e8d",
+      "sameBytes": true
+    },
+    {
+      "artifact": "156-focused-summary.json",
+      "rawSource": "<OWNED_ROOT>/focused-summary.json",
+      "rawBytes": 16963,
+      "rawSha256": "b867c7027d9a4709ab27259888bb0271c5e89b66951107bcc6d0ca06c9241731",
+      "storedBytes": 16963,
+      "storedSha256": "b867c7027d9a4709ab27259888bb0271c5e89b66951107bcc6d0ca06c9241731",
+      "sameBytes": true
+    },
+    {
+      "artifact": "156-preflight.json",
+      "rawSource": "<OWNED_ROOT>/run-preflight.json",
+      "rawBytes": 579,
+      "rawSha256": "5a59998b00837641fdee382ac052d5ff8e93144fc744aa5052b85e2571b72de2",
+      "storedBytes": 579,
+      "storedSha256": "5a59998b00837641fdee382ac052d5ff8e93144fc744aa5052b85e2571b72de2",
+      "sameBytes": true
+    },
+    {
+      "artifact": "156-red-tool-transcript.json",
+      "rawSource": "<OWNED_ROOT>/red-tool-transcript.json",
+      "rawBytes": 617,
+      "rawSha256": "99427e015578b0ca3d8e0d66546d67eb0e42a4eb995ec4560ac12e2fffc2964d",
+      "storedBytes": 584,
+      "storedSha256": "bd5a7c9007b98e791ae08aca47d9b3c29d023c24cffc42b2b0985d90ca601931",
+      "sameBytes": false
+    },
+    {
+      "artifact": "156-native-first.log",
+      "rawSource": "<OWNED_ROOT>/currentness-focused-qualified.log",
+      "rawBytes": 3092,
+      "rawSha256": "54d1a9d9d7d1227dedd729e7ebccd271617caf64435d3307086ca9cda588c07d",
+      "storedBytes": 3092,
+      "storedSha256": "54d1a9d9d7d1227dedd729e7ebccd271617caf64435d3307086ca9cda588c07d",
+      "sameBytes": true
+    },
+    {
+      "artifact": "156-native-second.log",
+      "rawSource": "<OWNED_ROOT>/currentness-focused-fixed.log",
+      "rawBytes": 6072,
+      "rawSha256": "cdf37b45fcf33cee22b50ae5940ac29ef651e41efc9068c528c3e82ff6ba5628",
+      "storedBytes": 6072,
+      "storedSha256": "cdf37b45fcf33cee22b50ae5940ac29ef651e41efc9068c528c3e82ff6ba5628",
+      "sameBytes": true
+    },
+    {
+      "artifact": "156-native-final.log",
+      "rawSource": "<OWNED_ROOT>/currentness-focused-final.log",
+      "rawBytes": 6662,
+      "rawSha256": "b673cce2cd09dba6f749ee440f2b6024297669fb63820f388918cd70acfffa31",
+      "storedBytes": 6662,
+      "storedSha256": "b673cce2cd09dba6f749ee440f2b6024297669fb63820f388918cd70acfffa31",
+      "sameBytes": true
+    },
+    {
+      "artifact": "156-r153-native.log",
+      "rawSource": "<OWNED_ROOT>/focused-qualified.log",
+      "rawBytes": 3409,
+      "rawSha256": "a498d383e403a76833885ab2a783739a485ab5cea48467cc67535f75a70d61ee",
+      "storedBytes": 3409,
+      "storedSha256": "a498d383e403a76833885ab2a783739a485ab5cea48467cc67535f75a70d61ee",
+      "sameBytes": true
+    },
+    {
+      "artifact": "156-r153-python.log",
+      "rawSource": "<OWNED_ROOT>/r153-focused.log",
+      "rawBytes": 129,
+      "rawSha256": "9e6ab18ec395d55fc7df079f87c6b6c1f9788fba627887914f057e3f76f0e1c4",
+      "storedBytes": 129,
+      "storedSha256": "9e6ab18ec395d55fc7df079f87c6b6c1f9788fba627887914f057e3f76f0e1c4",
+      "sameBytes": true
+    },
+    {
+      "artifact": "156-r155-python-final.log",
+      "rawSource": "<OWNED_ROOT>/r155-focused-final-unique.log",
+      "rawBytes": 20041,
+      "rawSha256": "096565dc092a53ebc5560f1f5c810e422fa9a357b844af14aa679e110c05e45d",
+      "storedBytes": 20041,
+      "storedSha256": "096565dc092a53ebc5560f1f5c810e422fa9a357b844af14aa679e110c05e45d",
+      "sameBytes": true
+    },
+    {
+      "artifact": "156-streaming-id-final.log",
+      "rawSource": "<OWNED_ROOT>/id-preservation-streaming.log",
+      "rawBytes": 18539,
+      "rawSha256": "0dfe68cf8c01e64b87d568f1194b4161e8bbb8ca702d223d9039b7ffa28c8e08",
+      "storedBytes": 18539,
+      "storedSha256": "0dfe68cf8c01e64b87d568f1194b4161e8bbb8ca702d223d9039b7ffa28c8e08",
+      "sameBytes": true
+    },
+    {
+      "artifact": "156-streaming-root-refusal.log",
+      "rawSource": "<OWNED_ROOT>/r155-focused-final.log",
+      "rawBytes": 14918,
+      "rawSha256": "4a056afad98ee83529870b2f0bdbd45fd8d44c8136cdb6eccc90596b2c39c920",
+      "storedBytes": 14093,
+      "storedSha256": "d60c51911b7b0a34c574703b1d628fc9d9eefc9a52296d32505256141c65224c",
+      "sameBytes": false
+    },
+    {
+      "artifact": "156-currentness-python.log",
+      "rawSource": "<OWNED_ROOT>/currentness-python-final.log",
+      "rawBytes": 103,
+      "rawSha256": "6273232de4d3ef7acd4ecafa5c86beeeb974f56586b21089a2990b3f72facbe6",
+      "storedBytes": 103,
+      "storedSha256": "6273232de4d3ef7acd4ecafa5c86beeeb974f56586b21089a2990b3f72facbe6",
+      "sameBytes": true
+    },
+    {
+      "artifact": "156-producer.log",
+      "rawSource": "<OWNED_ROOT>/producer.log",
+      "rawBytes": 12812,
+      "rawSha256": "d044f8ac77f4e3e0a7ee0672c9d63381151b9f522393a0aa536f910913ef258f",
+      "storedBytes": 12812,
+      "storedSha256": "d044f8ac77f4e3e0a7ee0672c9d63381151b9f522393a0aa536f910913ef258f",
+      "sameBytes": true
+    },
+    {
+      "artifact": "156-readback.log",
+      "rawSource": "<OWNED_ROOT>/readback.log",
+      "rawBytes": 1141,
+      "rawSha256": "f004e8a145e0b287322992e5f2f9c356c12a495834505e9ea79a414fd1f6b6f7",
+      "storedBytes": 1141,
+      "storedSha256": "f004e8a145e0b287322992e5f2f9c356c12a495834505e9ea79a414fd1f6b6f7",
+      "sameBytes": true
+    },
+    {
+      "artifact": "156-coverage.log",
+      "rawSource": "<OWNED_ROOT>/coverage.log",
+      "rawBytes": 604,
+      "rawSha256": "f3dd9d2ec3cd35ce7a806a391b6918dddd2c2377ca3039afa624f484985f9bce",
+      "storedBytes": 604,
+      "storedSha256": "f3dd9d2ec3cd35ce7a806a391b6918dddd2c2377ca3039afa624f484985f9bce",
+      "sameBytes": true
+    },
+    {
+      "artifact": "156-binding-update.json",
+      "rawSource": "<OWNED_ROOT>/runtime-binding-update.json",
+      "rawBytes": 1378,
+      "rawSha256": "75713dd69607e2529917429785418ef16d49f43702562f270d1dc654869998ab",
+      "storedBytes": 1378,
+      "storedSha256": "75713dd69607e2529917429785418ef16d49f43702562f270d1dc654869998ab",
+      "sameBytes": true
+    },
+    {
+      "artifact": "156-binding-final-update.json",
+      "rawSource": "<OWNED_ROOT>/runtime-binding-final-update.json",
+      "rawBytes": 897,
+      "rawSha256": "53f75a40908274b82fefaa03692d4deddb7af4dfa1f90a37a09d6c7b69703fb1",
+      "storedBytes": 897,
+      "storedSha256": "53f75a40908274b82fefaa03692d4deddb7af4dfa1f90a37a09d6c7b69703fb1",
+      "sameBytes": true
+    },
+    {
+      "artifact": "156-overlay.patch",
+      "rawSource": "<OWNED_ROOT>/overlay.patch",
+      "rawBytes": 33876,
+      "rawSha256": "5735da885e25b9fdb8051527d24bb132ee7636b29545f957165f3fd9cdfb5b33",
+      "storedBytes": 33863,
+      "storedSha256": "45b900da9af5dc20cc6f070c1e26a3a90646c10aef4b450d8d14e2c20df73926",
+      "sameBytes": false
+    },
+    {
+      "artifact": "156-map-objects.txt",
+      "rawSource": "<OWNED_ROOT>/map-object-excerpt.txt",
+      "rawBytes": 520,
+      "rawSha256": "6d859fca04c469a0b435c1b14551b93d7d584f6883a7ea5c5f3e8572ce60af46",
+      "storedBytes": 358,
+      "storedSha256": "4c18f8065cb479ce1595379614d241e79de5ae84d3ef41a32a6b74990ad3b1cc",
+      "sameBytes": false
+    },
+    {
+      "artifact": "156-input-summary.json",
+      "rawSource": "<OWNED_ROOT>/input-summary.json",
+      "rawBytes": 9207,
+      "rawSha256": "ed1fb31c80edcf1285482a8cf74629433157b81293c9cf5284e82b4eedc5ae85",
+      "storedBytes": 9207,
+      "storedSha256": "ed1fb31c80edcf1285482a8cf74629433157b81293c9cf5284e82b4eedc5ae85",
+      "sameBytes": true
+    },
+    {
+      "artifact": "156-focused-executions.json",
+      "rawSource": "<OWNED_ROOT>/focused-executions.json",
+      "rawBytes": 32791,
+      "rawSha256": "2a7e66d3141c649e8d83067dd18506aad7ffbd546d5ec53eab0fcfbb5cbf7589",
+      "storedBytes": 32791,
+      "storedSha256": "2a7e66d3141c649e8d83067dd18506aad7ffbd546d5ec53eab0fcfbb5cbf7589",
+      "sameBytes": true
+    }
+  ],
+  "storedEvidenceBytes": 515660
+}

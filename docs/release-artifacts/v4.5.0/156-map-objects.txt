@@ -1,0 +1,6 @@
+[  2] <OWNED_ROOT>/candidate/recording_read_service.cpp.o
+[  3] <OWNED_ROOT>/candidate/recording_catalog.cpp.o
+[  4] <OWNED_ROOT>/candidate/recording_search_reader.cpp.o
+[  5] <OWNED_ROOT>/candidate/recording_search_application_service.cpp.o
+[  6] <OWNED_ROOT>/candidate/webrtc_http_server_runtime.cpp.o
+[  7] <OWNED_ROOT>/candidate/webrtc_http_server.cpp.o

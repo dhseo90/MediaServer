@@ -1,0 +1,8 @@
+{
+  "source": "functions.exec/exec_command tool result chunk 33e37c; transcribed from this task, not a retained process log",
+  "exit": 1,
+  "assertion": "R156 Currentness record absent from baseline overlay",
+  "stdout": "R156 expected RED: generated Search contains Currentness request scope\nowned root: <RED_ROOT>",
+  "stderrTail": "AssertionError: R156 Currentness record absent from baseline overlay",
+  "limitation": "independent reviewer can verify preserved baseline overlay lacks instrumentation; cannot independently re-read original process exit from an on-disk raw log"
+}

@@ -1,0 +1,26 @@
+{
+  "reason": "R156 qualification and focused-only source changes after native product overlay compilation; fixture SHA unchanged",
+  "changes": {
+    "scripts/internal/recording_http_cost_run.test.py": {
+      "before": "6ea84392c8d531b19cc9efa75c6a76f0ff8f325343826a9591d4ce45667a6013",
+      "after": "b279c8f2ca2a34ad2ea361b019d45205e33bb97b5281417fe265abf3ab9515f8"
+    },
+    "scripts/internal/recording_http_currentness.py": {
+      "before": "ddd97364778d0ac1a9c7dbe8b9ffecc7a87207a417ecf38723fabc8b94b52542",
+      "after": "584279013a79a75eca0e58b23e8574771d1ae751214f761b11c65ae9b12f5443"
+    },
+    "scripts/internal/recording_http_currentness_overlay.py": {
+      "before": "bfd6f547c4211a65311b28fefb6adb65711ad45100eff3c8bde5c01d6b752cd8",
+      "after": "c3c480eb19e51a7c51bf3d07e0a17c9e13a1f4b972304f380665e940d2efb714"
+    },
+    "scripts/internal/recording_http_currentness.test.py": {
+      "before": "e1eb839bc8b530489b37b3e4f1417022a34bcb1f00328210fb8cadb46053c5e4",
+      "after": "95cbb4f6871483ee13be4a28c774204ada87accb23f10b743af7cc90622cee96"
+    }
+  },
+  "fixtureSha256": "7393f2a37a0d1dffe395a8b2b1691bb60756dbceffd3f2dd9b32d63a51a2de31",
+  "products": {
+    "media_server": "33f516d35d56cb2f6cafc75647b6c37d2ced67115302d1205cca23bf51ab7f79",
+    "libmedia_server_runtime.a": "2d91cf35fe7e805e0c06e00d16779c86849b35db635e087582277e1b676d198c"
+  }
+}

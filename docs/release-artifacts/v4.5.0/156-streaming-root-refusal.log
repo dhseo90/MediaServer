@@ -1,0 +1,285 @@
+...........................E...EEEEEEEEEEEEEE
+======================================================================
+ERROR: test_fixture_log_cap (__main__.Streaming.test_fixture_log_cap)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<REPO>/scripts/internal/recording_http_cost_run.test.py", line 131, in test_fixture_log_cap
+    root=Path(os.environ['R155_FOCUSED_ROOT'])/'stream-fixture-cap';root.mkdir(mode=0o700)
+                                                                    ~~~~~~~~~~^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.14/3.14.4/Frameworks/Python.framework/Versions/3.14/lib/python3.14/pathlib/__init__.py", line 1011, in mkdir
+    os.mkdir(self, mode)
+    ~~~~~~~~^^^^^^^^^^^^
+FileExistsError: [Errno 17] File exists: '<OWNED_ROOT>/stream-fixture-cap'
+
+======================================================================
+ERROR: test_real_streaming_children (__main__.Streaming.test_real_streaming_children) (name='id0')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<REPO>/scripts/internal/recording_http_cost_run.test.py", line 97, in test_real_streaming_children
+    root=parent/('stream-'+name);root.mkdir(mode=0o700)
+                                 ~~~~~~~~~~^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.14/3.14.4/Frameworks/Python.framework/Versions/3.14/lib/python3.14/pathlib/__init__.py", line 1011, in mkdir
+    os.mkdir(self, mode)
+    ~~~~~~~~^^^^^^^^^^^^
+FileExistsError: [Errno 17] File exists: '<OWNED_ROOT>/stream-id0'
+
+======================================================================
+ERROR: test_real_streaming_children (__main__.Streaming.test_real_streaming_children) (name='loss')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<REPO>/scripts/internal/recording_http_cost_run.test.py", line 97, in test_real_streaming_children
+    root=parent/('stream-'+name);root.mkdir(mode=0o700)
+                                 ~~~~~~~~~~^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.14/3.14.4/Frameworks/Python.framework/Versions/3.14/lib/python3.14/pathlib/__init__.py", line 1011, in mkdir
+    os.mkdir(self, mode)
+    ~~~~~~~~^^^^^^^^^^^^
+FileExistsError: [Errno 17] File exists: '<OWNED_ROOT>/stream-loss'
+
+======================================================================
+ERROR: test_real_streaming_children (__main__.Streaming.test_real_streaming_children) (name='explicit')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<REPO>/scripts/internal/recording_http_cost_run.test.py", line 97, in test_real_streaming_children
+    root=parent/('stream-'+name);root.mkdir(mode=0o700)
+                                 ~~~~~~~~~~^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.14/3.14.4/Frameworks/Python.framework/Versions/3.14/lib/python3.14/pathlib/__init__.py", line 1011, in mkdir
+    os.mkdir(self, mode)
+    ~~~~~~~~^^^^^^^^^^^^
+FileExistsError: [Errno 17] File exists: '<OWNED_ROOT>/stream-explicit'
+
+======================================================================
+ERROR: test_real_streaming_children (__main__.Streaming.test_real_streaming_children) (name='overflow')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<REPO>/scripts/internal/recording_http_cost_run.test.py", line 97, in test_real_streaming_children
+    root=parent/('stream-'+name);root.mkdir(mode=0o700)
+                                 ~~~~~~~~~~^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.14/3.14.4/Frameworks/Python.framework/Versions/3.14/lib/python3.14/pathlib/__init__.py", line 1011, in mkdir
+    os.mkdir(self, mode)
+    ~~~~~~~~^^^^^^^^^^^^
+FileExistsError: [Errno 17] File exists: '<OWNED_ROOT>/stream-overflow'
+
+======================================================================
+ERROR: test_real_streaming_children (__main__.Streaming.test_real_streaming_children) (name='split')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<REPO>/scripts/internal/recording_http_cost_run.test.py", line 97, in test_real_streaming_children
+    root=parent/('stream-'+name);root.mkdir(mode=0o700)
+                                 ~~~~~~~~~~^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.14/3.14.4/Frameworks/Python.framework/Versions/3.14/lib/python3.14/pathlib/__init__.py", line 1011, in mkdir
+    os.mkdir(self, mode)
+    ~~~~~~~~^^^^^^^^^^^^
+FileExistsError: [Errno 17] File exists: '<OWNED_ROOT>/stream-split'
+
+======================================================================
+ERROR: test_real_streaming_children (__main__.Streaming.test_real_streaming_children) (name='valid-invalid')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<REPO>/scripts/internal/recording_http_cost_run.test.py", line 97, in test_real_streaming_children
+    root=parent/('stream-'+name);root.mkdir(mode=0o700)
+                                 ~~~~~~~~~~^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.14/3.14.4/Frameworks/Python.framework/Versions/3.14/lib/python3.14/pathlib/__init__.py", line 1011, in mkdir
+    os.mkdir(self, mode)
+    ~~~~~~~~^^^^^^^^^^^^
+FileExistsError: [Errno 17] File exists: '<OWNED_ROOT>/stream-valid-invalid'
+
+======================================================================
+ERROR: test_real_streaming_children (__main__.Streaming.test_real_streaming_children) (name='invalid-valid')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<REPO>/scripts/internal/recording_http_cost_run.test.py", line 97, in test_real_streaming_children
+    root=parent/('stream-'+name);root.mkdir(mode=0o700)
+                                 ~~~~~~~~~~^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.14/3.14.4/Frameworks/Python.framework/Versions/3.14/lib/python3.14/pathlib/__init__.py", line 1011, in mkdir
+    os.mkdir(self, mode)
+    ~~~~~~~~^^^^^^^^^^^^
+FileExistsError: [Errno 17] File exists: '<OWNED_ROOT>/stream-invalid-valid'
+
+======================================================================
+ERROR: test_real_streaming_children (__main__.Streaming.test_real_streaming_children) (name='duplicate')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<REPO>/scripts/internal/recording_http_cost_run.test.py", line 97, in test_real_streaming_children
+    root=parent/('stream-'+name);root.mkdir(mode=0o700)
+                                 ~~~~~~~~~~^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.14/3.14.4/Frameworks/Python.framework/Versions/3.14/lib/python3.14/pathlib/__init__.py", line 1011, in mkdir
+    os.mkdir(self, mode)
+    ~~~~~~~~^^^^^^^^^^^^
+FileExistsError: [Errno 17] File exists: '<OWNED_ROOT>/stream-duplicate'
+
+======================================================================
+ERROR: test_real_streaming_children (__main__.Streaming.test_real_streaming_children) (name='malformed')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<REPO>/scripts/internal/recording_http_cost_run.test.py", line 97, in test_real_streaming_children
+    root=parent/('stream-'+name);root.mkdir(mode=0o700)
+                                 ~~~~~~~~~~^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.14/3.14.4/Frameworks/Python.framework/Versions/3.14/lib/python3.14/pathlib/__init__.py", line 1011, in mkdir
+    os.mkdir(self, mode)
+    ~~~~~~~~^^^^^^^^^^^^
+FileExistsError: [Errno 17] File exists: '<OWNED_ROOT>/stream-malformed'
+
+======================================================================
+ERROR: test_real_streaming_children (__main__.Streaming.test_real_streaming_children) (name='cap')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<REPO>/scripts/internal/recording_http_cost_run.test.py", line 97, in test_real_streaming_children
+    root=parent/('stream-'+name);root.mkdir(mode=0o700)
+                                 ~~~~~~~~~~^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.14/3.14.4/Frameworks/Python.framework/Versions/3.14/lib/python3.14/pathlib/__init__.py", line 1011, in mkdir
+    os.mkdir(self, mode)
+    ~~~~~~~~^^^^^^^^^^^^
+FileExistsError: [Errno 17] File exists: '<OWNED_ROOT>/stream-cap'
+
+======================================================================
+ERROR: test_real_streaming_children (__main__.Streaming.test_real_streaming_children) (name='partial')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<REPO>/scripts/internal/recording_http_cost_run.test.py", line 97, in test_real_streaming_children
+    root=parent/('stream-'+name);root.mkdir(mode=0o700)
+                                 ~~~~~~~~~~^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.14/3.14.4/Frameworks/Python.framework/Versions/3.14/lib/python3.14/pathlib/__init__.py", line 1011, in mkdir
+    os.mkdir(self, mode)
+    ~~~~~~~~^^^^^^^^^^^^
+FileExistsError: [Errno 17] File exists: '<OWNED_ROOT>/stream-partial'
+
+======================================================================
+ERROR: test_real_streaming_children (__main__.Streaming.test_real_streaming_children) (name='output')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<REPO>/scripts/internal/recording_http_cost_run.test.py", line 97, in test_real_streaming_children
+    root=parent/('stream-'+name);root.mkdir(mode=0o700)
+                                 ~~~~~~~~~~^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.14/3.14.4/Frameworks/Python.framework/Versions/3.14/lib/python3.14/pathlib/__init__.py", line 1011, in mkdir
+    os.mkdir(self, mode)
+    ~~~~~~~~^^^^^^^^^^^^
+FileExistsError: [Errno 17] File exists: '<OWNED_ROOT>/stream-output'
+
+======================================================================
+ERROR: test_real_streaming_children (__main__.Streaming.test_real_streaming_children) (name='cleanup-error')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<REPO>/scripts/internal/recording_http_cost_run.test.py", line 97, in test_real_streaming_children
+    root=parent/('stream-'+name);root.mkdir(mode=0o700)
+                                 ~~~~~~~~~~^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.14/3.14.4/Frameworks/Python.framework/Versions/3.14/lib/python3.14/pathlib/__init__.py", line 1011, in mkdir
+    os.mkdir(self, mode)
+    ~~~~~~~~^^^^^^^^^^^^
+FileExistsError: [Errno 17] File exists: '<OWNED_ROOT>/stream-cleanup-error'
+
+======================================================================
+ERROR: test_real_streaming_children (__main__.Streaming.test_real_streaming_children) (name='parallel-order')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<REPO>/scripts/internal/recording_http_cost_run.test.py", line 97, in test_real_streaming_children
+    root=parent/('stream-'+name);root.mkdir(mode=0o700)
+                                 ~~~~~~~~~~^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.14/3.14.4/Frameworks/Python.framework/Versions/3.14/lib/python3.14/pathlib/__init__.py", line 1011, in mkdir
+    os.mkdir(self, mode)
+    ~~~~~~~~^^^^^^^^^^^^
+FileExistsError: [Errno 17] File exists: '<OWNED_ROOT>/stream-parallel-order'
+
+----------------------------------------------------------------------
+Ran 32 tests in 0.659s
+
+FAILED (errors=15)
+{
+  "schema": "media-server.r153.execution.v1",
+  "products": {},
+  "seedStarts": 1,
+  "fixtureStarts": 0,
+  "productStarts": 0,
+  "limitSeconds": 180,
+  "logCapBytes": 4194304,
+  "firstFailure": "diagnostic currentness incomplete/loss",
+  "cleanupErrors": [],
+  "firstDiagnosticFailure": {
+    "stream": "child",
+    "line": 1,
+    "pid": 25664,
+    "detectionElapsedSeconds": 0.30993541702628136,
+    "failurePhase": "confirmed-seed",
+    "code": "currentness incomplete/loss",
+    "source": "currentness"
+  },
+  "termination": [
+    {
+      "pid": 25664,
+      "signal": "SIGTERM",
+      "elapsedSeconds": 0.31008158391341567
+    }
+  ],
+  "pids": [
+    25664
+  ],
+  "collectorStarts": 0,
+  "processes": [
+    {
+      "role": "confirmed-seed",
+      "limitSeconds": 10,
+      "startElapsedSeconds": 1.491699367761612e-05,
+      "elapsedSeconds": 0.3117924998514354,
+      "finalExit": -15
+    }
+  ],
+  "runnerFailure": "diagnostic currentness incomplete/loss",
+  "diagnosticErrors": [],
+  "cleanupEvents": [],
+  "qualification": {
+    "decision": "FAIL_FIXTURE_CONTRACT"
+  },
+  "productsAfter": {},
+  "elapsedSeconds": 0.3118673339486122,
+  "outputBytes": 127,
+  "groupsAbsent": true
+}
+{
+  "schema": "media-server.r153.execution.v1",
+  "products": {},
+  "seedStarts": 1,
+  "fixtureStarts": 0,
+  "productStarts": 0,
+  "limitSeconds": 180,
+  "logCapBytes": 4194304,
+  "firstFailure": "diagnostic malformed-record",
+  "cleanupErrors": [],
+  "firstDiagnosticFailure": {
+    "stream": "child",
+    "line": 1,
+    "pid": 25665,
+    "detectionElapsedSeconds": 0.24404645897448063,
+    "failurePhase": "confirmed-seed",
+    "code": "malformed-record",
+    "source": "currentness"
+  },
+  "termination": [
+    {
+      "pid": 25665,
+      "signal": "SIGTERM",
+      "elapsedSeconds": 0.24422712507657707
+    }
+  ],
+  "pids": [
+    25665
+  ],
+  "collectorStarts": 0,
+  "processes": [
+    {
+      "role": "confirmed-seed",
+      "limitSeconds": 10,
+      "startElapsedSeconds": 1.4042016118764877e-05,
+      "elapsedSeconds": 0.24587362492457032,
+      "finalExit": -15
+    }
+  ],
+  "runnerFailure": "diagnostic malformed-record",
+  "diagnosticErrors": [],
+  "cleanupEvents": [],
+  "qualification": {
+    "decision": "FAIL_FIXTURE_CONTRACT"
+  },
+  "productsAfter": {},
+  "elapsedSeconds": 0.24595904210582376,
+  "outputBytes": 26,
+  "groupsAbsent": true
+}

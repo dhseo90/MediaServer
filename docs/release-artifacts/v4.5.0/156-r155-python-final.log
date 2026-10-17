@@ -1,0 +1,866 @@
+................................
+----------------------------------------------------------------------
+Ran 32 tests in 2.779s
+
+OK
+{
+  "schema": "media-server.r153.execution.v1",
+  "products": {},
+  "seedStarts": 1,
+  "fixtureStarts": 1,
+  "productStarts": 0,
+  "limitSeconds": 180,
+  "logCapBytes": 4194304,
+  "firstFailure": "process output cap",
+  "cleanupErrors": [],
+  "firstDiagnosticFailure": {
+    "code": "process output cap",
+    "source": "collector",
+    "failurePhase": "fixture",
+    "detectionElapsedSeconds": 0.6900811670348048
+  },
+  "termination": [
+    {
+      "pid": 25677,
+      "signal": "SIGTERM",
+      "elapsedSeconds": 0.6900883330963552
+    },
+    {
+      "pid": 25678,
+      "signal": "SIGTERM",
+      "elapsedSeconds": 0.6916663751471788
+    }
+  ],
+  "pids": [
+    25676,
+    25677
+  ],
+  "collectorStarts": 1,
+  "processes": [
+    {
+      "role": "confirmed-seed",
+      "limitSeconds": 10,
+      "startElapsedSeconds": 6.025005131959915e-05,
+      "exit": 0,
+      "elapsedSeconds": 0.0736105830874294,
+      "finalExit": 0
+    },
+    {
+      "role": "fixture",
+      "limitSeconds": 165.38626850000583,
+      "startElapsedSeconds": 0.6137320420239121,
+      "elapsedSeconds": 0.07948891608975828,
+      "finalExit": -15
+    }
+  ],
+  "runnerFailure": "process output cap",
+  "diagnosticErrors": [
+    "missing/duplicate first failure"
+  ],
+  "cleanupEvents": [],
+  "seedSeconds": 0.07369095808826387,
+  "qualification": {
+    "decision": "FAIL_FIXTURE_CONTRACT"
+  },
+  "productsAfter": {},
+  "elapsedSeconds": 0.6933496249839664,
+  "outputBytes": 4194304,
+  "groupsAbsent": true
+}
+{
+  "schema": "media-server.r153.execution.v1",
+  "products": {},
+  "seedStarts": 1,
+  "fixtureStarts": 0,
+  "productStarts": 0,
+  "limitSeconds": 180,
+  "logCapBytes": 4194304,
+  "firstFailure": "diagnostic currentness incomplete/loss",
+  "cleanupErrors": [],
+  "firstDiagnosticFailure": {
+    "stream": "child",
+    "line": 1,
+    "pid": 25679,
+    "detectionElapsedSeconds": 0.06722754193469882,
+    "failurePhase": "confirmed-seed",
+    "code": "currentness incomplete/loss",
+    "source": "currentness"
+  },
+  "termination": [
+    {
+      "pid": 25679,
+      "signal": "SIGTERM",
+      "elapsedSeconds": 0.06729320785962045
+    }
+  ],
+  "pids": [
+    25679
+  ],
+  "collectorStarts": 0,
+  "processes": [
+    {
+      "role": "confirmed-seed",
+      "limitSeconds": 10,
+      "startElapsedSeconds": 9.624985978007317e-06,
+      "elapsedSeconds": 0.06888512498699129,
+      "finalExit": -15
+    }
+  ],
+  "runnerFailure": "diagnostic currentness incomplete/loss",
+  "diagnosticErrors": [],
+  "cleanupEvents": [],
+  "qualification": {
+    "decision": "FAIL_FIXTURE_CONTRACT"
+  },
+  "productsAfter": {},
+  "elapsedSeconds": 0.06896224990487099,
+  "outputBytes": 127,
+  "groupsAbsent": true
+}
+{
+  "schema": "media-server.r153.execution.v1",
+  "products": {},
+  "seedStarts": 1,
+  "fixtureStarts": 0,
+  "productStarts": 0,
+  "limitSeconds": 180,
+  "logCapBytes": 4194304,
+  "firstFailure": "diagnostic malformed-record",
+  "cleanupErrors": [],
+  "firstDiagnosticFailure": {
+    "stream": "child",
+    "line": 1,
+    "pid": 25680,
+    "detectionElapsedSeconds": 0.06727687502279878,
+    "failurePhase": "confirmed-seed",
+    "code": "malformed-record",
+    "source": "currentness"
+  },
+  "termination": [
+    {
+      "pid": 25680,
+      "signal": "SIGTERM",
+      "elapsedSeconds": 0.06737916707061231
+    }
+  ],
+  "pids": [
+    25680
+  ],
+  "collectorStarts": 0,
+  "processes": [
+    {
+      "role": "confirmed-seed",
+      "limitSeconds": 10,
+      "startElapsedSeconds": 1.2708129361271858e-05,
+      "elapsedSeconds": 0.068981375079602,
+      "finalExit": -15
+    }
+  ],
+  "runnerFailure": "diagnostic malformed-record",
+  "diagnosticErrors": [],
+  "cleanupEvents": [],
+  "qualification": {
+    "decision": "FAIL_FIXTURE_CONTRACT"
+  },
+  "productsAfter": {},
+  "elapsedSeconds": 0.06904516718350351,
+  "outputBytes": 26,
+  "groupsAbsent": true
+}
+{
+  "schema": "media-server.r153.execution.v1",
+  "products": {},
+  "seedStarts": 1,
+  "fixtureStarts": 0,
+  "productStarts": 0,
+  "limitSeconds": 180,
+  "logCapBytes": 4194304,
+  "firstFailure": "diagnostic request-identity",
+  "cleanupErrors": [],
+  "firstDiagnosticFailure": {
+    "stream": "child",
+    "line": 1,
+    "pid": 25681,
+    "detectionElapsedSeconds": 0.06878558383323252,
+    "failurePhase": "confirmed-seed",
+    "code": "request-identity",
+    "source": "server"
+  },
+  "termination": [
+    {
+      "pid": 25681,
+      "signal": "SIGTERM",
+      "elapsedSeconds": 0.06891766679473221
+    }
+  ],
+  "pids": [
+    25681
+  ],
+  "collectorStarts": 0,
+  "processes": [
+    {
+      "role": "confirmed-seed",
+      "limitSeconds": 10,
+      "startElapsedSeconds": 9.249895811080933e-06,
+      "elapsedSeconds": 0.07063770899549127,
+      "finalExit": -15
+    }
+  ],
+  "runnerFailure": "diagnostic request-identity",
+  "diagnosticErrors": [],
+  "cleanupEvents": [],
+  "qualification": {
+    "decision": "FAIL_FIXTURE_CONTRACT"
+  },
+  "productsAfter": {},
+  "elapsedSeconds": 0.07072279183194041,
+  "outputBytes": 367,
+  "groupsAbsent": true
+}
+{
+  "schema": "media-server.r153.execution.v1",
+  "products": {},
+  "seedStarts": 1,
+  "fixtureStarts": 0,
+  "productStarts": 0,
+  "limitSeconds": 180,
+  "logCapBytes": 4194304,
+  "firstFailure": "diagnostic trace-loss",
+  "cleanupErrors": [],
+  "firstDiagnosticFailure": {
+    "stream": "child",
+    "line": 1,
+    "pid": 25682,
+    "detectionElapsedSeconds": 0.06895933300256729,
+    "failurePhase": "confirmed-seed",
+    "code": "trace-loss",
+    "source": "server",
+    "requestId": 10
+  },
+  "termination": [
+    {
+      "pid": 25682,
+      "signal": "SIGTERM",
+      "elapsedSeconds": 0.06902562500908971
+    }
+  ],
+  "pids": [
+    25682
+  ],
+  "collectorStarts": 0,
+  "processes": [
+    {
+      "role": "confirmed-seed",
+      "limitSeconds": 10,
+      "startElapsedSeconds": 1.3040844351053238e-05,
+      "elapsedSeconds": 0.07064283406361938,
+      "finalExit": -15
+    }
+  ],
+  "runnerFailure": "diagnostic trace-loss",
+  "diagnosticErrors": [],
+  "cleanupEvents": [],
+  "qualification": {
+    "decision": "FAIL_FIXTURE_CONTRACT"
+  },
+  "productsAfter": {},
+  "elapsedSeconds": 0.0707236248999834,
+  "outputBytes": 367,
+  "groupsAbsent": true
+}
+{
+  "schema": "media-server.r153.execution.v1",
+  "products": {},
+  "seedStarts": 1,
+  "fixtureStarts": 0,
+  "productStarts": 0,
+  "limitSeconds": 180,
+  "logCapBytes": 4194304,
+  "firstFailure": "diagnostic trace-loss-marker",
+  "cleanupErrors": [],
+  "firstDiagnosticFailure": {
+    "stream": "child",
+    "line": 1,
+    "pid": 25683,
+    "detectionElapsedSeconds": 0.06879187491722405,
+    "failurePhase": "confirmed-seed",
+    "code": "trace-loss-marker",
+    "source": "marker"
+  },
+  "termination": [
+    {
+      "pid": 25683,
+      "signal": "SIGTERM",
+      "elapsedSeconds": 0.06883704103529453
+    }
+  ],
+  "pids": [
+    25683
+  ],
+  "collectorStarts": 0,
+  "processes": [
+    {
+      "role": "confirmed-seed",
+      "limitSeconds": 10,
+      "startElapsedSeconds": 1.400010660290718e-05,
+      "elapsedSeconds": 0.07042595790699124,
+      "finalExit": -15
+    }
+  ],
+  "runnerFailure": "diagnostic trace-loss-marker",
+  "diagnosticErrors": [],
+  "cleanupEvents": [],
+  "qualification": {
+    "decision": "FAIL_FIXTURE_CONTRACT"
+  },
+  "productsAfter": {},
+  "elapsedSeconds": 0.07048145798034966,
+  "outputBytes": 12,
+  "groupsAbsent": true
+}
+{
+  "schema": "media-server.r153.execution.v1",
+  "products": {},
+  "seedStarts": 1,
+  "fixtureStarts": 0,
+  "productStarts": 0,
+  "limitSeconds": 180,
+  "logCapBytes": 4194304,
+  "firstFailure": "diagnostic trace-loss-marker",
+  "cleanupErrors": [],
+  "firstDiagnosticFailure": {
+    "stream": "child",
+    "line": 1,
+    "pid": 25686,
+    "detectionElapsedSeconds": 0.06462104199454188,
+    "failurePhase": "confirmed-seed",
+    "code": "trace-loss-marker",
+    "source": "marker"
+  },
+  "termination": [
+    {
+      "pid": 25686,
+      "signal": "SIGTERM",
+      "elapsedSeconds": 0.06466725002974272
+    }
+  ],
+  "pids": [
+    25686
+  ],
+  "collectorStarts": 0,
+  "processes": [
+    {
+      "role": "confirmed-seed",
+      "limitSeconds": 10,
+      "startElapsedSeconds": 9.124865755438805e-06,
+      "elapsedSeconds": 0.06630570814013481,
+      "finalExit": -15
+    }
+  ],
+  "runnerFailure": "diagnostic trace-loss-marker",
+  "diagnosticErrors": [],
+  "cleanupEvents": [],
+  "qualification": {
+    "decision": "FAIL_FIXTURE_CONTRACT"
+  },
+  "productsAfter": {},
+  "elapsedSeconds": 0.06638049986213446,
+  "outputBytes": 19,
+  "groupsAbsent": true
+}
+{
+  "schema": "media-server.r153.execution.v1",
+  "products": {},
+  "seedStarts": 1,
+  "fixtureStarts": 0,
+  "productStarts": 0,
+  "limitSeconds": 180,
+  "logCapBytes": 4194304,
+  "firstFailure": "diagnostic trace-loss-marker",
+  "cleanupErrors": [],
+  "firstDiagnosticFailure": {
+    "stream": "child",
+    "line": 1,
+    "pid": 25687,
+    "detectionElapsedSeconds": 0.115276750177145,
+    "failurePhase": "confirmed-seed",
+    "code": "trace-loss-marker",
+    "source": "marker"
+  },
+  "termination": [
+    {
+      "pid": 25687,
+      "signal": "SIGTERM",
+      "elapsedSeconds": 0.11537620797753334
+    }
+  ],
+  "pids": [
+    25687
+  ],
+  "collectorStarts": 0,
+  "processes": [
+    {
+      "role": "confirmed-seed",
+      "limitSeconds": 10,
+      "startElapsedSeconds": 9.333016350865364e-06,
+      "elapsedSeconds": 0.11698004207573831,
+      "finalExit": -15
+    }
+  ],
+  "runnerFailure": "diagnostic trace-loss-marker",
+  "diagnosticErrors": [],
+  "cleanupEvents": [],
+  "qualification": {
+    "decision": "FAIL_FIXTURE_CONTRACT"
+  },
+  "productsAfter": {},
+  "elapsedSeconds": 0.11704570800065994,
+  "outputBytes": 12,
+  "groupsAbsent": true
+}
+{
+  "schema": "media-server.r153.execution.v1",
+  "products": {},
+  "seedStarts": 1,
+  "fixtureStarts": 0,
+  "productStarts": 0,
+  "limitSeconds": 180,
+  "logCapBytes": 4194304,
+  "firstFailure": "diagnostic trace-loss-marker",
+  "cleanupErrors": [],
+  "firstDiagnosticFailure": {
+    "stream": "child",
+    "line": 2,
+    "pid": 25688,
+    "detectionElapsedSeconds": 0.11452200007624924,
+    "failurePhase": "confirmed-seed",
+    "code": "trace-loss-marker",
+    "source": "marker"
+  },
+  "termination": [
+    {
+      "pid": 25688,
+      "signal": "SIGTERM",
+      "elapsedSeconds": 0.11455462500452995
+    }
+  ],
+  "pids": [
+    25688
+  ],
+  "collectorStarts": 0,
+  "processes": [
+    {
+      "role": "confirmed-seed",
+      "limitSeconds": 10,
+      "startElapsedSeconds": 1.5333062037825584e-05,
+      "elapsedSeconds": 0.11623454187065363,
+      "finalExit": -15
+    }
+  ],
+  "runnerFailure": "diagnostic trace-loss-marker",
+  "diagnosticErrors": [],
+  "cleanupEvents": [],
+  "qualification": {
+    "decision": "FAIL_FIXTURE_CONTRACT"
+  },
+  "productsAfter": {},
+  "elapsedSeconds": 0.11633491702377796,
+  "outputBytes": 380,
+  "groupsAbsent": true
+}
+{
+  "schema": "media-server.r153.execution.v1",
+  "products": {},
+  "seedStarts": 1,
+  "fixtureStarts": 0,
+  "productStarts": 0,
+  "limitSeconds": 180,
+  "logCapBytes": 4194304,
+  "firstFailure": "diagnostic trace-loss-marker",
+  "cleanupErrors": [],
+  "firstDiagnosticFailure": {
+    "stream": "child",
+    "line": 1,
+    "pid": 25689,
+    "detectionElapsedSeconds": 0.07307645794935524,
+    "failurePhase": "confirmed-seed",
+    "code": "trace-loss-marker",
+    "source": "marker"
+  },
+  "termination": [
+    {
+      "pid": 25689,
+      "signal": "SIGTERM",
+      "elapsedSeconds": 0.07314074994064867
+    }
+  ],
+  "pids": [
+    25689
+  ],
+  "collectorStarts": 0,
+  "processes": [
+    {
+      "role": "confirmed-seed",
+      "limitSeconds": 10,
+      "startElapsedSeconds": 1.2582866474986076e-05,
+      "elapsedSeconds": 0.07479512505233288,
+      "finalExit": -15
+    }
+  ],
+  "runnerFailure": "diagnostic trace-loss-marker",
+  "diagnosticErrors": [],
+  "cleanupEvents": [],
+  "qualification": {
+    "decision": "FAIL_FIXTURE_CONTRACT"
+  },
+  "productsAfter": {},
+  "elapsedSeconds": 0.07484825002029538,
+  "outputBytes": 12,
+  "groupsAbsent": true
+}
+{
+  "schema": "media-server.r153.execution.v1",
+  "products": {},
+  "seedStarts": 1,
+  "fixtureStarts": 0,
+  "productStarts": 0,
+  "limitSeconds": 180,
+  "logCapBytes": 4194304,
+  "firstFailure": "diagnostic duplicate-identity",
+  "cleanupErrors": [],
+  "firstDiagnosticFailure": {
+    "stream": "child",
+    "line": 2,
+    "pid": 25690,
+    "detectionElapsedSeconds": 0.11208270909264684,
+    "failurePhase": "confirmed-seed",
+    "code": "duplicate-identity",
+    "source": "server",
+    "requestId": 10
+  },
+  "termination": [
+    {
+      "pid": 25690,
+      "signal": "SIGTERM",
+      "elapsedSeconds": 0.1121602919884026
+    }
+  ],
+  "pids": [
+    25690
+  ],
+  "collectorStarts": 0,
+  "processes": [
+    {
+      "role": "confirmed-seed",
+      "limitSeconds": 10,
+      "startElapsedSeconds": 8.834060281515121e-06,
+      "elapsedSeconds": 0.11383441602811217,
+      "finalExit": -15
+    }
+  ],
+  "runnerFailure": "diagnostic duplicate-identity",
+  "diagnosticErrors": [],
+  "cleanupEvents": [],
+  "qualification": {
+    "decision": "FAIL_FIXTURE_CONTRACT"
+  },
+  "productsAfter": {},
+  "elapsedSeconds": 0.11391608417034149,
+  "outputBytes": 736,
+  "groupsAbsent": true
+}
+{
+  "schema": "media-server.r153.execution.v1",
+  "products": {},
+  "seedStarts": 1,
+  "fixtureStarts": 0,
+  "productStarts": 0,
+  "limitSeconds": 180,
+  "logCapBytes": 4194304,
+  "firstFailure": "diagnostic malformed-record",
+  "cleanupErrors": [],
+  "firstDiagnosticFailure": {
+    "stream": "child",
+    "line": 1,
+    "pid": 25691,
+    "detectionElapsedSeconds": 0.06562233297154307,
+    "failurePhase": "confirmed-seed",
+    "code": "malformed-record",
+    "source": "server"
+  },
+  "termination": [
+    {
+      "pid": 25691,
+      "signal": "SIGTERM",
+      "elapsedSeconds": 0.06574500002898276
+    }
+  ],
+  "pids": [
+    25691
+  ],
+  "collectorStarts": 0,
+  "processes": [
+    {
+      "role": "confirmed-seed",
+      "limitSeconds": 10,
+      "startElapsedSeconds": 1.0207993909716606e-05,
+      "elapsedSeconds": 0.06735429191030562,
+      "finalExit": -15
+    }
+  ],
+  "runnerFailure": "diagnostic malformed-record",
+  "diagnosticErrors": [],
+  "cleanupEvents": [],
+  "qualification": {
+    "decision": "FAIL_FIXTURE_CONTRACT"
+  },
+  "productsAfter": {},
+  "elapsedSeconds": 0.06740424991585314,
+  "outputBytes": 21,
+  "groupsAbsent": true
+}
+{
+  "schema": "media-server.r153.execution.v1",
+  "products": {},
+  "seedStarts": 1,
+  "fixtureStarts": 0,
+  "productStarts": 0,
+  "limitSeconds": 180,
+  "logCapBytes": 4194304,
+  "firstFailure": "process output cap",
+  "cleanupErrors": [],
+  "firstDiagnosticFailure": {
+    "code": "process output cap",
+    "source": "collector",
+    "failurePhase": "confirmed-seed",
+    "detectionElapsedSeconds": 0.11088829208165407
+  },
+  "termination": [
+    {
+      "pid": 25693,
+      "signal": "SIGTERM",
+      "elapsedSeconds": 0.11090029217302799
+    }
+  ],
+  "pids": [
+    25693
+  ],
+  "collectorStarts": 0,
+  "processes": [
+    {
+      "role": "confirmed-seed",
+      "limitSeconds": 10,
+      "startElapsedSeconds": 1.4750054106116295e-05,
+      "elapsedSeconds": 0.11252070916816592,
+      "finalExit": -15
+    }
+  ],
+  "runnerFailure": "process output cap",
+  "diagnosticErrors": [],
+  "cleanupEvents": [],
+  "qualification": {
+    "decision": "FAIL_FIXTURE_CONTRACT"
+  },
+  "productsAfter": {},
+  "elapsedSeconds": 0.11258387519046664,
+  "outputBytes": 1048576,
+  "groupsAbsent": true
+}
+{
+  "schema": "media-server.r153.execution.v1",
+  "products": {},
+  "seedStarts": 1,
+  "fixtureStarts": 0,
+  "productStarts": 0,
+  "limitSeconds": 180,
+  "logCapBytes": 4194304,
+  "firstFailure": "partial output record",
+  "cleanupErrors": [],
+  "firstDiagnosticFailure": {
+    "code": "partial output record",
+    "source": "collector",
+    "failurePhase": "confirmed-seed",
+    "detectionElapsedSeconds": 0.11025312496349216
+  },
+  "termination": [],
+  "pids": [
+    25694
+  ],
+  "collectorStarts": 0,
+  "processes": [
+    {
+      "role": "confirmed-seed",
+      "limitSeconds": 10,
+      "startElapsedSeconds": 1.5041092410683632e-05,
+      "elapsedSeconds": 0.11025808402337134,
+      "finalExit": 0
+    }
+  ],
+  "runnerFailure": "partial output record",
+  "diagnosticErrors": [],
+  "cleanupEvents": [],
+  "qualification": {
+    "decision": "FAIL_FIXTURE_CONTRACT"
+  },
+  "productsAfter": {},
+  "elapsedSeconds": 0.11039670812897384,
+  "outputBytes": 15,
+  "groupsAbsent": true
+}
+{
+  "schema": "media-server.r153.execution.v1",
+  "products": {},
+  "seedStarts": 1,
+  "fixtureStarts": 0,
+  "productStarts": 0,
+  "limitSeconds": 180,
+  "logCapBytes": 4194304,
+  "firstFailure": "diagnostic trace-loss-marker",
+  "cleanupErrors": [],
+  "firstDiagnosticFailure": {
+    "stream": "child",
+    "line": 1,
+    "pid": 25695,
+    "detectionElapsedSeconds": 0.06656629219651222,
+    "failurePhase": "confirmed-seed",
+    "code": "trace-loss-marker",
+    "source": "marker"
+  },
+  "termination": [
+    {
+      "pid": 25695,
+      "signal": "SIGTERM",
+      "elapsedSeconds": 0.0666234171949327
+    }
+  ],
+  "pids": [
+    25695
+  ],
+  "collectorStarts": 0,
+  "processes": [
+    {
+      "role": "confirmed-seed",
+      "limitSeconds": 10,
+      "startElapsedSeconds": 1.0083196684718132e-05,
+      "elapsedSeconds": 0.06823841691948473,
+      "finalExit": -15
+    }
+  ],
+  "runnerFailure": "diagnostic trace-loss-marker",
+  "diagnosticErrors": [],
+  "cleanupEvents": [],
+  "qualification": {
+    "decision": "FAIL_FIXTURE_CONTRACT"
+  },
+  "productsAfter": {},
+  "elapsedSeconds": 0.06828200002200902,
+  "outputBytes": 22,
+  "groupsAbsent": true
+}
+{
+  "schema": "media-server.r153.execution.v1",
+  "products": {},
+  "seedStarts": 1,
+  "fixtureStarts": 0,
+  "productStarts": 0,
+  "limitSeconds": 180,
+  "logCapBytes": 4194304,
+  "firstFailure": "diagnostic trace-loss-marker",
+  "cleanupErrors": [
+    "injected cleanup signal failure"
+  ],
+  "firstDiagnosticFailure": {
+    "stream": "child",
+    "line": 1,
+    "pid": 25696,
+    "detectionElapsedSeconds": 0.06732758297584951,
+    "failurePhase": "confirmed-seed",
+    "code": "trace-loss-marker",
+    "source": "marker"
+  },
+  "termination": [
+    {
+      "pid": 25696,
+      "signal": "SIGTERM",
+      "elapsedSeconds": 0.06739974999800324
+    },
+    {
+      "pid": 25696,
+      "signal": "SIGTERM",
+      "elapsedSeconds": 0.06762145785614848
+    }
+  ],
+  "pids": [
+    25696
+  ],
+  "collectorStarts": 0,
+  "processes": [
+    {
+      "role": "confirmed-seed",
+      "limitSeconds": 10,
+      "startElapsedSeconds": 8.832896128296852e-06,
+      "elapsedSeconds": 0.06752791698090732,
+      "finalExit": null
+    }
+  ],
+  "runnerFailure": "diagnostic trace-loss-marker",
+  "diagnosticErrors": [],
+  "cleanupEvents": [],
+  "qualification": {
+    "decision": "FAIL_FIXTURE_CONTRACT"
+  },
+  "productsAfter": {},
+  "elapsedSeconds": 0.06925249984487891,
+  "outputBytes": 12,
+  "groupsAbsent": true
+}
+{
+  "schema": "media-server.r153.execution.v1",
+  "products": {},
+  "seedStarts": 1,
+  "fixtureStarts": 0,
+  "productStarts": 0,
+  "limitSeconds": 180,
+  "logCapBytes": 4194304,
+  "firstFailure": "diagnostic trace-loss-marker",
+  "cleanupErrors": [],
+  "firstDiagnosticFailure": {
+    "stream": "child",
+    "line": 14,
+    "pid": 25697,
+    "detectionElapsedSeconds": 0.69427604181692,
+    "failurePhase": "confirmed-seed",
+    "code": "trace-loss-marker",
+    "source": "marker"
+  },
+  "termination": [
+    {
+      "pid": 25697,
+      "signal": "SIGTERM",
+      "elapsedSeconds": 0.694310582941398
+    }
+  ],
+  "pids": [
+    25697
+  ],
+  "collectorStarts": 0,
+  "processes": [
+    {
+      "role": "confirmed-seed",
+      "limitSeconds": 10,
+      "startElapsedSeconds": 1.095794141292572e-05,
+      "elapsedSeconds": 0.6959165839944035,
+      "finalExit": -15
+    }
+  ],
+  "runnerFailure": "diagnostic trace-loss-marker",
+  "diagnosticErrors": [],
+  "cleanupEvents": [],
+  "qualification": {
+    "decision": "FAIL_FIXTURE_CONTRACT"
+  },
+  "productsAfter": {},
+  "elapsedSeconds": 0.6959700000006706,
+  "outputBytes": 4074,
+  "groupsAbsent": true
+}

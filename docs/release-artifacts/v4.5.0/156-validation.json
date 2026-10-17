@@ -1,0 +1,185 @@
+{
+  "schema": "media-server.v450.r156.validation.v1",
+  "decision": "CURRENTNESS_COST_BOUNDARY_IDENTIFIED",
+  "instrumentationContract": "PASS",
+  "actualCostAttribution": "QUALIFIED",
+  "baselineHead": "7a7262ace227e4834bc7dafbbefdfce606e6c88e",
+  "executionHead": "30e4b7637ea44d4a4a6ffc7c2dfc1a1695618872",
+  "branch": "v4.5.0",
+  "baselinePreflight": "exact local/origin HEAD, clean index/worktree and fixed products verified before changes",
+  "executionPreflight": "committed reviewed test-only candidate; clean index/worktree; dependency hashes and products verified",
+  "model": {
+    "requested": {
+      "main": "gpt-6-astra/high",
+      "independent": "gpt-6-astra/high"
+    },
+    "toolAccepted": {
+      "main": null,
+      "independent": "followup_task accepted on existing independent_r155; prior explicit spawn requested gpt-6-astra/high, not runtime proof"
+    },
+    "actualRuntimeModel": {
+      "main": null,
+      "independent": null
+    },
+    "actualRuntimeEffort": {
+      "main": null,
+      "independent": null
+    }
+  },
+  "platform": "macOS-27.0.1-arm64-arm-64bit-Mach-O",
+  "productsBefore": {
+    "media_server": "33f516d35d56cb2f6cafc75647b6c37d2ced67115302d1205cca23bf51ab7f79",
+    "libmedia_server_runtime.a": "2d91cf35fe7e805e0c06e00d16779c86849b35db635e087582277e1b676d198c"
+  },
+  "productsAfter": {
+    "media_server": "33f516d35d56cb2f6cafc75647b6c37d2ced67115302d1205cca23bf51ab7f79",
+    "libmedia_server_runtime.a": "2d91cf35fe7e805e0c06e00d16779c86849b35db635e087582277e1b676d198c"
+  },
+  "productStarts": 0,
+  "productOrRuntimeRebuild": 0,
+  "scope": "test-only CurrentnessJson/ReadService overlays and fixed schema/qualifier; no tracked product src/include/fixture workload changes",
+  "linkage": {
+    "translationUnits": 6,
+    "principalDefinitions": 5,
+    "overlaySources": 7,
+    "explicitReadServiceObject": true,
+    "originalMembersAbsent": true,
+    "fixtureSha256": "7393f2a37a0d1dffe395a8b2b1691bb60756dbceffd3f2dd9b32d63a51a2de31",
+    "mapSha256": "9dd473705f78cf2f4cbd59c5c5302603354054604a5aa528457fcfa4525faa3e"
+  },
+  "focused": {
+    "pythonCurrentness": 5,
+    "pythonR155": 32,
+    "pythonR153": 30,
+    "actualParserCases": 12,
+    "nativeR153": "PASS",
+    "nativeCurrentness": "PASS",
+    "nativeGuardRefusalStarts": 1,
+    "nativeR153Starts": 1,
+    "nativeCurrentnessStarts": 3,
+    "nativeFinalSeconds": 2.2733720000833273,
+    "failuresPreserved": [
+      "initial owned-cwd guard refusal exit2",
+      "Search native query over31day limit plus trace flag absent",
+      "expired snapshot used short malformed ID, then corrected valid32byte missing ID",
+      "focused collector duplicate root refusal",
+      "review-detected first loss valid ID omitted, fixed and real child verified"
+    ],
+    "plannedRED": "tool transcript: original generated overlay lacks Currentness scope; exit1 not stored as raw process log",
+    "streamingOwnedChildStarts": 54,
+    "finalLossDetectionToSignalMaxSeconds": 0.00015724985860288143,
+    "Linux": "NOT_RUN; affected native/parser/collector checks on macOS"
+  },
+  "execution": {
+    "integratedCycles": 1,
+    "seconds": 53.64017254090868,
+    "processes": [
+      {
+        "role": "confirmed-seed",
+        "limitSeconds": 10,
+        "startElapsedSeconds": 0.057246207958087325,
+        "exit": 0,
+        "elapsedSeconds": 2.240569750079885,
+        "finalExit": 0
+      },
+      {
+        "role": "fixture",
+        "limitSeconds": 163.3185489999596,
+        "startElapsedSeconds": 2.6814522079657763,
+        "exit": 0,
+        "elapsedSeconds": 50.89189104200341,
+        "finalExit": 0
+      }
+    ],
+    "seedStarts": 1,
+    "fixtureStarts": 1,
+    "collectorStarts": 1,
+    "metricsSamples": 50,
+    "metricsHelperCalls": 51,
+    "metricsHelperCallBasis": "observer successful samples plus process-exited final call; individual helper PIDs not separately logged",
+    "exit": 0,
+    "limits": {
+      "totalSeconds": 180,
+      "workSeconds": 166,
+      "cleanupSeconds": 14,
+      "httpMs": 5000,
+      "ordinaryMs": 2000,
+      "processLogBytes": 4194304
+    },
+    "outputBytes": 159888,
+    "firstFailure": null,
+    "firstDiagnosticFailure": null,
+    "cleanupErrors": [],
+    "fixtureQualification": {
+      "decision": "PASS_BOUNDED_FIXTURE_QUALIFIED",
+      "httpRequests": 28,
+      "inputFiles": 17,
+      "inputSamples": 990,
+      "ordinarySearches": 4,
+      "latencyAttribution": "NOT_RUN"
+    },
+    "note": "base latencyAttribution NOT_RUN is unchanged base-field; R156 cost qualification separately in156-trace/analysis",
+    "records": {
+      "client": 28,
+      "server": 28,
+      "search": 3,
+      "currentness": 3
+    },
+    "loss": false,
+    "missing": false,
+    "duplicate": false,
+    "input": {
+      "media": 17,
+      "bindings": 17,
+      "samples": 990
+    },
+    "background": {
+      "expected": 2402,
+      "accepted": 2402,
+      "files": 41
+    },
+    "normalFinish": true,
+    "logicalFinal": {
+      "ram": 0,
+      "scratch": 0,
+      "fd": 0
+    },
+    "groupsAbsent": true,
+    "port": 53202
+  },
+  "resourceObservations": {
+    "separateTimeMaxima": {
+      "rssBytes": 3207593984,
+      "footprintBytes": 3160362296,
+      "fdCount": 37,
+      "anonymousFileBytes": 1085489152
+    },
+    "notSummed": true,
+    "owner0IsNotHeapLeakProof": true
+  },
+  "binding": {
+    "producer": "PASS51/fail0",
+    "readback": "PASS errors0 negative15/15",
+    "coverage": "PASS",
+    "manifestSemanticChange": "inventorySha256 only"
+  },
+  "historical": {
+    "R149Functional45": "FAIL",
+    "R149Collection45": "INCOMPLETE",
+    "R153": "PASS_BOUNDED_FIXTURE_QUALIFIED",
+    "R154": "FAIL_BOUNDED_HTTP_CONTRACT",
+    "R155": "ATTRIBUTION_BOUNDARY_IDENTIFIED",
+    "MemoryP0": "HOLD",
+    "Readiness120": "HOLD",
+    "Release": "HOLD",
+    "new45": "NOT_RUN"
+  },
+  "independentReview": "156-independent-review.json",
+  "cleanup": "pending remote bytes; final state156-closure.json",
+  "limits": [
+    "Synthetic small single cycle is not R149 time-out reproduction or repair.",
+    "Catalog API elapsed and FD/hold destructor body are measured; internal lock split unknown.",
+    "Response ownership transfer whole boundary unknown; JsonTake only.",
+    "No performance improvement claim; instrumentation overhead not calibrated."
+  ]
+}

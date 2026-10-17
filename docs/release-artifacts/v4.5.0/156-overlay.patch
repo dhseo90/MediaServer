@@ -1,0 +1,412 @@
+--- src/recording/recording_read_service.cpp
++++ test-only/recording_read_service.cpp
+@@ -1,3 +1,4 @@
++#include "recording_http_currentness_probe.h"
+ // 파일 용도: 운영 timeline의 조회 전용 투영.
+ #include "recording/recording_read_service.h"
+ #include "recording/recording_latency_trace.h"
+@@ -368,6 +369,7 @@
+ }  // namespace
+
+ ResolvedRecordingMedia::~ResolvedRecordingMedia() {
++    r156::Phase release_cost(r156::MediaObjectRelease);
+     if (fd_ >= 0) {::close(fd_);memory_diagnostic::Add(memory_diagnostic::ResolvedMediaFDs,-1);}
+     if (catalog_) catalog_->AdjustHoldCount(segment_id_, -1, nullptr);
+ }
+@@ -440,16 +442,17 @@
+     if (!ValidateOpaqueId(segment_id, nullptr)) return {};
+     // 삭제 ID는 어떤 fallback/파생 경로로도 재생 가능해질 수 없다. 누적 삭제 이력에서
+     // segment와 event-link 전수를 반복 조회하지 않고, 권위 있는 삭제 상태에서 먼저 닫는다.
+-    if (catalog_.IsDeletedSegmentId(segment_id)) return {};
+-    const auto segment = catalog_.FindSegmentById(segment_id);
+-    const auto segment_v2 = catalog_.FindSegmentV2ById(segment_id);
+-    const auto links = AllLinks(catalog_);
++    if (r156::Eval(r156::DeletedIdCheck,[&]{return catalog_.IsDeletedSegmentId(segment_id);})) return {};
++    const auto segment = r156::Eval(r156::SegmentLookup,[&]{return catalog_.FindSegmentById(segment_id);});
++    const auto segment_v2 = r156::Eval(r156::SegmentLookup,[&]{return catalog_.FindSegmentV2ById(segment_id);});
++    if(segment)r156::Count(r156::V1Rows);if(segment_v2)r156::Count(r156::V2Rows);
++    const auto links = r156::Eval(r156::EventLinkLookup,[&]{return AllLinks(catalog_);});
+     const EventRecordingLinkV1* fallback = nullptr;
+     const EventRecordingLinkV1* derived = nullptr;
+     for (const auto& link : links) {
+         if (link.fallback_evidence_id == segment_id) {
+             // segment 스냅샷 뒤 tombstone 확인: 두 조회 사이 삭제 완료도 재사용하지 않는다.
+-            if (fallback || segment || segment_v2 || catalog_.IsDeletedSegmentId(segment_id)) return {};
++            if (fallback || segment || segment_v2 || r156::Eval(r156::DeletedIdCheck,[&]{return catalog_.IsDeletedSegmentId(segment_id);})) return {};
+             fallback = &link;
+         }
+         if (link.derived_segment_id == segment_id) {
+@@ -463,15 +466,15 @@
+         std::string error;
+         RecordingSegmentV2 current;
+         std::pair<std::filesystem::path,std::filesystem::path> location;
+-        if(!catalog_.AcquireMediaWithContext(channel_id,segment_id,&current,&location,&error,context))return {};
++        if(!r156::Eval(r156::MediaHoldAcquire,[&]{return catalog_.AcquireMediaWithContext(channel_id,segment_id,&current,&location,&error,context);}))return {};
+         media->catalog_=&catalog_;media->segment_id_=segment_id;
+-        media->fd_=OpenMedia(location.first,location.second);
++        media->fd_=r156::Eval(r156::ContainedMediaOpen,[&]{return OpenMedia(location.first,location.second);});
+     if(media->fd_>=0)memory_diagnostic::Add(memory_diagnostic::ResolvedMediaFDs,1);
+-        const auto inspected=InspectRecordingPhysicalMediaFd(media->fd_,{
++        const auto inspected=r156::Inspect(options.budget.count(),[&]{return InspectRecordingPhysicalMediaFd(media->fd_,{
+             current.container,current.video_codecs,current.size_bytes,
+-            current.checksum_sha256,current.retention_class},options);
++            current.checksum_sha256,current.retention_class},options);});
+         if(inspected.state!=MediaInspectionState::Healthy||std::chrono::steady_clock::now()>=options.deadline||
+-            (options.cancelled&&options.cancelled())||!catalog_.ValidateMediaWithContext(current,location,context))return {};
++            (options.cancelled&&options.cancelled())||!r156::Eval(r156::MediaCurrentValidation,[&]{return catalog_.ValidateMediaWithContext(current,location,context);}))return {};
+         media->size_bytes_=current.size_bytes;
+         if(current.container=="mp4")media->content_type_="video/mp4";
+         else if(current.container=="webm")media->content_type_="video/webm";
+@@ -482,7 +485,7 @@
+     if (fallback) {
+         if (derived || fallback->channel_id != channel_id || !fallback->fallback_media_locator) return {};
+         auto manifest = std::unique_ptr<ResolvedRecordingMedia>(new ResolvedRecordingMedia);
+-        manifest->fd_ = OpenMedia(event_root_, RelativeLocator(event_root_, *fallback->fallback_media_locator));
++        manifest->fd_ = r156::Eval(r156::ContainedMediaOpen,[&]{return OpenMedia(event_root_, RelativeLocator(event_root_, *fallback->fallback_media_locator));});
+     if(manifest->fd_>=0)memory_diagnostic::Add(memory_diagnostic::ResolvedMediaFDs,1);
+         struct stat info {};
+         if (manifest->fd_ < 0 || ::fstat(manifest->fd_, &info) != 0 || !S_ISREG(info.st_mode) ||
+@@ -526,7 +529,7 @@
+         const auto parsed = std::from_chars(size->raw.data(), size->raw.data() + size->raw.size(), bytes);
+         if (parsed.ec != std::errc{} || parsed.ptr != size->raw.data() + size->raw.size() || bytes == 0) return {};
+         auto media = std::unique_ptr<ResolvedRecordingMedia>(new ResolvedRecordingMedia);
+-        media->fd_ = OpenMedia(event_root_, RelativeLocator(event_root_, *path));
++        media->fd_ = r156::Eval(r156::ContainedMediaOpen,[&]{return OpenMedia(event_root_, RelativeLocator(event_root_, *path));});
+     if(media->fd_>=0)memory_diagnostic::Add(memory_diagnostic::ResolvedMediaFDs,1);
+         if (media->fd_ < 0 || ::fstat(media->fd_, &info) != 0 || !S_ISREG(info.st_mode) ||
+             info.st_size <= 0 || static_cast<std::uint64_t>(info.st_size) != bytes) return {};
+@@ -543,12 +546,12 @@
+           derived->status != EventRecordingLinkStatus::Partial))) return {};
+     auto media = std::unique_ptr<ResolvedRecordingMedia>(new ResolvedRecordingMedia);
+     // AdjustHoldCount는 finalized 판정과 증가를 RequestDeletion과 같은 mutex에서 처리한다.
+-    if (!catalog_.AdjustHoldCount(segment_id, 1, nullptr)) return {};
++    if (!r156::Eval(r156::MediaHoldAcquire,[&]{return catalog_.AdjustHoldCount(segment_id, 1, nullptr);})) return {};
+     media->catalog_ = &catalog_;
+     media->segment_id_ = segment_id;
+-    const auto location = catalog_.FindSegmentMediaLocation(segment_id);
++    const auto location = r156::Eval(r156::SegmentLookup,[&]{return catalog_.FindSegmentMediaLocation(segment_id);});
+     if (!location) return {};
+-    media->fd_ = OpenMedia(location->first, location->second);
++    media->fd_ = r156::Eval(r156::ContainedMediaOpen,[&]{return OpenMedia(location->first, location->second);});
+     if(media->fd_>=0)memory_diagnostic::Add(memory_diagnostic::ResolvedMediaFDs,1);
+     struct stat info {};
+     if (media->fd_ < 0 || ::fstat(media->fd_, &info) != 0 || !S_ISREG(info.st_mode) ||
+--- src/recording/recording_catalog.cpp
++++ test-only/recording_catalog.cpp
+@@ -1,3 +1,4 @@
++#include "recording_http_currentness_probe.h"
+ // 파일 요약: 녹화 JSONL mutation을 memory/SQLite projection에 적용한다.
+ // 동작 요약: idempotent replay, FK 검증, 손상 DB 격리와 range query parity를 구현한다.
+ #include "recording/recording_catalog.h"
+@@ -3037,25 +3038,29 @@
+ bool RecordingCatalog::ResolveOriginalSample(const std::string& channel,const std::string& source,
+     const std::string& generation,std::uint64_t order,const std::string& track,std::uint64_t ordinal,
+     std::uint64_t pts,RecordingOriginalResult* result,std::string* error) const try {
++    r154::Phase original_cost(r154::Original);
+     if(result)*result={};
+     if(!result||!ValidateRecordingReferenceId(channel,error)||!ValidateRecordingReferenceId(source,error)||!ValidateOpaqueId(generation,error)||
+        order==0||ordinal==0||pts>static_cast<std::uint64_t>(std::numeric_limits<std::int64_t>::max())||
+        track.empty()||track.size()>1024||std::any_of(track.begin(),track.end(),[](unsigned char c){return c<32||c==127;}))
+         return Fail(error,"source lookup 입력 오류");
+-    recording::latency::Lock lock(mu_,recording::latency::Source::Catalog,__LINE__,false,__func__);
++    const auto wait_begin=r154::Tick();
++    recording::latency::Lock lock(mu_,recording::latency::Source::Catalog,__LINE__,false,__func__);
++    r154::Held held;held.Acquired(wait_begin);r154::Count(r154::BindingsTotal,source_bindings_.size());
+     if(!opened_||!derived_job_state_authoritative_||(generation_backend_&&!CanReadLocked(error)))return Fail(error,"source lookup 미open/미확인");
+-    for(const auto& [id,handle]:source_bindings_) {
+-        if(!handle)continue;
+-        const auto segment=segments_v2_.find(id);
+-        if(segment==segments_v2_.end()||EffectiveLifecycleV2Locked(id)!=RecordingLifecycle::Finalized||
+-           handle.channel!=channel||handle.source!=source||handle.generation!=generation||handle.order!=order||handle.track!=track)continue;
+-        SourceBindingHandle owned;if(!AcquireSourceBindingOwnedLocked(id,&owned,error)||!owned){*result={};return false;}const auto& b=*owned;
+-        const auto sample=std::lower_bound(b.samples.begin(),b.samples.end(),ordinal,[](const auto& value,auto key){return value.ordinal<key;});
++    for(const auto& entry:source_bindings_) {const auto& id=entry.first;const auto& handle=entry.second;
++        r154::Count(r154::Scanned);if(!handle)continue;
++        r154::Count(r154::NonNull);const bool other=handle.channel!=channel;if(other)r154::Count(r154::OtherChannel);
++        r154::Count(r154::SegmentLookups);if(other)r154::Count(r154::OtherSegment);const auto segment=r154::Eval(r154::Segment,[&]{return segments_v2_.find(id);});
++        if(segment==segments_v2_.end()||r154::Eval(r154::Lifecycle,[&]{r154::Count(r154::LifecycleChecks);if(other)r154::Count(r154::OtherLifecycle);return EffectiveLifecycleV2Locked(id);})!=RecordingLifecycle::Finalized||
++           ([&]{const bool match=handle.channel==channel;if(match)r154::Count(r154::ChannelMatches);return !match;})()||([&]{const bool match=handle.source==source;if(match)r154::Count(r154::SourceMatches);return !match;})()||([&]{const bool match=handle.generation==generation;if(match)r154::Count(r154::GenerationMatches);return !match;})()||handle.order!=order||handle.track!=track)continue;
++        r154::Count(r154::FullMatches);r154::Count(r154::OwnedAcquisitions);SourceBindingHandle owned;if(!r154::Eval(r154::Acquire,[&]{return AcquireSourceBindingOwnedLocked(id,&owned,error);})||!owned){*result={};return false;}const auto& b=*owned;
++        r154::Count(r154::BinarySearches);const auto sample=r154::Eval(r154::BinarySearch,[&]{return std::lower_bound(b.samples.begin(),b.samples.end(),ordinal,[](const auto& value,auto key){return value.ordinal<key;});});
+         RecordingOriginalCandidate candidate{segment->second,b.source_generation,b.track_id,b.generation_order,b.last_accepted_ordinal,{},{}};
+         if(sample!=b.samples.end()&&sample->ordinal==ordinal) {
+-            if(sample->pts_ns==pts){candidate.sample=*sample;result->exact.push_back(std::move(candidate));}
++            if(sample->pts_ns==pts){r154::Count(r154::Exact);candidate.sample=*sample;result->exact.push_back(std::move(candidate));}
+         } else if(!b.index_complete&&ordinal>b.samples.back().ordinal&&ordinal<=b.last_accepted_ordinal) {
+-            candidate.reason=b.incomplete_reason;result->unknown.push_back(std::move(candidate));
++            r154::Count(r154::Unknown);candidate.reason=b.incomplete_reason;result->unknown.push_back(std::move(candidate));
+         }
+     }
+     const auto sorted=[](const auto& a,const auto& b) {
+--- src/recording/recording_search_reader.cpp
++++ test-only/recording_search_reader.cpp
+@@ -1,3 +1,4 @@
++#include "recording_http_currentness_probe.h"
+ #include "recording/recording_latency_trace.h"
+ // 파일 용도: 원본 참조와 검색의 UTC/PTS를 결합한다. 검색 결과를 파일 재생 증명으로 사용하지 않는다.
+ #include "recording/recording_search_reader.h"
+@@ -89,7 +90,7 @@
+     if (!output) {if(error)*error="search-invalid-output";return false;}
+     if(!limits.residency)limits.residency=catalog_.SearchResidency();
+     SearchSourceBatch batch;
+-    {SearchDiagnostic::Phase cost("Capture");if (!catalog_.CaptureSearchSource(channels, previous.get(), &batch, error, limits, include_observations, retry_capture)) {if(retry_capture)*retry_capture=SearchSourceBatch{};return false;}}
++    {r154::Phase capture_cost(r154::Capture);SearchDiagnostic::Phase cost("Capture");if (!catalog_.CaptureSearchSource(channels, previous.get(), &batch, error, limits, include_observations, retry_capture)) {if(retry_capture)*retry_capture=SearchSourceBatch{};return false;}}
+     if(retry_capture)*retry_capture=SearchSourceBatch{};
+
+ #ifdef RECORDING_SEARCH_TESTING
+@@ -105,18 +106,19 @@
+         return OriginalKey{ref.channel_id,ref.source_id,original.source_generation,original.generation_order,
+             original.track_id,original.ordinal,original.pts_ns};
+     };
+-    std::sort(batch.pending.begin(),batch.pending.end(),[&](const auto& a,const auto& b){return originalKey(a)<originalKey(b);});
++    r154::Count(r154::Pending,batch.pending.size());
++    {r154::Phase sort_cost(r154::Sort);std::sort(batch.pending.begin(),batch.pending.end(),[&](const auto& a,const auto& b){return originalKey(a)<originalKey(b);});}
+     std::optional<OriginalKey> last_original;ConsumerReferenceResolution resolution;
+     SearchDiagnostic::Stage("reference-resolution");
+     for (const auto& pending : batch.pending) {
+-        const auto& ref=pending.reference;const auto key=originalKey(pending);
++        const auto& ref=pending.reference;const auto key=r154::Eval(r154::Group,[&]{return originalKey(pending);});
+         if(!key||key!=last_original) {
+-            if (!reader_.ResolveConsumerReference(ref, &resolution, error)) return false;
++            if(key)r154::Count(r154::UniqueKeys);if (!r154::Eval(r154::Consumer,[&]{return reader_.ResolveConsumerReference(ref, &resolution, error);})) return false;
+             last_original=key;
+         }
+-        Locate(batch.delta.upserts.at(pending.document_index), resolution);
+-    }
+-    if (!catalog_.ValidateSearchSource(batch, error)) {
++        {r154::Phase locate_cost(r154::Locate);Locate(batch.delta.upserts.at(pending.document_index), resolution);}
++    }
++    if (!r154::Eval(r154::Validate1,[&]{return catalog_.ValidateSearchSource(batch, error);})) {
+         if(retry_capture&&!include_observations&&batch.rebuild&&error&&*error=="search-source-changed")
+             {batch.memory.DiagnosticCategory(SearchModelResidency::Category::RetryBatch);*retry_capture=std::move(batch);}
+         return false;
+@@ -127,15 +129,15 @@
+     std::shared_ptr<const RecordingSearchModel> next;
+     SearchDiagnostic::Stage(batch.rebuild?"model-build":"model-delta");
+     SearchDiagnostic::Phase build_cost(batch.rebuild?"BuildOwned":"ApplyDelta");
+-    const bool built = batch.rebuild ? RecordingSearchModel::BuildOwned(std::move(batch.delta.upserts),
++    const bool built = r154::Eval(r154::Build,[&]{return batch.rebuild ? RecordingSearchModel::BuildOwned(std::move(batch.delta.upserts),
+         batch.delta.source_instance, batch.delta.revision, &next, error, limits) :
+-        RecordingSearchModel::ApplyDelta(*previous, batch.delta, &next, error, limits);
++        RecordingSearchModel::ApplyDelta(*previous, batch.delta, &next, error, limits);});
+     // 정렬/복사 동안 발생한 원본 상태 변경도 완료 직전에 거부한다.
+     if(!built)return false;
+ #ifdef RECORDING_SEARCH_TESTING
+     if(search_after_build_test)search_after_build_test();
+ #endif
+-    if(!catalog_.ValidateSearchSource(batch,error)) {
++    if(!r154::Eval(r154::Validate2,[&]{return catalog_.ValidateSearchSource(batch,error);})) {
+         // Only this unpublished, exclusively owned source model can be reclaimed.
+         // No WithPlayback/event projection or published snapshot reaches here.
+         // Its old revision is never accepted: retry traverses/authenticates all
+--- src/ingress/recording_search_application_service.cpp
++++ test-only/recording_search_application_service.cpp
+@@ -1,3 +1,4 @@
++#include "recording_http_currentness_probe.h"
+ // 파일 용도: 인증 이후 녹화 검색·스냅샷 재생 요청의 값 파싱과 공개 응답.
+ #include "ingress/recording_application_service.h"
+ #include "recording/recording_latency_trace.h"
+@@ -96,14 +97,14 @@
+         Raw("[");bool first=true;for(const auto& value:values){if(!first)Raw(",");first=false;Text(value);}return Raw("]");
+     }
+     SearchJson& Decimal(const std::optional<std::int64_t>& value){return value?Text(std::to_string(*value)):Raw("null");}
+-    std::string Take()&&{return std::move(value_);}
++    std::string Take()&&{r156::Phase take(r156::JsonTake);r156::Count(r156::ResponseBytes,value_.size());return std::move(value_);}
+ };
+ std::string Url(const std::string& id){return recording::ValidateOpaqueId(id,nullptr)?"/ops/api/recordings/media/"+id:"";}
+ }
+ ApplicationServiceResult RecordingApplicationService::Search(const Query& raw,const std::string& principal,
+     const std::string& scope,const ChannelAuthorizer& authorize) const {
+     recording::memory_diagnostic::Activity request_activity(recording::memory_diagnostic::StructuredRequests);
+-    recording::SearchDiagnostic diagnostic(catalog_.SearchResidency().get());
++    recording::SearchDiagnostic diagnostic(catalog_.SearchResidency().get());r154::Search search_probe(diagnostic);
+     try {
+         recording::SearchDiagnostic::Stage("parse");
+         recording::RecordingSearchQuery query;if(!Parse(raw,false,&query))return Error(400,"invalid-recording-search-query");
+@@ -155,27 +156,29 @@
+         // wire body coexist. Reserve before serialization; move to transport owner.
+         recording::SearchDiagnostic::Stage("currentness-json");
+         recording::SearchDiagnostic::Phase response_cost("CurrentnessJson");
+-        auto response_memory=catalog_.SearchResidency()->ReserveOwned(4ULL*4*1024*1024,recording::SearchModelResidency::Category::Response);
++        r156::Currentness currentness; r156::Count(r156::Positions,page.positions.size());
++        auto response_memory=r156::Eval(r156::ResponseAdmission,[&]{return catalog_.SearchResidency()->ReserveOwned(4ULL*4*1024*1024,recording::SearchModelResidency::Category::Response);});
+         if(!response_memory)return Failure("search-capacity-exceeded");
+         std::map<std::string,bool> availability;
+         const auto available=[&](const std::string& channel,const std::string& id){
+-            if(id.empty()||Url(id).empty())return false;const auto key=std::to_string(channel.size())+":"+channel+id;
+-            auto it=availability.find(key);if(it!=availability.end())return it->second;
+-            const bool ok=bool(reader_.ResolveMedia(channel,id));availability.emplace(key,ok);return ok;
++            r156::Count(r156::AvailabilityCalls);r156::Phase key_cost(r156::AvailabilityKey);
++            if(id.empty()||Url(id).empty()){r156::Count(r156::InvalidKeys);return false;}const auto key=std::to_string(channel.size())+":"+channel+id;key_cost.End();
++            auto it=r156::Eval(r156::AvailabilityCache,[&]{return availability.find(key);});if(it!=availability.end()){r156::Count(r156::CacheHits);return it->second;}r156::Count(r156::CacheMisses);
++            r156::Count(r156::ResolveCalls);const bool ok=r156::Eval(r156::MediaResolve,[&]{return bool(reader_.ResolveMedia(channel,id));});r156::Count(ok?r156::ResolveOK:r156::ResolveFail);r156::Eval(r156::AvailabilityCache,[&]{return availability.emplace(key,ok);});r156::Count(r156::UniqueKeys);return ok;
+         };
+-        SearchJson json;
++        r156::Phase init_cost(r156::JsonInitialization);SearchJson json;
+         json.Raw("{\"schema\":\"media-server.recording-search.v1\",\"snapshotId\":").Text(page.snapshot_id)
+             .Raw(",\"nextCursor\":");
+         if(page.next_cursor.empty())json.Raw("null");else json.Text(page.next_cursor);
+         json.Raw(",\"knownCount\":").Raw(std::to_string(page.known_count))
+             .Raw(",\"unplacedCount\":").Raw(std::to_string(page.unplaced_count)).Raw(",\"items\":[");
+-        bool first=true;
++        init_cost.End();bool first=true;
+         for(const auto position:page.positions){const auto& d=page.model->documents()[position];
+             std::string target=d.playback_segment_id.empty()?d.segment_id:d.playback_segment_id;
+-            bool playable=available(d.channel_id,target);const bool preferred=target!=d.segment_id;
+-            if(!playable&&preferred&&available(d.channel_id,d.segment_id)){target=d.segment_id;playable=true;}
++            r156::Count(r156::PreferredChecks);bool playable=available(d.channel_id,target);const bool preferred=target!=d.segment_id;
++            if(!playable&&preferred&&r156::Eval(r156::FallbackResolve,[&]{r156::Count(r156::FallbackChecks);const bool ok=available(d.channel_id,d.segment_id);r156::Count(ok?r156::FallbackOK:r156::FallbackFail);return ok;})){target=d.segment_id;playable=true;}
+             const bool event=target!=d.segment_id;
+-            if(!first)json.Raw(",");first=false;
++            r156::Count(r156::Items);r156::Phase item_cost(r156::ItemSerialization);if(!first)json.Raw(",");first=false;
+             json.Raw("{\"id\":").Text(d.id).Raw(",\"channelId\":").Text(d.channel_id)
+                 .Raw(",\"kind\":").Text(d.kind==recording::SearchDocumentKind::Observation?"observation":"recording")
+                 .Raw(",\"segmentId\":").Text(d.segment_id).Raw(",\"observationId\":").Text(d.observation_id)
+@@ -186,17 +189,17 @@
+                 .Raw(",\"playable\":").Raw(playable?"true":"false").Raw(",\"playbackUrl\":").Text(playable?Url(target):"")
+                 .Raw(",\"preferredEventId\":").Text(event?d.playback_event_id:"")
+                 .Raw(",\"selectionReason\":").Text(event?"event-priority":preferred?"original-fallback":"original")
+-                .Raw(",\"unavailableReason\":").Text(playable?"":target.empty()?"unresolved-original":catalog_.IsDeletedSegmentId(target)?"deleted":"media-unavailable").Raw("}");
+-        }
+-        json.Raw("],\"appliedQuery\":{\"channelIds\":").List(query.channels)
++                .Raw(",\"unavailableReason\":").Text(playable?"":target.empty()?"unresolved-original":r156::Eval(r156::DeletedState,[&]{r156::Count(r156::DeletedQueries);return catalog_.IsDeletedSegmentId(target);})?"deleted":"media-unavailable").Raw("}");
++        }
++        r156::Phase tail_cost(r156::ResponseTail);json.Raw("],\"appliedQuery\":{\"channelIds\":").List(query.channels)
+             .Raw(",\"startTimeMs\":").Raw(std::to_string(query.start_time_ms)).Raw(",\"endTimeMs\":").Raw(std::to_string(query.end_time_ms))
+             .Raw(",\"limit\":").Raw(std::to_string(query.limit)).Raw(",\"includeUnplaced\":").Raw(query.include_unplaced?"true":"false")
+             .Raw(",\"object\":").List(query.objects).Raw(",\"track\":").List(query.tracks).Raw(",\"event\":").List(query.events)
+             .Raw(",\"zone\":").List(query.zones).Raw(",\"rule\":").List(query.rules).Raw(",\"behaviour\":").List(query.behaviours)
+             .Raw("},\"searchBasis\":{\"kind\":\"structured-query-snapshot\",\"snapshotId\":").Text(page.snapshot_id)
+             .Raw(",\"statisticsScope\":\"query-matches\"}}");
+-        if(!Authorized(query,authorize))return Error(403,"recording-channel-forbidden");
+-        diagnostic.status=200;
++        tail_cost.End();if(!r156::Eval(r156::AuthorizationRecheck,[&]{return Authorized(query,authorize);}))return Error(403,"recording-channel-forbidden");
++        currentness.record.complete=true;diagnostic.status=200;
+         return {200,"OK",std::move(json).Take(),std::move(*response_memory)};
+     }catch(const std::bad_alloc&){diagnostic.exception="bad-alloc";return Error(503,"recording-search-unavailable");}
+     catch(const std::length_error&){diagnostic.exception="length-error";return Error(503,"recording-search-unavailable");}
+--- src/ingress/webrtc_http_server_runtime.cpp
++++ test-only/webrtc_http_server_runtime.cpp
+@@ -1,3 +1,4 @@
++#include "recording_http_currentness_probe.h"
+ #include "recording/recording_latency_trace.h"
+ // 파일 요약: WebRTC HTTP 서버의 공개 runtime lifecycle과 registry 검증 구현이다.
+ #include "webrtc_http_server_detail.h"
+@@ -399,6 +400,7 @@
+                 continue;
+             }
+
++            const auto r154_accepted=r154::Tick();
+             const auto accepted_at = site_request_diagnostic_enabled
+                 ? SiteOperationsRequestDiagnostic::Clock::now()
+                 : SiteOperationsRequestDiagnostic::Clock::time_point{};
+@@ -418,7 +420,7 @@
+             const auto recording_gate = impl_->recording_gate;
+             auto* const recording_service = impl_->recording_service;
+             std::thread([this, client_fd, recording_gate, recording_service,
+-                         site_request_diagnostic_enabled, accepted_at] {
++                         site_request_diagnostic_enabled, accepted_at,r154_accepted] {
+                 struct ActiveConnectionGuard {
+                     std::atomic<int>& active_connections;
+                     bool finished{false};
+@@ -429,6 +431,7 @@
+                 SetHttpSocketTimeouts(client_fd);
+                 HttpResponse response;
+                 auto request_opt = ReadHttpRequest(client_fd, &response);
++                r154::Server r154_request(request_opt?r154::Correlation(HeaderValue(*request_opt,"x-r154-id")):0,r154_accepted);
+                 const bool visual_request=request_opt&&request_opt->method=="GET"&&request_opt->path=="/ops/api/recordings/visual-search";
+                 recording::latency::VisualPhase visual_http("http-parsed-through-send",visual_request);
+                 SiteOperationsRequestDiagnostic site_diagnostic(
+@@ -447,7 +450,7 @@
+                     }
+                 } else {
+                     const HttpRequest& request = *request_opt;
+-                    site_diagnostic.Emit(SiteOperationsRequestDiagnostic::Phase::HandlerBegin);
++                    r154_request.handler=r154::Tick();site_diagnostic.Emit(SiteOperationsRequestDiagnostic::Phase::HandlerBegin);
+                     recording::latency::VisualPhase visual_handler("http-auth-handler",visual_request);
+                     response = [&]() -> HttpResponse {
+                         if (recording_request && !recording_flight)
+@@ -5240,7 +5243,7 @@
+                         return HttpResponse{404, "Not Found", "text/plain; charset=utf-8", {}, "not found"};
+                     }();
+                     visual_handler.End();
+-                    site_diagnostic.Emit(SiteOperationsRequestDiagnostic::Phase::HandlerEnd);
++                    r154_request.prepared=r154::Tick();site_diagnostic.Emit(SiteOperationsRequestDiagnostic::Phase::HandlerEnd);
+                 }
+
+                 if (!response_sent) {
+@@ -5250,7 +5253,7 @@
+                     const std::string encoded = BuildHttpResponse(response, request_for_headers);
+                     const auto observation=recording_gate->SendObservation();
+                     recording::latency::VisualPhase visual_send("http-send",visual_request);
+-                    const bool sent = SendAllObserved(client_fd, encoded, observation.get());
++                    r154_request.sendBegin=r154::Tick();const bool sent = SendAllObserved(client_fd, encoded, observation.get());r154_request.sendEnd=r154::Tick();r154_request.sent=sent;
+                     site_diagnostic.Emit(SiteOperationsRequestDiagnostic::Phase::SendEnd, sent);
+                 }
+                 // Drain is the recording transport's lifetime boundary. Release the
+@@ -5259,7 +5262,7 @@
+                 // reused descriptor. Other retained readers own independent tickets.
+                 response = HttpResponse{};
+                 // No Impl access may remain after the recording drain notification.
+-                active_connection_guard.Finish();
++                r154_request.End();active_connection_guard.Finish();
+                 recording_flight.reset();
+                 close(client_fd);
+             }).detach();
+--- src/ingress/webrtc_http_server.cpp
++++ test-only/webrtc_http_server.cpp
+@@ -1,3 +1,4 @@
++#include "recording_http_currentness_probe.h"
+ // 파일 요약: WebRTC HTTP 서버 공통 파싱, 인증, registry와 transport 기반 구현이다.
+ #include "webrtc_http_server_detail.h"
+
+@@ -1609,6 +1610,7 @@
+
+ // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 2912 function
+ std::optional<HttpRequest> ReadHttpRequest(int client_fd, HttpResponse* error_response) {
++    r154::header_count=0;
+     auto fail = [&](int status,
+                     const std::string& status_text,
+                     const std::string& body) -> std::optional<HttpRequest> {
+@@ -1670,7 +1672,7 @@
+         }
+         const std::string key = Trim(header_line.substr(0, colon));
+         const std::string value = Trim(header_line.substr(colon + 1));
+-        request.headers[key] = value;
++        r154::HeaderSeen(key);request.headers[key] = value;
+     }
+
+     std::size_t content_length = 0;
+--- scripts/internal/recording_accumulated_http_smoke.cpp
++++ test-only/recording_accumulated_http_smoke.cpp
+@@ -1,3 +1,4 @@
++#include "recording_http_currentness_probe.h"
+ // R152: 단일 canonical store의 synthetic 입력/실제 서비스 적격성. 비용 계측 아님.
+ #define RECORDING_DEGRADED_HTTP_NO_MAIN
+ #include "recording_degraded_http_smoke.cpp"
+@@ -47,12 +48,12 @@
+ Response152 Http152(std::uint16_t port,const std::string& route,unsigned id,int expected=200,
+  const std::string& body="",int auth=1,int connected=-1) try {
+  Socket c;c.fd=connected;NeedHttp(!failed152.load(),"prior failure blocks HTTP");
+- const auto begin=Clock::now();HttpObservation observation{id,"r152",route,begin};
+- if(c.fd<0){c.fd=socket(AF_INET,SOCK_STREAM,0);NeedHttp(c.fd>=0,"socket");sockaddr_in a{};a.sin_family=AF_INET;a.sin_port=htons(port);inet_pton(AF_INET,"127.0.0.1",&a.sin_addr);NeedHttp(!connect(c.fd,reinterpret_cast<sockaddr*>(&a),sizeof(a)),"connect");}
++ const auto begin=Clock::now();HttpObservation observation{id,"r152",route,begin};r154::Client client_probe(id,observation);
++ if(c.fd<0){r154::connects[id-1][0]=r154::Tick();c.fd=socket(AF_INET,SOCK_STREAM,0);NeedHttp(c.fd>=0,"socket");sockaddr_in a{};a.sin_family=AF_INET;a.sin_port=htons(port);inet_pton(AF_INET,"127.0.0.1",&a.sin_addr);NeedHttp(!connect(c.fd,reinterpret_cast<sockaddr*>(&a),sizeof(a)),"connect");r154::connects[id-1][1]=r154::Tick();}
+  timeval timeout{5,0};setsockopt(c.fd,SOL_SOCKET,SO_RCVTIMEO,&timeout,sizeof(timeout));setsockopt(c.fd,SOL_SOCKET,SO_SNDTIMEO,&timeout,sizeof(timeout));
+  const std::string token=auth==1?"<FIXTURE_admin_TOKEN>":auth==2?"<FIXTURE_viewer_TOKEN>":"";
+- const std::string request=(body.empty()?"GET ":"POST ")+route+" HTTP/1.1\r\nHost: localhost\r\n"+(token.empty()?"":"Authorization: Bearer "+token+"\r\n")+"Connection: close\r\n"+(body.empty()?"":"Content-Type: application/json\r\nContent-Length: "+std::to_string(body.size())+"\r\n")+"\r\n"+body;
+- NeedHttp(webrtc_http_server_detail::SendAll(c.fd,request),"send");const auto wire=Drain(c.fd,begin+std::chrono::seconds(5),observation);
++ const std::string request=(body.empty()?"GET ":"POST ")+route+" HTTP/1.1\r\nX-R154-ID: "+std::to_string(id)+"\r\nHost: localhost\r\n"+(token.empty()?"":"Authorization: Bearer "+token+"\r\n")+"Connection: close\r\n"+(body.empty()?"":"Content-Type: application/json\r\nContent-Length: "+std::to_string(body.size())+"\r\n")+"\r\n"+body;
++ client_probe.sendBegin=r154::Tick();NeedHttp(webrtc_http_server_detail::SendAll(c.fd,request),"send");client_probe.sendEnd=r154::Tick();const auto wire=Drain(c.fd,begin+std::chrono::seconds(5),observation);
+  const auto end=wire.find("\r\n\r\n");NeedHttp(end!=std::string::npos&&wire.size()>=12,"HTTP complete headers");
+  const double ms=std::chrono::duration<double,std::milli>(Clock::now()-begin).count();
+  const auto length=wire.find("Content-Length: ");NeedHttp(length!=std::string::npos&&length<end,"HTTP content length");NeedHttp(std::stoull(wire.substr(length+16))==wire.size()-end-4,"HTTP complete body");
+@@ -132,7 +133,7 @@
+  try {
+  const auto source_end=Clock::now()+std::chrono::seconds(10);while(!started&&Clock::now()<source_end)std::this_thread::sleep_for(std::chrono::milliseconds(10));NeedHttp(started!=0,"background source started");
+  // Four connected sockets are observed by the real server before simultaneous request release.
+- std::array<Socket,4> sockets;for(auto& c:sockets){c.fd=socket(AF_INET,SOCK_STREAM,0);NeedHttp(c.fd>=0,"parallel socket");sockaddr_in a{};a.sin_family=AF_INET;a.sin_port=htons(port);inet_pton(AF_INET,"127.0.0.1",&a.sin_addr);NeedHttp(!connect(c.fd,reinterpret_cast<sockaddr*>(&a),sizeof(a)),"parallel connect");}
++ std::array<Socket,4> sockets;for(auto& c:sockets){r154::connects[9+(&c-sockets.data())][0]=r154::Tick();c.fd=socket(AF_INET,SOCK_STREAM,0);NeedHttp(c.fd>=0,"parallel socket");sockaddr_in a{};a.sin_family=AF_INET;a.sin_port=htons(port);inet_pton(AF_INET,"127.0.0.1",&a.sin_addr);NeedHttp(!connect(c.fd,reinterpret_cast<sockaddr*>(&a),sizeof(a)),"parallel connect");r154::connects[9+(&c-sockets.data())][1]=r154::Tick();}
+  const auto accept_end=Clock::now()+std::chrono::seconds(1);while(RecordingHttpOwnershipProbe::Active(server)<4&&Clock::now()<accept_end)std::this_thread::sleep_for(std::chrono::milliseconds(1));NeedHttp(RecordingHttpOwnershipProbe::Active(server)>=4,"four actual accepted connections");Event152("four-accepted");
+  std::promise<void> release;auto released=release.get_future().share();std::array<std::future<Response152>,4> futures;
+  struct Release152{std::promise<void>& p;bool done=false;~Release152(){if(!done)p.set_value();}} release_guard{release};

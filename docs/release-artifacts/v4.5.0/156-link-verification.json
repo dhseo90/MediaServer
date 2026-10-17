@@ -1,0 +1,44 @@
+{
+  "overlayReproduction": true,
+  "productSourcesUnchanged": true,
+  "objects": [
+    {
+      "object": "recording_read_service.cpp.o",
+      "explicit": true,
+      "originalArchiveAbsent": true
+    },
+    {
+      "object": "recording_catalog.cpp.o",
+      "explicit": true,
+      "originalArchiveAbsent": true
+    },
+    {
+      "object": "recording_search_reader.cpp.o",
+      "explicit": true,
+      "originalArchiveAbsent": true
+    },
+    {
+      "object": "recording_search_application_service.cpp.o",
+      "explicit": true,
+      "originalArchiveAbsent": true
+    },
+    {
+      "object": "webrtc_http_server_runtime.cpp.o",
+      "explicit": true,
+      "originalArchiveAbsent": true
+    },
+    {
+      "object": "webrtc_http_server.cpp.o",
+      "explicit": true,
+      "originalArchiveAbsent": true
+    }
+  ],
+  "principalDefinitions": [
+    "0000000100315e44 T __ZN7ingress25webrtc_http_server_detail15ReadHttpRequestEiPNS0_12HttpResponseE",
+    "0000000100263170 T __ZNK7ingress27RecordingApplicationService6SearchERKNSt3__113unordered_mapINS1_12basic_stringIcNS1_11char_traitsIcEENS1_9allocatorIcEEEES8_NS1_4hashIS8_EENS1_8equal_toIS8_EENS6_INS1_4pairIKS8_S8_EEEEEERSE_SK_RKNS1_8functionIFbSK_EEE",
+    "00000001001218c4 T __ZNK9recording16RecordingCatalog21ResolveOriginalSampleERKNSt3__112basic_stringIcNS1_11char_traitsIcEENS1_9allocatorIcEEEES9_S9_yS9_yyPNS_23RecordingOriginalResultEPS7_",
+    "0000000100097774 T __ZNK9recording20RecordingReadService23ResolveMediaWithContextERKNSt3__112basic_stringIcNS1_11char_traitsIcEENS1_9allocatorIcEEEES9_PNS_16RecordingCatalog14JobReadContextENS_22MediaInspectionOptionsE",
+    "000000010023d0bc T __ZNK9recording21RecordingSearchReader7RefreshERKNSt3__16vectorINS1_12basic_stringIcNS1_11char_traitsIcEENS1_9allocatorIcEEEENS6_IS8_EEEERKNS1_10shared_ptrIKNS_20RecordingSearchModelEEEPSG_PS8_NS_17SearchModelLimitsEbPNS_17SearchSourceBatchE"
+  ],
+  "fixtureSha256": "7393f2a37a0d1dffe395a8b2b1691bb60756dbceffd3f2dd9b32d63a51a2de31"
+}

@@ -1,0 +1,14 @@
+{
+  "baseline": "7a7262ace227e4834bc7dafbbefdfce606e6c88e",
+  "executionHead": "30e4b7637ea44d4a4a6ffc7c2dfc1a1695618872",
+  "clean": true,
+  "products": {
+    "media_server": "33f516d35d56cb2f6cafc75647b6c37d2ced67115302d1205cca23bf51ab7f79",
+    "libmedia_server_runtime.a": "2d91cf35fe7e805e0c06e00d16779c86849b35db635e087582277e1b676d198c"
+  },
+  "dependencies": 169,
+  "fixtureSha256": "7393f2a37a0d1dffe395a8b2b1691bb60756dbceffd3f2dd9b32d63a51a2de31",
+  "integratedPreviousRuns": 0,
+  "approvedLimit": 1,
+  "gate": "PASS_CURRENTNESS_LIFETIME_STREAMING_LINKAGE_PREFLIGHT"
+}

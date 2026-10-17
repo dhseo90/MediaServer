@@ -1,0 +1,18 @@
+{
+  "changes": {
+    "scripts/internal/recording_http_cost_run.test.py": {
+      "before": "b279c8f2ca2a34ad2ea361b019d45205e33bb97b5281417fe265abf3ab9515f8",
+      "after": "3c3719c3eb7d669646e4c4debf2d49b0622a2c50695d0146de42190c937ec07f"
+    },
+    "scripts/internal/recording_http_cost_run.py": {
+      "before": "7187b19a773959667108b12554855697bd98d1f5955514654746c1d33ef00e2c",
+      "after": "fb113fea2e3cbe7308c123556ac7e99a53d65e650d27426a570d71a3824074dc"
+    },
+    "scripts/internal/recording_http_currentness.test.py": {
+      "before": "95cbb4f6871483ee13be4a28c774204ada87accb23f10b743af7cc90622cee96",
+      "after": "87ccf73ef174b98f2664220204f0a888eed112f0ec7217eea74bad7fbe3abc3b"
+    }
+  },
+  "nativeFixtureSha256": "7393f2a37a0d1dffe395a8b2b1691bb60756dbceffd3f2dd9b32d63a51a2de31",
+  "reason": "only qualifier/callback/focused test changes; native overlay bytes unchanged"
+}

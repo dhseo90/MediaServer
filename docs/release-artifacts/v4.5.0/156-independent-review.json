@@ -1,0 +1,70 @@
+{
+  "schema": "media-server.v450.r156.independent-review.v1",
+  "reviewer": "independent_r155",
+  "model": {
+    "requested": {
+      "main": "gpt-6-astra/high",
+      "independent": "gpt-6-astra/high"
+    },
+    "toolAccepted": {
+      "main": null,
+      "independent": "followup_task accepted on existing independent_r155; prior explicit spawn requested gpt-6-astra/high, not runtime proof"
+    },
+    "actualRuntimeModel": {
+      "main": null,
+      "independent": null
+    },
+    "actualRuntimeEffort": {
+      "main": null,
+      "independent": null
+    }
+  },
+  "mode": "read-only; no implementation, test writing/execution, delegation, commit/push",
+  "preflightDecision": "PASS_CURRENTNESS_LIFETIME_STREAMING_LINKAGE_PREFLIGHT",
+  "postflightDecision": "PASS_BOUNDED_CURRENTNESS_ATTRIBUTION",
+  "finalDecision": "CURRENTNESS_COST_BOUNDARY_IDENTIFIED",
+  "blockers": [],
+  "reviewCorrections": [
+    "require AvailabilityKey/AvailabilityCache/ItemSerialization call counts to match independent counters",
+    "parse Currentness JSON into record before validate so first loss retains valid requestId10"
+  ],
+  "reviewed": [
+    "native actual availability/FD/hold/JSON bytes/Search200/403/503/Seek410; negative paths and cap128/129/depth32/33",
+    "Python5, R15532, R15330, actual parser12, real streaming loss children and4MiB fixture cap",
+    "6 overlay translation units,5 unique principal definitions,169 dependencies,7 overlay source hashes, original archive members absent",
+    "28 client/server exact unique identity;3 Search/currentness IDs10/11/60; no loss/missing/duplicate",
+    "3 requests x19 stage inclusive/self/calls and18 counters independently matched raw ns, discrepancy0",
+    "residual13002/12501/2794ns positive; MediaResolve child subtraction79329/65544/5209ns equals self",
+    "17 inspections Healthy, timeout0, defaultbudget5000ms;28HTTP within5s, ordinary4within2s",
+    "53.64017254s, seed1/fixture1/collector1/product0, background2402/2402files41, Finishowner0, groupsAbsent",
+    "products unchanged and src/include unchanged"
+  ],
+  "limits": [
+    "RED raw process log not retained; tool-output transcription and preserved baseline overlay are distinguished",
+    "Catalog API elapsed not exact mutex timing",
+    "destructor body includes FD close and hold return; those two costs not separated",
+    "physical inspection SHA/demux not separated",
+    "JsonTake not complete response ownership transfer",
+    "synthetic small cycle not R149 state or timeout cause",
+    "remote preservation and path cleanup are separately documented in closure"
+  ],
+  "preservationReview": {
+    "decision": "PASS",
+    "filesAtReview": 31,
+    "bytesAtReview": 535179,
+    "manifestEntries": 28,
+    "rawStoredHashSizeMismatches": 0,
+    "pathRedactionVerified": true,
+    "fixtureCredentialPlaceholders": 2,
+    "priorFailuresPreserved": true,
+    "remoteAndCleanup": "separate closure; not included",
+    "finalDeltaReview": {
+      "decision": "PASS",
+      "scope": "staged output/overlay trailing whitespace normalization and preservation manifest",
+      "storedEvidenceBytes": 515660,
+      "rawHashesUnchanged": true,
+      "outputRemovedTrailingWhitespaceBytes": 2,
+      "testsOrWritesByReviewer": false
+    }
+  }
+}
