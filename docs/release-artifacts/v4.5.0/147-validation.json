@@ -1,0 +1,1880 @@
+{
+  "schema": "media-server.v450.r147.validation.v1",
+  "decision": "INCOMPLETE_45_COLLECTION_FAILURE",
+  "functional45": "INCOMPLETE",
+  "collection45": "FAIL",
+  "memoryP0": "HOLD",
+  "readiness120": "HOLD",
+  "release": "HOLD",
+  "baselineHead": "0c542f5f2455a1aef6c1149242712d49897b16b0",
+  "baselineBranch": "v4.5.0",
+  "baselineClean": true,
+  "remoteBaselineMatched": true,
+  "model": {
+    "main": {
+      "requestedModel": "gpt-6-astra",
+      "requestedEffort": "high",
+      "toolAcceptedModel": null,
+      "toolAcceptedEffort": null,
+      "actualRuntimeModel": null,
+      "actualRuntimeEffort": null
+    },
+    "reviewer": {
+      "requestedModel": "gpt-6-astra",
+      "requestedEffort": "high",
+      "toolAcceptedModel": "gpt-6-astra",
+      "toolAcceptedEffort": "high",
+      "actualRuntimeModel": null,
+      "actualRuntimeEffort": null,
+      "task": "/root/independent_r147"
+    }
+  },
+  "preflight": {
+    "freshness": {
+      "graphSha256": "7d7137440a8c7ee02fcd438834103ff13ffdf16ed919065e4af200bb4ef36d73",
+      "observer": "not prebuilt product dependency unless present in compiler depfiles; wrapper compiles current observer sources after this guard",
+      "schema": "media-server.build-freshness.v1",
+      "scope": "CMake Unix Makefiles timestamp dependency contract; no build or product execution",
+      "status": "PASS_TARGET_AWARE_PREFLIGHT",
+      "targets": {
+        "media_server": {
+          "artifactSha256": "33f516d35d56cb2f6cafc75647b6c37d2ced67115302d1205cca23bf51ab7f79",
+          "buildDependencies": 0,
+          "externalDependencies": 1024,
+          "linkInputs": 26,
+          "objects": 2,
+          "repoDependencies": 120,
+          "uniqueDependencies": 1144
+        },
+        "media_server_runtime": {
+          "artifactSha256": "2d91cf35fe7e805e0c06e00d16779c86849b35db635e087582277e1b676d198c",
+          "buildDependencies": 0,
+          "externalDependencies": 1716,
+          "linkInputs": 178,
+          "objects": 176,
+          "repoDependencies": 395,
+          "uniqueDependencies": 2111
+        }
+      }
+    },
+    "binaries": {
+      "build-gst-onnx/media_server": {
+        "bytes": 38000080,
+        "sha256": "33f516d35d56cb2f6cafc75647b6c37d2ced67115302d1205cca23bf51ab7f79"
+      },
+      "build-gst-onnx/libmedia_server_runtime.a": {
+        "bytes": 113126688,
+        "sha256": "2d91cf35fe7e805e0c06e00d16779c86849b35db635e087582277e1b676d198c"
+      }
+    },
+    "newRootIdentity": {
+      "uid": 501,
+      "dev": 16777232,
+      "inode": 175669552,
+      "mode": "0o700",
+      "symlink": false
+    },
+    "noPrior147ArtifactsFound": true,
+    "sourceAndWorktreeUnchangedDuringRun": true,
+    "productBuilds": 0,
+    "productEdits": 0,
+    "testEdits": 0,
+    "fixtureEdits": 0,
+    "guardOrCapChanges": 0
+  },
+  "execution": {
+    "preparationContractVersion": 2,
+    "resultScope": "existing mixed mode",
+    "command": [
+      "bash",
+      "$REPO/scripts/internal/verify_v450_recording_a_mixed.sh",
+      "--state-diagnostic"
+    ],
+    "startedAt": "2026-10-17T07:03:55.583794+00:00",
+    "status": "FAIL",
+    "source": {
+      "head": "0c542f5f2455a1aef6c1149242712d49897b16b0",
+      "fixtureProfile": "continuous-r114",
+      "fixtureProfileSourceSha256": "b7635f864c34aabdf291dde989a7c106cf6513db7a7b2b7a94e30cb408c5192e",
+      "tree": "691ae88efb1af71d1cbd4aa3a94fb259d56078bd",
+      "sourceSha256": "04f98dc0491e1e35d55b3244faf141a819d69ed9cfbe056a9e1063bfed523eee",
+      "binarySha256": "33f516d35d56cb2f6cafc75647b6c37d2ced67115302d1205cca23bf51ab7f79"
+    },
+    "timeoutSeconds": 2880,
+    "observationSeconds": 2700,
+    "wrapperSha256": "af2c5cf6dffa4f7ffbb96f26ff2d0c7f4ce7bc79d1145e2fe47922afaf373008",
+    "resourceTrendPass": false,
+    "reviewRequired": true,
+    "uiFulltestPass": false,
+    "processGroup": 87845,
+    "childExit": 1,
+    "exit": 1,
+    "executionElapsedSeconds": 201.49660745891742,
+    "elapsedSeconds": 201.4980191248469,
+    "timedOut": false,
+    "interruptedSignals": [],
+    "residualGroupAfterCommand": false,
+    "cleanupSignals": [],
+    "processGroupAbsent": true,
+    "cleanupErrors": [],
+    "cleanupOnlySeconds": 1.6999896615743637e-05,
+    "registeredGroupsAbsent": true,
+    "residualRegisteredGroups": false,
+    "registeredGroupSignals": [],
+    "registeredGroupCleanupSeconds": 0.0013171250466257334,
+    "finishedAt": "2026-10-17T07:07:17.319797+00:00",
+    "sourceEnd": {
+      "head": "0c542f5f2455a1aef6c1149242712d49897b16b0",
+      "fixtureProfile": "continuous-r114",
+      "fixtureProfileSourceSha256": "b7635f864c34aabdf291dde989a7c106cf6513db7a7b2b7a94e30cb408c5192e",
+      "tree": "691ae88efb1af71d1cbd4aa3a94fb259d56078bd",
+      "sourceSha256": "04f98dc0491e1e35d55b3244faf141a819d69ed9cfbe056a9e1063bfed523eee",
+      "binarySha256": "33f516d35d56cb2f6cafc75647b6c37d2ced67115302d1205cca23bf51ab7f79"
+    },
+    "totalWithFinalBindingSeconds": 201.91128854104318,
+    "rootDisposition": "preserved-for-byte-review-and-owned-cleanup"
+  },
+  "executionCounts": {
+    "wrapper": 1,
+    "product": 1,
+    "retry": 0
+  },
+  "observation": {
+    "lastSuccessfulElapsedMs": 170339.279916,
+    "failedSampleStartElapsedMs": 175340.082166,
+    "successfulSamples": 35,
+    "sampleAttempts": 36,
+    "verifiedDurationMs": null,
+    "stateDiagnosticPass": false,
+    "longrunObservationCompleted": false,
+    "meaning": "last successful elapsed is not full completed duration; failed sample began at175.340s, not timeout2700/2880"
+  },
+  "firstFailure": {
+    "status": "failed",
+    "primary": "observer-collector-unavailable",
+    "decision": null,
+    "collectorDiagnostic": {
+      "exitCode": 1,
+      "spawnCode": null,
+      "signal": null,
+      "killed": false,
+      "stdoutBytes": 903,
+      "measurement": {
+        "pid": 87892,
+        "startIdentity": null,
+        "rssBytes": null,
+        "threadCount": null,
+        "fdCount": null,
+        "anonymousFileBytes": null,
+        "anonymousAllocatedBytes": null,
+        "anonymousFiles": null,
+        "footprintBytes": null,
+        "sampledAt": 1792220836240,
+        "valid": false,
+        "error": "fd-observation-incomplete:capacity=0:closed=4",
+        "fdObservation": {
+          "scope": "complete-round-sequential-v1",
+          "complete": false,
+          "startIdentity": "macos:1792220655:33956",
+          "startedAt": 1792220836237,
+          "completedAt": 1792220836240,
+          "roundStartedAt": 1792220836237,
+          "roundCompletedAt": 0,
+          "rounds": 4,
+          "capacityRetries": 0,
+          "closedRetries": 4,
+          "detailCalls": 49,
+          "failures": [
+            {
+              "fd": 35,
+              "listedType": 1,
+              "returned": 0,
+              "errno": 9,
+              "nextType": 1,
+              "at": 1792220836237
+            },
+            {
+              "fd": 35,
+              "listedType": 1,
+              "returned": 0,
+              "errno": 9,
+              "nextType": 0,
+              "at": 1792220836237
+            },
+            {
+              "fd": 36,
+              "listedType": 1,
+              "returned": 0,
+              "errno": 9,
+              "nextType": 0,
+              "at": 1792220836237
+            },
+            {
+              "fd": 35,
+              "listedType": 1,
+              "returned": 0,
+              "errno": 9,
+              "nextType": -1,
+              "at": 1792220836237
+            }
+          ]
+        }
+      }
+    },
+    "context": {
+      "kind": "sample-collection",
+      "pid": 87892,
+      "sampleIndex": 35,
+      "measurementStartedAt": 184195.071541,
+      "failedAt": 184200.921166
+    },
+    "collectionError": null,
+    "capacityBytes": 32768
+  },
+  "failureClassification": {
+    "boundary": "macOS process-metrics FD complete-round collector",
+    "nativeExit": 1,
+    "nativeTimedOut": false,
+    "rounds": 4,
+    "capacityRetries": 0,
+    "closedRetries": 4,
+    "detailCalls": 49,
+    "errno": 9,
+    "meaning": "listed vnode FD detail returned0/EBADF in each bounded round; no complete roster obtained; consistent with close/reuse race, exact churn source or OS semantics not established",
+    "source": "scripts/internal/recording_process_metrics.cpp:130-205 -> recording_foundation_observer.mjs:27-44 -> mixed sample catch",
+    "originalStdoutBytes": 903,
+    "rawStdoutAvailability": "parsed diagnostic preserved by existing consumer; exact raw903B not separately retained",
+    "r145CompletionRecurred": false,
+    "missingProbeRecurred": false,
+    "subsequentFailures": []
+  },
+  "search": {
+    "originalPopulation": {
+      "count": 48,
+      "p95Ms": 859.6628750000091,
+      "maxMs": 893.0922910000081
+    },
+    "perClient": [
+      12,
+      12,
+      12,
+      12
+    ],
+    "unavailable": 0,
+    "officialLatencyGate": "NOT_RUN",
+    "meaning": "partial successful population only; no full45 qualification",
+    "observedSearchHttp": {
+      "/ops/api/recordings/search:200": 27,
+      "/ops/api/recordings/visual-search:200": 24
+    }
+  },
+  "progress": {
+    "elapsedMs": 170339.279916,
+    "channels": {
+      "9101": {
+        "finalized": 85,
+        "deleted": 0,
+        "lastAt": 179194.269291,
+        "order": "171",
+        "store": "36dca070132184001961140ffcbef6a61035791d74130480aec71163df9eaa48",
+        "knownMappings": 70,
+        "unknownMappings": 1952
+      },
+      "9201": {
+        "finalized": 85,
+        "deleted": 0,
+        "lastAt": 179194.269291,
+        "order": "170",
+        "store": "36dca070132184001961140ffcbef6a61035791d74130480aec71163df9eaa48",
+        "knownMappings": 71,
+        "unknownMappings": 1972
+      }
+    },
+    "records": 170,
+    "logicalBytes": 101279
+  },
+  "evidence": {
+    "windows": [
+      {
+        "structured": 220,
+        "visual": 440,
+        "evidence": 11,
+        "visualEvidence": 11
+      },
+      {
+        "structured": 0,
+        "visual": 0,
+        "evidence": 0,
+        "visualEvidence": 0
+      },
+      {
+        "structured": 0,
+        "visual": 0,
+        "evidence": 0,
+        "visualEvidence": 0
+      }
+    ],
+    "cycles": 11,
+    "searchSuccess": 48,
+    "searchUnavailable": 0,
+    "searchSuccessByClient": [
+      12,
+      12,
+      12,
+      12
+    ],
+    "createComplete": 11,
+    "createPartial": 0,
+    "createSuccess": 11,
+    "createBusy": 11,
+    "retainedChecks": 22,
+    "deletedSourceObserved": false,
+    "visualResults": 440,
+    "visualCreated": 11,
+    "visualExpired": 0
+  },
+  "aCompleted": 3,
+  "collection": {
+    "summaries": {
+      "recording-state-summary": [
+        {
+          "status": "captured",
+          "count": 6,
+          "events": [
+            {
+              "seq": 0,
+              "atUs": 1527892184781,
+              "channel": "9101",
+              "phase": "session-created",
+              "reason": "epoch-9101-1-1792220660801"
+            },
+            {
+              "seq": 1,
+              "atUs": 1527892260717,
+              "channel": "9101",
+              "phase": "writer-started",
+              "reason": "ok"
+            },
+            {
+              "seq": 2,
+              "atUs": 1527892263728,
+              "channel": "9201",
+              "phase": "session-created",
+              "reason": "epoch-9201-1-1792220660880"
+            },
+            {
+              "seq": 3,
+              "atUs": 1527892270763,
+              "channel": "9201",
+              "phase": "writer-started",
+              "reason": "ok"
+            },
+            {
+              "seq": 4,
+              "atUs": 1528068197612,
+              "channel": "9201",
+              "phase": "stop-channel",
+              "reason": "requested"
+            },
+            {
+              "seq": 5,
+              "atUs": 1528068226985,
+              "channel": "9101",
+              "phase": "stop-channel",
+              "reason": "requested"
+            }
+          ],
+          "issues": []
+        }
+      ],
+      "server-diagnostic": [
+        {
+          "pid": 87892,
+          "bytes": 234776,
+          "capturedBytes": 234776,
+          "sha256": "74f38a674355828f16d0a1a1a82cdcde8f38fcfec3484f21d35eba4a1209a97e",
+          "overflow": false,
+          "captureError": null,
+          "categories": [
+            {
+              "code": "file evidence unavailable",
+              "count": 0
+            },
+            {
+              "code": "storageBlocked",
+              "count": 0
+            },
+            {
+              "code": "shutdown",
+              "count": 0
+            },
+            {
+              "code": "ERROR",
+              "count": 0
+            },
+            {
+              "code": "WARNING",
+              "count": 0
+            }
+          ],
+          "rawBodyPublished": false,
+          "privateCaptureDisposition": "eligible-for-wrapper-cleanup"
+        }
+      ],
+      "completion-collection-summary": [
+        {
+          "status": "captured",
+          "rows": 229,
+          "bytes": 43513,
+          "receipt": {
+            "v": 1,
+            "rows": 229,
+            "bytes": 43513,
+            "lost": false,
+            "writeError": false,
+            "complete": true
+          }
+        }
+      ],
+      "resource-trace-summary": [
+        {
+          "status": "captured",
+          "count": 39,
+          "final": {
+            "pid": 87892,
+            "seq": 38,
+            "phase": "after-storage-destruction",
+            "elapsedMs": 181598,
+            "ram": 0,
+            "ramPeak": 169768826,
+            "ramLimit": 671088640,
+            "ramRejected": 0,
+            "scratchDisk": 0,
+            "scratchDiskPeak": 17571840,
+            "scratchDiskLimit": 160958038016,
+            "scratchFd": 0,
+            "scratchFdPeak": 18,
+            "scratchFdLimit": 1048572,
+            "scratchRam": 0,
+            "preservedDisk": 0,
+            "preservedFd": 0,
+            "readerCleanupHealthy": true
+          },
+          "scope": "actual shared product owner; logical charges, not total heap or RSS; sequential counter reads"
+        }
+      ],
+      "memory-attribution-summary": [
+        {
+          "status": "captured",
+          "pid": 87892,
+          "count": 39,
+          "phases": {
+            "opened": 1,
+            "sample": 35,
+            "before-Finish": 1,
+            "after-Finish": 1,
+            "after-storage-destruction": 1
+          },
+          "finalOwnerZero": true,
+          "resourcePaired": true,
+          "allocatorRequired": true
+        }
+      ],
+      "search-failure-summary": [
+        {
+          "status": "captured",
+          "probes": 1,
+          "failures": [],
+          "issues": []
+        }
+      ],
+      "frame-trace-summary": [
+        {
+          "status": "captured",
+          "mode": "bounded",
+          "required": true,
+          "records": 1,
+          "successes": 1,
+          "failures": 0,
+          "issues": []
+        }
+      ],
+      "process-cleanup": [
+        {
+          "schema": "recording-process-cleanup-v1",
+          "attemptCount": 1,
+          "pid": 87892,
+          "exitCode": 0,
+          "signalCode": null,
+          "exitedObserved": true,
+          "stopCode": "complete",
+          "forcedTermination": "not-used",
+          "normalExitPass": true,
+          "normalShutdownPass": true,
+          "archiveSafe": true,
+          "ports": [
+            {
+              "kind": "http",
+              "port": 55472,
+              "status": "pass",
+              "code": "closed",
+              "closed": true
+            },
+            {
+              "kind": "rtsp",
+              "port": 55473,
+              "status": "pass",
+              "code": "closed",
+              "closed": true
+            }
+          ]
+        }
+      ]
+    },
+    "visualRequests": {
+      "status": "captured",
+      "probes": 1,
+      "completion": {
+        "started": 24,
+        "completed": 24
+      },
+      "lockCountersRequireRecordingLatencyTrace": true,
+      "overlappingPhasesNotAdditive": true,
+      "unmeasured": [
+        "HTTP send",
+        "unwrapped syscalls/bytes",
+        "background per-request cost"
+      ]
+    },
+    "slow": {
+      "status": "captured",
+      "seen": 472,
+      "retained": 64,
+      "thresholdNs": 10000000,
+      "completedSpansOnly": true,
+      "rawBodyPublished": false
+    },
+    "memoryWire": {
+      "count": 39,
+      "maxBytes": 3607,
+      "versions": [
+        2
+      ],
+      "maxEventDelta": 13,
+      "allLossFalse": true
+    },
+    "meaning": "partial execution logs complete within observed interval; failed external FD sample makes Collection45 FAIL; not log cap overflow"
+  },
+  "recorder": {
+    "input": null,
+    "queue": null,
+    "drops": null,
+    "callback": null,
+    "scope": "state-diagnostic does not expose exhaustive recorder counters",
+    "deliveryLossLogCount": 0
+  },
+  "fileBinding": {
+    "files": 177,
+    "allMatch": true,
+    "notNativeClosedJournal": true
+  },
+  "memory": {
+    "decision": "HOLD",
+    "windows": [
+      {
+        "intervalSeconds": [
+          0,
+          300
+        ],
+        "complete": false,
+        "status": "partial",
+        "sampleCount": 35,
+        "elapsedMs": {
+          "count": 35,
+          "first": 225.9447909999999,
+          "last": 170339.279916,
+          "min": 225.9447909999999,
+          "max": 170339.279916,
+          "delta": 170113.335125
+        },
+        "rssBytes": {
+          "count": 35,
+          "first": 3180396544,
+          "last": 1762852864,
+          "min": 1734426624,
+          "max": 3208822784,
+          "delta": -1417543680
+        },
+        "footprintBytes": {
+          "count": 35,
+          "first": 3132378328,
+          "last": 1706658048,
+          "min": 1680034048,
+          "max": 3159969008,
+          "delta": -1425720280
+        },
+        "logicalRamBytes": {
+          "count": 35,
+          "first": 5175417,
+          "last": 18363648,
+          "min": 1492305,
+          "max": 41807679,
+          "delta": 13188231
+        },
+        "searchResidencyBytes": {
+          "count": 35,
+          "first": 3404217,
+          "last": 18363648,
+          "min": 1492305,
+          "max": 41807679,
+          "delta": 14959431
+        },
+        "allocatorInUseBytes": {
+          "count": 35,
+          "first": 1607950800,
+          "last": 1634072336,
+          "min": 1607950800,
+          "max": 1638776688,
+          "delta": 26121536
+        },
+        "allocatorAllocatedBytes": {
+          "count": 35,
+          "first": 1662500864,
+          "last": 1708949504,
+          "min": 1662500864,
+          "max": 1713520640,
+          "delta": 46448640
+        },
+        "fd": {
+          "count": 35,
+          "first": 34,
+          "last": 35,
+          "min": 34,
+          "max": 39,
+          "delta": 1
+        },
+        "anonymousBytes": {
+          "count": 35,
+          "first": 47104,
+          "last": 4206080,
+          "min": 47104,
+          "max": 6261760,
+          "delta": 4158976
+        },
+        "workspaceBytes": {
+          "count": 35,
+          "first": 23149291,
+          "last": 36529854,
+          "min": 23149291,
+          "max": 36529854,
+          "delta": 13380563
+        },
+        "currentModelBytes": {
+          "count": 35,
+          "first": 0,
+          "last": 3190195,
+          "min": 0,
+          "max": 3190195,
+          "delta": 3190195
+        },
+        "snapshotUniqueBytes": {
+          "count": 35,
+          "first": 0,
+          "last": 11099385,
+          "min": 0,
+          "max": 11099385,
+          "delta": 11099385
+        },
+        "snapshotUniqueModels": {
+          "count": 35,
+          "first": 0,
+          "last": 5,
+          "min": 0,
+          "max": 5,
+          "delta": 5
+        },
+        "catalogRowBytes": {
+          "count": 35,
+          "first": 3652,
+          "last": 2794342,
+          "min": 3652,
+          "max": 2794342,
+          "delta": 2790690
+        },
+        "retainedRawBytes": {
+          "count": 35,
+          "first": 1309,
+          "last": 417117,
+          "min": 1309,
+          "max": 461546,
+          "delta": 415808
+        },
+        "visualDocs": {
+          "count": 35,
+          "first": 1,
+          "last": 321,
+          "min": 1,
+          "max": 321,
+          "delta": 320
+        },
+        "visualBytes": {
+          "count": 35,
+          "first": 6128,
+          "last": 1585448,
+          "min": 6128,
+          "max": 1585448,
+          "delta": 1579320
+        },
+        "visualRetiredBytes": {
+          "count": 35,
+          "first": 0,
+          "last": 0,
+          "min": 0,
+          "max": 0,
+          "delta": 0
+        },
+        "unattributed": {
+          "count": 35,
+          "first": 1913176,
+          "last": 2512388,
+          "min": 217812,
+          "max": 2865534,
+          "delta": 599212
+        },
+        "ownerLagNs": {
+          "count": 35,
+          "first": 16198250,
+          "last": 4461111833,
+          "min": -51125875,
+          "max": 4953934916,
+          "delta": 4444913583
+        },
+        "channelsFirst": {
+          "9101": {
+            "finalized": 0,
+            "deleted": 0,
+            "lastAt": 8854.989375,
+            "order": "0",
+            "store": null,
+            "knownMappings": 0,
+            "unknownMappings": 0
+          },
+          "9201": {
+            "finalized": 0,
+            "deleted": 0,
+            "lastAt": 8854.989375,
+            "order": "0",
+            "store": null,
+            "knownMappings": 0,
+            "unknownMappings": 0
+          }
+        },
+        "channelsLast": {
+          "9101": {
+            "finalized": 85,
+            "deleted": 0,
+            "lastAt": 179194.269291,
+            "order": "171",
+            "store": "36dca070132184001961140ffcbef6a61035791d74130480aec71163df9eaa48",
+            "knownMappings": 70,
+            "unknownMappings": 1952
+          },
+          "9201": {
+            "finalized": 85,
+            "deleted": 0,
+            "lastAt": 179194.269291,
+            "order": "170",
+            "store": "36dca070132184001961140ffcbef6a61035791d74130480aec71163df9eaa48",
+            "knownMappings": 71,
+            "unknownMappings": 1972
+          }
+        }
+      },
+      {
+        "intervalSeconds": [
+          300,
+          900
+        ],
+        "complete": false,
+        "status": "NOT_OBSERVED",
+        "sampleCount": 0,
+        "elapsedMs": {
+          "count": 0,
+          "first": null,
+          "last": null,
+          "min": null,
+          "max": null,
+          "delta": null
+        },
+        "rssBytes": {
+          "count": 0,
+          "first": null,
+          "last": null,
+          "min": null,
+          "max": null,
+          "delta": null
+        },
+        "footprintBytes": {
+          "count": 0,
+          "first": null,
+          "last": null,
+          "min": null,
+          "max": null,
+          "delta": null
+        },
+        "logicalRamBytes": {
+          "count": 0,
+          "first": null,
+          "last": null,
+          "min": null,
+          "max": null,
+          "delta": null
+        },
+        "searchResidencyBytes": {
+          "count": 0,
+          "first": null,
+          "last": null,
+          "min": null,
+          "max": null,
+          "delta": null
+        },
+        "allocatorInUseBytes": {
+          "count": 0,
+          "first": null,
+          "last": null,
+          "min": null,
+          "max": null,
+          "delta": null
+        },
+        "allocatorAllocatedBytes": {
+          "count": 0,
+          "first": null,
+          "last": null,
+          "min": null,
+          "max": null,
+          "delta": null
+        },
+        "fd": {
+          "count": 0,
+          "first": null,
+          "last": null,
+          "min": null,
+          "max": null,
+          "delta": null
+        },
+        "anonymousBytes": {
+          "count": 0,
+          "first": null,
+          "last": null,
+          "min": null,
+          "max": null,
+          "delta": null
+        },
+        "workspaceBytes": {
+          "count": 0,
+          "first": null,
+          "last": null,
+          "min": null,
+          "max": null,
+          "delta": null
+        },
+        "currentModelBytes": {
+          "count": 0,
+          "first": null,
+          "last": null,
+          "min": null,
+          "max": null,
+          "delta": null
+        },
+        "snapshotUniqueBytes": {
+          "count": 0,
+          "first": null,
+          "last": null,
+          "min": null,
+          "max": null,
+          "delta": null
+        },
+        "snapshotUniqueModels": {
+          "count": 0,
+          "first": null,
+          "last": null,
+          "min": null,
+          "max": null,
+          "delta": null
+        },
+        "catalogRowBytes": {
+          "count": 0,
+          "first": null,
+          "last": null,
+          "min": null,
+          "max": null,
+          "delta": null
+        },
+        "retainedRawBytes": {
+          "count": 0,
+          "first": null,
+          "last": null,
+          "min": null,
+          "max": null,
+          "delta": null
+        },
+        "visualDocs": {
+          "count": 0,
+          "first": null,
+          "last": null,
+          "min": null,
+          "max": null,
+          "delta": null
+        },
+        "visualBytes": {
+          "count": 0,
+          "first": null,
+          "last": null,
+          "min": null,
+          "max": null,
+          "delta": null
+        },
+        "visualRetiredBytes": {
+          "count": 0,
+          "first": null,
+          "last": null,
+          "min": null,
+          "max": null,
+          "delta": null
+        },
+        "unattributed": {
+          "count": 0,
+          "first": null,
+          "last": null,
+          "min": null,
+          "max": null,
+          "delta": null
+        },
+        "ownerLagNs": {
+          "count": 0,
+          "first": null,
+          "last": null,
+          "min": null,
+          "max": null,
+          "delta": null
+        },
+        "channelsFirst": null,
+        "channelsLast": null
+      },
+      {
+        "intervalSeconds": [
+          900,
+          1500
+        ],
+        "complete": false,
+        "status": "NOT_OBSERVED",
+        "sampleCount": 0,
+        "elapsedMs": {
+          "count": 0,
+          "first": null,
+          "last": null,
+          "min": null,
+          "max": null,
+          "delta": null
+        },
+        "rssBytes": {
+          "count": 0,
+          "first": null,
+          "last": null,
+          "min": null,
+          "max": null,
+          "delta": null
+        },
+        "footprintBytes": {
+          "count": 0,
+          "first": null,
+          "last": null,
+          "min": null,
+          "max": null,
+          "delta": null
+        },
+        "logicalRamBytes": {
+          "count": 0,
+          "first": null,
+          "last": null,
+          "min": null,
+          "max": null,
+          "delta": null
+        },
+        "searchResidencyBytes": {
+          "count": 0,
+          "first": null,
+          "last": null,
+          "min": null,
+          "max": null,
+          "delta": null
+        },
+        "allocatorInUseBytes": {
+          "count": 0,
+          "first": null,
+          "last": null,
+          "min": null,
+          "max": null,
+          "delta": null
+        },
+        "allocatorAllocatedBytes": {
+          "count": 0,
+          "first": null,
+          "last": null,
+          "min": null,
+          "max": null,
+          "delta": null
+        },
+        "fd": {
+          "count": 0,
+          "first": null,
+          "last": null,
+          "min": null,
+          "max": null,
+          "delta": null
+        },
+        "anonymousBytes": {
+          "count": 0,
+          "first": null,
+          "last": null,
+          "min": null,
+          "max": null,
+          "delta": null
+        },
+        "workspaceBytes": {
+          "count": 0,
+          "first": null,
+          "last": null,
+          "min": null,
+          "max": null,
+          "delta": null
+        },
+        "currentModelBytes": {
+          "count": 0,
+          "first": null,
+          "last": null,
+          "min": null,
+          "max": null,
+          "delta": null
+        },
+        "snapshotUniqueBytes": {
+          "count": 0,
+          "first": null,
+          "last": null,
+          "min": null,
+          "max": null,
+          "delta": null
+        },
+        "snapshotUniqueModels": {
+          "count": 0,
+          "first": null,
+          "last": null,
+          "min": null,
+          "max": null,
+          "delta": null
+        },
+        "catalogRowBytes": {
+          "count": 0,
+          "first": null,
+          "last": null,
+          "min": null,
+          "max": null,
+          "delta": null
+        },
+        "retainedRawBytes": {
+          "count": 0,
+          "first": null,
+          "last": null,
+          "min": null,
+          "max": null,
+          "delta": null
+        },
+        "visualDocs": {
+          "count": 0,
+          "first": null,
+          "last": null,
+          "min": null,
+          "max": null,
+          "delta": null
+        },
+        "visualBytes": {
+          "count": 0,
+          "first": null,
+          "last": null,
+          "min": null,
+          "max": null,
+          "delta": null
+        },
+        "visualRetiredBytes": {
+          "count": 0,
+          "first": null,
+          "last": null,
+          "min": null,
+          "max": null,
+          "delta": null
+        },
+        "unattributed": {
+          "count": 0,
+          "first": null,
+          "last": null,
+          "min": null,
+          "max": null,
+          "delta": null
+        },
+        "ownerLagNs": {
+          "count": 0,
+          "first": null,
+          "last": null,
+          "min": null,
+          "max": null,
+          "delta": null
+        },
+        "channelsFirst": null,
+        "channelsLast": null
+      },
+      {
+        "intervalSeconds": [
+          1500,
+          2100
+        ],
+        "complete": false,
+        "status": "NOT_OBSERVED",
+        "sampleCount": 0,
+        "elapsedMs": {
+          "count": 0,
+          "first": null,
+          "last": null,
+          "min": null,
+          "max": null,
+          "delta": null
+        },
+        "rssBytes": {
+          "count": 0,
+          "first": null,
+          "last": null,
+          "min": null,
+          "max": null,
+          "delta": null
+        },
+        "footprintBytes": {
+          "count": 0,
+          "first": null,
+          "last": null,
+          "min": null,
+          "max": null,
+          "delta": null
+        },
+        "logicalRamBytes": {
+          "count": 0,
+          "first": null,
+          "last": null,
+          "min": null,
+          "max": null,
+          "delta": null
+        },
+        "searchResidencyBytes": {
+          "count": 0,
+          "first": null,
+          "last": null,
+          "min": null,
+          "max": null,
+          "delta": null
+        },
+        "allocatorInUseBytes": {
+          "count": 0,
+          "first": null,
+          "last": null,
+          "min": null,
+          "max": null,
+          "delta": null
+        },
+        "allocatorAllocatedBytes": {
+          "count": 0,
+          "first": null,
+          "last": null,
+          "min": null,
+          "max": null,
+          "delta": null
+        },
+        "fd": {
+          "count": 0,
+          "first": null,
+          "last": null,
+          "min": null,
+          "max": null,
+          "delta": null
+        },
+        "anonymousBytes": {
+          "count": 0,
+          "first": null,
+          "last": null,
+          "min": null,
+          "max": null,
+          "delta": null
+        },
+        "workspaceBytes": {
+          "count": 0,
+          "first": null,
+          "last": null,
+          "min": null,
+          "max": null,
+          "delta": null
+        },
+        "currentModelBytes": {
+          "count": 0,
+          "first": null,
+          "last": null,
+          "min": null,
+          "max": null,
+          "delta": null
+        },
+        "snapshotUniqueBytes": {
+          "count": 0,
+          "first": null,
+          "last": null,
+          "min": null,
+          "max": null,
+          "delta": null
+        },
+        "snapshotUniqueModels": {
+          "count": 0,
+          "first": null,
+          "last": null,
+          "min": null,
+          "max": null,
+          "delta": null
+        },
+        "catalogRowBytes": {
+          "count": 0,
+          "first": null,
+          "last": null,
+          "min": null,
+          "max": null,
+          "delta": null
+        },
+        "retainedRawBytes": {
+          "count": 0,
+          "first": null,
+          "last": null,
+          "min": null,
+          "max": null,
+          "delta": null
+        },
+        "visualDocs": {
+          "count": 0,
+          "first": null,
+          "last": null,
+          "min": null,
+          "max": null,
+          "delta": null
+        },
+        "visualBytes": {
+          "count": 0,
+          "first": null,
+          "last": null,
+          "min": null,
+          "max": null,
+          "delta": null
+        },
+        "visualRetiredBytes": {
+          "count": 0,
+          "first": null,
+          "last": null,
+          "min": null,
+          "max": null,
+          "delta": null
+        },
+        "unattributed": {
+          "count": 0,
+          "first": null,
+          "last": null,
+          "min": null,
+          "max": null,
+          "delta": null
+        },
+        "ownerLagNs": {
+          "count": 0,
+          "first": null,
+          "last": null,
+          "min": null,
+          "max": null,
+          "delta": null
+        },
+        "channelsFirst": null,
+        "channelsLast": null
+      },
+      {
+        "intervalSeconds": [
+          2100,
+          2700
+        ],
+        "complete": false,
+        "status": "NOT_OBSERVED",
+        "sampleCount": 0,
+        "elapsedMs": {
+          "count": 0,
+          "first": null,
+          "last": null,
+          "min": null,
+          "max": null,
+          "delta": null
+        },
+        "rssBytes": {
+          "count": 0,
+          "first": null,
+          "last": null,
+          "min": null,
+          "max": null,
+          "delta": null
+        },
+        "footprintBytes": {
+          "count": 0,
+          "first": null,
+          "last": null,
+          "min": null,
+          "max": null,
+          "delta": null
+        },
+        "logicalRamBytes": {
+          "count": 0,
+          "first": null,
+          "last": null,
+          "min": null,
+          "max": null,
+          "delta": null
+        },
+        "searchResidencyBytes": {
+          "count": 0,
+          "first": null,
+          "last": null,
+          "min": null,
+          "max": null,
+          "delta": null
+        },
+        "allocatorInUseBytes": {
+          "count": 0,
+          "first": null,
+          "last": null,
+          "min": null,
+          "max": null,
+          "delta": null
+        },
+        "allocatorAllocatedBytes": {
+          "count": 0,
+          "first": null,
+          "last": null,
+          "min": null,
+          "max": null,
+          "delta": null
+        },
+        "fd": {
+          "count": 0,
+          "first": null,
+          "last": null,
+          "min": null,
+          "max": null,
+          "delta": null
+        },
+        "anonymousBytes": {
+          "count": 0,
+          "first": null,
+          "last": null,
+          "min": null,
+          "max": null,
+          "delta": null
+        },
+        "workspaceBytes": {
+          "count": 0,
+          "first": null,
+          "last": null,
+          "min": null,
+          "max": null,
+          "delta": null
+        },
+        "currentModelBytes": {
+          "count": 0,
+          "first": null,
+          "last": null,
+          "min": null,
+          "max": null,
+          "delta": null
+        },
+        "snapshotUniqueBytes": {
+          "count": 0,
+          "first": null,
+          "last": null,
+          "min": null,
+          "max": null,
+          "delta": null
+        },
+        "snapshotUniqueModels": {
+          "count": 0,
+          "first": null,
+          "last": null,
+          "min": null,
+          "max": null,
+          "delta": null
+        },
+        "catalogRowBytes": {
+          "count": 0,
+          "first": null,
+          "last": null,
+          "min": null,
+          "max": null,
+          "delta": null
+        },
+        "retainedRawBytes": {
+          "count": 0,
+          "first": null,
+          "last": null,
+          "min": null,
+          "max": null,
+          "delta": null
+        },
+        "visualDocs": {
+          "count": 0,
+          "first": null,
+          "last": null,
+          "min": null,
+          "max": null,
+          "delta": null
+        },
+        "visualBytes": {
+          "count": 0,
+          "first": null,
+          "last": null,
+          "min": null,
+          "max": null,
+          "delta": null
+        },
+        "visualRetiredBytes": {
+          "count": 0,
+          "first": null,
+          "last": null,
+          "min": null,
+          "max": null,
+          "delta": null
+        },
+        "unattributed": {
+          "count": 0,
+          "first": null,
+          "last": null,
+          "min": null,
+          "max": null,
+          "delta": null
+        },
+        "ownerLagNs": {
+          "count": 0,
+          "first": null,
+          "last": null,
+          "min": null,
+          "max": null,
+          "delta": null
+        },
+        "channelsFirst": null,
+        "channelsLast": null
+      }
+    ],
+    "phases": {
+      "opened": {
+        "sampleStartNs": 1527886717484750,
+        "residencyUsed": 1189540,
+        "rssBytes": 28360704,
+        "footprintBytes": 7242328,
+        "allocatorInUseBytes": 1765536,
+        "allocatorAllocatedBytes": 20971520,
+        "models": [],
+        "snapshotPools": [],
+        "live": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "totals": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          1527886717486083,
+          0
+        ]
+      },
+      "before-Finish": {
+        "sampleStartNs": 1528068252842333,
+        "residencyUsed": 15590948,
+        "rssBytes": 1762934784,
+        "footprintBytes": 1706658072,
+        "allocatorInUseBytes": 1623151696,
+        "allocatorAllocatedBytes": 1713143808,
+        "models": [
+          [
+            19,
+            3190195,
+            1924,
+            330,
+            true,
+            2,
+            true
+          ],
+          [
+            18,
+            2903361,
+            1751,
+            302,
+            false,
+            2,
+            true
+          ],
+          [
+            14,
+            2371143,
+            1430,
+            242,
+            false,
+            1,
+            true
+          ],
+          [
+            16,
+            3237,
+            2,
+            242,
+            false,
+            1,
+            true
+          ],
+          [
+            17,
+            2631449,
+            1587,
+            270,
+            false,
+            2,
+            true
+          ]
+        ],
+        "snapshotPools": [
+          [
+            1,
+            8,
+            19941926,
+            114704,
+            8,
+            5,
+            11099385,
+            1528312710241333,
+            1528357796893708,
+            false
+          ]
+        ],
+        "live": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          1,
+          1,
+          1705368,
+          0,
+          0
+        ],
+        "totals": [
+          18,
+          13,
+          15,
+          14,
+          27,
+          0,
+          19,
+          0,
+          184,
+          1528068028899666,
+          0,
+          97,
+          347,
+          1705368,
+          0,
+          1,
+          0,
+          1528068197424666,
+          1528068252843916,
+          7
+        ]
+      },
+      "after-Finish": {
+        "sampleStartNs": 1528068254456541,
+        "residencyUsed": 11648269,
+        "rssBytes": 1762934784,
+        "footprintBytes": 1706658072,
+        "allocatorInUseBytes": 1621070320,
+        "allocatorAllocatedBytes": 1713143808,
+        "models": [
+          [
+            19,
+            3190195,
+            1924,
+            330,
+            true,
+            2,
+            true
+          ],
+          [
+            18,
+            2903361,
+            1751,
+            302,
+            false,
+            2,
+            true
+          ],
+          [
+            14,
+            2371143,
+            1430,
+            242,
+            false,
+            1,
+            true
+          ],
+          [
+            16,
+            3237,
+            2,
+            242,
+            false,
+            1,
+            true
+          ],
+          [
+            17,
+            2631449,
+            1587,
+            270,
+            false,
+            2,
+            true
+          ]
+        ],
+        "snapshotPools": [
+          [
+            1,
+            8,
+            19941926,
+            114704,
+            8,
+            5,
+            11099385,
+            1528312710241333,
+            1528357796893708,
+            false
+          ]
+        ],
+        "live": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          1,
+          1,
+          1705368,
+          0,
+          0
+        ],
+        "totals": [
+          18,
+          13,
+          15,
+          14,
+          27,
+          0,
+          19,
+          0,
+          184,
+          1528068028899666,
+          0,
+          97,
+          347,
+          1705368,
+          0,
+          1,
+          0,
+          1528068197424666,
+          1528068254458125,
+          7
+        ]
+      },
+      "after-storage-destruction": {
+        "sampleStartNs": 1528068300370625,
+        "residencyUsed": 0,
+        "rssBytes": 481083392,
+        "footprintBytes": 385336688,
+        "allocatorInUseBytes": 13006032,
+        "allocatorAllocatedBytes": 146800640,
+        "models": [],
+        "snapshotPools": [],
+        "live": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "totals": [
+          18,
+          18,
+          15,
+          15,
+          27,
+          0,
+          19,
+          0,
+          190,
+          1528068028899666,
+          0,
+          97,
+          0,
+          0,
+          0,
+          0,
+          0,
+          1528068255520291,
+          1528068300372208,
+          7
+        ]
+      }
+    },
+    "directFacts": "First35 successful samples only; SearchResidency/current models/snapshots/catalog rows grew with recorded data; RSS fell from startup then smaller increases; final logical0 afterstorage; model18create/18destroy,19count evictions,0TTL expiries,peak7 models",
+    "inference": "early RSS return and rising retained data coexist; no evidence sufficient for steady-state convergence or causal leak attribution",
+    "unknown": "no300s warmup completion, deletion0, later4windows absent, no fixed active data or heap allocation callsite attribution",
+    "caveats": [
+      "Only first0-300s partial; remaining4windows not observed; no deletion before/after",
+      "owner fields are nearest existing resource sample; ownerLag recorded; not atomic with wrapper RSS or file scan",
+      "current/snapshot shared models not summed; phase peaks not summed",
+      "allocator captures process-wide live/allocated bytes, no wholeheap attribution",
+      "final owner0 only logical product release; remaining heap/RSS not classified"
+    ]
+  },
+  "notRun": [
+    "2700s completion",
+    "final mixed windows/progress/latency/sample coverage gate",
+    "deletion gate",
+    "channel disable settings",
+    "normal45 success Finish",
+    "closed journal",
+    "120min",
+    "UI"
+  ],
+  "shutdown": {
+    "scope": "normal exit0 and resource Finish/destruction observed in failure cleanup only",
+    "processCleanup": {
+      "schema": "recording-process-cleanup-v1",
+      "attemptCount": 1,
+      "pid": 87892,
+      "exitCode": 0,
+      "signalCode": null,
+      "exitedObserved": true,
+      "stopCode": "complete",
+      "forcedTermination": "not-used",
+      "normalExitPass": true,
+      "normalShutdownPass": true,
+      "archiveSafe": true,
+      "ports": [
+        {
+          "kind": "http",
+          "port": 55472,
+          "status": "pass",
+          "code": "closed",
+          "closed": true
+        },
+        {
+          "kind": "rtsp",
+          "port": 55473,
+          "status": "pass",
+          "code": "closed",
+          "closed": true
+        }
+      ]
+    },
+    "udpClosed": true,
+    "normal45ShutdownGate": "NOT_RUN",
+    "closedJournal": "NOT_RUN",
+    "explicitChannelDisable": "NOT_RUN"
+  },
+  "preservedHistory": "R145 INCOMPLETE and R146 focused PASS unchanged; prior R135-R144 evidence source-bounded. Earlier user-provided R147 PASS text is not execution proof; no prior147 artifact found at baseline. This new run independently failed collection.",
+  "nextMinimumWork": "Separate approval: inspect macOS FD roster/detail close/reuse race using preserved four EBADF operands; keep complete FD/anonymous accounting, do not skip unread descriptor, raise retries/timeout or use successful subset. No fix or rerun in R147.",
+  "binding": {
+    "newProducerReadbackCoverage": "NOT_REQUIRED: product/test/inventory unchanged; R146 binding reused within unchanged scope",
+    "notRuntimeQualification": true
+  },
+  "archive": {
+    "path": "147-execution.tar.gz",
+    "bytes": 2373801,
+    "sha256": "e822ac5c07b75a972e0ec6b8dbf679205a8d048dcebbbf25b26e2242046a541a",
+    "members": 43,
+    "allPayloadReadback": true
+  },
+  "independentReview": "147-independent-review.json: new independent read-only judgment agrees; final archive/manifest and continuity rechecked",
+  "cleanup": "pending remote byte verification; owned raw root retained",
+  "limits": "Functional45 incomplete, Collection45 fail, no MemoryP0/120/release PASS; normal exit from cleanup not success-path completion",
+  "continuity": {
+    "scope": "post-stop read-only CRC/length-checked active journal sourceBinding samples and matched media hashes; not native closed-journal/current authority gate or upstream packet proof",
+    "files": 176,
+    "perChannel": {
+      "9201": 88,
+      "9101": 88
+    },
+    "samples": 10547,
+    "internalOrdinalGaps": [],
+    "sameGenerationPairs": 88,
+    "betweenOrdinalGaps": [],
+    "generationGroups": 88,
+    "sort": "segment.order_sequence within channel/source_generation; generation_order identifies generation, not segment order",
+    "lastStopBoundary": "unrecorded upstream tail unknown",
+    "deleted": 0,
+    "draftCorrection": "Initial read-only analysis sorted equal generation_order across journal files, produced reverse-order apparent gap; corrected with actual segment.order_sequence. No product failure or gate changed."
+  }
+}

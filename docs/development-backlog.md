@@ -17,6 +17,8 @@
 
 ## v4.5.0 잔여 개발과 릴리즈 순서
 
+[R147 신규45분](release-artifacts/v4.5.0/147-validation.json)는 **INCOMPLETE_45_COLLECTION_FAILURE — Functional45 INCOMPLETE / Collection45 FAIL**이다. 고정 소스·binary로 wrapper/제품 각1회, 전체201.911초 실행했으나 관측175.340초의 FD 수집에서4라운드 모두 `EBADF`가 발생했다. 마지막 성공 표본은170.339초이며 R145 completion/missing-probe는 재발하지 않았다. 검색48·증거각11·A3은 부분 결과이고, 정상 비활성화·최종 지연/삭제 gate·닫힌 원장은 미실행이다. 실패 정리의 exit0·마지막 논리owner0은 확인했지만45분 종료 PASS가 아니다. 메모리의 첫0–300초 일부만 확보돼 삭제 전후·수렴은 미확정이다. 다음은 완전 FD/anonymous 관측을 보존하는 목록/상세 조회 경합의 별도 원인 검토이며, 수정·재실행·한도 변경은 수행하지 않았다. R145/R146 이력과 Memory P0·120분·출시 HOLD를 유지한다.
+
 [R146 completion 계약](release-artifacts/v4.5.0/146-validation.json)은 **PASS_COMPLETION_CONTRACT_FOCUSED**다. 실제 R145 Media217B와 receipt를 두 JS 소비자가 수용하도록 고정 preparation 레이블·timeline payload와 요청 문맥을 구분했다. unknown identity/job·malformed·loss·receipt·cap 거부는 유지하며 제품 C++/binary는 불변이다. macOS/Linux 집중 회귀·독립 검토 범위이며 제품/장시간 실행은 없다. R145 전체 INCOMPLETE와 missing-probe·미실행45분 gate, Memory P0·120분·출시 HOLD를 유지한다.
 
 [R145 단회45분 재개](release-artifacts/v4.5.0/145-validation.json)는 **Functional45 INCOMPLETE / Collection45 INCOMPLETE**다. R144 preflight와 고정 bytes는 일치했고 wrapper/제품 각1회 실행했으나, 초기 completion Media 행(`event10/request0/reference hash`)과 소비자 계약 불일치로 본관측 진입 전 차단됐다. 전체26.340초·관측0초이며 검색/증거/A/양채널 삭제/닫힌 원장은 미실행이다. 실패 후 exit0·포트 회수·storage 파괴 뒤 논리owner0은 확인됐지만 정상45분 종료나 전체 heap 검증은 아니다. 최초 오류와 후속 `missing-probe`, 부분 메모리4기록을 보존했으며 수정·재실행은 하지 않았다. 다음은 해당 emitter/consumer 의미의 별도 보완 판단이며 Memory P0·45/120·출시 HOLD와 R135–R144 유효 근거를 유지한다.

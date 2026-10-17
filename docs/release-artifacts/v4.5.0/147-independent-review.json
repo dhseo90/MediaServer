@@ -1,0 +1,47 @@
+{
+  "schema": "media-server.v450.r147.independent-review.v1",
+  "decision": "AGREE_INCOMPLETE_45_COLLECTION_FAILURE",
+  "reviewer": "/root/independent_r147",
+  "requested": {
+    "model": "gpt-6-astra",
+    "effort": "high"
+  },
+  "toolAccepted": {
+    "model": "gpt-6-astra",
+    "effort": "high"
+  },
+  "actualRuntime": {
+    "model": null,
+    "effort": null
+  },
+  "participation": {
+    "implementation": false,
+    "testWriting": false,
+    "testOrProductExecution": false,
+    "redelegation": false,
+    "commitPush": false
+  },
+  "findings": [],
+  "resolvedRecordFinding": "Initial archive omitted input-helper-binding.json from member-level manifest; corrected and final42payload hashes rechecked",
+  "checks": [
+    "baseline source/product/runtime hashes match; wrapper/product1 and no retry",
+    "35successful samples, lastelapsed170.339s; 36th sample4EBADF rounds, overall201.911s; no2700 completion",
+    "exit0 only failure cleanup; disable/final latency/deletion/closed-journal notrun",
+    "completion229rows43513B byte-exact raw vs sanitized; memory/resource39 partialinterval",
+    "final archive43members manifest42payload size/hash verified",
+    "177actual media file hashes match;176target-channel files10547bound samples/internal0gaps/samegeneration88pairs0gaps independently checked",
+    "parsed FD diagnostic retained; exact original903B stdout unavailable",
+    "no old R145/R146 or MemoryP0 qualification promoted"
+  ],
+  "archiveSha256": "e822ac5c07b75a972e0ec6b8dbf679205a8d048dcebbbf25b26e2242046a541a",
+  "functional45": "INCOMPLETE",
+  "collection45": "FAIL",
+  "memoryP0": "HOLD",
+  "readiness120": "HOLD",
+  "release": "HOLD",
+  "limits": [
+    "Actual FD churn source/OS semantics unconfirmed",
+    "SourceBinding continuity not upstream packet/closed-journal proof",
+    "Remote preservation and cleanup pending at review"
+  ]
+}
