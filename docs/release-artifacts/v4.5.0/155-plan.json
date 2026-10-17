@@ -1,0 +1,52 @@
+{
+  "baselineHead": "34c253c88e89deace59d6f1307135fbc43003746",
+  "branch": "v4.5.0",
+  "integratedPlan": {
+    "count": 1,
+    "root": "<OWNED_ROOT>/candidate/run",
+    "workSeconds": 166,
+    "cleanupSeconds": 14,
+    "totalSeconds": 180,
+    "httpMs": 5000,
+    "normalSearchMs": 2000,
+    "logBytes": 4194304,
+    "initialMedia": 17,
+    "initialSamples": 990,
+    "order": "A seed -> accumulated -> media/manifest -> auth/Visual -> Structured2/Visual2 -> Evidence/readback -> A prepare -> background -> Stop/Finish -> owner0"
+  },
+  "sourceSha256": {
+    "docs/project-feature-test-inventory.md": "efbcd86abb9bfb7fb5bb28f3b39944c180af26a6295bc87a37ba66b66dff3b79",
+    "scripts/internal/recording_accumulated_http_run.py": "2dedec46bc2277a767c1c8c64e771ee96bbed2a07259c928982c3e6b16dbbcbd",
+    "scripts/internal/recording_http_cost_overlay.py": "f567a9bec5c55e6dbeb7b73526f6a37ddf29b4d0395f407cb4d02385e548d877",
+    "scripts/internal/recording_http_cost_probe.h": "d4ea13924253095be17ac90b6ab17f530887edd19b408da19ea59d76dcc54f8a",
+    "scripts/internal/recording_http_cost_run.py": "0a4790dd906b3a53c3459ac030756b80ae22e1112fffc3e724915784d38e9c43",
+    "scripts/internal/recording_http_cost_run.test.py": "6ea84392c8d531b19cc9efa75c6a76f0ff8f325343826a9591d4ce45667a6013",
+    "scripts/internal/recording_http_cost_parser_smoke.cpp": "bd9b32819f786f7f7456a976a3faa3fb8f57352799938d209dd34ba48b86695b"
+  },
+  "productSourceDiff": "",
+  "focused": {
+    "parser": 12,
+    "pythonFinal": 32,
+    "r153": 30,
+    "native": "PASS"
+  },
+  "review": "PASS_PARSER_STREAMING_LINKAGE_PREFLIGHT including pipe close",
+  "model": {
+    "requested": {
+      "main": "gpt-6-astra/high",
+      "independent": "gpt-6-astra/high"
+    },
+    "toolAccepted": {
+      "main": null,
+      "independent": "spawn_agent accepted explicit gpt-6-astra/high request"
+    },
+    "actualRuntimeModel": {
+      "main": null,
+      "independent": null
+    },
+    "actualRuntimeEffort": {
+      "main": null,
+      "independent": null
+    }
+  }
+}

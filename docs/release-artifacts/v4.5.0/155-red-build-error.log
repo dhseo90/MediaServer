@@ -1,0 +1,8 @@
+<OWNED_ROOT>/red.cpp:7:1: error: no type named 'HttpResponse' in namespace 'ingress'; did you mean 'ingress::webrtc_http_server_detail::HttpResponse'?
+    7 | ingress::HttpResponse e;auto r=ingress::webrtc_http_server_detail::ReadHttpRequest(f[1],&e);close(f[0]);close(f[1]);if(!r)return 2;
+      | ^~~~~~~~~~~~~~~~~~~~~
+      | ingress::webrtc_http_server_detail::HttpResponse
+<REPO>/src/ingress/webrtc_http_server_detail.h:1633:8: note: 'ingress::webrtc_http_server_detail::HttpResponse' declared here
+ 1633 | struct HttpResponse {
+      |        ^
+1 error generated.

@@ -1,0 +1,703 @@
+{
+  "schema": "media-server.v450.r155.analysis.v1",
+  "decision": "ATTRIBUTION_BOUNDARY_IDENTIFIED",
+  "qualification": "QUALIFIED",
+  "requestRecords": {
+    "client": 28,
+    "server": 28,
+    "search": 3
+  },
+  "requests": {
+    "10": {
+      "id": 10,
+      "actualHttpStatus": 200,
+      "fixtureHttpMs": 69.098,
+      "client": {
+        "probeTotalMs": 69.1095,
+        "connectMs": 0.197458,
+        "connectOutsideProbeTotal": true,
+        "beforeSendMs": 0.018792,
+        "sendMs": 0.009791,
+        "headerWaitMs": 69.059459,
+        "bodyReceiveMs": 0.009458,
+        "afterReceiveMs": 0.012
+      },
+      "server": {
+        "acceptedToEndMs": 70.802167,
+        "acceptedToParsedMs": 1.824417,
+        "parsedToHandlerMs": 0.009291,
+        "handlerMs": 68.926,
+        "preparedToSendMs": 0.018125,
+        "sendMs": 0.021709,
+        "postSendMs": 0.002625
+      },
+      "metrics": {
+        "Capture": {
+          "calls": 1,
+          "ms": 1.074375
+        },
+        "Sort": {
+          "calls": 1,
+          "ms": 0.000458
+        },
+        "Group": {
+          "calls": 0,
+          "ms": 0.0
+        },
+        "Consumer": {
+          "calls": 0,
+          "ms": 0.0
+        },
+        "Locate": {
+          "calls": 0,
+          "ms": 0.0
+        },
+        "Validate1": {
+          "calls": 1,
+          "ms": 0.102584
+        },
+        "Build": {
+          "calls": 1,
+          "ms": 0.104875
+        },
+        "Validate2": {
+          "calls": 1,
+          "ms": 0.243292
+        },
+        "Original": {
+          "calls": 0,
+          "ms": 0.0
+        },
+        "Segment": {
+          "calls": 0,
+          "ms": 0.0
+        },
+        "Lifecycle": {
+          "calls": 0,
+          "ms": 0.0
+        },
+        "Acquire": {
+          "calls": 0,
+          "ms": 0.0
+        },
+        "BinarySearch": {
+          "calls": 0,
+          "ms": 0.0
+        },
+        "CatalogAcquireScope": {
+          "calls": 0,
+          "ms": 0.0
+        },
+        "CatalogOwnedScope": {
+          "calls": 0,
+          "ms": 0.0
+        }
+      },
+      "counters": {
+        "BindingsTotal": 0,
+        "Scanned": 0,
+        "NonNull": 0,
+        "SegmentLookups": 0,
+        "LifecycleChecks": 0,
+        "ChannelMatches": 0,
+        "SourceMatches": 0,
+        "GenerationMatches": 0,
+        "FullMatches": 0,
+        "OwnedAcquisitions": 0,
+        "BinarySearches": 0,
+        "Exact": 0,
+        "Unknown": 0,
+        "OtherChannel": 0,
+        "OtherSegment": 0,
+        "OtherLifecycle": 0,
+        "Pending": 0,
+        "UniqueKeys": 0
+      },
+      "search": {
+        "elapsedMs": 68.869084,
+        "handlerBeforeSearchMs": 0.030625,
+        "handlerAfterSearchMs": 0.026291,
+        "phasesMs": {
+          "service-wait": 0.000208,
+          "service-hold": 0.039542,
+          "Capture": 1.073958,
+          "BuildOwned": 0.348917,
+          "Refresh": 1.5315,
+          "PlaybackCandidates": 0.847333,
+          "PlaybackNoCandidates": 0.0,
+          "PlaybackReuse": 4.2e-05,
+          "WithPlayback": 0.994541,
+          "SnapshotBegin": 0.042166,
+          "preparation-wait": 8.3e-05,
+          "preparation-hold": 2.581833,
+          "CurrentnessJson": 66.18275
+        },
+        "topLevelUnionUnattributedMs": 0.064668,
+        "topLevelUnionNames": [
+          "CurrentnessJson",
+          "preparation-hold",
+          "preparation-wait",
+          "service-hold",
+          "service-wait"
+        ],
+        "sourcesObserved": [
+          [
+            1,
+            34,
+            0,
+            0,
+            false,
+            true
+          ]
+        ],
+        "attempt": 0,
+        "phaseCount": 13,
+        "refreshUnattributedMs": 0.005916000000000032,
+        "refreshResidualMeaning": "disjoint overlay scopes only; not attributed to reference lookup"
+      }
+    },
+    "11": {
+      "id": 11,
+      "actualHttpStatus": 200,
+      "fixtureHttpMs": 71.556792,
+      "client": {
+        "probeTotalMs": 71.567334,
+        "connectMs": 0.0525,
+        "connectOutsideProbeTotal": true,
+        "beforeSendMs": 0.006209,
+        "sendMs": 0.018208,
+        "headerWaitMs": 71.522583,
+        "bodyReceiveMs": 0.0095,
+        "afterReceiveMs": 0.010834
+      },
+      "server": {
+        "acceptedToEndMs": 73.223084,
+        "acceptedToParsedMs": 1.782625,
+        "parsedToHandlerMs": 0.004,
+        "handlerMs": 71.413,
+        "preparedToSendMs": 0.011,
+        "sendMs": 0.011167,
+        "postSendMs": 0.001292
+      },
+      "metrics": {
+        "Capture": {
+          "calls": 1,
+          "ms": 0.17975
+        },
+        "Sort": {
+          "calls": 1,
+          "ms": 0.000334
+        },
+        "Group": {
+          "calls": 0,
+          "ms": 0.0
+        },
+        "Consumer": {
+          "calls": 0,
+          "ms": 0.0
+        },
+        "Locate": {
+          "calls": 0,
+          "ms": 0.0
+        },
+        "Validate1": {
+          "calls": 1,
+          "ms": 0.208125
+        },
+        "Build": {
+          "calls": 0,
+          "ms": 0.0
+        },
+        "Validate2": {
+          "calls": 0,
+          "ms": 0.0
+        },
+        "Original": {
+          "calls": 0,
+          "ms": 0.0
+        },
+        "Segment": {
+          "calls": 0,
+          "ms": 0.0
+        },
+        "Lifecycle": {
+          "calls": 0,
+          "ms": 0.0
+        },
+        "Acquire": {
+          "calls": 0,
+          "ms": 0.0
+        },
+        "BinarySearch": {
+          "calls": 0,
+          "ms": 0.0
+        },
+        "CatalogAcquireScope": {
+          "calls": 0,
+          "ms": 0.0
+        },
+        "CatalogOwnedScope": {
+          "calls": 0,
+          "ms": 0.0
+        }
+      },
+      "counters": {
+        "BindingsTotal": 0,
+        "Scanned": 0,
+        "NonNull": 0,
+        "SegmentLookups": 0,
+        "LifecycleChecks": 0,
+        "ChannelMatches": 0,
+        "SourceMatches": 0,
+        "GenerationMatches": 0,
+        "FullMatches": 0,
+        "OwnedAcquisitions": 0,
+        "BinarySearches": 0,
+        "Exact": 0,
+        "Unknown": 0,
+        "OtherChannel": 0,
+        "OtherSegment": 0,
+        "OtherLifecycle": 0,
+        "Pending": 0,
+        "UniqueKeys": 0
+      },
+      "search": {
+        "elapsedMs": 71.357,
+        "handlerBeforeSearchMs": 0.041084,
+        "handlerAfterSearchMs": 0.014916,
+        "phasesMs": {
+          "service-wait": 0.045125,
+          "service-hold": 0.00025,
+          "Capture": 0.179375,
+          "RefreshReuse": 4.2e-05,
+          "Refresh": 0.391,
+          "PlaybackCandidates": 3.491416,
+          "PlaybackNoCandidates": 4.2e-05,
+          "PlaybackReuse": 4.2e-05,
+          "WithPlayback": 3.6505,
+          "SnapshotBegin": 0.050166,
+          "preparation-wait": 2.583791,
+          "preparation-hold": 4.093584,
+          "CurrentnessJson": 64.587208
+        },
+        "topLevelUnionUnattributedMs": 0.047042,
+        "topLevelUnionNames": [
+          "CurrentnessJson",
+          "preparation-hold",
+          "preparation-wait",
+          "service-hold",
+          "service-wait"
+        ],
+        "sourcesObserved": [
+          [
+            1,
+            34,
+            0,
+            0,
+            false,
+            true
+          ]
+        ],
+        "attempt": 0,
+        "phaseCount": 13,
+        "refreshUnattributedMs": 0.0027910000000000434,
+        "refreshResidualMeaning": "disjoint overlay scopes only; not attributed to reference lookup"
+      }
+    },
+    "12": {
+      "id": 12,
+      "actualHttpStatus": 200,
+      "fixtureHttpMs": 268.691208,
+      "client": {
+        "probeTotalMs": 268.696417,
+        "connectMs": 0.04875,
+        "connectOutsideProbeTotal": true,
+        "beforeSendMs": 0.007334,
+        "sendMs": 0.015291,
+        "headerWaitMs": 268.66125,
+        "bodyReceiveMs": 0.006792,
+        "afterReceiveMs": 0.00575
+      },
+      "server": {
+        "acceptedToEndMs": 270.31425,
+        "acceptedToParsedMs": 1.745792,
+        "parsedToHandlerMs": 0.00675,
+        "handlerMs": 268.523917,
+        "preparedToSendMs": 0.016791,
+        "sendMs": 0.019584,
+        "postSendMs": 0.001416
+      },
+      "metrics": {
+        "Capture": {
+          "calls": 0,
+          "ms": 0.0
+        },
+        "Sort": {
+          "calls": 0,
+          "ms": 0.0
+        },
+        "Group": {
+          "calls": 0,
+          "ms": 0.0
+        },
+        "Consumer": {
+          "calls": 0,
+          "ms": 0.0
+        },
+        "Locate": {
+          "calls": 0,
+          "ms": 0.0
+        },
+        "Validate1": {
+          "calls": 0,
+          "ms": 0.0
+        },
+        "Build": {
+          "calls": 0,
+          "ms": 0.0
+        },
+        "Validate2": {
+          "calls": 0,
+          "ms": 0.0
+        },
+        "Original": {
+          "calls": 0,
+          "ms": 0.0
+        },
+        "Segment": {
+          "calls": 0,
+          "ms": 0.0
+        },
+        "Lifecycle": {
+          "calls": 0,
+          "ms": 0.0
+        },
+        "Acquire": {
+          "calls": 0,
+          "ms": 0.0
+        },
+        "BinarySearch": {
+          "calls": 0,
+          "ms": 0.0
+        },
+        "CatalogAcquireScope": {
+          "calls": 0,
+          "ms": 0.0
+        },
+        "CatalogOwnedScope": {
+          "calls": 0,
+          "ms": 0.0
+        }
+      },
+      "counters": {
+        "BindingsTotal": 0,
+        "Scanned": 0,
+        "NonNull": 0,
+        "SegmentLookups": 0,
+        "LifecycleChecks": 0,
+        "ChannelMatches": 0,
+        "SourceMatches": 0,
+        "GenerationMatches": 0,
+        "FullMatches": 0,
+        "OwnedAcquisitions": 0,
+        "BinarySearches": 0,
+        "Exact": 0,
+        "Unknown": 0,
+        "OtherChannel": 0,
+        "OtherSegment": 0,
+        "OtherLifecycle": 0,
+        "Pending": 0,
+        "UniqueKeys": 0
+      }
+    },
+    "13": {
+      "id": 13,
+      "actualHttpStatus": 200,
+      "fixtureHttpMs": 294.884125,
+      "client": {
+        "probeTotalMs": 294.889959,
+        "connectMs": 0.068916,
+        "connectOutsideProbeTotal": true,
+        "beforeSendMs": 0.016959,
+        "sendMs": 0.009083,
+        "headerWaitMs": 294.850292,
+        "bodyReceiveMs": 0.007333,
+        "afterReceiveMs": 0.006292
+      },
+      "server": {
+        "acceptedToEndMs": 296.418542,
+        "acceptedToParsedMs": 1.657458,
+        "parsedToHandlerMs": 0.0035,
+        "handlerMs": 294.720417,
+        "preparedToSendMs": 0.016,
+        "sendMs": 0.019583,
+        "postSendMs": 0.001584
+      },
+      "metrics": {
+        "Capture": {
+          "calls": 0,
+          "ms": 0.0
+        },
+        "Sort": {
+          "calls": 0,
+          "ms": 0.0
+        },
+        "Group": {
+          "calls": 0,
+          "ms": 0.0
+        },
+        "Consumer": {
+          "calls": 0,
+          "ms": 0.0
+        },
+        "Locate": {
+          "calls": 0,
+          "ms": 0.0
+        },
+        "Validate1": {
+          "calls": 0,
+          "ms": 0.0
+        },
+        "Build": {
+          "calls": 0,
+          "ms": 0.0
+        },
+        "Validate2": {
+          "calls": 0,
+          "ms": 0.0
+        },
+        "Original": {
+          "calls": 0,
+          "ms": 0.0
+        },
+        "Segment": {
+          "calls": 0,
+          "ms": 0.0
+        },
+        "Lifecycle": {
+          "calls": 0,
+          "ms": 0.0
+        },
+        "Acquire": {
+          "calls": 0,
+          "ms": 0.0
+        },
+        "BinarySearch": {
+          "calls": 0,
+          "ms": 0.0
+        },
+        "CatalogAcquireScope": {
+          "calls": 0,
+          "ms": 0.0
+        },
+        "CatalogOwnedScope": {
+          "calls": 0,
+          "ms": 0.0
+        }
+      },
+      "counters": {
+        "BindingsTotal": 0,
+        "Scanned": 0,
+        "NonNull": 0,
+        "SegmentLookups": 0,
+        "LifecycleChecks": 0,
+        "ChannelMatches": 0,
+        "SourceMatches": 0,
+        "GenerationMatches": 0,
+        "FullMatches": 0,
+        "OwnedAcquisitions": 0,
+        "BinarySearches": 0,
+        "Exact": 0,
+        "Unknown": 0,
+        "OtherChannel": 0,
+        "OtherSegment": 0,
+        "OtherLifecycle": 0,
+        "Pending": 0,
+        "UniqueKeys": 0
+      }
+    },
+    "60": {
+      "id": 60,
+      "actualHttpStatus": 200,
+      "fixtureHttpMs": 12.603667,
+      "client": {
+        "probeTotalMs": 12.610334,
+        "connectMs": 0.0885,
+        "connectOutsideProbeTotal": false,
+        "beforeSendMs": 0.090625,
+        "sendMs": 0.006,
+        "headerWaitMs": 12.504584,
+        "bodyReceiveMs": 0.002208,
+        "afterReceiveMs": 0.006917
+      },
+      "server": {
+        "acceptedToEndMs": 12.450416,
+        "acceptedToParsedMs": 0.051208,
+        "parsedToHandlerMs": 0.000958,
+        "handlerMs": 12.370459,
+        "preparedToSendMs": 0.012166,
+        "sendMs": 0.014209,
+        "postSendMs": 0.001416
+      },
+      "metrics": {
+        "Capture": {
+          "calls": 1,
+          "ms": 1.70675
+        },
+        "Sort": {
+          "calls": 1,
+          "ms": 0.002292
+        },
+        "Group": {
+          "calls": 2,
+          "ms": 0.000917
+        },
+        "Consumer": {
+          "calls": 2,
+          "ms": 7.191916
+        },
+        "Locate": {
+          "calls": 2,
+          "ms": 0.001833
+        },
+        "Validate1": {
+          "calls": 1,
+          "ms": 0.112667
+        },
+        "Build": {
+          "calls": 1,
+          "ms": 0.02725
+        },
+        "Validate2": {
+          "calls": 1,
+          "ms": 0.074291
+        },
+        "Original": {
+          "calls": 2,
+          "ms": 5.714709
+        },
+        "Segment": {
+          "calls": 34,
+          "ms": 0.624046
+        },
+        "Lifecycle": {
+          "calls": 34,
+          "ms": 1.804337
+        },
+        "Acquire": {
+          "calls": 2,
+          "ms": 3.125917
+        },
+        "BinarySearch": {
+          "calls": 2,
+          "ms": 0.000834
+        },
+        "CatalogAcquireScope": {
+          "calls": 2,
+          "ms": 0.000208
+        },
+        "CatalogOwnedScope": {
+          "calls": 2,
+          "ms": 5.712126
+        }
+      },
+      "counters": {
+        "BindingsTotal": 34,
+        "Scanned": 34,
+        "NonNull": 34,
+        "SegmentLookups": 34,
+        "LifecycleChecks": 34,
+        "ChannelMatches": 2,
+        "SourceMatches": 2,
+        "GenerationMatches": 2,
+        "FullMatches": 2,
+        "OwnedAcquisitions": 2,
+        "BinarySearches": 2,
+        "Exact": 2,
+        "Unknown": 0,
+        "OtherChannel": 32,
+        "OtherSegment": 32,
+        "OtherLifecycle": 32,
+        "Pending": 2,
+        "UniqueKeys": 2
+      },
+      "search": {
+        "elapsedMs": 12.330083,
+        "handlerBeforeSearchMs": 0.021834,
+        "handlerAfterSearchMs": 0.018542,
+        "phasesMs": {
+          "service-wait": 0.000167,
+          "service-hold": 0.000333,
+          "Capture": 1.7065,
+          "BuildOwned": 0.10175,
+          "Refresh": 9.124458,
+          "PlaybackCandidates": 0.341375,
+          "PlaybackNoCandidates": 0.0,
+          "PlaybackBuildOwned": 0.07725,
+          "PlaybackDocuments": 0.124125,
+          "WithPlayback": 0.467042,
+          "SnapshotBegin": 0.033834,
+          "preparation-wait": 0.0,
+          "preparation-hold": 9.626583,
+          "CurrentnessJson": 2.694042
+        },
+        "topLevelUnionUnattributedMs": 0.008958,
+        "topLevelUnionNames": [
+          "CurrentnessJson",
+          "preparation-hold",
+          "preparation-wait",
+          "service-hold",
+          "service-wait"
+        ],
+        "sourcesObserved": [
+          [
+            1,
+            34,
+            0,
+            0,
+            false,
+            true
+          ]
+        ],
+        "attempt": 0,
+        "phaseCount": 14,
+        "refreshUnattributedMs": 0.00654200000000138,
+        "refreshResidualMeaning": "disjoint overlay scopes only; not attributed to reference lookup"
+      }
+    }
+  },
+  "clock": "same native process steady_clock; client and server IDs bound by actual parser, not ordering; Python detector clock never subtracted from native timestamps",
+  "interpretation": {
+    "ordinary": "CurrentnessJson accounts for most observed Search elapsed; deeper validation/DTO/serialization split UNKNOWN",
+    "a": "Refresh dominates this A request. Consumer includes Original; Original includes CatalogOwnedScope and Segment/Lifecycle/Acquire/BinarySearch. Never add parent/child scopes.",
+    "otherChannel": "2 calls each iterate17 bindings:34 scanned,32 other-channel segment/lifecycle operations,2 exact matches. No controlled binding-growth contrast; other-channel incremental duration and R149 timeout causality remain UNKNOWN.",
+    "catalog": "CatalogAcquireScope includes latency::Lock constructor instrumentation; CatalogOwnedScope is nested interior after acquisition and before unlock. Not exact standalone OS mutex wait/held attribution.",
+    "source": "existing diagnostic source documents/rebuild fields observed as0/false despite actual Build call; not used to infer no build. actual Capture/Build/RefreshReuse phases retained.",
+    "http": "parallel sockets are preconnected before client probe begin. Server acceptedToEnd can exceed client total; not negative network time. Actual dispatch/routing overhead is named by measured boundaries only.",
+    "visual": "client/server request timings qualified; internal Visual stages not instrumented here",
+    "overhead": "fixed counters plus per-scope clocks and bounded JSON output; no uninstrumented paired run, numerical overhead UNKNOWN",
+    "R149": "no failure-request server trace; input17media990samples differs from843/842 finalized files; no timeout resolution or long-run p95 claim"
+  },
+  "background": {
+    "expected": 2401,
+    "accepted": 2401,
+    "files": 41,
+    "fullAcceptance": 1
+  },
+  "resources": {
+    "observerSamples": 50,
+    "rssMaxBytes": 3207299072,
+    "footprintMaxBytes": 3160051024,
+    "fdMax": 29,
+    "peaksAreSeparateTimes": true,
+    "finalLogicalOwners": {
+      "phase": "complete",
+      "monoNs": 1573323160567375,
+      "logicalRam": 0,
+      "scratch": 0,
+      "fd": 0
+    },
+    "wholeHeapNoLeakClaim": false
+  },
+  "nextOne": "separately authorize bounded CurrentnessJson validation/wait/DTO-serialization attribution on unchanged fixture; no optimization or long run"
+}

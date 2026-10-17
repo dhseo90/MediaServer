@@ -1,0 +1,165 @@
+{
+  "schema": "media-server.v450.r155.validation.v1",
+  "decision": "ATTRIBUTION_BOUNDARY_IDENTIFIED",
+  "correlationFailFastContract": "PASS",
+  "actualHttpAttribution": "QUALIFIED",
+  "baselineHead": "34c253c88e89deace59d6f1307135fbc43003746",
+  "branch": "v4.5.0",
+  "baselinePreflight": "exact local/origin HEAD, clean worktree/index and both fixed SHA verified before changes",
+  "model": {
+    "requested": {
+      "main": "gpt-6-astra/high",
+      "independent": "gpt-6-astra/high"
+    },
+    "toolAccepted": {
+      "main": null,
+      "independent": "spawn_agent accepted explicit gpt-6-astra/high request"
+    },
+    "actualRuntimeModel": {
+      "main": null,
+      "independent": null
+    },
+    "actualRuntimeEffort": {
+      "main": null,
+      "independent": null
+    }
+  },
+  "platform": "macOS-27.0.1-arm64-arm-64bit-Mach-O",
+  "scope": "test-only parser/correlation/streaming loss repair; product src/include/runtime/executable and R153 native fixture unchanged",
+  "productExecution": 0,
+  "runtimeRebuild": 0,
+  "products": {
+    "media_server": "33f516d35d56cb2f6cafc75647b6c37d2ced67115302d1205cca23bf51ab7f79",
+    "libmedia_server_runtime.a": "2d91cf35fe7e805e0c06e00d16779c86849b35db635e087582277e1b676d198c"
+  },
+  "productsAfter": {
+    "media_server": "33f516d35d56cb2f6cafc75647b6c37d2ced67115302d1205cca23bf51ab7f79",
+    "libmedia_server_runtime.a": "2d91cf35fe7e805e0c06e00d16779c86849b35db635e087582277e1b676d198c"
+  },
+  "changes": {
+    "files": [
+      "scripts/internal/recording_http_cost_overlay.py",
+      "scripts/internal/recording_http_cost_probe.h",
+      "scripts/internal/recording_http_cost_run.py",
+      "scripts/internal/recording_http_cost_run.test.py",
+      "scripts/internal/recording_http_cost_parser_smoke.cpp",
+      "scripts/internal/recording_accumulated_http_run.py"
+    ],
+    "parser": "actual HeaderValue and duplicate count before map overwrite; no parser semantics modification",
+    "loss": "fixed sticky marker, bounded streaming validation, immediate first failure latch before termination; no inference of missing terminals until final",
+    "cleanup": "first diagnostic failure preserved across signal/terminal/cleanup errors; owned pipes explicitly closed",
+    "timingCorrection": "server accepted/end and client send/receive are independent intervals, preconnected parallel sockets; server end need not precede client receive",
+    "nativeDependencies": "5 overlay TU objects before original immutable runtime archive; unique4 principal definitions; Python-only runtime binding updates separately recorded"
+  },
+  "focused": {
+    "red": "actual ReadHttpRequest socketpair X-R154-ID yields legacy id0 while HeaderValue10; assertion exit1",
+    "initialCompileError": "wrong namespace in new test corrected; not RED",
+    "parserCases": 12,
+    "pythonFinal": 32,
+    "r153Regression": 30,
+    "nativeV2AndCounters": "PASS exit0; actual media inspection/decode/FD/hold and original lookup2bindings, exact counters",
+    "nativeFocusedStarts": 1,
+    "redNativeStarts": 1,
+    "parserStarts": 12,
+    "forcedStreamingChildren": 46,
+    "forcedStreamingRoles": "initial12 seed-branch children; intermediate14 + fixture-cap seed/fixture/quietobserver3; final pipe lifecycle14+3",
+    "finalStreamingCases": 14,
+    "fixture4MiBCap": "separate actual collector fixture branch with3 owned synthetic helpers; not integrated workload",
+    "finalSignalStartDelayMaxSeconds": 8.525000885128975e-05,
+    "finalResourceWarnings": 0,
+    "firstFailureCleanupFault": "trace-loss-marker retained; injected signal failure separate; group absent",
+    "initialResourceWarnings": "preserved; fixed by explicit owned pipe close",
+    "Linux": "NOT_RUN; macOS direct affected native/collector tests"
+  },
+  "execution": {
+    "integratedCycles": 1,
+    "command": "python3 scripts/internal/recording_http_cost_run.py run <OWNED_ROOT>/candidate",
+    "seedStarts": 1,
+    "fixtureStarts": 1,
+    "collectorStarts": 1,
+    "metricsHelperCalls": {
+      "count": 51,
+      "basis": "50 successful samples plus final process-exited measurement, each collectProcess uses one execFile; individual helper PIDs not logged"
+    },
+    "seconds": 53.353111000033095,
+    "workLimit": 166,
+    "cleanupReserve": 14,
+    "limit": 180,
+    "httpTimeoutMs": 5000,
+    "normalSearchGateMs": 2000,
+    "processLogCapBytes": 4194304,
+    "outputBytes": 157482,
+    "exit": 0,
+    "fixtureQualification": {
+      "decision": "PASS_BOUNDED_FIXTURE_QUALIFIED",
+      "httpRequests": 28,
+      "inputFiles": 17,
+      "inputSamples": 990,
+      "ordinarySearches": 4,
+      "latencyAttribution": "NOT_RUN"
+    },
+    "correlationCounts": {
+      "client": 28,
+      "server": 28,
+      "search": 3
+    },
+    "firstFailure": null,
+    "firstDiagnosticFailure": null,
+    "loss": false,
+    "duplicate": false,
+    "missing": false,
+    "background": {
+      "expected": 2401,
+      "accepted": 2401,
+      "files": 41,
+      "fullAcceptance": 1
+    },
+    "normalFinish": true,
+    "logicalOwners": {
+      "RAM": 0,
+      "scratch": 0,
+      "FD": 0
+    },
+    "groupsAbsent": true,
+    "collectorPidLimitation": "runner checks all child groups; persisted pids array contains seed/fixture, collector PID not separately recorded",
+    "port": 52520,
+    "portClosedConnectEx": 61
+  },
+  "input": "155-input-summary.json synthetic17media17bindings990samples; not R149 live-state reconstruction",
+  "analysis": "155-analysis.json",
+  "attributionLimits": {
+    "ordinary": "CurrentnessJson accounts for most observed Search elapsed; deeper validation/DTO/serialization split UNKNOWN",
+    "a": "Refresh dominates this A request. Consumer includes Original; Original includes CatalogOwnedScope and Segment/Lifecycle/Acquire/BinarySearch. Never add parent/child scopes.",
+    "otherChannel": "2 calls each iterate17 bindings:34 scanned,32 other-channel segment/lifecycle operations,2 exact matches. No controlled binding-growth contrast; other-channel incremental duration and R149 timeout causality remain UNKNOWN.",
+    "catalog": "CatalogAcquireScope includes latency::Lock constructor instrumentation; CatalogOwnedScope is nested interior after acquisition and before unlock. Not exact standalone OS mutex wait/held attribution.",
+    "source": "existing diagnostic source documents/rebuild fields observed as0/false despite actual Build call; not used to infer no build. actual Capture/Build/RefreshReuse phases retained.",
+    "http": "parallel sockets are preconnected before client probe begin. Server acceptedToEnd can exceed client total; not negative network time. Actual dispatch/routing overhead is named by measured boundaries only.",
+    "visual": "client/server request timings qualified; internal Visual stages not instrumented here",
+    "overhead": "fixed counters plus per-scope clocks and bounded JSON output; no uninstrumented paired run, numerical overhead UNKNOWN",
+    "R149": "no failure-request server trace; input17media990samples differs from843/842 finalized files; no timeout resolution or long-run p95 claim"
+  },
+  "binding": {
+    "producer": "51PASS exit0",
+    "readback": "validationErrors0 negative15/15 exit0",
+    "coverage": "986covered missing0 pass9 fail0 exit0",
+    "order": "producer completed -> readback completed -> coverage",
+    "runtimeQualificationEquivalent": false
+  },
+  "preservation": "155-preservation.json; small sanitized evidence, full map/media/binaries excluded",
+  "independentReview": "155-independent-review.json",
+  "history": {
+    "R154": "FAIL_BOUNDED_HTTP_CONTRACT UNQUALIFIED unchanged",
+    "R153": "PASS_BOUNDED_FIXTURE_QUALIFIED",
+    "R152": "FAIL_FIXTURE_CONTRACT",
+    "R149Functional45": "FAIL",
+    "R149Collection45": "INCOMPLETE",
+    "MemoryP0": "HOLD",
+    "Readiness120": "HOLD",
+    "Release": "HOLD",
+    "new45": "NOT_RUN"
+  },
+  "nextOne": "separate approval for bounded CurrentnessJson validation/wait/DTO split; no automatic optimization or long run",
+  "cleanup": "pending remote preservation; see155-closure.json",
+  "testCommit": "413300d5bbd2267398ac4194e12fb5885f312048",
+  "executionSourceBinding": "ran baseline HEAD plus frozen test-only working-tree hashes; same reviewed source subsequently committed in testCommit; product binary unchanged"
+}

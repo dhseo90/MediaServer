@@ -1,0 +1,104 @@
+{
+  "cases": [
+    {
+      "case": "upper",
+      "pass": true,
+      "actualParser": true,
+      "normalId0Records": 0,
+      "sha256": "3615b8682d0417d2ae384d0f3c495832bc11603443591c82df6927bc3884c806"
+    },
+    {
+      "case": "lower",
+      "pass": true,
+      "actualParser": true,
+      "normalId0Records": 0,
+      "sha256": "6716756313ff881d19d1a18c75dedce7749eeb9b6bfa48392cb3197709772294"
+    },
+    {
+      "case": "mixed",
+      "pass": true,
+      "actualParser": true,
+      "normalId0Records": 0,
+      "sha256": "32ed271681e64eeae91c6c06ae11f8156d4b8ec83d104d4b8c7e9c8bf38c1c13"
+    },
+    {
+      "case": "missing",
+      "pass": true,
+      "actualParser": true,
+      "normalId0Records": 0,
+      "sha256": "abfba891620d57e828ce1b38b4a6431d43be233c2738e4a5a2c033e7a302163d"
+    },
+    {
+      "case": "empty",
+      "pass": true,
+      "actualParser": true,
+      "normalId0Records": 0,
+      "sha256": "70edd35d0b5026060e5eeb99515b77d835fdcde7d0f8080f3aff081597a964fa"
+    },
+    {
+      "case": "text",
+      "pass": true,
+      "actualParser": true,
+      "normalId0Records": 0,
+      "sha256": "b90be9f4b0121989d6fa3a34797d6d60a493c6ef6254e7aacd1b7ba9250e71fe"
+    },
+    {
+      "case": "zero",
+      "pass": true,
+      "actualParser": true,
+      "normalId0Records": 0,
+      "sha256": "48918f6a2737e7e0db226c89224dba14e8489cd599aeee006a3602692187428d"
+    },
+    {
+      "case": "range",
+      "pass": true,
+      "actualParser": true,
+      "normalId0Records": 0,
+      "sha256": "f53f95c1d9ee10acf2cd296f08bc0d2d74514ceb9be4f1b15d56930f3bd2b2d8"
+    },
+    {
+      "case": "duplicate",
+      "pass": true,
+      "actualParser": true,
+      "normalId0Records": 0,
+      "sha256": "2f04d2deb9a642a3298e22f32c82a92a87221c15bf54f7d61596fc9913fcb408"
+    },
+    {
+      "case": "variant",
+      "pass": true,
+      "actualParser": true,
+      "normalId0Records": 0,
+      "sha256": "156ec7ab7a252161bfe37193988335a95bb30935cd8227528f457b10ec5f5b22"
+    },
+    {
+      "case": "conflict",
+      "pass": true,
+      "actualParser": true,
+      "normalId0Records": 0,
+      "sha256": "2e33a8dfbf787de34843542b2dcb11d956ffcf1439a0964a388e06b9e990dead"
+    },
+    {
+      "case": "reuse",
+      "pass": true,
+      "actualParser": true,
+      "normalId0Records": 0,
+      "sha256": "c872d10af290f71978da3006f10363791337a55171b34542f9d044e329e9232e"
+    }
+  ],
+  "logs": {
+    "parser-range": "[R155-parser] case=range PASS\n[R154-loss] {\"code\":1,\"at\":1573008166276333}\n",
+    "parser-variant": "[R155-parser] case=variant PASS\n[R154-loss] {\"code\":2,\"at\":1573008425333333}\n",
+    "parser-conflict": "[R155-parser] case=conflict PASS\n[R154-loss] {\"code\":2,\"at\":1573008552685625}\n",
+    "parser-mixed": "[R155-parser] case=mixed PASS\n[R154-search] {\"id\":10,\"diagnosticId\":1,\"begin\":1573007504259958,\"end\":1573007504260000,\"status\":200,\"attempt\":0,\"loss\":false,\"phases\":[],\"sources\":[[0,0,0,0,false,false]]}\n[search-request-cost] {\"id\":1,\"thread\":1,\"startNs\":0,\"endNs\":1573007504268125,\"status\":200,\"loss\":false,\"phases\":[]}\n[R154-server] {\"id\":10,\"class\":1,\"accepted\":1573007504258958,\"parsed\":1573007504259125,\"handler\":1573007504259291,\"prepared\":1573007504269375,\"sendBegin\":0,\"sendEnd\":0,\"sent\":false,\"end\":1573007504269541,\"loss\":false,\"metrics\":[[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0]],\"counts\":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]}\n",
+    "parser-reuse": "[R155-parser] case=reuse PASS\n[R154-server] {\"id\":10,\"class\":1,\"accepted\":1573008679366666,\"parsed\":1573008679366750,\"handler\":1573008679366916,\"prepared\":1573008679366916,\"sendBegin\":0,\"sendEnd\":0,\"sent\":false,\"end\":1573008679367083,\"loss\":false,\"metrics\":[[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0]],\"counts\":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]}\n[R154-loss] {\"code\":3,\"at\":1573008679388875}\n",
+    "parser-text": "[R155-parser] case=text PASS\n[R154-loss] {\"code\":1,\"at\":1573007909564916}\n",
+    "parser-empty": "[R155-parser] case=empty PASS\n[R154-loss] {\"code\":1,\"at\":1573007775628750}\n",
+    "parser-lower": "[R155-parser] case=lower PASS\n[R154-search] {\"id\":10,\"diagnosticId\":1,\"begin\":1573007376342458,\"end\":1573007376342625,\"status\":200,\"attempt\":0,\"loss\":false,\"phases\":[],\"sources\":[[0,0,0,0,false,false]]}\n[search-request-cost] {\"id\":1,\"thread\":1,\"startNs\":0,\"endNs\":1573007376352666,\"status\":200,\"loss\":false,\"phases\":[]}\n[R154-server] {\"id\":10,\"class\":1,\"accepted\":1573007376341291,\"parsed\":1573007376341458,\"handler\":1573007376341666,\"prepared\":1573007376353833,\"sendBegin\":0,\"sendEnd\":0,\"sent\":false,\"end\":1573007376353958,\"loss\":false,\"metrics\":[[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0]],\"counts\":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]}\n",
+    "parser-missing": "[R155-parser] case=missing PASS\n[R154-loss] {\"code\":1,\"at\":1573007635122791}\n",
+    "parser-upper": "[R155-parser] case=upper PASS\n[R154-search] {\"id\":10,\"diagnosticId\":1,\"begin\":1573007247209291,\"end\":1573007247209333,\"status\":200,\"attempt\":0,\"loss\":false,\"phases\":[],\"sources\":[[0,0,0,0,false,false]]}\n[search-request-cost] {\"id\":1,\"thread\":1,\"startNs\":0,\"endNs\":1573007247217791,\"status\":200,\"loss\":false,\"phases\":[]}\n[R154-server] {\"id\":10,\"class\":1,\"accepted\":1573007247208291,\"parsed\":1573007247208375,\"handler\":1573007247208625,\"prepared\":1573007247218666,\"sendBegin\":0,\"sendEnd\":0,\"sent\":false,\"end\":1573007247218791,\"loss\":false,\"metrics\":[[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0]],\"counts\":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]}\n",
+    "parser-duplicate": "[R155-parser] case=duplicate PASS\n[R154-loss] {\"code\":2,\"at\":1573008297011583}\n",
+    "parser-zero": "[R155-parser] case=zero PASS\n[R154-loss] {\"code\":1,\"at\":1573008037663166}\n"
+  },
+  "redCompileFailure": "incorrect namespace in initial new test; corrected before expected assertion RED, never classified as RED",
+  "redSource": "#include \"webrtc_http_server_detail.h\"\n#include <sys/socket.h>\n#include <unistd.h>\n#include <cstdio>\nint main(){int f[2];if(socketpair(AF_UNIX,SOCK_STREAM,0,f))return 2;\nstd::string s=\"GET / HTTP/1.1\\r\\nHost: localhost\\r\\nX-R154-ID: 10\\r\\n\\r\\n\";if(write(f[0],s.data(),s.size())!=(ssize_t)s.size())return 2;\ningress::webrtc_http_server_detail::HttpResponse e;auto r=ingress::webrtc_http_server_detail::ReadHttpRequest(f[1],&e);close(f[0]);close(f[1]);if(!r)return 2;\nauto i=r->headers.find(\"x-r154-id\");unsigned id=i==r->headers.end()?0:std::stoul(i->second);\nstd::printf(\"actualParser=true legacyId=%u HeaderValue=%s expected=10\\n\",id,ingress::webrtc_http_server_detail::HeaderValue(*r,\"x-r154-id\").c_str());return id==10?0:1;}\n"
+}

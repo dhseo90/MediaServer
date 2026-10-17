@@ -1,0 +1,202 @@
+[
+  {
+    "artifact": "155-output.log",
+    "source": "<OWNED_ROOT>/candidate/run/output.log",
+    "rawBytes": 157482,
+    "rawSha256": "9522adb0d3d931322ae8ad165e3f39eda25d84b47f8d058dc35d478e360a5d15",
+    "sanitizedBytes": 157482,
+    "sanitizedSha256": "9522adb0d3d931322ae8ad165e3f39eda25d84b47f8d058dc35d478e360a5d15"
+  },
+  {
+    "artifact": "155-events.json",
+    "source": "<OWNED_ROOT>/candidate/run/events.json",
+    "rawBytes": 14433,
+    "rawSha256": "17eb2278d55bf3ec38ee9d5f6d821bf1f619e6405309c386eb5ba8569745d50d",
+    "sanitizedBytes": 14433,
+    "sanitizedSha256": "17eb2278d55bf3ec38ee9d5f6d821bf1f619e6405309c386eb5ba8569745d50d"
+  },
+  {
+    "artifact": "155-execution.json",
+    "source": "<OWNED_ROOT>/candidate/run/execution.json",
+    "rawBytes": 22666,
+    "rawSha256": "762824be08c1500f3401f0dbc6702e54f57339d559608c112de4012a4fe46514",
+    "sanitizedBytes": 22666,
+    "sanitizedSha256": "762824be08c1500f3401f0dbc6702e54f57339d559608c112de4012a4fe46514"
+  },
+  {
+    "artifact": "155-attribution.json",
+    "source": "<OWNED_ROOT>/candidate/run/attribution.json",
+    "rawBytes": 59381,
+    "rawSha256": "e2d61b27cf371dc589cf7e81807ac6a7452afa87685a0259de4f17596cafe149",
+    "sanitizedBytes": 59381,
+    "sanitizedSha256": "e2d61b27cf371dc589cf7e81807ac6a7452afa87685a0259de4f17596cafe149"
+  },
+  {
+    "artifact": "155-input-summary.json",
+    "source": "<OWNED_ROOT>/input-summary.json",
+    "rawBytes": 8815,
+    "rawSha256": "ae3aaae363bf0899236693b9591a9ebbc6c86946eb5c77c9e838da10962d9915",
+    "sanitizedBytes": 8788,
+    "sanitizedSha256": "8eba36c1b810347523742c8d705702697a5a6b6dddf95a0fd146c8d594d60020"
+  },
+  {
+    "artifact": "155-analysis.json",
+    "source": "<OWNED_ROOT>/analysis.json",
+    "rawBytes": 18234,
+    "rawSha256": "1168e4a6ce5549722cadb7b1f23143d9cca3700ff1d6eaadbf20e5b1edc146cd",
+    "sanitizedBytes": 18234,
+    "sanitizedSha256": "1168e4a6ce5549722cadb7b1f23143d9cca3700ff1d6eaadbf20e5b1edc146cd"
+  },
+  {
+    "artifact": "155-plan.json",
+    "source": "<OWNED_ROOT>/preflight.json",
+    "rawBytes": 2051,
+    "rawSha256": "129edd22839319f2a2748fad9f878f54a8ef22403fad4bcd7f6ea7e470ba7df9",
+    "sanitizedBytes": 2024,
+    "sanitizedSha256": "f266ae960b026bc06ec2613065c4274202e9297b34384af0bd70cb8eb52cb1bc"
+  },
+  {
+    "artifact": "155-instrumentation.json",
+    "source": "<OWNED_ROOT>/candidate/instrumentation.json",
+    "rawBytes": 40714,
+    "rawSha256": "d9d0e55c0595d629550361dfdfd83123d16f32068a9c5d1232a1f3cc49cee09b",
+    "sanitizedBytes": 38348,
+    "sanitizedSha256": "690b48cf8c393b1fdba2316de2a0aa1fda8341c6e4c07148e45de096801461e9"
+  },
+  {
+    "artifact": "155-focused-native.log",
+    "source": "<OWNED_ROOT>/native-focused.log",
+    "rawBytes": 3409,
+    "rawSha256": "4b3c3c0378157f7f6a2c388c28adcb7d5705a18546483739048144dcd0edd765",
+    "sanitizedBytes": 3409,
+    "sanitizedSha256": "4b3c3c0378157f7f6a2c388c28adcb7d5705a18546483739048144dcd0edd765"
+  },
+  {
+    "artifact": "155-focused-python-initial.log",
+    "source": "<OWNED_ROOT>/focused-python.log",
+    "rawBytes": 14307,
+    "rawSha256": "10d622d36a33f3f4de66e26a553f786a92d6493431414a920227319af1227e34",
+    "sanitizedBytes": 14251,
+    "sanitizedSha256": "2bf0efaeb6269a91af0e8555e96a1bca0c6529251693ed9cc9840adbb66cd0a5"
+  },
+  {
+    "artifact": "155-focused-python-intermediate.log",
+    "source": "<OWNED_ROOT>/focused-final.log",
+    "rawBytes": 19590,
+    "rawSha256": "af4ac1082c343f3c9d6ece1cbdede80f81cdbca96b63dca720f2f7057dbdb05b",
+    "sanitizedBytes": 19394,
+    "sanitizedSha256": "b03e40ffd30ffb1ce8519db4c9a8bacb0ea8bdbb84f7b8b967b51618f0fbf207"
+  },
+  {
+    "artifact": "155-focused-python-final.log",
+    "source": "<OWNED_ROOT>/focused-pipe.log",
+    "rawBytes": 17701,
+    "rawSha256": "51f39d4f53d2f1978b57aabdb16953e509a67fa59238fe57f615992989282811",
+    "sanitizedBytes": 17701,
+    "sanitizedSha256": "51f39d4f53d2f1978b57aabdb16953e509a67fa59238fe57f615992989282811"
+  },
+  {
+    "artifact": "155-r153-regression.log",
+    "source": "<OWNED_ROOT>/r153-regression-final.log",
+    "rawBytes": 129,
+    "rawSha256": "9e6ab18ec395d55fc7df079f87c6b6c1f9788fba627887914f057e3f76f0e1c4",
+    "sanitizedBytes": 129,
+    "sanitizedSha256": "9e6ab18ec395d55fc7df079f87c6b6c1f9788fba627887914f057e3f76f0e1c4"
+  },
+  {
+    "artifact": "155-red.log",
+    "source": "<OWNED_ROOT>/red.log",
+    "rawBytes": 56,
+    "rawSha256": "eaa2f1e829ce727a25aeb3269a15473c7eeabdc80a4b3e746e2b1746c3b2c90a",
+    "sanitizedBytes": 56,
+    "sanitizedSha256": "eaa2f1e829ce727a25aeb3269a15473c7eeabdc80a4b3e746e2b1746c3b2c90a"
+  },
+  {
+    "artifact": "155-red-build-error.log",
+    "source": "<OWNED_ROOT>/red-build.log",
+    "rawBytes": 625,
+    "rawSha256": "0261208d981387e5e333a283911291d774c24ea4b7578e89c8ac07568b43bf46",
+    "sanitizedBytes": 570,
+    "sanitizedSha256": "5121ecff51bfe5d0969d3512399c870e89216d9e9e6572551c22eaa6dc1f9802"
+  },
+  {
+    "artifact": "155-red-command.json",
+    "source": "<OWNED_ROOT>/red-command.json",
+    "rawBytes": 4121,
+    "rawSha256": "ac003f6e2fccbd741d18b58a1e83f1bd2445ae7cc3d8a57f429f63dd9b4ba495",
+    "sanitizedBytes": 3927,
+    "sanitizedSha256": "fde925ba500f06d4ae6906f59ca0a95e5d1e2e45bb17692cb591afab3c4b336e"
+  },
+  {
+    "artifact": "155-process-check.json",
+    "source": "<OWNED_ROOT>/process-check.json",
+    "rawBytes": 129,
+    "rawSha256": "2b08dfd1c8bb9d905e50fb4b0d686b5e1cdc832689b74e8bb4bedfc2a2990142",
+    "sanitizedBytes": 129,
+    "sanitizedSha256": "2b08dfd1c8bb9d905e50fb4b0d686b5e1cdc832689b74e8bb4bedfc2a2990142"
+  },
+  {
+    "artifact": "155-parser-focused.json",
+    "source": "new analysis",
+    "rawBytes": 6980,
+    "rawSha256": "50d794fd3e766ff5fca6162d6e0dc77579aeff233139392ccd980808dff0516c",
+    "sanitizedBytes": 6980,
+    "sanitizedSha256": "50d794fd3e766ff5fca6162d6e0dc77579aeff233139392ccd980808dff0516c"
+  },
+  {
+    "artifact": "155-streaming-focused.json",
+    "source": "new analysis",
+    "rawBytes": 41668,
+    "rawSha256": "2198d92fc8aa4e5f5c79bf402ff143caf19882dcb38352e908d1e9d38b40f294",
+    "sanitizedBytes": 40534,
+    "sanitizedSha256": "9d98bb284e359ed9a7efa7acfb2cf48dac8eb1d858d228a920511154e7734f89"
+  },
+  {
+    "artifact": "155-link-summary.json",
+    "source": "new analysis",
+    "rawBytes": 27018,
+    "rawSha256": "0e75912e6745a35a9726467e892debe1304684098f7d2c643d8e17e8d93e2807",
+    "sanitizedBytes": 21759,
+    "sanitizedSha256": "5b1ee657ee318a51a19d836bd01d6eb4c92e128510d3a764a78ec3e80a9dd3a5"
+  },
+  {
+    "artifact": "155-overlay.diff",
+    "source": "new analysis",
+    "rawBytes": 20066,
+    "rawSha256": "5f7c58fa79f9122dd793964d7337d1cc40181e3260819ad4bc546fd661fa21ca",
+    "sanitizedBytes": 20066,
+    "sanitizedSha256": "5f7c58fa79f9122dd793964d7337d1cc40181e3260819ad4bc546fd661fa21ca"
+  },
+  {
+    "artifact": "155-build-results.json",
+    "source": "new analysis",
+    "rawBytes": 1921,
+    "rawSha256": "7f5e757b34692b1b2e001b877c5d215f11723c7684436eb5627a52255bb0c5ba",
+    "sanitizedBytes": 1921,
+    "sanitizedSha256": "7f5e757b34692b1b2e001b877c5d215f11723c7684436eb5627a52255bb0c5ba"
+  },
+  {
+    "artifact": "155-producer.log",
+    "source": "<OWNED_ROOT>/producer.log",
+    "rawBytes": 12812,
+    "rawSha256": "d044f8ac77f4e3e0a7ee0672c9d63381151b9f522393a0aa536f910913ef258f",
+    "sanitizedBytes": 12812,
+    "sanitizedSha256": "d044f8ac77f4e3e0a7ee0672c9d63381151b9f522393a0aa536f910913ef258f"
+  },
+  {
+    "artifact": "155-readback.log",
+    "source": "<OWNED_ROOT>/readback.log",
+    "rawBytes": 1141,
+    "rawSha256": "f004e8a145e0b287322992e5f2f9c356c12a495834505e9ea79a414fd1f6b6f7",
+    "sanitizedBytes": 1141,
+    "sanitizedSha256": "f004e8a145e0b287322992e5f2f9c356c12a495834505e9ea79a414fd1f6b6f7"
+  },
+  {
+    "artifact": "155-coverage.log",
+    "source": "<OWNED_ROOT>/coverage.log",
+    "rawBytes": 604,
+    "rawSha256": "f3dd9d2ec3cd35ce7a806a391b6918dddd2c2377ca3039afa624f484985f9bce",
+    "sanitizedBytes": 604,
+    "sanitizedSha256": "f3dd9d2ec3cd35ce7a806a391b6918dddd2c2377ca3039afa624f484985f9bce"
+  }
+]

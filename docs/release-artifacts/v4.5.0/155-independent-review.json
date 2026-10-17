@@ -1,0 +1,50 @@
+{
+  "schema": "media-server.v450.r155.independent-review.v1",
+  "reviewer": "independent_r155",
+  "model": {
+    "requested": {
+      "main": "gpt-6-astra/high",
+      "independent": "gpt-6-astra/high"
+    },
+    "toolAccepted": {
+      "main": null,
+      "independent": "spawn_agent accepted explicit gpt-6-astra/high request"
+    },
+    "actualRuntimeModel": {
+      "main": null,
+      "independent": null
+    },
+    "actualRuntimeEffort": {
+      "main": null,
+      "independent": null
+    }
+  },
+  "mode": "read-only; no code/test writing, execution, delegation, commit or push",
+  "preflightDecision": "PASS_PARSER_STREAMING_LINKAGE_PREFLIGHT",
+  "postflightDecision": "PASS_BOUNDED_CORRELATION_AND_ATTRIBUTION",
+  "finalDecision": "ATTRIBUTION_BOUNDARY_IDENTIFIED",
+  "blockers": [],
+  "reviewedEvidence": [
+    "actual socketpair RED legacyId0/HeaderValue10;12 GREEN",
+    "actual streaming children including split, duplicate, partial, cap, concurrent terminal order and cleanup signal fault",
+    "5 explicit overlay objects; original archive members absent;4 principal symbols unique",
+    "actual28client/28server/3Search IDs complete; all loss=false",
+    "all5 analyzed requests independently recomputed: no discrepancy",
+    "22 preserved artifacts stored size/SHA verified;17 corresponding raw files verified",
+    "normal Finish/owner0/group absence/port refused; product/runtime SHA unchanged"
+  ],
+  "reviewCorrections": [
+    "move pending decision after exact record-count check",
+    "remove unguaranteed server-End-before-client-receive ordering; keep observable boundary order",
+    "record seed1MiB cap separately from actual fixture4MiB cap",
+    "add real child valid nonsequential prefix and cleanup fault evidence",
+    "close owned collector pipes; final ResourceWarning0"
+  ],
+  "limits": [
+    "actualRuntime model/effort unavailable",
+    "CurrentnessJson includes ResolveMedia and response construction, not pure JSON serialization",
+    "Catalog acquisition/owned metrics include instrumentation boundary overhead",
+    "other-channel count does not establish marginal growth cost or R149 timeout cause",
+    "remote verification/owned root cleanup pending closure"
+  ]
+}

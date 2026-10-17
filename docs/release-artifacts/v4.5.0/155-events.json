@@ -1,0 +1,547 @@
+[
+  {
+    "phase": "seed-verified",
+    "monoNs": 1573273807158000,
+    "segment": "ffd51d1d-1567-4ffb-ae4b-67e253808705",
+    "package": "ep-eeb60fdce3a7d462cc67eb3ff3c0aa907a086e5fa56ab676434d182ee213a124"
+  },
+  {
+    "phase": "media-decode",
+    "monoNs": 1573274233792291,
+    "channel": "9101",
+    "segment": "090ffa57-fdb1-495e-883b-45d3d7740a5e",
+    "targetNs": 0
+  },
+  {
+    "phase": "media-decode",
+    "monoNs": 1573274246035000,
+    "channel": "9201",
+    "segment": "13853973-c838-4e5f-a3c7-d35907ce4342",
+    "targetNs": 0
+  },
+  {
+    "phase": "manifest",
+    "monoNs": 1573274401698791,
+    "synthetic": true,
+    "rows": [
+      {
+        "channel": "9101",
+        "segment": "090ffa57-fdb1-495e-883b-45d3d7740a5e",
+        "generation": "1345e246c9f40eb6805c1d0d8a8b4b604a770691dbc57dc4f271c2d3319c112f",
+        "bindingSegment": "090ffa57-fdb1-495e-883b-45d3d7740a5e",
+        "bindingChannel": "9101",
+        "inspection": true,
+        "samples": 60,
+        "firstOrdinal": 61,
+        "lastOrdinal": 120,
+        "bytes": 34078,
+        "sha256": "ec096e3361b8d9026bb18e3de124ac0c5c0cc336d87608b32ed609676256c4cb"
+      },
+      {
+        "channel": "9201",
+        "segment": "13853973-c838-4e5f-a3c7-d35907ce4342",
+        "generation": "65e993248381c661a90c773e23487bb685378fab38b261f20f3a878c999142ab",
+        "bindingSegment": "13853973-c838-4e5f-a3c7-d35907ce4342",
+        "bindingChannel": "9201",
+        "inspection": true,
+        "samples": 60,
+        "firstOrdinal": 1,
+        "lastOrdinal": 60,
+        "bytes": 34724,
+        "sha256": "cd36ad721271a0b2e5b137841f8bdd83da728b4fbdf7cf51eca3f5ad065f8247"
+      },
+      {
+        "channel": "9101",
+        "segment": "304f41d7-ffbb-46d8-85ab-cd8b51f59314",
+        "generation": "1345e246c9f40eb6805c1d0d8a8b4b604a770691dbc57dc4f271c2d3319c112f",
+        "bindingSegment": "304f41d7-ffbb-46d8-85ab-cd8b51f59314",
+        "bindingChannel": "9101",
+        "inspection": true,
+        "samples": 60,
+        "firstOrdinal": 1,
+        "lastOrdinal": 60,
+        "bytes": 34724,
+        "sha256": "cd36ad721271a0b2e5b137841f8bdd83da728b4fbdf7cf51eca3f5ad065f8247"
+      },
+      {
+        "channel": "9101",
+        "segment": "33fa703b-8f33-4f95-92ff-a8a60475dba4",
+        "generation": "835f4759e363e9364151061a5056bab3305671d125d03ed62b6d7d1ba3ee76d4",
+        "bindingSegment": "33fa703b-8f33-4f95-92ff-a8a60475dba4",
+        "bindingChannel": "9101",
+        "inspection": true,
+        "samples": 60,
+        "firstOrdinal": 61,
+        "lastOrdinal": 120,
+        "bytes": 34078,
+        "sha256": "ec096e3361b8d9026bb18e3de124ac0c5c0cc336d87608b32ed609676256c4cb"
+      },
+      {
+        "channel": "9201",
+        "segment": "3e776b7d-318b-4629-973e-f5cae161b580",
+        "generation": "65e993248381c661a90c773e23487bb685378fab38b261f20f3a878c999142ab",
+        "bindingSegment": "3e776b7d-318b-4629-973e-f5cae161b580",
+        "bindingChannel": "9201",
+        "inspection": true,
+        "samples": 60,
+        "firstOrdinal": 61,
+        "lastOrdinal": 120,
+        "bytes": 34078,
+        "sha256": "ec096e3361b8d9026bb18e3de124ac0c5c0cc336d87608b32ed609676256c4cb"
+      },
+      {
+        "channel": "9101",
+        "segment": "50d46a65-2303-482d-9f2f-e72435627501",
+        "generation": "6515c3149a62c695c5feeca0d350d17df185ddfd67396e1f951a03c4069da741",
+        "bindingSegment": "50d46a65-2303-482d-9f2f-e72435627501",
+        "bindingChannel": "9101",
+        "inspection": true,
+        "samples": 60,
+        "firstOrdinal": 1,
+        "lastOrdinal": 60,
+        "bytes": 34724,
+        "sha256": "cd36ad721271a0b2e5b137841f8bdd83da728b4fbdf7cf51eca3f5ad065f8247"
+      },
+      {
+        "channel": "9201",
+        "segment": "5854c11d-b7df-4909-9434-a28c53961606",
+        "generation": "625fb3b92c8d1f6cec8268273e2c1213165d93af7a888bdbf56e0ca5620f9dec",
+        "bindingSegment": "5854c11d-b7df-4909-9434-a28c53961606",
+        "bindingChannel": "9201",
+        "inspection": true,
+        "samples": 60,
+        "firstOrdinal": 61,
+        "lastOrdinal": 120,
+        "bytes": 34078,
+        "sha256": "ec096e3361b8d9026bb18e3de124ac0c5c0cc336d87608b32ed609676256c4cb"
+      },
+      {
+        "channel": "9101",
+        "segment": "64badf59-8044-4f7c-9655-beb133dffcf5",
+        "generation": "86b612cc320ce5902764aa1768777dd38a5db45df8c60542a63e2cc819e52daf",
+        "bindingSegment": "64badf59-8044-4f7c-9655-beb133dffcf5",
+        "bindingChannel": "9101",
+        "inspection": true,
+        "samples": 60,
+        "firstOrdinal": 1,
+        "lastOrdinal": 60,
+        "bytes": 34724,
+        "sha256": "cd36ad721271a0b2e5b137841f8bdd83da728b4fbdf7cf51eca3f5ad065f8247"
+      },
+      {
+        "channel": "9101",
+        "segment": "65a7fabc-0a25-4c25-8980-055f38b7c132",
+        "generation": "86b612cc320ce5902764aa1768777dd38a5db45df8c60542a63e2cc819e52daf",
+        "bindingSegment": "65a7fabc-0a25-4c25-8980-055f38b7c132",
+        "bindingChannel": "9101",
+        "inspection": true,
+        "samples": 60,
+        "firstOrdinal": 61,
+        "lastOrdinal": 120,
+        "bytes": 34078,
+        "sha256": "ec096e3361b8d9026bb18e3de124ac0c5c0cc336d87608b32ed609676256c4cb"
+      },
+      {
+        "channel": "9201",
+        "segment": "6b110a4f-fa61-4578-92bc-d59572bd92af",
+        "generation": "da5f1b8b0fdd22a7e49ec786a818bb66b2658573b72d5c81ab39ccacacf32758",
+        "bindingSegment": "6b110a4f-fa61-4578-92bc-d59572bd92af",
+        "bindingChannel": "9201",
+        "inspection": true,
+        "samples": 60,
+        "firstOrdinal": 61,
+        "lastOrdinal": 120,
+        "bytes": 34078,
+        "sha256": "ec096e3361b8d9026bb18e3de124ac0c5c0cc336d87608b32ed609676256c4cb"
+      },
+      {
+        "channel": "9101",
+        "segment": "91d3b5b9-1667-4458-86be-e7ff25da35eb",
+        "generation": "6515c3149a62c695c5feeca0d350d17df185ddfd67396e1f951a03c4069da741",
+        "bindingSegment": "91d3b5b9-1667-4458-86be-e7ff25da35eb",
+        "bindingChannel": "9101",
+        "inspection": true,
+        "samples": 60,
+        "firstOrdinal": 61,
+        "lastOrdinal": 120,
+        "bytes": 34078,
+        "sha256": "ec096e3361b8d9026bb18e3de124ac0c5c0cc336d87608b32ed609676256c4cb"
+      },
+      {
+        "channel": "9201",
+        "segment": "b105cc4a-81eb-42dd-a9ec-2fb56f2db073",
+        "generation": "625fb3b92c8d1f6cec8268273e2c1213165d93af7a888bdbf56e0ca5620f9dec",
+        "bindingSegment": "b105cc4a-81eb-42dd-a9ec-2fb56f2db073",
+        "bindingChannel": "9201",
+        "inspection": true,
+        "samples": 60,
+        "firstOrdinal": 1,
+        "lastOrdinal": 60,
+        "bytes": 34724,
+        "sha256": "cd36ad721271a0b2e5b137841f8bdd83da728b4fbdf7cf51eca3f5ad065f8247"
+      },
+      {
+        "channel": "9201",
+        "segment": "be7870b4-b26c-4ad2-b57d-0230ad967429",
+        "generation": "adaa99e6aaf9ec9b5dacf90c088144a7cb67e047ff69562953035b0daf8e05de",
+        "bindingSegment": "be7870b4-b26c-4ad2-b57d-0230ad967429",
+        "bindingChannel": "9201",
+        "inspection": true,
+        "samples": 60,
+        "firstOrdinal": 61,
+        "lastOrdinal": 120,
+        "bytes": 34078,
+        "sha256": "ec096e3361b8d9026bb18e3de124ac0c5c0cc336d87608b32ed609676256c4cb"
+      },
+      {
+        "channel": "9201",
+        "segment": "f8987f18-5a88-487f-a7a4-da9e2ffdb919",
+        "generation": "da5f1b8b0fdd22a7e49ec786a818bb66b2658573b72d5c81ab39ccacacf32758",
+        "bindingSegment": "f8987f18-5a88-487f-a7a4-da9e2ffdb919",
+        "bindingChannel": "9201",
+        "inspection": true,
+        "samples": 60,
+        "firstOrdinal": 1,
+        "lastOrdinal": 60,
+        "bytes": 34724,
+        "sha256": "cd36ad721271a0b2e5b137841f8bdd83da728b4fbdf7cf51eca3f5ad065f8247"
+      },
+      {
+        "channel": "9101",
+        "segment": "fd4e3def-8e43-47e0-9e87-901896470995",
+        "generation": "835f4759e363e9364151061a5056bab3305671d125d03ed62b6d7d1ba3ee76d4",
+        "bindingSegment": "fd4e3def-8e43-47e0-9e87-901896470995",
+        "bindingChannel": "9101",
+        "inspection": true,
+        "samples": 60,
+        "firstOrdinal": 1,
+        "lastOrdinal": 60,
+        "bytes": 34724,
+        "sha256": "cd36ad721271a0b2e5b137841f8bdd83da728b4fbdf7cf51eca3f5ad065f8247"
+      },
+      {
+        "channel": "1",
+        "segment": "ffd51d1d-1567-4ffb-ae4b-67e253808705",
+        "generation": "probe-generation-a",
+        "bindingSegment": "ffd51d1d-1567-4ffb-ae4b-67e253808705",
+        "bindingChannel": "1",
+        "inspection": true,
+        "samples": 30,
+        "firstOrdinal": 1,
+        "lastOrdinal": 30,
+        "bytes": 28161,
+        "sha256": "d104c47aa0449bd105c435dd7b07aaf4570d10c80e4dec06d08d598e5034be66"
+      },
+      {
+        "channel": "9201",
+        "segment": "ffedfb0e-1e2c-4dda-b674-4f1d82e4a773",
+        "generation": "adaa99e6aaf9ec9b5dacf90c088144a7cb67e047ff69562953035b0daf8e05de",
+        "bindingSegment": "ffedfb0e-1e2c-4dda-b674-4f1d82e4a773",
+        "bindingChannel": "9201",
+        "inspection": true,
+        "samples": 60,
+        "firstOrdinal": 1,
+        "lastOrdinal": 60,
+        "bytes": 34724,
+        "sha256": "cd36ad721271a0b2e5b137841f8bdd83da728b4fbdf7cf51eca3f5ad065f8247"
+      }
+    ]
+  },
+  {
+    "phase": "visual-ready",
+    "monoNs": 1573282480731041,
+    "documents": 32
+  },
+  {
+    "phase": "server",
+    "monoNs": 1573282480815541,
+    "port": 52520
+  },
+  {
+    "phase": "http",
+    "monoNs": 1573282481176750,
+    "id": 1,
+    "status": 401,
+    "ms": 0.352375,
+    "bytes": 243
+  },
+  {
+    "phase": "http",
+    "monoNs": 1573282481451000,
+    "id": 2,
+    "status": 403,
+    "ms": 0.248833,
+    "bytes": 223
+  },
+  {
+    "phase": "http",
+    "monoNs": 1573282484271916,
+    "id": 3,
+    "status": 200,
+    "ms": 2.806833,
+    "bytes": 1955
+  },
+  {
+    "phase": "http",
+    "monoNs": 1573282487401708,
+    "id": 4,
+    "status": 200,
+    "ms": 3.115,
+    "bytes": 28327
+  },
+  {
+    "phase": "auth-seed-ready",
+    "monoNs": 1573282487535291
+  },
+  {
+    "phase": "four-accepted",
+    "monoNs": 1573282572596083
+  },
+  {
+    "phase": "http",
+    "monoNs": 1573282641779625,
+    "id": 10,
+    "status": 200,
+    "ms": 69.098,
+    "bytes": 5120
+  },
+  {
+    "phase": "http",
+    "monoNs": 1573282644242000,
+    "id": 11,
+    "status": 200,
+    "ms": 71.556792,
+    "bytes": 5120
+  },
+  {
+    "phase": "http",
+    "monoNs": 1573282841383875,
+    "id": 12,
+    "status": 200,
+    "ms": 268.691208,
+    "bytes": 9558
+  },
+  {
+    "phase": "http",
+    "monoNs": 1573282867564791,
+    "id": 13,
+    "status": 200,
+    "ms": 294.884125,
+    "bytes": 9558
+  },
+  {
+    "phase": "four-complete",
+    "monoNs": 1573282867879250
+  },
+  {
+    "phase": "http",
+    "monoNs": 1573282985363916,
+    "id": 20,
+    "status": 201,
+    "ms": 117.169542,
+    "bytes": 334
+  },
+  {
+    "phase": "http",
+    "monoNs": 1573282988106125,
+    "id": 21,
+    "status": 200,
+    "ms": 1.669208,
+    "bytes": 12066
+  },
+  {
+    "phase": "http",
+    "monoNs": 1573282990703041,
+    "id": 22,
+    "status": 200,
+    "ms": 2.561,
+    "bytes": 1474
+  },
+  {
+    "phase": "http",
+    "monoNs": 1573282993089916,
+    "id": 23,
+    "status": 200,
+    "ms": 2.365459,
+    "bytes": 1341
+  },
+  {
+    "phase": "http",
+    "monoNs": 1573282995423708,
+    "id": 24,
+    "status": 200,
+    "ms": 2.320459,
+    "bytes": 1446
+  },
+  {
+    "phase": "http",
+    "monoNs": 1573282998195916,
+    "id": 25,
+    "status": 200,
+    "ms": 2.752375,
+    "bytes": 1448
+  },
+  {
+    "phase": "http",
+    "monoNs": 1573283000773791,
+    "id": 26,
+    "status": 200,
+    "ms": 2.552667,
+    "bytes": 1435
+  },
+  {
+    "phase": "http",
+    "monoNs": 1573283003128291,
+    "id": 27,
+    "status": 200,
+    "ms": 2.337833,
+    "bytes": 1438
+  },
+  {
+    "phase": "http",
+    "monoNs": 1573283005967125,
+    "id": 28,
+    "status": 200,
+    "ms": 2.8135,
+    "bytes": 1449
+  },
+  {
+    "phase": "http",
+    "monoNs": 1573283008419000,
+    "id": 29,
+    "status": 200,
+    "ms": 2.428708,
+    "bytes": 1422
+  },
+  {
+    "phase": "package-readback",
+    "monoNs": 1573283008432083,
+    "id": "ep-12ce66ee43169bda82fdcac9665be45f9a0f555e4efcb2a56a3c182f22c771a6",
+    "assets": 8
+  },
+  {
+    "phase": "http",
+    "monoNs": 1573283037682166,
+    "id": 40,
+    "status": 201,
+    "ms": 28.966125,
+    "bytes": 334
+  },
+  {
+    "phase": "http",
+    "monoNs": 1573283038892666,
+    "id": 41,
+    "status": 200,
+    "ms": 0.868292,
+    "bytes": 2669
+  },
+  {
+    "phase": "http",
+    "monoNs": 1573283040485000,
+    "id": 42,
+    "status": 200,
+    "ms": 1.578334,
+    "bytes": 1426
+  },
+  {
+    "phase": "package-readback",
+    "monoNs": 1573283040500583,
+    "id": "ep-5392c40e487f0421e2e7d2424de52d52aa7bc314042e3dbb9b4974326adb564f",
+    "assets": 1
+  },
+  {
+    "phase": "evidence-complete",
+    "monoNs": 1573283040504083
+  },
+  {
+    "phase": "a-prepare-start",
+    "monoNs": 1573283040516041
+  },
+  {
+    "phase": "http",
+    "monoNs": 1573283053124083,
+    "id": 60,
+    "status": 200,
+    "ms": 12.603667,
+    "bytes": 1815
+  },
+  {
+    "phase": "http",
+    "monoNs": 1573283078121916,
+    "id": 61,
+    "status": 201,
+    "ms": 24.874125,
+    "bytes": 331
+  },
+  {
+    "phase": "http",
+    "monoNs": 1573283080491583,
+    "id": 62,
+    "status": 200,
+    "ms": 1.458083,
+    "bytes": 624
+  },
+  {
+    "phase": "http",
+    "monoNs": 1573283083095333,
+    "id": 63,
+    "status": 200,
+    "ms": 2.572125,
+    "bytes": 1643
+  },
+  {
+    "phase": "package-readback",
+    "monoNs": 1573283083114291,
+    "id": "ep-89fde866d7e5fb74d1649e112e5d19456e27280dfdc6652298c221f65f8be9c1",
+    "assets": 1
+  },
+  {
+    "phase": "http",
+    "monoNs": 1573283084373416,
+    "id": 75,
+    "status": 200,
+    "ms": 1.249417,
+    "bytes": 624
+  },
+  {
+    "phase": "http",
+    "monoNs": 1573283085867625,
+    "id": 76,
+    "status": 201,
+    "ms": 1.442792,
+    "bytes": 962
+  },
+  {
+    "phase": "http",
+    "monoNs": 1573283086112416,
+    "id": 77,
+    "status": 200,
+    "ms": 0.187334,
+    "bytes": 368
+  },
+  {
+    "phase": "a-prepare-complete",
+    "monoNs": 1573283086123833
+  },
+  {
+    "phase": "background-complete",
+    "monoNs": 1573323078624416,
+    "writes": 41,
+    "removed": 0
+  },
+  {
+    "phase": "services-stopped",
+    "monoNs": 1573323129303291
+  },
+  {
+    "phase": "finish",
+    "monoNs": 1573323160347875
+  },
+  {
+    "phase": "complete",
+    "monoNs": 1573323160567375,
+    "logicalRam": 0,
+    "scratch": 0,
+    "fd": 0
+  }
+]
