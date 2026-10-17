@@ -1,3 +1,4 @@
+import {completionCollection} from './recording_completion_collection.mjs';
 import {memoryObservationMode,memoryAttributionCollector,collectMemoryAttribution,memoryAttributionSnapshot,finishMemoryAttribution} from './recording_memory_attribution.mjs';
 import {catalogHolderSummary} from './recording_latency_trace.mjs';
 import {resourceTraceCollector,collectResourceTrace,currentResourceTrace,finishResourceTrace} from './recording_resource_trace.mjs';
@@ -71,7 +72,7 @@ function rootDiagnostic(reason,measurement=storageNow(),final=false){const journ
   console.log('[root-storage] '+JSON.stringify({reason,final,elapsedMs:Math.round(performance.now()-start),journalMutationTypes,journalMutationTypesCoverage,...measurement}));return measurement;}
 function cadence(){if(observationStart!==null){const now=performance.now(),previous=samples.at(-1)?.phaseAt??observationStart;
   if(now-previous>15000){console.log('[sample-gap] '+JSON.stringify({previousAt:previous,observedAt:now,gapMs:now-previous,limitMs:15000}));throw Error('sample-gap');}}}
-function budget(){if(cancelled)throw Error('observation-cancelled');if(performance.now()>deadline)throw Error('observation-deadline');cadence();const storage=storageNow();if(storage.capExceeded){rootDiagnostic('root-cap');throw Error('observation-root-cap');}const traceFailure=processes.find(p=>p.resourceTrace?.error||(memoryObserve&&p.memoryTrace?.error));if(traceFailure)throw Error('resource-trace-collection:'+(traceFailure.resourceTrace.error||traceFailure.memoryTrace.error));if(processes.some(p=>p.overflow))throw Error('private-log-cap');cadence();}
+function budget(){if(cancelled)throw Error('observation-cancelled');if(performance.now()>deadline)throw Error('observation-deadline');cadence();const storage=storageNow();if(storage.capExceeded){rootDiagnostic('root-cap');throw Error('observation-root-cap');}const traceFailure=processes.find(p=>p.completionTrace?.error||p.resourceTrace?.error||(memoryObserve&&p.memoryTrace?.error));if(traceFailure)throw Error('resource-trace-collection:'+(traceFailure.completionTrace.error||traceFailure.resourceTrace.error||traceFailure.memoryTrace.error));if(processes.some(p=>p.overflow))throw Error('private-log-cap');cadence();}
 async function until(fn,ms=15000){const end=performance.now()+ms;while(performance.now()<end){budget();const v=await fn();if(v)return v;await pause(100);}throw Error('observation-wait-timeout');}
 function environment(http,rtsp,stun){const env={PATH:process.env.PATH,HOME:process.env.HOME,TMPDIR:path.join(root,'tmp')};
   const values={SKIP_LOCAL_ENV:1,SKIP_BUILD:1,SKIP_ENV_CHECK:1,BUILD_DIR:path.join(repo,'build-gst-onnx'),BIN_PATH:path.join(repo,'build-gst-onnx/media_server'),AUTH_MODE:'auto',ENABLE_AI:0,ENABLE_LAB:0,ENABLE_OPS:1,ENABLE_CLIENT:0,ENABLE_YOUTUBE_SOURCE:0,
@@ -163,10 +164,10 @@ async function launch(stun,requiresFrameTrace=true){const http=await reservePort
   const child=spawn(path.join(repo,'server.sh'),['foreground'],{cwd:repo,env:childEnv,stdio:['ignore','pipe','pipe']});
   console.log('[decoder-trace-settings] '+JSON.stringify({pid:child.pid,generatedMode:childEnv.MEDIA_SERVER_VERIFY_FRAME_TRACE,expectedMode:frameTraceMode,observationMs:duration}));
   const log=path.join(root,`server-${processes.length+1}.private.log`),logFd=fs.openSync(log,'wx',0o600);
-  const app={child,http,rtsp,base:`http://127.0.0.1:${http}`,bytes:0,log,logFd,requiresFrameTrace,memoryTrace:memoryAttributionCollector(child.pid,{strict:stateDiagnose}),resourceTrace:resourceTraceCollector(child.pid)};processes.push(app);
+  const app={child,http,rtsp,base:`http://127.0.0.1:${http}`,bytes:0,log,logFd,requiresFrameTrace,completionTrace:completionCollection(),memoryTrace:memoryAttributionCollector(child.pid,{strict:stateDiagnose}),resourceTrace:resourceTraceCollector(child.pid)};processes.push(app);
   app.cleanup=createProcessCleanup({child,ports:[{kind:'http',port:http},{kind:'rtsp',port:rtsp}],stopServer,assertPortClosed});
   child.on('error',()=>{app.error=true;});child.on('close',()=>{app.closed=true;});
-  for(const stream of [child.stdout,child.stderr])stream.on('data',chunk=>{captureBoundedProcessLog(app,chunk,bytes=>fs.writeSync(app.logFd,bytes),()=>child.kill('SIGTERM'));if(stream===child.stderr){collectResourceTrace(app.resourceTrace,chunk);if(memoryObserve)collectMemoryAttribution(app.memoryTrace,chunk);}if(app.resourceTrace.error||(memoryObserve&&app.memoryTrace.error))child.kill('SIGTERM');});
+  for(const stream of [child.stdout,child.stderr])stream.on('data',chunk=>{captureBoundedProcessLog(app,chunk,bytes=>fs.writeSync(app.logFd,bytes),()=>child.kill('SIGTERM'));app.completionTrace.append(chunk,stream===child.stdout?'stdout':'stderr');if(stream===child.stderr){collectResourceTrace(app.resourceTrace,chunk);if(memoryObserve)collectMemoryAttribution(app.memoryTrace,chunk);}if(app.completionTrace.error||app.resourceTrace.error||(memoryObserve&&app.memoryTrace.error))child.kill('SIGTERM');});
   await until(async()=>{if(app.closed||app.error)throw Error('server-start-failed');try{return !!await request(app,'GET','/health');}catch{return false;}});
   if(!auth)auth=await bootstrapRecordingUiAuth(app.base,passwords);
   else{const response=await fetch(app.base+'/login',{method:'POST',body:new URLSearchParams({username:'admin',password:passwords[0]}),redirect:'manual',signal:AbortSignal.timeout(5000)});check(response.status===302,'A restart authenticated login');auth.cookies[0]=response.headers.getSetCookie().map(v=>v.split(';',1)[0]).join('; ');await response.arrayBuffer();}
@@ -349,6 +350,8 @@ finally{
     const blocked=fs.existsSync(path.join(root,'cleanup-blocked'));
     console.log('[server-diagnostic] '+JSON.stringify({pid:app.child.pid,bytes:app.bytes,capturedBytes:Buffer.byteLength(text),sha256:fileHash(app.log),overflow:!!app.overflow,captureError:app.captureError??null,categories,rawBodyPublished:false,privateCaptureDisposition:blocked?'preserved-with-owned-root':'eligible-for-wrapper-cleanup'}));
     if(!processLogCaptureComplete(app,Buffer.byteLength(text))){failed++;console.log('[fail] process-log-collection');}
+    const completion=app.completionTrace.finish();console.log('[completion-collection-summary] '+JSON.stringify(completion));
+    if(completion.status!=='captured'){failed++;console.log('[fail] completion-evidence-collection');}
     console.log('[resource-trace-summary] '+JSON.stringify(finishResourceTrace(app.resourceTrace)));
     if(memoryObserve)console.log('[memory-attribution-summary] '+JSON.stringify(finishMemoryAttribution(app.memoryTrace)));
     const searchFailure=searchFailureSummary(text,app.requiresFrameTrace);console.log('[search-failure-summary] '+JSON.stringify(searchFailure));

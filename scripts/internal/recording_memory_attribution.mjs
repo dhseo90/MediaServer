@@ -1,8 +1,9 @@
+import {diagnosticLines} from './recording_diagnostic_lines.mjs';
 // 숫자 진단만 수집한다. 원문을 다시 보관하거나 로그 한도를 확장하지 않는다.
 const prefix='[memory-attribution] ';
 export function memoryObservationMode(args){return args.length===1&&['--memory-attribution-diagnostic','--state-diagnostic'].includes(args[0]);}
 // 45분은 기존 resource seq와 1:1 대응시켜 중간 owner 누락도 실패로 남긴다.
-export function memoryAttributionCollector(pid,{strict=false}={}){return {pid,strict,carry:'',skip:false,last:null,count:0,error:null,receivedNs:null,phases:{},lastEndNs:0,pendingResource:null};}
+export function memoryAttributionCollector(pid,{strict=false}={}){return {pid,strict,lines:diagnosticLines([prefix,'[recording-resource] '],16383),last:null,count:0,error:null,receivedNs:null,phases:{},lastEndNs:0,pendingResource:null};}
 function acceptResource(state,line){
  const r=JSON.parse(line.slice('[recording-resource] '.length));
  if(state.pendingResource||r.pid!==state.pid||r.seq!==state.count)throw Error('memory-attribution-resource-pair');
@@ -34,13 +35,11 @@ export function validateMemoryAttribution(row,pid){
 }
 export function collectMemoryAttribution(state,chunk){
  if(state.error)return;try{
-  let text=state.carry+chunk.toString();state.carry='';let end;
-  while((end=text.indexOf('\n'))>=0){const line=text.slice(0,end);text=text.slice(end+1);if(state.skip){state.skip=false;continue;}if(state.strict&&line.startsWith('[recording-resource] ')){acceptResource(state,line);continue;}if(!line.startsWith(prefix))continue;if(Buffer.byteLength(line)>16384)throw Error('memory-attribution-line-cap');const row=validateMemoryAttribution(JSON.parse(line.slice(prefix.length)),state.pid);if(state.strict){if(!state.pendingResource||state.pendingResource.phase!==row.phase)throw Error('memory-attribution-resource-pair');if(!row.ticketWitness||!row.ticketWitness.allocator[0]||!row.ticketWitness.allocator[1])throw Error('memory-attribution-required-witness-allocator');state.pendingResource=null;}if(row.sampleStartNs<=state.lastEndNs)throw Error('memory-attribution-clock-reversal');
+  state.lines.append(chunk,(line)=>{if(line.startsWith('[recording-resource] ')){if(state.strict)acceptResource(state,line);return;}if(!line.startsWith(prefix))throw Error('memory-attribution-prefix');const row=validateMemoryAttribution(JSON.parse(line.slice(prefix.length)),state.pid);if(state.strict){if(!state.pendingResource||state.pendingResource.phase!==row.phase)throw Error('memory-attribution-resource-pair');if(!row.ticketWitness||!row.ticketWitness.allocator[0]||!row.ticketWitness.allocator[1])throw Error('memory-attribution-required-witness-allocator');state.pendingResource=null;}if(row.sampleStartNs<=state.lastEndNs)throw Error('memory-attribution-clock-reversal');
    const order=['opened','sample','before-Finish','after-Finish','after-storage-destruction'];
    const prior=state.last?.phase;if(!prior&&row.phase!=='opened')throw Error('memory-attribution-open-missing');
    if(prior&&(order.indexOf(row.phase)<order.indexOf(prior)||(row.phase===prior&&row.phase!=='sample')))throw Error('memory-attribution-phase-order');
-   state.phases[row.phase]=(state.phases[row.phase]??0)+1;state.lastEndNs=row.sampleEndNs;state.last=row;state.receivedNs=Number(process.hrtime.bigint());if(++state.count>1600)throw Error('memory-attribution-sample-cap');}
-  if(text.length>16384){if(text.startsWith(prefix))throw Error('memory-attribution-fragment-cap');text='';state.skip=true;}state.carry=text;
+   state.phases[row.phase]=(state.phases[row.phase]??0)+1;state.lastEndNs=row.sampleEndNs;state.last=row;state.receivedNs=Number(process.hrtime.bigint());if(++state.count>1600)throw Error('memory-attribution-sample-cap');});
  }catch(e){state.error=e.message;}
 }
 export function memoryAttributionSnapshot(state){if(state.error||!state.last)throw Error(state.error||'memory-attribution-missing');if(state.strict&&Number(process.hrtime.bigint())-state.receivedNs>15000000000)throw Error('memory-attribution-stale');return {receivedNs:state.receivedNs,sample:state.last};}
@@ -48,7 +47,7 @@ export function memoryAttributionSnapshot(state){if(state.error||!state.last)thr
 export function finishMemoryAttribution(state){
  if(state.error)throw Error(state.error);
  if(state.pendingResource)throw Error('memory-attribution-resource-pair');
- if(state.carry.startsWith(prefix)||prefix.startsWith(state.carry)&&state.carry.length)throw Error('memory-attribution-incomplete-tail');
+ state.lines.finish();
  for(const phase of ['opened','sample','before-Finish','after-Finish','after-storage-destruction'])if(!state.phases[phase])throw Error('memory-attribution-missing-'+phase);
  const row=state.last;
  if(row.phase!=='after-storage-destruction'||row.residencyUsed||row.models.length||row.snapshotPools.length||row.live.some(n=>n))throw Error('memory-attribution-final-owners');
