@@ -129,6 +129,6 @@
   "historicalEvidence": "R135/R136/R137 historical PASS, R138 attribution, R139–R141 HOLD, R142 compact PASS/capacity unproven unchanged",
   "binding": "not required: product/diagnostic/test/inventory unchanged; documentation-only diff and referenced hash review",
   "independentReview": "143-independent-review.json",
-  "cleanup": "pending remote evidence verification; only owned preflight-record root, no product process/port/container",
+  "cleanup": "complete: owned preflight root removed after remote evidence bytes matched; no product process/port/container created; see 143-closure.json",
   "closure": "143-closure.json"
 }

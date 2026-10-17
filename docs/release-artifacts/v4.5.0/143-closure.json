@@ -1,0 +1,51 @@
+{
+  "schema": "media-server.v450.r143.closure.v1",
+  "decision": "INCOMPLETE_45_PREFLIGHT_BLOCKED",
+  "evidenceVerificationBeforeCleanup": {
+    "commit": "d3353b4d89cf79840bd29764216c7f753ed1c3b3",
+    "remote": "d3353b4d89cf79840bd29764216c7f753ed1c3b3",
+    "verifiedBytes": [
+      {
+        "path": "docs/release-artifacts/v4.5.0/143-preflight.json",
+        "bytes": 3502,
+        "sha256": "8bc08da159901ba1cc293bd47d5a7f0436b1b0fbe57ca63b6487f7bc9763b18f"
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/143-validation.json",
+        "bytes": 5443,
+        "sha256": "90ffe74bd2d08ae52a1daa2c96e84e87211fa29220cb2e457ebd42d7becd594a"
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/143-independent-review.json",
+        "bytes": 1110,
+        "sha256": "af629fdd65928b6823986d2e05f3a482991bcb7b7acd1c3c29e23ed686875b31"
+      }
+    ]
+  },
+  "cleanup": {
+    "ownedRoot": "/private/tmp/media-server-r143-preflight-z40s02ja",
+    "uid": 501,
+    "inode": 175651583,
+    "symlinks": false,
+    "removedFiles": [
+      {
+        "name": "preflight.json",
+        "bytes": 3207,
+        "sha256": "b763ef83c143b6a7f4d4c6b86a3f328831706ebac5c0885d532a4bac132e0151"
+      },
+      {
+        "name": "remote-verification.json",
+        "bytes": 699,
+        "sha256": "d15a254428271e87efa188c051f57a05f8e0024f649dbee642a62ca4b34b4753"
+      }
+    ],
+    "rootAbsent": true,
+    "productProcessesStarted": 0,
+    "portsBound": 0,
+    "containersStarted": 0,
+    "runtimeResourceRelease": "NOT_RUN; no product execution"
+  },
+  "sourceProductTestsUnchanged": true,
+  "historicalResultsUnchanged": true,
+  "finalRemoteClosureVerification": "performed after closure commit; final SHA reported in response"
+}
