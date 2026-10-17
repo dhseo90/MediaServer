@@ -352,6 +352,6 @@
     "rawVsSanitized": "rawSHA/size preserved in manifest; private local paths removed from remote payload, not claimed identical bytes",
     "excluded": "existing original R137/R138 archives, settings/private backup/models/SDK/binaries"
   },
-  "cleanup": "pending remote byte verification",
+  "cleanup": "Completed after remote byte verification; see139-closure.json including recovered absence-check error. Product/runtime build and user files retained.",
   "diagnosticCommit": "79257d22614821f676604cf9194f348a101045c6"
 }

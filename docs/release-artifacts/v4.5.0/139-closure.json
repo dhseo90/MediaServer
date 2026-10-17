@@ -1,0 +1,72 @@
+{
+  "schema": "media-server.v450.r139.closure.v1",
+  "status": "HOLD_45_INSUFFICIENT_EVIDENCE",
+  "remoteBeforeCleanup": {
+    "local": "a472d14e983440fc8ccab45f38cd421852302f04",
+    "remote": "a472d14e983440fc8ccab45f38cd421852302f04",
+    "transport": "GitHub contents API base64 actual bytes at pinned commit; git ls-remote",
+    "files": [
+      {
+        "path": "docs/release-artifacts/v4.5.0/139-execution.tar.gz",
+        "bytes": 34909,
+        "sha256": "b6e61b87ed26847124285d6fb4016b83c52644048ac5ea0e5203cbbdfbb44cae",
+        "remoteByteMatch": true
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/139-validation.json",
+        "bytes": 14981,
+        "sha256": "898034d9c408658d46486b371661c66d04e98e357963dc5b7c00d010ad70823a",
+        "remoteByteMatch": true
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/139-independent-review.json",
+        "bytes": 3062,
+        "sha256": "dbad1db6570634c34f181523ba16403ae21fac339377f074163d2646cefb035e",
+        "remoteByteMatch": true
+      },
+      {
+        "path": "scripts/internal/recording_memory_attribution.mjs",
+        "bytes": 6978,
+        "sha256": "77689f710a11bceddc8287ff386cde2b99a5d2adbf09c7e49908b83345d7edd1",
+        "remoteByteMatch": true
+      },
+      {
+        "path": "scripts/internal/recording_memory_state_preflight.test.mjs",
+        "bytes": 5299,
+        "sha256": "e9a1f12992d30e25136eadc883b99e6faa5b491c64bd1cb084c0b8b870221aec",
+        "remoteByteMatch": true
+      },
+      {
+        "path": "scripts/internal/v450_recording_a_mixed.mjs",
+        "bytes": 55591,
+        "sha256": "a3331fcf118031218fb21d3f93e84c6e197139cab03b351842c6704efc954092",
+        "remoteByteMatch": true
+      }
+    ]
+  },
+  "container": {
+    "name": "media-server-r139-collector",
+    "exitCodeBeforeRemoval": 0,
+    "pidBeforeRemoval": 0,
+    "user": "501:20",
+    "image": "sha256:ce72c8a15363984da642e9964189957896812061c6af1d0ef67e87b38ad5a588",
+    "absent": true,
+    "verification": "docker inspect [] and error:no such object; docker ps -a exact owned name filter empty",
+    "failurePreserved": "docker rm succeeded; following assertion expected capitalized No such object but actual lower-case no such object. Receipt write did not run. Root cleanup then stopped on missing receipt before deletion. Read-only inspection established absence; no second deletion or product execution."
+  },
+  "ownedRootIdentity": {
+    "dev": 16777232,
+    "ino": 175637563,
+    "uid": 501
+  },
+  "cleanup": "owned root and marker absent; owned container absent; no product process/port started",
+  "retained": [
+    "repository product/runtime build",
+    "all historical archives",
+    "user settings/private backups/models/SDK"
+  ],
+  "productOrLongrunExecutions": 0,
+  "ownedPortListeners": 0,
+  "failureChildGroup": "existing run_owned receipt confirms absent",
+  "atUtc": "2026-10-17T02:58:38.947726+00:00"
+}
