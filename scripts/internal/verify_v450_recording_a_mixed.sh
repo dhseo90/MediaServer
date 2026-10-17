@@ -25,11 +25,7 @@ export GST_REGISTRY="$observer_run/registry.bin" GST_REGISTRY_1_0="$observer_run
 source "$observer_script/env_common.sh"
 media_server_apply_homebrew_gst_env
 observer_build="$observer_repo/build-gst-onnx"
-node - "$observer_repo" "$observer_build" <<'NODE'
-const fs=require('fs'),path=require('path'),root=process.argv[2],build=process.argv[3];
-const stamp=fs.statSync(path.join(build,'libmedia_server_runtime.a')).mtimeMs;
-function check(dir){for(const name of fs.readdirSync(dir)){const p=path.join(dir,name),s=fs.statSync(p);if(s.isDirectory())check(p);else if(/\.(h|hpp|cpp)$/.test(name)&&s.mtimeMs>stamp)throw Error('stale-product-build');}}check(path.join(root,'include/recording'));check(path.join(root,'src/recording'));
-NODE
+python3 "$observer_script/recording_build_freshness.py" --repo "$observer_repo" --build "$observer_build"
 read -r -a observer_link < "$observer_build/CMakeFiles/media_server.dir/link.txt"
 observer_libs=();observer_found=0
 for token in "${observer_link[@]}";do
