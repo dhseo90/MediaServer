@@ -1,14 +1,14 @@
 {
   "schema": "media-server.v450.r154.closure.v1",
   "decision": "FAIL_BOUNDED_HTTP_CONTRACT",
-  "status": "PRESERVED_LOCAL_REMOTE_AND_CLEANUP_PENDING",
+  "status": "PRESERVED_REMOTE_AND_OWNED_CLEANUP_COMPLETE",
   "baselineHead": "90631f37e5a5b86ad9a59b0de9f7a42e6b4494fc",
   "instrumentationCommit": "6dbc3a79464df059be361cad906955b7c22def45",
   "integratedCycles": 1,
   "reruns": 0,
   "productStarts": 0,
-  "remoteBytesVerified": false,
-  "ownedTemporaryRootRemoved": false,
+  "remoteBytesVerified": true,
+  "ownedTemporaryRootRemoved": true,
   "processPortCheck": "154-process-check.json; no process matches and port refused",
   "historical": {
     "R149Functional45": "FAIL",
@@ -20,5 +20,197 @@
     "Release": "HOLD",
     "new45": "NOT_RUN"
   },
-  "nextExecution": "NOT_AUTHORIZED; separate test-only correlation/fail-fast repair proposal only"
+  "nextExecution": "NOT_AUTHORIZED; separate test-only correlation/fail-fast repair proposal only",
+  "preservationCommit": "b928c2d0edd381e7dd1d458336aad520c5d031c0",
+  "remoteVerification": {
+    "remoteHead": "b928c2d0edd381e7dd1d458336aad520c5d031c0",
+    "files": [
+      {
+        "path": "docs/release-artifacts/v4.5.0/154-analysis.json",
+        "bytes": 11882,
+        "sha256": "5edc4d15e00633ee6f42739b805ba54653845049ec4e2903ecb554aa2d859fe0",
+        "gitBlob": "83ac9776721baf532e37adb3d8e99478ba199b64"
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/154-attribution.json",
+        "bytes": 98,
+        "sha256": "43242dbf8e040ddb4a1ead1750d445b4ad3890f79a6449081c7e47ae11370470",
+        "gitBlob": "bf55a26ab0541b7406b64b376368cf088b0bccfa"
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/154-closure.json",
+        "bytes": 878,
+        "sha256": "d0c29112ae735ee36173b1fdcc2d29390994d8975c9573c6e4001827cc9298b8",
+        "gitBlob": "bbef338a7b5a2fc0d32a9f46404cceda834c640c"
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/154-coverage.log",
+        "bytes": 604,
+        "sha256": "f3dd9d2ec3cd35ce7a806a391b6918dddd2c2377ca3039afa624f484985f9bce",
+        "gitBlob": "5b68f8366d7bc18014c071e7513e9c80dafb8cfc"
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/154-events.json",
+        "bytes": 14441,
+        "sha256": "f8fb6c1ae3afad74deaf6d31dd375dd68e94bd5d1a9a7c32a23eadeb24171fa2",
+        "gitBlob": "b8e87f03aa774a4e3e43582bae81508ec3b7a098"
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/154-execution.json",
+        "bytes": 22481,
+        "sha256": "707a8b86014d5bd10b3667c0b71158ae7dab1a28977df8660e1d6982bd301cc8",
+        "gitBlob": "2b15544b4cbe763476f307b142d5a6a0760db2f0"
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/154-focused-native-source.cpp.txt",
+        "bytes": 7443,
+        "sha256": "042bd5fa83b9902ac29f3e84e4a8afcc6bdd88022f226ac04bf5159e4740d8d5",
+        "gitBlob": "429305159188fe6e2affb0f1545d44cc39600d60"
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/154-focused-native.json",
+        "bytes": 68,
+        "sha256": "2ee5b444eecbdb5fbbc1eb0b6008bae0e8fcce8017960e3a31e5ddb34c092942",
+        "gitBlob": "84d0b3f03ad21b9989d4906fc96e4bfb139b5e09"
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/154-focused-native.log",
+        "bytes": 3340,
+        "sha256": "b65b988374136204ce4177a01ed57179cc4f9ff94760f39f8fce0e3b9f3bd01c",
+        "gitBlob": "f793a2bbe53e6db2d08e7f615507d58866e0fc05"
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/154-focused-python-final.log",
+        "bytes": 126,
+        "sha256": "28030ee58d7c154ad512e11c0430c1b8d88f6192319a34832c5b2dbc95c3074b",
+        "gitBlob": "5334a68b248b7efa87ad228ff5dbfdef15b871c0"
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/154-focused-python-initial.log",
+        "bytes": 120,
+        "sha256": "6cc13b4201b0100695e0534f1bd3ff8c55c576a098dc02d14956aedc3e229386",
+        "gitBlob": "9debcf3fcae0ef3811399eae4e0c7390b01a9670"
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/154-focused-python-intermediate.log",
+        "bytes": 122,
+        "sha256": "f22730652b32d926fc08de44dbd6e2bddd9e4d4b49551541d955775fed9913cb",
+        "gitBlob": "c46e8de3861f92a9821a0ded27b8c197591e9a12"
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/154-independent-review.json",
+        "bytes": 2138,
+        "sha256": "7fda7111cc492d6d04558a2c0352cca3c0f8ce77f3dc4c6b5cdf865e693b9971",
+        "gitBlob": "b53e1109e9f7bc4bd13cad974e2fdd8ea25f39db"
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/154-input-summary.json",
+        "bytes": 8837,
+        "sha256": "99bf114251fe2db578b516e0d62c59e43662c5b1acd3ad34676e0cfa18ab473e",
+        "gitBlob": "36539821b73ada9a77efb21ccdb90e527a47c43b"
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/154-instrumentation.json",
+        "bytes": 29829,
+        "sha256": "961501ad370e47d27d9d469b7514ad0c68a2ae055a5bd2adb8db77fe9ffa4789",
+        "gitBlob": "d76e4db9ecffc290b311b31bafd6802537783f48"
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/154-link-summary.json",
+        "bytes": 20225,
+        "sha256": "66f12869a288c0883b41a4d16a150acbc9933341a4398a7c981c2c4864ca3e27",
+        "gitBlob": "7c3a69c4ddf1d883a6a881fe14e11143eda4648b"
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/154-output.log",
+        "bytes": 157383,
+        "sha256": "2f7cd5d907c0efb5c8efc9c06ea08959bcc2f7628b6f149e487bc6719b3e7401",
+        "gitBlob": "97e4aced0c41889bd317048f184006f03a5842ae"
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/154-overlay.diff",
+        "bytes": 19335,
+        "sha256": "8d321523acf22c9470663c0b31b68320df10875a6cc72c92d2dc91a6669cfed1",
+        "gitBlob": "f05ceccf1b646dbb9b807cd2e38d6477ed820c9c"
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/154-plan.json",
+        "bytes": 473,
+        "sha256": "641ab9841b5b7f15f9edfb34be837c16a317fca2df0aae394bc9b4f8ccf89640",
+        "gitBlob": "634336a66dc7307f63bc795b0a47d42f44a823da"
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/154-process-check.json",
+        "bytes": 347,
+        "sha256": "f2f8ecd24ef015582d747ce80c78b46e1c063e0b7c4ef28f7dfb935eeed6ff4b",
+        "gitBlob": "dc51817f469f08bc4482f3a31e88a95deb5a3ab9"
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/154-producer.log",
+        "bytes": 12812,
+        "sha256": "d044f8ac77f4e3e0a7ee0672c9d63381151b9f522393a0aa536f910913ef258f",
+        "gitBlob": "f64b18be08c71f24698fe7cfc589c488254cf151"
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/154-r153-regression.log",
+        "bytes": 129,
+        "sha256": "9e6ab18ec395d55fc7df079f87c6b6c1f9788fba627887914f057e3f76f0e1c4",
+        "gitBlob": "a4b4f11d27ca03c9f12e38fc9fffa149feaf3ef7"
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/154-readback.log",
+        "bytes": 1141,
+        "sha256": "f004e8a145e0b287322992e5f2f9c356c12a495834505e9ea79a414fd1f6b6f7",
+        "gitBlob": "b4a5d89f075d1ed245bcb2d4a761fd44a69e2ce9"
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/154-red.log",
+        "bytes": 857,
+        "sha256": "e10ebd9e63cb1e174008e41a7fd4fb0ef5b49dc0718f22abe71456fbdf54b94a",
+        "gitBlob": "a71c94069faf0f2f73fd7c2ca41c2b560c9f584e"
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/154-review-preflight.json",
+        "bytes": 961,
+        "sha256": "953f3f1cde25a8b4af403fb532965be55e88a754e3e548fdadd2d6568b1a657f",
+        "gitBlob": "f93cc85c6c1300ba6c2066257919f566464082b6"
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/154-run-input-binding.json",
+        "bytes": 53651,
+        "sha256": "582948cebedb2565c4a266b7e19049f08af54c011f939ec586ab776fdd89b748",
+        "gitBlob": "f0a32a3f39f3ff4e2cd458d75119b19874ad10e6"
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/154-validation.json",
+        "bytes": 17844,
+        "sha256": "da0dee4a07edb366e6b78317ecadcb1e7150780bc26984b5de205ee08db63528",
+        "gitBlob": "378e835b197fa4ff69c312c4df2d739ab5e28cf4"
+      }
+    ],
+    "totalBytes": 387565,
+    "byteExact": true,
+    "method": "GitHub contents API at exact pushed commit, base64 decoded actual bytes compared to local"
+  },
+  "cleanup": {
+    "rootBasename": "media-server-r154-cpitq52c",
+    "device": 16777232,
+    "inode": 175806386,
+    "uidMatched": true,
+    "entries": 281,
+    "regularFileBytes": 394063606,
+    "symlinksOrForeignOwners": [],
+    "pathAbsentAfterRemoval": true,
+    "recordedPidsAbsent": [
+      21595,
+      21599
+    ],
+    "ownedProcessMatches": [],
+    "port": 51907,
+    "connectResult": 61,
+    "noOwnedContainersCreated": true,
+    "removed": "only owned synthetic media, temporary native binaries/build outputs and raw logs after remote sanitized evidence byte verification",
+    "preservedOutsideRoot": "user settings/private backups/models/SDK and fixed binaries unchanged"
+  },
+  "closedAt": "2026-10-17T19:21:20.511251+00:00"
 }
