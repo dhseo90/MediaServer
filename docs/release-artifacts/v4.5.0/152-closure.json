@@ -1,7 +1,7 @@
 {
   "schema": "media-server.v450.r152.closure.v1",
   "decision": "FAIL_FIXTURE_CONTRACT",
-  "status": "PENDING_REMOTE_PRESERVATION",
+  "status": "PRESERVED_AND_OWNED_CLEANUP_COMPLETE",
   "baselineHead": "869725887616e12941cd10e26158ddbe8c12d4b1",
   "scope": "preserve failed fixture and evidence; no remediation/rerun",
   "processes": {
@@ -12,8 +12,8 @@
     "groupsAbsentAtRunnerExit": true,
     "portsAllocated": 0
   },
-  "remoteBytesVerified": false,
-  "ownedTemporaryRootRemoved": false,
+  "remoteBytesVerified": true,
+  "ownedTemporaryRootRemoved": true,
   "historical": {
     "R149Functional45": "FAIL",
     "R149Collection45": "INCOMPLETE",
@@ -22,5 +22,136 @@
     "Release": "HOLD",
     "new45": "NOT_RUN",
     "R150": "conversation read-only analysis; no invented execution artifact"
-  }
+  },
+  "fixtureCommit": "0f46f93af",
+  "preservationCommit": "9ae8568c90bff1229fc75f67c6846648113ae239",
+  "remoteVerification": {
+    "remoteHead": "9ae8568c90bff1229fc75f67c6846648113ae239",
+    "files": [
+      {
+        "path": "docs/release-artifacts/v4.5.0/152-active-2.jsonl",
+        "bytes": 161596,
+        "sha256": "43868a0a04f2ae3a295260a87fee68721d5cecf596269ac12074e03e722746f9",
+        "gitBlob": "50b58580c1bb624e9ad305e69a70845e6190593e"
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/152-closure.json",
+        "bytes": 784,
+        "sha256": "cb45e6f6424ab074a3109014cd8d46d2c04bc3fc979d242dd624d0ae0b666816",
+        "gitBlob": "d75c6456adc710b33068908284a3ab8d548088c1"
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/152-compile-first-failure.log",
+        "bytes": 510,
+        "sha256": "a7c88acfb42c40eb7343f5660e1eb525dc7e1ca238acb6356e987556a4d1879a",
+        "gitBlob": "d482bf44a8ba2c8d515d9f4d9f71b0087c162e40"
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/152-compile-second-failure.log",
+        "bytes": 331,
+        "sha256": "3a603434127fa2d1fd9abd4f9ae3e975dca4020aea1b8d6825a83443236e7188",
+        "gitBlob": "c39464b7c7a9f085e68861afe6488910ae190e55"
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/152-coverage.log",
+        "bytes": 604,
+        "sha256": "f3dd9d2ec3cd35ce7a806a391b6918dddd2c2377ca3039afa624f484985f9bce",
+        "gitBlob": "5b68f8366d7bc18014c071e7513e9c80dafb8cfc"
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/152-events.json",
+        "bytes": 406,
+        "sha256": "dc71cd8d33a2555b662e722005fa00f5c92f4bdab14f8ac92db813f194277901",
+        "gitBlob": "c7cd10c91c96362603fb788390a68f2c91773966"
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/152-evidence-2-0.jsonl",
+        "bytes": 9935,
+        "sha256": "f257f5e740050a769ca13049910c6d6ea747ff00136f69d89392bffb24650e49",
+        "gitBlob": "c1151332214e593f62cccb1379c5c6f28a7c676d"
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/152-execution.json",
+        "bytes": 20053,
+        "sha256": "16b6e067f9208a896e2253ca69517405d7b9c8e4aee9b0a7ddc82e3d8b5c6cd5",
+        "gitBlob": "9ef6ddf9e644b1de55489ef620cb6fbb5ef3f245"
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/152-focused.log",
+        "bytes": 119,
+        "sha256": "244d5a0653221273c834694f46b92cd90f3b359bced7158e649fb89aef49f477",
+        "gitBlob": "c432f5a45c56e55a592644a1bc622af87d0152b9"
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/152-independent-review.json",
+        "bytes": 2192,
+        "sha256": "8fa21684398904907df703848d93483551ecb757dcdf202b6a8f665140f3a2e1",
+        "gitBlob": "d6346c032e92c025883b5c731630a2de88adc546"
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/152-input-summary.json",
+        "bytes": 11627,
+        "sha256": "33391d4147123a8878e46f165b80abbc4265b3a924e8c62266d6b3a58f929c51",
+        "gitBlob": "75b247bbf04aa6f71fe03e922b2808e96a8becfb"
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/152-output.log",
+        "bytes": 6262,
+        "sha256": "d52bf1beb352d889688c14c125a6a7c7c6e1eb3859faf22790b57e43b4f31626",
+        "gitBlob": "da85eef50bc17e420da04e0da59889d5d7ca7871"
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/152-plan.json",
+        "bytes": 1678,
+        "sha256": "41d631b2511a26ef0186f30966cc10969d7fbe5e031ffe5689a69697c99cc278",
+        "gitBlob": "e162bf1dfe395b816149c57e0318260093a6f482"
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/152-producer.log",
+        "bytes": 12812,
+        "sha256": "d044f8ac77f4e3e0a7ee0672c9d63381151b9f522393a0aa536f910913ef258f",
+        "gitBlob": "f64b18be08c71f24698fe7cfc589c488254cf151"
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/152-readback.log",
+        "bytes": 1141,
+        "sha256": "f004e8a145e0b287322992e5f2f9c356c12a495834505e9ea79a414fd1f6b6f7",
+        "gitBlob": "b4a5d89f075d1ed245bcb2d4a761fd44a69e2ce9"
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/152-snapshot-2.jsonl",
+        "bytes": 6130,
+        "sha256": "4662701fc5d117dbbbe047e02e00573b88c23cf3345b33d92b23f8fbe6976907",
+        "gitBlob": "66efb810bba3d848dc0868932cff85727a757d2e"
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/152-validation.json",
+        "bytes": 33071,
+        "sha256": "9042c4b798c8b7f367b1d4f72347015b7b1166f21abc5259fa85ab38cf8d2dee",
+        "gitBlob": "68fd62728ff0ba48fe57861e5853e23775ff6327"
+      }
+    ],
+    "totalBytes": 269251,
+    "byteExact": true
+  },
+  "cleanup": {
+    "rootBasename": "media-server-r152-s13x37fm",
+    "device": 16777232,
+    "inode": 175787716,
+    "uidMatched": true,
+    "noSymlinksOrForeignOwners": true,
+    "pathAbsentAfterRemoval": true,
+    "processCheck": {
+      "recordedPidsAbsent": [
+        14476,
+        14478
+      ],
+      "ownedCommandMatches": [],
+      "portCheck": "HTTP server Start not reached; no fixture port allocated",
+      "runnerGroupsAbsent": true
+    },
+    "removed": "only task-owned synthetic media, temporary binaries/build outputs and raw logs after sanitized evidence remote byte verification",
+    "preservedOutsideRoot": "user settings/private backups/models/SDK unchanged"
+  },
+  "closedAt": "2026-10-17T17:59:38.292194+00:00"
 }

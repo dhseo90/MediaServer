@@ -484,11 +484,13 @@
     }
   },
   "cleanup": {
-    "pendingRemotePreservation": true,
+    "pendingRemotePreservation": false,
     "root": "exclusive media-server-r152-s13x37fm",
     "processGroupsReaped": true,
     "portStarted": false,
-    "note": "early cleanup Finish succeeded before first-failure output; no normal cycle/owner0 PASS. Initial bounded observer one complete sample only."
+    "note": "early cleanup Finish succeeded before first-failure output; no normal cycle/owner0 PASS. Initial bounded observer one complete sample only.",
+    "finalClosure": "152-closure.json",
+    "ownedRootRemovedAfterRemoteVerification": true
   },
   "historical": {
     "R149Functional45": "FAIL",
