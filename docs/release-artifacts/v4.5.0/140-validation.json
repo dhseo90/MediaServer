@@ -1,0 +1,284 @@
+{
+  "schema": "media-server.v450.r140.validation.v1",
+  "decision": "HOLD_45_LOG_BUDGET_PROOF_GAP",
+  "goalComplete": false,
+  "meaning": "source-derived normal45 log capacity proof incomplete; bounded source analysis and synthetic findings preserved",
+  "baselineHead": "cccc370dc1fb87a98172b0132199bbde2fe8df41",
+  "baselineTree": "b92366a5df0cd67455f93a9dc301380aa471b6bb",
+  "productFunctionalReference": "c438911431c631d239580367eee4a2c7e22045de",
+  "productComparedToR139": "src/include unchanged, no build or run",
+  "model": {
+    "requestedMain": "GPT-6 Astra / High",
+    "mainToolAcceptance": null,
+    "mainActualRuntimeModel": null,
+    "mainActualRuntimeEffort": null,
+    "requestedReviewer": "GPT-6 Astra / High",
+    "reviewerFollowupAcceptance": "existing independent reviewer task accepted; current model/effort not exposed",
+    "reviewerActualRuntimeModel": null,
+    "reviewerActualRuntimeEffort": null
+  },
+  "products": {
+    "build-gst-onnx/media_server": {
+      "sha256": "44212bf0f988456f6b2b25bb4e04f6c065b8461c5c640dffa132fc23343ce93c",
+      "bytes": 37996528,
+      "executed": false
+    },
+    "build-gst-onnx/libmedia_server_runtime.a": {
+      "sha256": "2c8c5a8461ea0f8438364f8b084b7919af532fc9c331bcfde5b0f14ad484c0af",
+      "bytes": 113117768,
+      "executed": false
+    }
+  },
+  "profile": "continuous-r114,2channels,2ssegment,108MiB/channel,S71237,640MiB RAM,448MiB live",
+  "executionCounts": {
+    "product": 0,
+    "45min": 0,
+    "600s": 0,
+    "900s": 0,
+    "120min": 0,
+    "newJSFocused": 1,
+    "newNativeFormatOnly": 1
+  },
+  "budget": {
+    "decision": "HOLD_45_LOG_BUDGET_PROOF_GAP",
+    "productRuns": 0,
+    "longRuns": 0,
+    "caps": {
+      "memoryEmittedRecordStrictlyLessThan": 16384,
+      "processStdoutPlusStderrInclusive": 4194304
+    },
+    "rowCounts": {
+      "main2700UpperWithFourBoundaries": 544,
+      "entire2880BudgetConservativeUpper": 580,
+      "emitterSequenceCap": 1600,
+      "condition": "one PID; Poll cannot emit faster than5s; four explicit boundaries; budget includes startup/shutdown"
+    },
+    "fixedWidths": {
+      "tickets": 13,
+      "sites": 15,
+      "siteFields": 13,
+      "live": 14,
+      "peak": 14,
+      "totals": 20,
+      "recentEventsCap": 32
+    },
+    "formalEnvelope": {
+      "uint64Max": 18446744073709551615,
+      "modelSlots": 128,
+      "poolSlots": 16,
+      "bytes": 30239,
+      "componentBytes": {
+        "pid": 17,
+        "phase": 36,
+        "sampleStartNs": 37,
+        "ownerCapturedNs": 39,
+        "rolesCapturedNs": 39,
+        "processCapturedNs": 41,
+        "rssBytes": 31,
+        "footprintBytes": 37,
+        "residencyUsed": 37,
+        "attributedSearchBytes": 45,
+        "unattributedSearchBytes": 47,
+        "valid": 14,
+        "loss": 13,
+        "tickets": 742,
+        "ticketWitness": 5443,
+        "models": 15243,
+        "snapshotPools": 3170,
+        "live": 303,
+        "peak": 303,
+        "totals": 431,
+        "recentEvents": 4113,
+        "sampleEndNs": 34,
+        "envelope": 24
+      },
+      "feasible": false,
+      "reason": "type/registry envelope only; violates owner/clock/conservation constraints; not BLOCKED proof"
+    },
+    "safeIntegerEnvelope": {
+      "bytes": 24997,
+      "feasible": false,
+      "reason": "collector scalar representation only; not simultaneous-state proof"
+    },
+    "formalWithoutModelsPools": {
+      "bytes": 11857,
+      "componentBytes": {
+        "pid": 17,
+        "phase": 36,
+        "sampleStartNs": 37,
+        "ownerCapturedNs": 39,
+        "rolesCapturedNs": 39,
+        "processCapturedNs": 41,
+        "rssBytes": 31,
+        "footprintBytes": 37,
+        "residencyUsed": 37,
+        "attributedSearchBytes": 45,
+        "unattributedSearchBytes": 47,
+        "valid": 14,
+        "loss": 13,
+        "tickets": 742,
+        "ticketWitness": 5443,
+        "models": 12,
+        "snapshotPools": 19,
+        "live": 303,
+        "peak": 303,
+        "totals": 431,
+        "recentEvents": 4113,
+        "sampleEndNs": 34,
+        "envelope": 24
+      },
+      "feasible": false
+    },
+    "modelIncrementBytesAtUint64Width": 119,
+    "poolIncrementBytesAtUint64Width": 197,
+    "provedNormalMaximumRecordBytes": null,
+    "provedNormalProcessBytes": null,
+    "provedDeletionBytes": null,
+    "emittedMemoryTransportCeiling": 16383,
+    "memoryTransportOnly580RowCeiling": 9502140,
+    "transportCeilingIsCapacityProof": false,
+    "historical139": {
+      "representative": 3456040,
+      "numericSensitivity": 4230340,
+      "excess": 36036,
+      "notSourceFeasibleProof": true
+    },
+    "sumSets": [
+      "memory",
+      "resource",
+      "completion+evidence(shared cap)",
+      "state/deletion-related",
+      "search+visual",
+      "startup/shutdown+other"
+    ],
+    "combination": "Do not add registry/type maxima as a simultaneously reachable execution. Normal workload sum remains unknown."
+  },
+  "prefixTable": "140-log-budget.md",
+  "focused": {
+    "status": "PASS_OBSERVATIONS_NOT_READINESS",
+    "negativeCases": [
+      "missing-opened",
+      "missing-sample",
+      "missing-before-Finish",
+      "missing-after-Finish",
+      "missing-after-storage-destruction",
+      "bad-owner",
+      "bad-owner",
+      "missing-owner",
+      "missing-resource"
+    ],
+    "lineBoundaries": [
+      {
+        "wireBytes": 16383,
+        "collectorAccepted": true,
+        "emitterContractAllows": true
+      },
+      {
+        "wireBytes": 16384,
+        "collectorAccepted": true,
+        "emitterContractAllows": false
+      },
+      {
+        "wireBytes": 16385,
+        "collectorAccepted": true,
+        "emitterContractAllows": false
+      },
+      {
+        "wireBytes": 16386,
+        "collectorAccepted": false,
+        "emitterContractAllows": false
+      }
+    ],
+    "totalBoundaries": [
+      {
+        "combinedBytes": 4194303,
+        "capturedBytes": 4194303,
+        "complete": true,
+        "stopCalls": 0
+      },
+      {
+        "combinedBytes": 4194304,
+        "capturedBytes": 4194304,
+        "complete": true,
+        "stopCalls": 0
+      },
+      {
+        "combinedBytes": 4194305,
+        "capturedBytes": 2097152,
+        "complete": false,
+        "stopCalls": 1
+      }
+    ],
+    "shortWriteStopped": true,
+    "normalSyntheticFinalOwnerZero": true,
+    "completionLossTransportAccepted": true,
+    "completionLossNotConsumedByMixed": true,
+    "actualDeletionExecution": false,
+    "maximumLiveModelFeasibility": "unknown",
+    "productRuns": 0,
+    "longRuns": 0
+  },
+  "native": {
+    "status": "PASS",
+    "emptyRecordBytes": 1508,
+    "oversizeAtomicRefusal": true,
+    "productExecution": false,
+    "ownershipFeasibilityProved": false
+  },
+  "platform": {
+    "macOS": "test-only JS/Python/native format unit completed",
+    "newLinux": "not-run; no product/shared collector changes; R139/R138 unchanged Linux evidence reused only its original scope"
+  },
+  "gaps": [
+    "actual simultaneously live structured model bound unresolved",
+    "normal count/bytes coupling including deletion-induced transitions unresolved",
+    "complete startup/runtime normal output envelope unresolved",
+    "memory collector wire boundary differs from emitter strict16384",
+    "completion/evidence self-limit loss not explicitly rejected by mixed consumer"
+  ],
+  "notProved": [
+    "source-feasible cap overflow",
+    "normal45 total fit",
+    "deletion-stage full byte sum",
+    "full heap ownership/leak result"
+  ],
+  "nextMinimalApproval": "collector newline/loss/end-count contract alignment and ownership/output envelope or lossless schema work; no automatic implementation",
+  "binding": {
+    "producer": {
+      "exit": 0,
+      "pass": 51,
+      "fail": 0
+    },
+    "readback": {
+      "exit": 0,
+      "validationErrors": 0,
+      "review4GlobalErrors": 0,
+      "negativeFixtures": "15/15"
+    },
+    "coverage": {
+      "exit": 0,
+      "covered": 986,
+      "missing": 0,
+      "pass": 9,
+      "fail": 0
+    },
+    "fixtureDelta": "inventorySha256 only;986 entries unchanged"
+  },
+  "archive": {
+    "path": "140-execution.tar.gz",
+    "bytes": 24990,
+    "sha256": "27c020c48cbef17c8310c6a4ae307cdd6d6fef0d9bc7c9e7ec4209f6706b77b0",
+    "payloadFiles": 18,
+    "localReadback": "all member hashes match",
+    "rawVsSanitized": "per member manifest hashes; no product/runtime binary payload"
+  },
+  "analysisCorrection": {
+    "initialOutputTypeOnlyEnvelope": 30249,
+    "sourceAllocatorBlocksUnsignedCorrectedEnvelope": 30239,
+    "reason": "blocks_in_use source unsigned width, not uint64 source width; both infeasible envelopes, no readiness promotion"
+  },
+  "testCommit": "f6e2f438daa9e98c546827d8e14aafe27051ec10",
+  "independentReview": "140-independent-review.json: local archive/bounded report PASS; readiness HOLD",
+  "cleanupAtEvidenceCommit": "pending remote byte verification; owned synthetic root only; no product/server process, listening port, or container created",
+  "finalClosure": "140-closure.json"
+}
