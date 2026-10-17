@@ -11,7 +11,7 @@ def replace(s,old,new,count=1):
 def generate(out):
     out.mkdir(mode=0o700)
     result={}
-    names=['src/recording/recording_catalog.cpp','src/recording/recording_search_reader.cpp','src/ingress/recording_search_application_service.cpp','src/ingress/webrtc_http_server_runtime.cpp','src/ingress/webrtc_http_server.cpp','scripts/internal/recording_accumulated_http_smoke.cpp']
+    names=['src/recording/recording_read_service.cpp','src/recording/recording_catalog.cpp','src/recording/recording_search_reader.cpp','src/ingress/recording_search_application_service.cpp','src/ingress/webrtc_http_server_runtime.cpp','src/ingress/webrtc_http_server.cpp','scripts/internal/recording_accumulated_http_smoke.cpp']
     for name in names:
         raw=(REPO/name).read_text();s=raw
         if name.endswith('recording_catalog.cpp'):
@@ -47,6 +47,9 @@ def generate(out):
             s=s[:start]+f+s[end:]
         elif name.endswith('recording_search_application_service.cpp'):
             s=replace(s,'recording::SearchDiagnostic diagnostic(catalog_.SearchResidency().get());','recording::SearchDiagnostic diagnostic(catalog_.SearchResidency().get());r154::Search search_probe(diagnostic);')
+        elif name.endswith('recording_read_service.cpp'):
+            from recording_http_currentness_overlay import read
+            s=read(s)
         elif name.endswith('webrtc_http_server.cpp'):
             s=replace(s,'std::optional<HttpRequest> ReadHttpRequest(int client_fd, HttpResponse* error_response) {','std::optional<HttpRequest> ReadHttpRequest(int client_fd, HttpResponse* error_response) {\n    r154::header_count=0;')
             s=replace(s,'        request.headers[key] = value;','        r154::HeaderSeen(key);request.headers[key] = value;')
@@ -67,6 +70,9 @@ def generate(out):
             s=replace(s,'NeedHttp(webrtc_http_server_detail::SendAll(c.fd,request),"send");','client_probe.sendBegin=r154::Tick();NeedHttp(webrtc_http_server_detail::SendAll(c.fd,request),"send");client_probe.sendEnd=r154::Tick();')
             s=replace(s,'for(auto& c:sockets){c.fd=socket','for(auto& c:sockets){r154::connects[9+(&c-sockets.data())][0]=r154::Tick();c.fd=socket')
             s=replace(s,'"parallel connect");}','"parallel connect");r154::connects[9+(&c-sockets.data())][1]=r154::Tick();}')
-        path=out/Path(name).name;path.write_text('#include "recording_http_cost_probe.h"\n'+s)
+        if name.endswith('recording_search_application_service.cpp'):
+            from recording_http_currentness_overlay import search
+            s=search(s)
+        path=out/Path(name).name;path.write_text('#include "recording_http_currentness_probe.h"\n'+s)
         result[name]={'originalSha256':hashlib.sha256(raw.encode()).hexdigest(),'overlaySha256':hashlib.sha256(path.read_bytes()).hexdigest(),'overlay':path.name}
     return result

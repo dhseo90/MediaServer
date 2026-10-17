@@ -74,6 +74,8 @@ class Streaming(unittest.TestCase):
   bad=copy.deepcopy(rows[1][1]);bad['id']=0
   loss=copy.deepcopy(rows[1][1]);loss['loss']=True
   cases={
+   'currentness-loss':['[R156-currentness] '+json.dumps(dict(schema=1,id=10,method='GET',routeClass='structured-search',complete=True,loss=True))+'\n'],
+   'currentness-malformed':['[R156-currentness] {oops}\n'],
    'id0':['[R154-server] '+json.dumps(bad)+'\n'],
    'loss':['[R154-server] '+json.dumps(loss)+'\n'],
    'explicit':['[R154-loss]\n'],
@@ -111,6 +113,7 @@ class Streaming(unittest.TestCase):
 
     record=json.loads((root/'run/execution.json').read_text());output=(root/'run/output.log').read_bytes()
     self.assertEqual(rc,1);self.assertTrue(record['groupsAbsent']);self.assertEqual(record['seedStarts'],1);self.assertEqual(record['fixtureStarts'],0)
+    if name=='currentness-loss':self.assertEqual(record['firstDiagnosticFailure']['requestId'],10)
     if name=='parallel-order':self.assertEqual(record['firstDiagnosticFailure']['line'],len(rows)+1)
     if name=='cleanup-error':
      self.assertEqual(record['firstDiagnosticFailure']['code'],'trace-loss-marker');self.assertTrue(record['cleanupErrors']);self.assertEqual(record['firstFailure'],'diagnostic trace-loss-marker')

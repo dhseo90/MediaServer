@@ -4,6 +4,7 @@ import argparse,importlib.util,json,os,shlex,subprocess,time
 from pathlib import Path
 import recording_accumulated_http_run as base
 from recording_http_cost_overlay import generate
+import recording_http_currentness as currentness
 REPO=base.REPO
 METRICS=['Capture','Sort','Group','Consumer','Locate','Validate1','Build','Validate2','Original','Segment','Lifecycle','Acquire','BinarySearch','CatalogAcquireScope','CatalogOwnedScope']
 COUNTERS=['BindingsTotal','Scanned','NonNull','SegmentLookups','LifecycleChecks','ChannelMatches','SourceMatches','GenerationMatches','FullMatches','OwnedAcquisitions','BinarySearches','Exact','Unknown','OtherChannel','OtherSegment','OtherLifecycle','Pending','UniqueKeys']
@@ -19,6 +20,7 @@ class LiveTrace:
     """Only facts decidable from emitted records; absent terminals are final-only."""
     def __init__(self):
         self.first=None
+        self.currentness=set()
         self.seen={k:set() for k in ('client','server','search')}
     def __call__(self,line,context):
         if self.first:raise DiagnosticFailure(self.first)
@@ -26,6 +28,10 @@ class LiveTrace:
         try:
             text=line.decode('utf-8',errors='strict')
             if text.startswith(('[R154-loss]','[search-cost-loss]','[search-failure-loss]','[R153-output-failure]')):raise ValueError('trace-loss-marker')
+            if text.startswith('[R156-currentness]'):
+                kind='currentness';r=json.loads(text[len(currentness.PREFIX):]);currentness.validate(r);i=r['id']
+                if i in self.currentness:raise ValueError('duplicate currentness')
+                self.currentness.add(i);return
             for k in self.seen:
                 if text.startswith('[R154-'+k+']'):
                     kind=k;r=json.loads(text[len(k)+8:]);break
@@ -162,13 +168,17 @@ def build(parent):
     (parent/'focused.cpp').write_text(native)
     compile([*common,'-MMD','-MF',str(parent/'focused.d'),str(parent/'focused.cpp'),*objects,archive,*libs,'-o',str(parent/'focused')],'focused-build')
     compile([*common,'-I'+str(REPO/'src/ingress'),'-MMD','-MF',str(parent/'parser.d'),str(REPO/'scripts/internal/recording_http_cost_parser_smoke.cpp'),*objects,archive,*libs,'-o',str(parent/'parser')],'parser-build')
+    from recording_http_currentness_overlay import focused
+    current_native=focused((REPO/'scripts/internal/recording_accumulated_media_smoke.cpp').read_text(),(REPO/'src/ingress/recording_search_application_service.cpp').read_text(),(parent/'overlay/recording_search_application_service.cpp').read_text())
+    (parent/'currentness-focused.cpp').write_text(current_native)
+    compile([*common,'-MMD','-MF',str(parent/'currentness-focused.d'),str(parent/'currentness-focused.cpp'),*objects,archive,*libs,'-o',str(parent/'currentness-focused')],'currentness-focused-build')
     mapping=(parent/'fixture.map').read_text()
     for name in overlays:
         if name.startswith('scripts/'):continue
         if str(parent/(Path(name).name+'.o')) not in mapping:raise ValueError('overlay object absent from map')
         if '('+Path(name).name+'.o)' in mapping:raise ValueError('original archive member also linked')
     nm=subprocess.check_output(['nm','-gU',str(parent/'fixture')],text=True);(parent/'symbols.txt').write_text(nm)
-    for key in ['ResolveOriginalSample','RecordingApplicationService6Search','RecordingSearchReader7Refresh','ReadHttpRequest']:
+    for key in ['ResolveOriginalSample','RecordingApplicationService6Search','RecordingSearchReader7Refresh','ReadHttpRequest','RecordingReadService23ResolveMediaWithContext']:
         matches=[l for l in nm.splitlines() if key in l and ' T ' in l]
         if len(matches)!=1:raise ValueError('symbol uniqueness '+key+str(matches))
     from recording_build_freshness import depfile
@@ -179,10 +189,10 @@ def build(parent):
             path=Path(name)
             if not path.is_file():raise ValueError('missing dependency')
             if REPO in path.parents:deps[str(path.relative_to(REPO))]=base.digest(path)
-    for p in Path(__file__).parent.glob('recording_http_cost*'):deps[str(p.resolve().relative_to(REPO))]=base.digest(p)
+    for p in Path(__file__).parent.glob('recording_http_*'):deps[str(p.resolve().relative_to(REPO))]=base.digest(p)
     binding={'products':base.fixed_products(),'sources':base.sources(),'dependencies':deps,'binaries':{n:base.digest(parent/n) for n in ['fixture','seed','process-metrics']}}
     (parent/'build-binding.json').write_text(json.dumps(binding,indent=2)+'\n')
-    (parent/'instrumentation.json').write_text(json.dumps({'overlays':overlays,'commands':commands,'objects':{Path(o).name:base.digest(o) for o in objects},'fixtureSha256':base.digest(parent/'fixture'),'mapSha256':base.digest(parent/'fixture.map'),'symbolSha256':base.digest(parent/'symbols.txt'),'parserSha256':base.digest(parent/'parser'),'focusedSha256':base.digest(parent/'focused'),'focusedSourceSha256':base.digest(parent/'focused.cpp')},indent=2)+'\n')
+    (parent/'instrumentation.json').write_text(json.dumps({'overlays':overlays,'commands':commands,'objects':{Path(o).name:base.digest(o) for o in objects},'fixtureSha256':base.digest(parent/'fixture'),'mapSha256':base.digest(parent/'fixture.map'),'symbolSha256':base.digest(parent/'symbols.txt'),'currentnessFocusedSha256':base.digest(parent/'currentness-focused'),'currentnessFocusedSourceSha256':base.digest(parent/'currentness-focused.cpp'),'parserSha256':base.digest(parent/'parser'),'focusedSha256':base.digest(parent/'focused'),'focusedSourceSha256':base.digest(parent/'focused.cpp')},indent=2)+'\n')
 
 def run(parent):
     binding=json.loads((parent/'instrumentation.json').read_text());assert base.digest(parent/'fixture')==binding['fixtureSha256']
@@ -200,6 +210,7 @@ def run(parent):
         if rc:raise ValueError('fixture failed')
         result['traces']=qualify_trace((root/'output.log').read_text().splitlines(),json.loads((root/'events.json').read_text()))
         if any(len(result['traces'][k])!=n for k,n in [('client',28),('server',28),('search',3)]):raise ValueError('required 28/28/3 record count')
+        result['currentness']=currentness.qualify((root/'output.log').read_text().splitlines(),result['traces'])
         result['decision']='ATTRIBUTION_REVIEW_PENDING'
     except Exception as e:result['error']=str(e);rc=1
     result['firstDiagnosticFailure']=json.loads((root/'execution.json').read_text()).get('firstDiagnosticFailure')
