@@ -1,7 +1,8 @@
 """출력 계약에 대한 결정적 반례. 제품 실행/실제 HTTP 성공의 대체가 아니다."""
 import copy
 import unittest
-from recording_accumulated_http_run import qualify, PHASES
+from pathlib import Path
+from recording_accumulated_http_run import qualify, PHASES, failure_summary
 
 def fixture():
     rows=[]
@@ -11,7 +12,10 @@ def fixture():
         row={'phase':phase}
         if phase=='manifest':
             row['rows']=[dict(channel=c,segment=f'{c}-{i}',generation=f'{c}-{i//2}',samples=n,firstOrdinal=(i%2)*60+1,lastOrdinal=(i%2)*60+n,bytes=2654,sha256='a'*64) for c,count,n in [('1',1,30),('9101',8,60),('9201',8,60)] for i in range(count)]
+        if phase=='manifest':
+            for m in row['rows']:m.update(bindingSegment=m['segment'],bindingChannel=m['channel'],inspection=True)
         if phase=='complete':row.update(logicalRam=0,scratch=0,fd=0)
+        if phase=='manifest':rows.extend([dict(phase='media-decode',channel=c,segment=c+'-0',targetNs=0) for c in ('9101','9201')])
         rows.append(row)
         for i in requests.get(phase,[]):
             rows.append(dict(phase='http',id=i,status={1:401,2:403,20:201,40:201,61:201,76:201}.get(i,200),ms=100,bytes=50))
@@ -23,6 +27,13 @@ class Contract(unittest.TestCase):
     def reject(self, change):
         rows=fixture();change(rows)
         with self.assertRaises((ValueError,KeyError,TypeError)):qualify(rows)
+    def test_v2_manifest_contract(self):
+        source=Path(__file__).with_name('recording_accumulated_http_smoke.cpp').read_text()
+        self.assertNotIn('catalog.FindSegmentMediaPath(id)', source)
+        self.assertIn('reader.ResolveMedia(', source)
+    def test_precleanup_capture_contract(self):
+        source=Path(__file__).with_name('recording_accumulated_http_smoke.cpp').read_text()
+        self.assertIn('CaptureFailure153', source)
     def test_complete(self):self.assertEqual(qualify(fixture())['inputSamples'],990)
     def test_missing_phase(self):self.reject(lambda r:r.pop(0))
     def test_duplicate_phase(self):self.reject(lambda r:r.insert(0,copy.deepcopy(r[0])))
@@ -44,6 +55,18 @@ class Contract(unittest.TestCase):
     def test_ordinal(self):self.reject(lambda r:next(x for x in r if x['phase']=='manifest')['rows'][0].update(lastOrdinal=31))
     def test_cleanup_is_not_success(self):self.reject(lambda r:r.insert(-1,dict(phase='failure-cleanup-finish',ok=True)))
     def test_first_error_retained(self):self.reject(lambda r:r.insert(-1,dict(phase='first-failure',error='original')))
+    def test_missing_decode(self):self.reject(lambda r:r.remove(next(x for x in r if x['phase']=='media-decode')))
+    def test_duplicate_decode(self):self.reject(lambda r:r.insert(1,copy.deepcopy(next(x for x in r if x['phase']=='media-decode'))))
+    def test_decode_binding(self):self.reject(lambda r:next(x for x in r if x['phase']=='media-decode').update(segment='absent'))
+    def test_decode_target(self):self.reject(lambda r:next(x for x in r if x['phase']=='media-decode').update(targetNs=1))
+    def test_missing_binding(self):self.reject(lambda r:next(x for x in r if x['phase']=='manifest')['rows'][0].pop('bindingSegment'))
+    def test_binding_identity(self):self.reject(lambda r:next(x for x in r if x['phase']=='manifest')['rows'][0].update(bindingChannel='wrong'))
+    def test_generation(self):self.reject(lambda r:next(x for x in r if x['phase']=='manifest')['rows'][2].update(generation='other'))
+    def test_failure_order(self):
+        rows=[dict(phase='first-failure',error='manifest'),dict(phase='cleanup-error',stage='finish'),dict(phase='failure-cleanup-finish',ok=False),dict(phase='terminal',exit=1,outputFailed=False)]
+        self.assertEqual(failure_summary(rows)['firstFailure'],'manifest')
+        for bad in [rows[1:]+rows[:1], rows[:-1], rows[:1]+rows, [*rows[:-1],dict(phase='terminal',exit=1,outputFailed=True)]]:
+            with self.assertRaises(ValueError):failure_summary(bad)
     def test_owner(self):self.reject(lambda r:r[-1].update(fd=1))
 
 if __name__=='__main__':unittest.main()

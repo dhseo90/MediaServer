@@ -1,0 +1,49 @@
+// R153 focused: no HTTP/server/model cycle; actual V2 media ownership and failure ordering.
+#define RECORDING_ACCUMULATED_NO_MAIN
+#include "recording_accumulated_http_smoke.cpp"
+int main(int argc,char** argv){
+ if(argc!=2||!RecordingWriterTestIsolation(argv[1]))return 2;
+ try {
+  gst_init(nullptr,nullptr);const std::filesystem::path root(argv[1]);
+  recording::RecordingRuntimeStorage runtime(root/"recording");std::string error;
+  NeedHttp(runtime.Open(&error),"focused runtime Open");
+  auto& catalog=runtime.catalog();recording::RecordingReadService reader(catalog);
+  auto input=MixedInput(root);
+  {recording::GStreamerSegmentWriter writer(runtime.WriterOptions(2000));NeedHttp(writer.Start("9101","focused",input.descriptor,[](auto,auto,auto*){return false;},&error),"focused writer");for(const auto& packet:input.packets)writer.Push(packet,0);writer.Stop();}
+  const auto ids=catalog.FinalizedSegmentIdsForStartup();NeedHttp(ids.size()==2,"focused two V2 sources");
+  const auto id=ids.front();const auto row=catalog.FindSegmentV2ById(id);const auto binding=catalog.FindSourceBinding(id);NeedHttp(row&&binding,"focused V2 row/binding");
+  NeedHttp(!catalog.FindSegmentById(id)&&!catalog.FindSegmentMediaPath(id),"V2 only not V1 path");
+  const auto holds=[&]{auto snap=catalog.RetentionSnapshot(recording::RetentionSnapshotSelection::Candidate,id);NeedHttp(snap.authoritative&&snap.candidates.size()==1,"hold authority");return snap.candidates.front().hold_count;};
+  const auto base=holds();
+  VerifyMedia153(catalog,reader,*row,*binding,true);NeedHttp(holds()==base,"verify releases hold");
+  {auto media=reader.ResolveMedia("9101",id);NeedHttp(media&&holds()==base+1,"resolved hold");int fd=media->fd();NeedHttp(FdHash153(fd,row->size_bytes)==row->checksum_sha256,"actual FD bytes");NeedHttp(!catalog.RequestDeletion(id,"continuous-capacity",&error),"held deletion rejected");media.reset();NeedHttp(fcntl(fd,F_GETFD)==-1&&errno==EBADF&&holds()==base,"FD and hold released");}
+  NeedHttp(!reader.ResolveMedia("9201",id)&&holds()==base,"wrong channel rejected");
+  int exceptionFd=-1;bool reachedInjection=false;
+  try{auto held=reader.ResolveMedia("9101",id);NeedHttp(bool(held),"exception held media");exceptionFd=held->fd();NeedHttp(FdHash153(exceptionFd,row->size_bytes)==row->checksum_sha256,"injection FD hash");reachedInjection=true;throw std::runtime_error("injected after FD read");}catch(const std::runtime_error&){}
+  NeedHttp(reachedInjection&&exceptionFd>=0&&fcntl(exceptionFd,F_GETFD)==-1&&errno==EBADF&&holds()==base,"exception after read releases FD hold");
+  int pipes[2];NeedHttp(pipe(pipes)==0,"focused pipe");try{(void)FdHash153(pipes[0],0);throw 1;}catch(const std::runtime_error&){}close(pipes[0]);close(pipes[1]);
+  auto mismatch=*binding;mismatch.channel_id="9201";
+  try{VerifyMedia153(catalog,reader,*row,mismatch,false);throw 1;}catch(const std::runtime_error&){}
+  auto bad=*row;bad.checksum_sha256=std::string(64,'0');
+  try{VerifyMedia153(catalog,reader,bad,*binding,false);throw 1;}catch(const std::runtime_error&){}
+  NeedHttp(holds()==base,"exception holds released");
+  const auto location=catalog.FindSegmentMediaLocation(id);NeedHttp(location.has_value(),"owned mutation location");
+  const auto path=location->first/location->second;const auto saved=Read(path);
+  const auto write=[&](const std::string& bytes){std::ofstream out(path,std::ios::binary|std::ios::trunc);out.write(bytes.data(),bytes.size());out.close();NeedHttp(bool(out),"owned test write");};
+  std::filesystem::remove(path);NeedHttp(!reader.ResolveMedia("9101",id)&&holds()==base,"missing rejected");write(saved);
+  auto tampered=saved;tampered[0]^=1;write(tampered);NeedHttp(!reader.ResolveMedia("9101",id)&&holds()==base,"tampered rejected");write(saved);
+  {auto held=reader.ResolveMedia("9101",id);NeedHttp(bool(held),"hold before short file");write(saved.substr(0,saved.size()-1));try{(void)FdHash153(held->fd(),row->size_bytes);throw 1;}catch(const std::runtime_error&){} }
+  NeedHttp(!reader.ResolveMedia("9101",id)&&holds()==base,"short rejected");write(saved);
+  const auto outside=root/"outside-owned.mp4";{std::ofstream out(outside,std::ios::binary);out.write(saved.data(),saved.size());}
+  std::filesystem::remove(path);std::filesystem::create_symlink(outside,path);NeedHttp(!reader.ResolveMedia("9101",id)&&holds()==base,"symlink escape rejected");std::filesystem::remove(path);write(saved);
+  auto inspection=recording::InspectRecordingPhysicalMedia(root/"recording","../outside-owned.mp4",{row->container,row->video_codecs,row->size_bytes,row->checksum_sha256,row->retention_class});NeedHttp(inspection.state!=recording::MediaInspectionState::Healthy,"relative escape rejected");
+  NeedHttp(catalog.RequestDeletion(id,"continuous-capacity",&error),"delete after release");std::filesystem::remove(path);recording::RecordingTombstoneV2 tomb;tomb.tombstone_id="r153-focused-delete";tomb.segment=*row;tomb.deletion_reason="continuous-capacity";tomb.deleted_at_ms=1791887500000;NeedHttp(catalog.CompleteDeletionV2(tomb,&error),"complete deletion");NeedHttp(!reader.ResolveMedia("9101",id),"deleted rejected");
+  NeedHttp(runtime.Finish(&error),"focused Finish");
+  // Same catch-before-cleanup boundary as the integrated fixture; no deliberate HTTP failure.
+  failed152=false;
+  {struct Cleanup {~Cleanup(){Cleanup153("injected-stop",[]{throw std::runtime_error("secondary");});Event152("failure-cleanup-finish",",\"ok\":true");}} cleanup;
+   try{CaptureFailure153([]{throw std::runtime_error("injected manifest");});}catch(const std::runtime_error&){} }
+  Failure152("must not replace first");Event152("terminal",",\"exit\":1,\"outputFailed\":false");
+  std::cout<<"[R153-focused] actual V2 FD/inspection/decode and negative ownership PASS\n";return 0;
+ }catch(const std::exception& e){std::cerr<<"[R153-focused-failure] "<<e.what()<<"\n";return 1;}
+}

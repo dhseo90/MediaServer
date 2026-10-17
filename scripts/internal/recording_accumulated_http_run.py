@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""R152 owned direct fixture: one seed + one HTTP cycle, total <=180s; no product launch."""
+"""R153 owned direct fixture: one seed + one HTTP cycle, total <=180s; no product launch."""
 import argparse
 import hashlib
 import json
@@ -37,8 +37,18 @@ def sources():
              'recording_visual_contention_observer.mjs', 'recording_process_metrics.cpp']
     return {n: digest(REPO / 'scripts/internal' / n) for n in names}
 
+def failure_summary(rows):
+    first=[(i,r) for i,r in enumerate(rows) if r.get('phase')=='first-failure']
+    terminal=[(i,r) for i,r in enumerate(rows) if r.get('phase')=='terminal']
+    cleanup=[(i,r) for i,r in enumerate(rows) if r.get('phase') in ('cleanup-error','failure-cleanup-finish')]
+    if len(first)!=1 or not first[0][1].get('error'): raise ValueError('missing/duplicate first failure')
+    if len(terminal)!=1 or terminal[0][0]!=len(rows)-1 or terminal[0][1].get('exit')!=1: raise ValueError('missing/invalid failure terminal')
+    if any(i<first[0][0] for i,_ in cleanup):raise ValueError('cleanup before first failure')
+    if terminal[0][1].get('outputFailed') is not False:raise ValueError('diagnostic output failure')
+    return {'firstFailure':first[0][1]['error'],'cleanupEvents':[r for _,r in cleanup]}
+
 def qualify(rows):
-    if any(r.get('phase') in ('first-failure', 'failure-cleanup-finish') for r in rows):
+    if any(r.get('phase') in ('first-failure', 'failure-cleanup-finish', 'cleanup-error', 'terminal') for r in rows):
         raise ValueError('first fixture failure retained')
     if [r['phase'] for r in rows if r['phase'] in PHASES] != PHASES:
         raise ValueError('missing/duplicate/reordered cycle phase')
@@ -63,10 +73,16 @@ def qualify(rows):
     if len([r for r in rows if r['phase'] == 'package-readback']) != 3:
         raise ValueError('required package readback')
     manifest = next(r for r in rows if r['phase'] == 'manifest')['rows']
+    decodes=[(i,r) for i,r in enumerate(rows) if r.get('phase')=='media-decode']
+    if len(decodes)!=2 or {r.get('channel') for _,r in decodes}!={'9101','9201'}:raise ValueError('representative decode count/channel')
+    for i,r in decodes:
+        if r.get('targetNs')!=0 or not positions['seed-verified']<i<positions['manifest'] or not any(m['channel']==r['channel'] and m['segment']==r.get('segment') for m in manifest):raise ValueError('representative decode binding/order')
     seen = set()
     for r in manifest:
         if r['segment'] in seen or r['bytes'] <= 0 or len(r['sha256']) != 64 or not all(c in '0123456789abcdef' for c in r['sha256']):
             raise ValueError('invalid/duplicate input manifest')
+        if r.get('bindingSegment')!=r['segment'] or r.get('bindingChannel')!=r['channel'] or r.get('inspection') is not True:
+            raise ValueError('missing/mismatched binding or inspection')
         seen.add(r['segment'])
         if r['samples'] != r['lastOrdinal'] - r['firstOrdinal'] + 1:
             raise ValueError('ordinal coverage')
@@ -74,6 +90,12 @@ def qualify(rows):
         selected = [r for r in manifest if r['channel'] == channel]
         if len(selected) != count or sum(r['samples'] for r in selected) != samples:
             raise ValueError('incomplete accumulated input')
+    for channel in ('1','9101','9201'):
+        selected=[r for r in manifest if r['channel']==channel];generations={r['generation'] for r in selected}
+        if len(generations)!=(1 if channel=='1' else 4):raise ValueError('generation count')
+        for generation in generations:
+            ordinals=[n for r in selected if r['generation']==generation for n in range(r['firstOrdinal'],r['lastOrdinal']+1)]
+            if sorted(ordinals)!=list(range(1,31 if channel=='1' else 121)):raise ValueError('generation ordinal set')
     if len(manifest) != 17:
         raise ValueError('unexpected input channel')
     if any(r.get('monoNs',0)<0 for r in rows):raise ValueError('negative monotonic stamp')
@@ -129,10 +151,10 @@ def run(parent):
     root = parent/'run';root.mkdir(mode=0o700)  # exclusive leaf also rejects a second cycle
     env = environment(root)
     t = time.monotonic(); deadline = t+166  # reserve14s for two TERM/KILL drains within180
-    record = {'schema':'media-server.r152.execution.v1','products':fixed_products(),
+    record = {'schema':'media-server.r153.execution.v1','products':fixed_products(),
               'buildBinding':binding,'seedStarts':0,'fixtureStarts':0,'productStarts':0,
               'limitSeconds':180,'logCapBytes':CAP,'firstFailure':None,'cleanupErrors':[],
-              'pids':[], 'collectorStarts':0, 'processes':[]}
+              'pids':[], 'collectorStarts':0, 'processes':[], 'runnerFailure':None, 'diagnosticErrors':[], 'cleanupEvents':[]}
     output = bytearray();children=[];rows=[]
     def stop(p):
         if p.poll() is None:
@@ -163,11 +185,16 @@ def run(parent):
                     output.extend(data);buffers[key.data]+=data
                     while b'\n' in buffers[key.data]:
                         line,buffers[key.data]=buffers[key.data].split(b'\n',1)
-                        if line.startswith(b'[R152] '):rows.append(json.loads(line[7:]))
+                        if line.startswith(b'[R153] '):
+                            row=json.loads(line[7:]);rows.append(row)
+                            if row.get('phase')=='first-failure' and record['firstFailure'] is None:record['firstFailure']=row.get('error')
+                        if line.startswith(b'[R153-output-failure]'):record['diagnosticErrors'].append('native output failure')
+                        if line.startswith(b'[R152-seed-failure]') and record['firstFailure'] is None:record['firstFailure']=line.decode('utf-8',errors='strict').split('] ',1)[-1][:256] if b'/' not in line and b'Bearer' not in line else 'confirmed seed failed (private detail redacted)'
                         if line==b'[R101-space-ready]' or line.startswith(b'[R101-space-phase] '):
                             p.stdin.write(b'continue\n');p.stdin.flush()
                         if line.startswith(b'[R101-phase] '):
                             (root/'resource-phase').write_text(line.split(b' ')[1].decode())
+            if any(buffers.values()):raise ValueError('partial output record')
             rc=p.wait(timeout=1);proc_record['exit']=rc
             if monitor and monitor.wait(timeout=1)!=0:raise ValueError('observer nonzero exit')
             if rc:raise ValueError('child exit '+str(rc))
@@ -185,11 +212,14 @@ def run(parent):
         record['fixtureStarts']+=1;launch([str(parent/'fixture'),str(root),str(REPO/'models/v430-siglip2')],deadline-time.monotonic(),True)
         record['qualification']=qualify(rows)
     except Exception as e:
-        record['firstFailure']=str(e);record['qualification']={'decision':'FAIL_FIXTURE_CONTRACT'}
+        record['runnerFailure']=str(e);record['firstFailure']=record['firstFailure'] or str(e);record['qualification']={'decision':'FAIL_FIXTURE_CONTRACT'}
     finally:
         for child in children:
             try:stop(child)
             except Exception as e:record['cleanupErrors'].append(str(e))
+        if record['fixtureStarts'] and record['firstFailure']:
+            try:record.update(failure_summary(rows))
+            except Exception as e:record['diagnosticErrors'].append(str(e))
         record['productsAfter']=fixed_products()
         record['elapsedSeconds']=time.monotonic()-t
         if record['elapsedSeconds']>180:
@@ -203,7 +233,7 @@ def run(parent):
         (root/'output.log').write_bytes(output);(root/'events.json').write_text(json.dumps(rows,indent=2)+'\n')
         (root/'execution.json').write_text(json.dumps(record,indent=2)+'\n')
     print(json.dumps({k:v for k,v in record.items() if k not in ('buildBinding',)},indent=2))
-    return 1 if record['firstFailure'] or record['cleanupErrors'] or not record['groupsAbsent'] else 0
+    return 1 if record['firstFailure'] or record['cleanupErrors'] or record['diagnosticErrors'] or not record['groupsAbsent'] else 0
 
 if __name__=='__main__':
     p=argparse.ArgumentParser();p.add_argument('action',choices=['build','run']);p.add_argument('parent');a=p.parse_args()

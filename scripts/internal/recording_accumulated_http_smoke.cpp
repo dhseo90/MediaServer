@@ -2,14 +2,45 @@
 #define RECORDING_DEGRADED_HTTP_NO_MAIN
 #include "recording_degraded_http_smoke.cpp"
 #include "ingress/va_review_application_service.h"
+#include <sodium.h>
 
 namespace {
 std::string Q152(const std::string& s){return recording::EvidenceJsonQuote(s);}
+std::atomic<bool> failed152{false}, outputFailed153{false};
+std::mutex eventMutex153, failureMutex153;
 void Event152(const char* phase,const std::string& fields=""){
- const auto row="[R152] {\"phase\":"+Q152(phase)+",\"monoNs\":"+std::to_string(SourceHttpSteadyNs())+fields+"}\n";std::fwrite(row.data(),1,row.size(),stdout);std::fflush(stdout);
+ const auto row="[R153] {\"phase\":"+Q152(phase)+",\"monoNs\":"+std::to_string(SourceHttpSteadyNs())+fields+"}\n";
+ std::lock_guard<std::mutex> lock(eventMutex153);
+ if(std::fwrite(row.data(),1,row.size(),stdout)!=row.size()||std::fflush(stdout)!=0){outputFailed153=true;throw std::runtime_error("diagnostic output failure");}
 }
-std::atomic<bool> failed152{false};
-void Failure152(const std::string& error){if(!failed152.exchange(true))Event152("first-failure",",\"error\":"+Q152(error));}
+void Failure152(const std::string& error) noexcept {
+ std::lock_guard<std::mutex> firstFailureLock(failureMutex153);
+ if(failed152.exchange(true))return;
+ try {auto safe=error.substr(0,256);if(safe.find('/')!=std::string::npos||safe.find("Bearer")!=std::string::npos)safe="private detail redacted";
+ Event152("first-failure",",\"error\":"+Q152(safe));}
+ catch(...){outputFailed153=true;std::fputs("[R153-output-failure] first error output failed\n",stderr);std::fflush(stderr);}
+}
+template<class F> void CaptureFailure153(F&& action){try{action();}catch(const std::exception& e){Failure152(e.what());throw;}catch(...){Failure152("unknown fixture failure");throw;}}
+template<class F> bool Cleanup153(const char* stage,F&& action) noexcept {
+ try{action();return true;}catch(...){Failure152("cleanup operation failed");try{Event152("cleanup-error",",\"stage\":"+Q152(stage));}catch(...){outputFailed153=true;}return false;}
+}
+std::string FdHash153(int fd,std::uint64_t expected){
+ struct stat before{},after{};NeedHttp(fd>=0&&fstat(fd,&before)==0&&S_ISREG(before.st_mode)&&before.st_size>=0&&std::uint64_t(before.st_size)==expected,"media FD regular/size");
+ crypto_hash_sha256_state hash;crypto_hash_sha256_init(&hash);std::array<unsigned char,65536> buffer{};std::uint64_t offset=0;
+ while(offset<expected){const auto wanted=std::min<std::uint64_t>(buffer.size(),expected-offset);ssize_t n;do{n=pread(fd,buffer.data(),wanted,offset);}while(n<0&&errno==EINTR);NeedHttp(n>0&&std::uint64_t(n)<=wanted,"media short read");crypto_hash_sha256_update(&hash,buffer.data(),n);offset+=n;}
+ unsigned char extra;ssize_t n;do{n=pread(fd,&extra,1,expected);}while(n<0&&errno==EINTR);
+ NeedHttp(n==0&&fstat(fd,&after)==0&&before.st_dev==after.st_dev&&before.st_ino==after.st_ino&&before.st_size==after.st_size,"media EOF/current size");
+ unsigned char digest[crypto_hash_sha256_BYTES];crypto_hash_sha256_final(&hash,digest);char hex[crypto_hash_sha256_BYTES*2+1];sodium_bin2hex(hex,sizeof(hex),digest,sizeof(digest));return hex;
+}
+void VerifyMedia153(recording::RecordingCatalog& catalog,recording::RecordingReadService& reader,const recording::RecordingSegmentV2& segment,const recording::RecordingSourceBindingV1& binding,bool decode){
+ std::string error;NeedHttp(recording::ValidateRecordingSourceBindingForSegment(binding,segment,&error),"media source binding identity");
+ auto media=reader.ResolveMedia(segment.channel_id,segment.segment_id);NeedHttp(bool(media),"V2 media resolve/inspection");
+ NeedHttp(media->size_bytes()==segment.size_bytes&&FdHash153(media->fd(),segment.size_bytes)==segment.checksum_sha256,"media FD hash");
+ NeedHttp(binding.file_evidence&&binding.file_evidence->file_size_bytes==segment.size_bytes&&binding.file_evidence->file_sha256==segment.checksum_sha256,"binding file evidence");
+ if(decode){recording::VisualRgbFrame frame;NeedHttp(recording::DecodeVisualFrame(media->fd(),media->size_bytes(),0,&frame,&error,{},5000,recording::StoredVisualIndexDecodePolicy()),"representative exact decode");NeedHttp(frame.presentation_ns==0&&!frame.rgb.empty(),"representative target0");Event152("media-decode",",\"channel\":"+Q152(segment.channel_id)+",\"segment\":"+Q152(segment.segment_id)+",\"targetNs\":0");}
+ const auto current=catalog.FindSegmentV2ById(segment.segment_id);const auto bound=catalog.FindSourceBinding(segment.segment_id);
+ NeedHttp(current&&bound&&recording::SameRecordingSegmentV2Content(segment,*current)&&recording::ValidateRecordingSourceBindingForSegment(*bound,*current,&error),"media final binding");
+}
 std::string Text152(const std::string& json,const char* field){StrictJsonObjectDocument d;std::string e;NeedHttp(ParseStrictJsonObjectDocument(json,&d,&e),"JSON object");auto s=StrictJsonStringField(d,field);NeedHttp(s&&!s->empty(),field);return *s;}
 std::string Escape152(const std::string& s){return recording_public_fresh_oracle::QueryEscape(s);}
 struct Response152 {std::string body;double ms;};
@@ -48,38 +79,44 @@ void Accumulate152(recording::RecordingRuntimeStorage& runtime,const std::filesy
   recording::GStreamerSegmentWriter writer(runtime.WriterOptions(2000));std::string e;NeedHttp(writer.Start(channel,"r152",batch.descriptor,[](auto,auto,auto*){return false;},&e),e.c_str());for(const auto& p:batch.packets)writer.Push(p,0);writer.Stop();
  }
 }
-void Manifest152(recording::RecordingCatalog& catalog,const std::string& a_id){
+void Manifest152(recording::RecordingCatalog& catalog,recording::RecordingReadService& reader,const std::string& a_id){
  std::map<std::string,unsigned> files,samples;std::map<std::string,std::set<std::pair<std::string,std::uint64_t>>> ordinals;
  std::string rows="[";bool comma=false;
  for(const auto& id:catalog.FinalizedSegmentIdsForStartup()){
   const auto segment=catalog.FindSegmentV2ById(id);const auto b=catalog.FindSourceBinding(id);NeedHttp(segment&&b&&b->file_evidence,"finalized binding evidence");const auto channel=segment->channel_id;
-  NeedHttp(channel=="1"||channel=="9101"||channel=="9201","channel set");const auto path=catalog.FindSegmentMediaPath(id);NeedHttp(path.has_value(),"media path");const auto bytes=Read(*path);NeedHttp(!bytes.empty()&&bytes.size()==segment->size_bytes&&recording::EvidenceSha256(bytes.data(),bytes.size())==segment->checksum_sha256,"media exists/current hash");
+  NeedHttp(channel=="1"||channel=="9101"||channel=="9201","channel set");VerifyMedia153(catalog,reader,*segment,*b,channel!="1"&&files[channel]==0);
   ++files[channel];samples[channel]+=b->samples.size();for(const auto& s:b->samples){NeedHttp(ordinals[channel].emplace(b->source_generation,s.ordinal).second,"duplicate generation/ordinal");if(channel!="1")NeedHttp(s.ordinal>=1&&s.ordinal<=120&&b->generation_order>=1&&b->generation_order<=4,"fixed generation/ordinal range");}
-  if(comma)rows+=',';comma=true;rows+="{\"channel\":"+Q152(channel)+",\"segment\":"+Q152(id)+",\"generation\":"+Q152(b->source_generation)+",\"samples\":"+std::to_string(b->samples.size())+",\"firstOrdinal\":"+std::to_string(b->samples.front().ordinal)+",\"lastOrdinal\":"+std::to_string(b->samples.back().ordinal)+",\"bytes\":"+std::to_string(bytes.size())+",\"sha256\":"+Q152(recording::EvidenceSha256(bytes.data(),bytes.size()))+"}";
+  if(comma)rows+=',';comma=true;rows+="{\"channel\":"+Q152(channel)+",\"segment\":"+Q152(id)+",\"generation\":"+Q152(b->source_generation)+",\"bindingSegment\":"+Q152(b->segment_id)+",\"bindingChannel\":"+Q152(b->channel_id)+",\"inspection\":true,\"samples\":"+std::to_string(b->samples.size())+",\"firstOrdinal\":"+std::to_string(b->samples.front().ordinal)+",\"lastOrdinal\":"+std::to_string(b->samples.back().ordinal)+",\"bytes\":"+std::to_string(segment->size_bytes)+",\"sha256\":"+Q152(segment->checksum_sha256)+"}";
  }
  NeedHttp(files["1"]==1&&files["9101"]==8&&files["9201"]==8&&samples["1"]==30&&samples["9101"]==480&&samples["9201"]==480,"fixed accumulated counts");
  for(const auto* channel:{"9101","9201"})for(unsigned g=0;g<4;++g){const std::string label=std::string("r152-synthetic-")+channel+"-"+std::to_string(g);const auto generation=recording::EvidenceSha256(label.data(),label.size());for(unsigned n=1;n<=120;++n)NeedHttp(ordinals[channel].count({generation,n})==1,"fixed expected sample set");}
  NeedHttp(catalog.FindSourceBinding(a_id).has_value(),"A binding retained");Event152("manifest",",\"synthetic\":true,\"rows\":"+rows+"]");
 }
 }
+#ifndef RECORDING_ACCUMULATED_NO_MAIN
 int main(int argc,char** argv){
  if(argc!=3||!RecordingWriterTestIsolation(argv[1]))return 2;
  (void)&Request; // included legacy GET helper; R152 uses its bounded Drain with POST too.
  std::shared_ptr<recording::SearchModelResidency> owner;std::shared_ptr<recording::RecordingScratchResidency> scratch;
  try{const std::filesystem::path root(argv[1]),store=root/"recording";Observer107(nullptr);gst_init(nullptr,nullptr);std::string error;
- {recording::RecordingRuntimeStorage runtime(store);NeedHttp(runtime.Open(&error),error.c_str());struct Finish152{recording::RecordingRuntimeStorage& runtime;bool done=false;~Finish152(){if(!done){std::string e;const bool ok=runtime.Finish(&e);Event152("failure-cleanup-finish",",\"ok\":"+std::string(ok?"true":"false"));}}} finish{runtime};auto& catalog=runtime.catalog();owner=catalog.SearchResidency();scratch=catalog.ScratchResidency();
+ {recording::RecordingRuntimeStorage runtime(store);CaptureFailure153([&]{NeedHttp(runtime.Open(&error),error.c_str());});struct Finish152{recording::RecordingRuntimeStorage& runtime;bool done=false;~Finish152(){if(!done)Cleanup153("runtime-finish",[&]{std::string e;const bool ok=runtime.Finish(&e);Event152("failure-cleanup-finish",",\"ok\":"+std::string(ok?"true":"false"));if(!ok)throw std::runtime_error("failure Finish");});}} finish{runtime};CaptureFailure153([&]{auto& catalog=runtime.catalog();owner=catalog.SearchResidency();scratch=catalog.ScratchResidency();
  const auto initial=catalog.FinalizedSegmentIdsForStartup();NeedHttp(initial.size()==1,"A seed first and only finalized source");const auto a_id=initial.front();const auto a_raw=Read(store/"confirmed-seed.json");const auto a_package=Text152(a_raw,"packageId");const auto a_bytes=Read(store/"evidence-packages"/(a_package+".evp"));NeedHttp(!a_bytes.empty(),"seed package");
  Event152("seed-verified",",\"segment\":"+Q152(a_id)+",\"package\":"+Q152(a_package));
- Accumulate152(runtime,root);Manifest152(catalog,a_id);NeedHttp(Read(store/"evidence-packages"/(a_package+".evp"))==a_bytes,"A seed package unchanged after accumulation");
  recording::RecordingReadService reader(catalog);
- {VisualSearchApplicationService::Options options;options.enabled=true;options.model_directory=argv[2];options.cache_directory=(store/"visual-cache").string();options.scan_seconds=1;options.sample_seconds=1;
- Observer107("model");VisualSearchApplicationService visual(catalog,reader,options,[](auto* channels){*channels={"9101","9201"};return true;});
- Observer107("live");EvidenceApplicationService evidence(catalog,reader,true,store/"evidence-packages",64ULL*1024*1024);
- VaReviewApplicationService reviews(store,true,{},64ULL*1024*1024,{},std::chrono::minutes(5),owner,scratch);
- RecordingApplicationService app(reader,catalog,true,{}, {},&visual,&evidence,&reviews);
- Media media;Lifecycle lifecycle;Reads reads;WebRtcHttpRuntimeConfig config;config.auth_mode=HttpAuthMode::Token;config.auth_admin_token="owned-http85-admin-token";config.auth_viewer_token="owned-http85-viewer-token";config.enable_ops=true;config.auth_users_file=(root/"users.json").string();config.source_registry_path=(root/"sources.json").string();config.analysis_registry_path=(root/"analysis.json").string();config.file_root_path=(root/"input").string();
- WebRtcHttpServer server(media,lifecycle,reads,config,&app);
- struct Stop {WebRtcHttpServer& server;VisualSearchApplicationService& visual;EvidenceApplicationService& evidence;VaReviewApplicationService& reviews;bool done=false;void Run(){if(done)return;done=true;server.Stop();visual.Stop();reviews.Stop();evidence.Stop();}~Stop(){Run();}} stop{server,visual,evidence,reviews};
+ Accumulate152(runtime,root);Manifest152(catalog,reader,a_id);NeedHttp(Read(store/"evidence-packages"/(a_package+".evp"))==a_bytes,"A seed package unchanged after accumulation");
+ {
+ std::unique_ptr<VisualSearchApplicationService> visualOwner;std::unique_ptr<EvidenceApplicationService> evidenceOwner;std::unique_ptr<VaReviewApplicationService> reviewsOwner;std::unique_ptr<RecordingApplicationService> appOwner;
+ Media media;Lifecycle lifecycle;Reads reads;std::unique_ptr<WebRtcHttpServer> serverOwner;
+ struct Stop153 {decltype(serverOwner)& server;decltype(visualOwner)& visual;decltype(evidenceOwner)& evidence;decltype(reviewsOwner)& reviews;bool done=false,ok=true;
+ void Run() noexcept {if(done)return;done=true;if(server)ok=Cleanup153("http-stop",[&]{server->Stop();})&&ok;if(visual)ok=Cleanup153("visual-stop",[&]{visual->Stop();})&&ok;if(reviews)ok=Cleanup153("review-stop",[&]{reviews->Stop();})&&ok;if(evidence)ok=Cleanup153("evidence-stop",[&]{evidence->Stop();})&&ok;}
+ ~Stop153(){Run();}} stop{serverOwner,visualOwner,evidenceOwner,reviewsOwner};
+ CaptureFailure153([&]{VisualSearchApplicationService::Options options;options.enabled=true;options.model_directory=argv[2];options.cache_directory=(store/"visual-cache").string();options.scan_seconds=1;options.sample_seconds=1;
+ Observer107("model");visualOwner=std::make_unique<VisualSearchApplicationService>(catalog,reader,options,[](auto* channels){*channels={"9101","9201"};return true;});auto& visual=*visualOwner;
+ Observer107("live");evidenceOwner=std::make_unique<EvidenceApplicationService>(catalog,reader,true,store/"evidence-packages",64ULL*1024*1024);auto& evidence=*evidenceOwner;
+ reviewsOwner.reset(new VaReviewApplicationService(store,true,{},64ULL*1024*1024,{},std::chrono::minutes(5),owner,scratch));auto& reviews=*reviewsOwner;
+ appOwner.reset(new RecordingApplicationService(reader,catalog,true,{}, {},&visual,&evidence,&reviews));
+ WebRtcHttpRuntimeConfig config;config.auth_mode=HttpAuthMode::Token;config.auth_admin_token="owned-http85-admin-token";config.auth_viewer_token="owned-http85-viewer-token";config.enable_ops=true;config.auth_users_file=(root/"users.json").string();config.source_registry_path=(root/"sources.json").string();config.analysis_registry_path=(root/"analysis.json").string();config.file_root_path=(root/"input").string();
+ serverOwner=std::make_unique<WebRtcHttpServer>(media,lifecycle,reads,config,appOwner.get());auto& server=*serverOwner;
  auto authorize=[](const std::string& c){return c=="9101"||c=="9201";};const auto ready_end=Clock::now()+std::chrono::seconds(60);bool ready=false;
  while(Clock::now()<ready_end){if(visual.Status(authorize).body.find("\"searchAvailable\":true")!=std::string::npos){ready=true;break;}std::this_thread::sleep_for(std::chrono::milliseconds(100));}NeedHttp(ready,"visual readiness within60s");
  {const auto view=VisualSearchPublicationTestProbe::View(visual);NeedHttp(view.index&&view.publication,"real index");std::set<std::string> indexed;for(const auto& d:view.index->documents())indexed.insert(d.segment_id);for(const auto& id:catalog.FinalizedSegmentIdsForStartup())if(id!=a_id)NeedHttp(indexed.count(id),"all accumulated media actually indexed");Event152("visual-ready",",\"documents\":"+std::to_string(view.index->documents().size()));}
@@ -114,10 +151,13 @@ int main(int argc,char** argv){
  (void)Http152(port,"/ops/api/recordings/a-record-reviews/drafts/"+Text152(draft.body,"id")+"/confirm",77,200,"{\"revision\":"+Q152(Text152(draft.body,"revision"))+"}");Event152("a-prepare-complete");
  background.join();if(bgerror)std::rethrow_exception(bgerror);NeedHttp(writes>=6,"background durable progress");NeedHttp(Read(store/"evidence-packages"/(a_package+".evp"))==a_bytes,"A original package preserved");Event152("background-complete",",\"writes\":"+std::to_string(writes)+",\"removed\":"+std::to_string(removed));
  }catch(const std::exception& e){Failure152(e.what());throw;}
- WaitIdle(server);stop.Run();Socket probe;probe.fd=socket(AF_INET,SOCK_STREAM,0);sockaddr_in addr{};addr.sin_family=AF_INET;addr.sin_port=htons(port);inet_pton(AF_INET,"127.0.0.1",&addr.sin_addr);NeedHttp(connect(probe.fd,reinterpret_cast<sockaddr*>(&addr),sizeof(addr))!=0&&errno==ECONNREFUSED,"port closed");Event152("services-stopped");
- }
+ WaitIdle(server);stop.Run();NeedHttp(stop.ok,"normal service cleanup");Socket probe;probe.fd=socket(AF_INET,SOCK_STREAM,0);sockaddr_in addr{};addr.sin_family=AF_INET;addr.sin_port=htons(port);inet_pton(AF_INET,"127.0.0.1",&addr.sin_addr);NeedHttp(connect(probe.fd,reinterpret_cast<sockaddr*>(&addr),sizeof(addr))!=0&&errno==ECONNREFUSED,"port closed");Event152("services-stopped");
+ });}
  NeedHttp(runtime.Finish(&error),error.c_str());finish.done=true;Event152("finish");
- }
+ });}
  const auto usage=scratch->usage();NeedHttp(owner->used()==0&&usage.ram_bytes==0&&usage.disk_bytes==0&&usage.file_descriptors==0,"final logical owner release");Event152("complete",",\"logicalRam\":0,\"scratch\":0,\"fd\":0");return 0;
- }catch(const std::exception& e){Failure152(e.what());return 1;}
+ }catch(const std::exception& e){Failure152(e.what());try{Event152("terminal",",\"exit\":1,\"outputFailed\":"+std::string(outputFailed153?"true":"false"));}catch(...){}return 1;
+ }catch(...){if(!failed152.load())Failure152("unknown outer fixture failure");try{Event152("terminal",",\"exit\":1,\"outputFailed\":"+std::string(outputFailed153?"true":"false"));}catch(...){}return 1;}
 }
+
+#endif
