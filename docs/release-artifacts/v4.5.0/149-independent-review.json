@@ -42,9 +42,10 @@
     "note": "workspace-first-failure.json is a reserved state file, not evidence of a workspace failure; actual HTTP failure is evidenced by run/report.",
     "blockersFound": []
   },
-  "pending": [
+  "preservationApproval": "User explicitly approved exact archive path and14213695bytes after review; final disposition in149-closure.json",
+  "pendingAtReview": [
     "commit/push and remote byte verification",
     "owned root cleanup and final closure"
   ],
-  "preservationApproval": "User explicitly approved exact archive path and14213695bytes after review; final disposition in149-closure.json"
+  "postReviewDisposition": "User-approved preservation, remote bytes and owned cleanup recorded in149-closure.json; this administrative disposition is by main, not a new reviewer judgment."
 }

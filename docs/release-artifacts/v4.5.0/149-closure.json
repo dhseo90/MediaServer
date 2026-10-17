@@ -1,6 +1,6 @@
 {
   "schema": "media-server.v450.r149.closure.v1",
-  "status": "PRESERVED_LOCAL_REMOTE_VERIFICATION_PENDING",
+  "status": "REMOTE_BYTES_VERIFIED_OWNED_CLEANUP_COMPLETE",
   "baselineHead": "bb3f221ae60c5cbb31c56b44bc80bcaf036c7252",
   "decision": "FAIL_STATE_DIAGNOSTIC45_HTTP_TIMEOUT",
   "functional45": "FAIL",
@@ -18,13 +18,74 @@
   },
   "sourceChanges": false,
   "additionalTestsOrProductRuns": 0,
-  "remoteVerification": "PENDING",
-  "ownedRootCleanup": "PENDING_REMOTE_VERIFICATION",
+  "remoteVerification": {
+    "preservationCommit": "d713a0de7a7fa3c599e1421a19ad94f3f409cd5e",
+    "remoteHead": "d713a0de7a7fa3c599e1421a19ad94f3f409cd5e",
+    "method": "GitHub Git blobs API base64 decoded actual bytes; blobs bound by local commit tree and matching remote branch SHA",
+    "files": [
+      {
+        "path": "docs/release-artifacts/v4.5.0/149-execution.tar.gz",
+        "gitBlob": "57a8b06547de00b1a32a61d5d2b37ad21cbd508e",
+        "bytes": 14213695,
+        "sha256": "47689cbb01cec1cda46ecfec1c4092bdf24bc3ccdd2f875666c4ff45024e9b43",
+        "remoteBytesEqualLocal": true
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/149-validation.json",
+        "gitBlob": "0e02bd93b251ca8148b24430fa1a85c0145542a8",
+        "bytes": 60552,
+        "sha256": "254dc7be218f428781d3e02974eb60bf1369644bdb9c8ea65de2c024b4076f10",
+        "remoteBytesEqualLocal": true
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/149-independent-review.json",
+        "gitBlob": "fe0123ebc6e28cbd7aad6434d52569000df743ae",
+        "bytes": 2587,
+        "sha256": "36e1c2e7dfc47074278d4fa9aeb8697e22848deb033eec8180f598355d176f12",
+        "remoteBytesEqualLocal": true
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/149-closure.json",
+        "gitBlob": "76f432df569a1019a7e514868f7b9c0a5ddc91f6",
+        "bytes": 1271,
+        "sha256": "535f83e573d8204d061f9c2e547ff0d84019a9879130e06e205084aab79f1463",
+        "remoteBytesEqualLocal": true
+      }
+    ],
+    "firstReadAttempt": "GitHub contents raw API exited1: transform: short source buffer; no remote verification claimed and no raw cleanup performed before successful Git blobs readback"
+  },
+  "ownedRootCleanup": {
+    "root": "$RUN_PARENT",
+    "rootDev": 16777232,
+    "rootInode": 175700840,
+    "uid": 501,
+    "removed": true,
+    "absentAfter": true,
+    "counts": {
+      "files": 2083,
+      "directories": 26,
+      "symlinks": 277,
+      "regularBytes": 195983025
+    },
+    "method": "identity checked; descriptor-relative recursive unlink/rmdir, O_NOFOLLOW, no symlink traversal",
+    "externalSymlinkTargetsUnchanged": 277,
+    "rootOpenHandlesBeforeRemoval": 0,
+    "productPidAbsent": 97595,
+    "wrapperProcessGroupAbsent": 97502,
+    "tcpUdpPortsAbsent": [
+      59148,
+      59149
+    ],
+    "containersCreated": 0,
+    "userSettingsPrivateBackupsModelsSdkTouched": false
+  },
   "checks": [
     "JSON parse",
     "git diff --check",
     "manifest sizes/hashes/original mapping/sanitization flags",
     "approved product/runtime SHA unchanged"
   ],
-  "scanNote": "Initial case-insensitive path scan matched literal /ops/api/users/ in archived source; inspected as public route, not a personal filesystem path. Case-sensitive personal path and credential-field scans passed. Independent review also examined decoded journal payloads."
+  "scanNote": "Initial case-insensitive path scan matched literal /ops/api/users/ in archived source; inspected as public route, not a personal filesystem path. Case-sensitive personal path and credential-field scans passed. Independent review also examined decoded journal payloads.",
+  "preservationCommit": "d713a0de7a7fa3c599e1421a19ad94f3f409cd5e",
+  "finalVerification": "This closure is committed after cleanup; final remote HEAD and closure bytes are checked after its normal push."
 }

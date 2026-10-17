@@ -2247,7 +2247,10 @@
       59148,
       59149
     ],
-    "rootRetained": "remote byte verification pending; follow 149-closure.json for final disposition"
+    "rootRetained": false,
+    "ownedRootAbsent": true,
+    "remoteBytesVerifiedBeforeRemoval": true,
+    "closure": "149-closure.json"
   },
   "historical": "R145/R146/R147/R148/R149-Prep unchanged; this new actual45 execution failed on A HTTP timeout",
   "preservationApproval": {
