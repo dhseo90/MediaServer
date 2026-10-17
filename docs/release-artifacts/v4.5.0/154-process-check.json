@@ -1,0 +1,16 @@
+{
+  "ownedRoot": "<OWNED_ROOT>",
+  "uid": 501,
+  "sameUid": true,
+  "rootIsSymlink": false,
+  "fixtureAndSeedPids": [
+    21595,
+    21599
+  ],
+  "matchingProcesses": [],
+  "groupsAbsentReported": true,
+  "port": 51907,
+  "portRefused": true,
+  "symlinksWithinOwnedRoot": [],
+  "cleanup": "pending remote evidence verification; no deletion yet"
+}

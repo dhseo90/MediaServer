@@ -1,0 +1,19 @@
+{
+  "reviewer": "independent_r147",
+  "mode": "read-only; no implementation/test execution/delegation",
+  "requestedModel": "gpt-6-astra",
+  "requestedEffort": "high",
+  "toolAccepted": "historical existing reviewer acceptance only; current resumed runtime not exposed",
+  "actualRuntimeModel": null,
+  "actualRuntimeEffort": null,
+  "decision": "PASS_SOURCE_LINKAGE_PREFLIGHT",
+  "observations": [
+    "4 explicit overlay objects; 4 original archive members absent",
+    "3 principal global function definitions unique",
+    "product2/source8/dependency160/binary3 plus overlay/object/map/symbol hashes verified",
+    "seed include dependency captured",
+    "27 new Python cases, 30 R153 regression cases, native focused exit0 read from evidence",
+    "server end before drain; Catalog scopes explicitly bounded; corrupt source fields and impossible cross-clock order rejected"
+  ],
+  "remainingAtReview": "ordered producer/readback/coverage; cycle NOT_RUN"
+}

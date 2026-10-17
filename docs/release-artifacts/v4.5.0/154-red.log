@@ -1,0 +1,14 @@
+F
+======================================================================
+FAIL: test_qualified_trace_consumer_exists (__main__.NewContract.test_qualified_trace_consumer_exists)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<REPO>/scripts/internal/recording_http_cost_run.test.py", line 5, in test_qualified_trace_consumer_exists
+    self.assertTrue(Path(__file__).with_name('recording_http_cost_run.py').is_file(),'R154 bounded trace validator not implemented')
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: False is not true : R154 bounded trace validator not implemented
+
+----------------------------------------------------------------------
+Ran 1 test in 0.000s
+
+FAILED (failures=1)

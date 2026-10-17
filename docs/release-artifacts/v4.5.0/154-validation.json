@@ -1,0 +1,427 @@
+{
+  "schema": "media-server.v450.r154.validation.v1",
+  "decision": "FAIL_BOUNDED_HTTP_CONTRACT",
+  "baselineHead": "90631f37e5a5b86ad9a59b0de9f7a42e6b4494fc",
+  "baselinePreflight": "branch/local/origin HEAD exact; worktree/index clean; fixed product/runtime SHA matched before changes",
+  "branch": "v4.5.0",
+  "model": {
+    "requested": {
+      "main": "gpt-6-astra/high",
+      "independent": "gpt-6-astra/high"
+    },
+    "toolAccepted": {
+      "main": null,
+      "independent": "existing independent_r147 historical acceptance only; resumed runtime not exposed"
+    },
+    "actualRuntimeModel": {
+      "main": null,
+      "independent": null
+    },
+    "actualRuntimeEffort": {
+      "main": null,
+      "independent": null
+    }
+  },
+  "platform": "macOS-27.0.1-arm64-arm-64bit-Mach-O",
+  "scope": "test-only overlay/counters/correlation; unchanged product sources/runtime/executable and R153 fixture behavior",
+  "products": {
+    "media_server": "33f516d35d56cb2f6cafc75647b6c37d2ced67115302d1205cca23bf51ab7f79",
+    "libmedia_server_runtime.a": "2d91cf35fe7e805e0c06e00d16779c86849b35db635e087582277e1b676d198c"
+  },
+  "productsAfter": {
+    "media_server": "33f516d35d56cb2f6cafc75647b6c37d2ced67115302d1205cca23bf51ab7f79",
+    "libmedia_server_runtime.a": "2d91cf35fe7e805e0c06e00d16779c86849b35db635e087582277e1b676d198c"
+  },
+  "productExecution": 0,
+  "runtimeRebuild": 0,
+  "instrumentation": {
+    "temporaryOverlays": 4,
+    "fixtureOverlay": 1,
+    "originalArchiveMembersExcluded": true,
+    "uniquePrincipalDefinitions": 3,
+    "repoDependencies": 160,
+    "linkProof": "154-link-summary.json",
+    "binaryAndSourceBinding": "154-instrumentation.json",
+    "overlayDiff": "154-overlay.diff",
+    "codeReviewBeforeExecution": "PASS_SOURCE_LINKAGE_PREFLIGHT; subsequently invalidated for HTTP correlation and immediate loss propagation; linkage evidence remains valid",
+    "knownFailure": "Client X-R154-ID versus case-sensitive server headers.find(x-r154-id). Parser preserves key case. Existing HeaderValue provides case-insensitive lookup but was not used. No code repair/re-execution performed after cycle."
+  },
+  "focused": {
+    "expectedRed": "new trace consumer absent:1 assertion/exit1; not product failure",
+    "pythonFinal": 27,
+    "r153Regression": 30,
+    "native": {
+      "launches": 1,
+      "exit": 0,
+      "seconds": 2.5364053330849856,
+      "counterAssertions": "actual V2 lookup2bindings, other-channel2/lifecycle2; matched2/exact1; bounded counter/128/40 negatives and unchanged R153 native ownership cases"
+    },
+    "limitation": "synthetic correlation tests did not exercise actual HTTP header parsing or live fail-fast propagation; focused PASS does not override integrated FAIL"
+  },
+  "binding": {
+    "producer": "51 PASS exit0",
+    "readback": "validationErrors0 / negative15of15 exit0",
+    "coverage": "986 covered/missing0/pass9 fail0 exit0",
+    "order": "producer finished before readback; readback finished before coverage",
+    "formatOnlyRerun": "inventory trailing blank line removed; final ordered producer/readback/coverage preserved; no runtime source change",
+    "isRuntimeEvidence": false
+  },
+  "execution": {
+    "command": "python3 scripts/internal/recording_http_cost_run.py run <OWNED_ROOT>/candidate-final",
+    "integratedCycles": 1,
+    "seedStarts": 1,
+    "fixtureStarts": 1,
+    "collectorStarts": 1,
+    "processes": [
+      {
+        "role": "confirmed-seed",
+        "limitSeconds": 10,
+        "startElapsedSeconds": 0.05675541702657938,
+        "exit": 0,
+        "elapsedSeconds": 2.2905032909475267,
+        "finalExit": 0
+      },
+      {
+        "role": "fixture",
+        "limitSeconds": 163.25538208289072,
+        "startElapsedSeconds": 2.7446193750947714,
+        "exit": 0,
+        "elapsedSeconds": 50.561874208040535,
+        "finalExit": 0
+      }
+    ],
+    "seconds": 53.37069020816125,
+    "runnerExit": 1,
+    "nativeFixtureExit": 0,
+    "existingFixtureQualification": {
+      "decision": "PASS_BOUNDED_FIXTURE_QUALIFIED",
+      "httpRequests": 28,
+      "inputFiles": 17,
+      "inputSamples": 990,
+      "ordinarySearches": 4,
+      "latencyAttribution": "NOT_RUN"
+    },
+    "finalAttributionQualification": "FAIL_BOUNDED_HTTP_CONTRACT",
+    "httpRequests": 28,
+    "limits": {
+      "overallSeconds": 180,
+      "workSeconds": 166,
+      "cleanupReserveSeconds": 14,
+      "httpMs": 5000,
+      "ordinarySearchMs": 2000,
+      "processLogBytes": 4194304
+    },
+    "outputBytes": 157407,
+    "input": "154-input-summary.json",
+    "ordinaryHttp": [
+      {
+        "phase": "http",
+        "monoNs": 1571631678833500,
+        "id": 10,
+        "status": 200,
+        "ms": 74.814167,
+        "bytes": 5120
+      },
+      {
+        "phase": "http",
+        "monoNs": 1571631681292416,
+        "id": 11,
+        "status": 200,
+        "ms": 77.272667,
+        "bytes": 5120
+      },
+      {
+        "phase": "http",
+        "monoNs": 1571631857450208,
+        "id": 13,
+        "status": 200,
+        "ms": 253.431875,
+        "bytes": 9558
+      },
+      {
+        "phase": "http",
+        "monoNs": 1571631876435916,
+        "id": 12,
+        "status": 200,
+        "ms": 272.41875,
+        "bytes": 9558
+      }
+    ],
+    "aPrepareHttp": {
+      "phase": "http",
+      "monoNs": 1571632055994875,
+      "id": 60,
+      "status": 200,
+      "ms": 12.170833,
+      "bytes": 1815
+    },
+    "background": {
+      "expected": 2401,
+      "accepted": 2401,
+      "files": 41,
+      "source": "[R118-source] raw output"
+    },
+    "evidenceReadbacks": 3,
+    "auth": "no-auth401/viewer403/admin normal routes preserved",
+    "normalCompletion": {
+      "servicesStopped": true,
+      "explicitFinish": true,
+      "logicalRam": 0,
+      "scratch": 0,
+      "fd": 0,
+      "groupsAbsent": true,
+      "portRefused": true
+    },
+    "new45": "NOT_RUN"
+  },
+  "attribution": {
+    "clientServerCorrelation": "FAILED",
+    "serverRecords": 28,
+    "searchRecords": 3,
+    "serverAndSearchId": 0,
+    "allProbeRowsLoss": true,
+    "firstLossOutputLine": 56,
+    "error": "request identity",
+    "immediateLossPropagation": "FAIL: runner checked after cycle, so execution continued after first invalid record",
+    "requestLevelServerCosts": "UNQUALIFIED: preparation/Refresh/reference/Catalog/WithPlayback/Snapshot/CurrentnessJson are not assigned to client IDs",
+    "unqualifiedRawObservations": "154-analysis.json / 154-output.log; retained only, not causal evidence",
+    "causalConclusion": "No qualified bottleneck or common cause established. Do not repair correlation retrospectively from ordering/timestamps. R149 timeout not reproduced or solved."
+  },
+  "resources": {
+    "samples": 50,
+    "allValid": true,
+    "pidStartIdentity": [
+      "macos:1792264390:948981"
+    ],
+    "rssMaxBytes": 3208691712,
+    "footprintMaxBytes": 3161460024,
+    "fdMax": 29,
+    "limit": "different-time maxima; not sum; final logical owner0 not whole heap proof"
+  },
+  "preservation": {
+    "manifest": [
+      {
+        "sourceRelativeToOwnedRoot": "candidate-final/run/events.json",
+        "path": "docs/release-artifacts/v4.5.0/154-events.json",
+        "rawBytes": 14441,
+        "rawSha256": "f8fb6c1ae3afad74deaf6d31dd375dd68e94bd5d1a9a7c32a23eadeb24171fa2",
+        "storedBytes": 14441,
+        "storedSha256": "f8fb6c1ae3afad74deaf6d31dd375dd68e94bd5d1a9a7c32a23eadeb24171fa2",
+        "sanitized": false
+      },
+      {
+        "sourceRelativeToOwnedRoot": "candidate-final/run/execution.json",
+        "path": "docs/release-artifacts/v4.5.0/154-execution.json",
+        "rawBytes": 22481,
+        "rawSha256": "707a8b86014d5bd10b3667c0b71158ae7dab1a28977df8660e1d6982bd301cc8",
+        "storedBytes": 22481,
+        "storedSha256": "707a8b86014d5bd10b3667c0b71158ae7dab1a28977df8660e1d6982bd301cc8",
+        "sanitized": false
+      },
+      {
+        "sourceRelativeToOwnedRoot": "candidate-final/run/output.log",
+        "path": "docs/release-artifacts/v4.5.0/154-output.log",
+        "rawBytes": 157407,
+        "rawSha256": "b354763e9e4bfdb03337db94261ff5cdc7f5d729117586b42e4bac7296212f26",
+        "storedBytes": 157383,
+        "storedSha256": "2f7cd5d907c0efb5c8efc9c06ea08959bcc2f7628b6f149e487bc6719b3e7401",
+        "sanitized": true
+      },
+      {
+        "sourceRelativeToOwnedRoot": "candidate-final/run/attribution.json",
+        "path": "docs/release-artifacts/v4.5.0/154-attribution.json",
+        "rawBytes": 98,
+        "rawSha256": "43242dbf8e040ddb4a1ead1750d445b4ad3890f79a6449081c7e47ae11370470",
+        "storedBytes": 98,
+        "storedSha256": "43242dbf8e040ddb4a1ead1750d445b4ad3890f79a6449081c7e47ae11370470",
+        "sanitized": false
+      },
+      {
+        "sourceRelativeToOwnedRoot": "analysis.json",
+        "path": "docs/release-artifacts/v4.5.0/154-analysis.json",
+        "rawBytes": 11882,
+        "rawSha256": "5edc4d15e00633ee6f42739b805ba54653845049ec4e2903ecb554aa2d859fe0",
+        "storedBytes": 11882,
+        "storedSha256": "5edc4d15e00633ee6f42739b805ba54653845049ec4e2903ecb554aa2d859fe0",
+        "sanitized": false
+      },
+      {
+        "sourceRelativeToOwnedRoot": "plan.json",
+        "path": "docs/release-artifacts/v4.5.0/154-plan.json",
+        "rawBytes": 473,
+        "rawSha256": "641ab9841b5b7f15f9edfb34be837c16a317fca2df0aae394bc9b4f8ccf89640",
+        "storedBytes": 473,
+        "storedSha256": "641ab9841b5b7f15f9edfb34be837c16a317fca2df0aae394bc9b4f8ccf89640",
+        "sanitized": false
+      },
+      {
+        "sourceRelativeToOwnedRoot": "run-input-binding.json",
+        "path": "docs/release-artifacts/v4.5.0/154-run-input-binding.json",
+        "rawBytes": 55385,
+        "rawSha256": "8c590860fafdf031e7429ea53e07d4b8392164b0c767d9a24887dddd7e0b4a0c",
+        "storedBytes": 53651,
+        "storedSha256": "582948cebedb2565c4a266b7e19049f08af54c011f939ec586ab776fdd89b748",
+        "sanitized": true
+      },
+      {
+        "sourceRelativeToOwnedRoot": "link-summary.json",
+        "path": "docs/release-artifacts/v4.5.0/154-link-summary.json",
+        "rawBytes": 25546,
+        "rawSha256": "df910fd91c687d4c2b5335d86f258b888440dcb85fb68ab75e5bddd2335874c9",
+        "storedBytes": 20225,
+        "storedSha256": "66f12869a288c0883b41a4d16a150acbc9933341a4398a7c981c2c4864ca3e27",
+        "sanitized": true
+      },
+      {
+        "sourceRelativeToOwnedRoot": "overlay.diff",
+        "path": "docs/release-artifacts/v4.5.0/154-overlay.diff",
+        "rawBytes": 19336,
+        "rawSha256": "1d9a94eaf24cb73f5dc9589b7977db45ccf6d3332dc83cac43a94614a572b8bc",
+        "storedBytes": 19335,
+        "storedSha256": "8d321523acf22c9470663c0b31b68320df10875a6cc72c92d2dc91a6669cfed1",
+        "sanitized": true
+      },
+      {
+        "sourceRelativeToOwnedRoot": "candidate-final/instrumentation.json",
+        "path": "docs/release-artifacts/v4.5.0/154-instrumentation.json",
+        "rawBytes": 31563,
+        "rawSha256": "e67a814346c0bb123f53b84d3ac83c671ff2e4c51ea3c8d1c4f0c6efb198ad0f",
+        "storedBytes": 29829,
+        "storedSha256": "961501ad370e47d27d9d469b7514ad0c68a2ae055a5bd2adb8db77fe9ffa4789",
+        "sanitized": true
+      },
+      {
+        "sourceRelativeToOwnedRoot": "candidate-final/focused.cpp",
+        "path": "docs/release-artifacts/v4.5.0/154-focused-native-source.cpp.txt",
+        "rawBytes": 7443,
+        "rawSha256": "042bd5fa83b9902ac29f3e84e4a8afcc6bdd88022f226ac04bf5159e4740d8d5",
+        "storedBytes": 7443,
+        "storedSha256": "042bd5fa83b9902ac29f3e84e4a8afcc6bdd88022f226ac04bf5159e4740d8d5",
+        "sanitized": false
+      },
+      {
+        "sourceRelativeToOwnedRoot": "red.log",
+        "path": "docs/release-artifacts/v4.5.0/154-red.log",
+        "rawBytes": 885,
+        "rawSha256": "9d1e101659cc8806ddfb12dfc2ae6a544c237dd01477b23b9a478335781e8962",
+        "storedBytes": 857,
+        "storedSha256": "e10ebd9e63cb1e174008e41a7fd4fb0ef5b49dc0718f22abe71456fbdf54b94a",
+        "sanitized": true
+      },
+      {
+        "sourceRelativeToOwnedRoot": "focused-python.log",
+        "path": "docs/release-artifacts/v4.5.0/154-focused-python-initial.log",
+        "rawBytes": 120,
+        "rawSha256": "6cc13b4201b0100695e0534f1bd3ff8c55c576a098dc02d14956aedc3e229386",
+        "storedBytes": 120,
+        "storedSha256": "6cc13b4201b0100695e0534f1bd3ff8c55c576a098dc02d14956aedc3e229386",
+        "sanitized": false
+      },
+      {
+        "sourceRelativeToOwnedRoot": "focused-python-final.log",
+        "path": "docs/release-artifacts/v4.5.0/154-focused-python-intermediate.log",
+        "rawBytes": 122,
+        "rawSha256": "f22730652b32d926fc08de44dbd6e2bddd9e4d4b49551541d955775fed9913cb",
+        "storedBytes": 122,
+        "storedSha256": "f22730652b32d926fc08de44dbd6e2bddd9e4d4b49551541d955775fed9913cb",
+        "sanitized": false
+      },
+      {
+        "sourceRelativeToOwnedRoot": "focused-python-reviewed.log",
+        "path": "docs/release-artifacts/v4.5.0/154-focused-python-final.log",
+        "rawBytes": 126,
+        "rawSha256": "28030ee58d7c154ad512e11c0430c1b8d88f6192319a34832c5b2dbc95c3074b",
+        "storedBytes": 126,
+        "storedSha256": "28030ee58d7c154ad512e11c0430c1b8d88f6192319a34832c5b2dbc95c3074b",
+        "sanitized": false
+      },
+      {
+        "sourceRelativeToOwnedRoot": "r153-regression.log",
+        "path": "docs/release-artifacts/v4.5.0/154-r153-regression.log",
+        "rawBytes": 129,
+        "rawSha256": "9e6ab18ec395d55fc7df079f87c6b6c1f9788fba627887914f057e3f76f0e1c4",
+        "storedBytes": 129,
+        "storedSha256": "9e6ab18ec395d55fc7df079f87c6b6c1f9788fba627887914f057e3f76f0e1c4",
+        "sanitized": false
+      },
+      {
+        "sourceRelativeToOwnedRoot": "focused-native.log",
+        "path": "docs/release-artifacts/v4.5.0/154-focused-native.log",
+        "rawBytes": 3364,
+        "rawSha256": "d461c07abe2c7dc44abe6d016bb066614b40afe3b82e7896b888740a14aa0cc0",
+        "storedBytes": 3340,
+        "storedSha256": "b65b988374136204ce4177a01ed57179cc4f9ff94760f39f8fce0e3b9f3bd01c",
+        "sanitized": true
+      },
+      {
+        "sourceRelativeToOwnedRoot": "focused-native.json",
+        "path": "docs/release-artifacts/v4.5.0/154-focused-native.json",
+        "rawBytes": 68,
+        "rawSha256": "2ee5b444eecbdb5fbbc1eb0b6008bae0e8fcce8017960e3a31e5ddb34c092942",
+        "storedBytes": 68,
+        "storedSha256": "2ee5b444eecbdb5fbbc1eb0b6008bae0e8fcce8017960e3a31e5ddb34c092942",
+        "sanitized": false
+      },
+      {
+        "sourceRelativeToOwnedRoot": "producer-final.log",
+        "path": "docs/release-artifacts/v4.5.0/154-producer.log",
+        "rawBytes": 12812,
+        "rawSha256": "d044f8ac77f4e3e0a7ee0672c9d63381151b9f522393a0aa536f910913ef258f",
+        "storedBytes": 12812,
+        "storedSha256": "d044f8ac77f4e3e0a7ee0672c9d63381151b9f522393a0aa536f910913ef258f",
+        "sanitized": false
+      },
+      {
+        "sourceRelativeToOwnedRoot": "readback-final.log",
+        "path": "docs/release-artifacts/v4.5.0/154-readback.log",
+        "rawBytes": 1141,
+        "rawSha256": "f004e8a145e0b287322992e5f2f9c356c12a495834505e9ea79a414fd1f6b6f7",
+        "storedBytes": 1141,
+        "storedSha256": "f004e8a145e0b287322992e5f2f9c356c12a495834505e9ea79a414fd1f6b6f7",
+        "sanitized": false
+      },
+      {
+        "sourceRelativeToOwnedRoot": "coverage.log",
+        "path": "docs/release-artifacts/v4.5.0/154-coverage.log",
+        "rawBytes": 604,
+        "rawSha256": "f3dd9d2ec3cd35ce7a806a391b6918dddd2c2377ca3039afa624f484985f9bce",
+        "storedBytes": 604,
+        "storedSha256": "f3dd9d2ec3cd35ce7a806a391b6918dddd2c2377ca3039afa624f484985f9bce",
+        "sanitized": false
+      },
+      {
+        "sourceRelativeToOwnedRoot": "process-check.json",
+        "path": "docs/release-artifacts/v4.5.0/154-process-check.json",
+        "rawBytes": 374,
+        "rawSha256": "3b4e13e1d1ed1e67a172f4eb57849bf46db6e2fa8e5f04c31ec469930bcdf2ad",
+        "storedBytes": 347,
+        "storedSha256": "f2f8ecd24ef015582d747ce80c78b46e1c063e0b7c4ef28f7dfb935eeed6ff4b",
+        "sanitized": true
+      },
+      {
+        "sourceRelativeToOwnedRoot": "review-preflight.json",
+        "path": "docs/release-artifacts/v4.5.0/154-review-preflight.json",
+        "rawBytes": 961,
+        "rawSha256": "953f3f1cde25a8b4af403fb532965be55e88a754e3e548fdadd2d6568b1a657f",
+        "storedBytes": 961,
+        "storedSha256": "953f3f1cde25a8b4af403fb532965be55e88a754e3e548fdadd2d6568b1a657f",
+        "sanitized": false
+      }
+    ],
+    "inputSummarySha256": "99bf114251fe2db578b516e0d62c59e43662c5b1acd3ad34676e0cfa18ab473e",
+    "excluded": "media, binaries, full22MB link map/full symbol dump, registry, models/SDK, user settings/private backups",
+    "linkMapPreservation": "full raw map/symbol bytes not pushed; hashes + exact object table and principal definitions retained. Overlay generator + diff + original source hashes reconstruct source; no claim full binary/map byte preservation",
+    "sanitization": "owned/repo/home paths and fixed test credentials/address values redacted; raw/stored hashes separate; compiler temporary user-directory prefix redacted",
+    "diffCheck": "Source/JSON/inventory clean. Full staged diff-check reports only 2 existing raw stdout trailing spaces and 3 unified-diff blank context markers; preserved intentionally as evidence, no code whitespace defect. No hook disabled."
+  },
+  "historical": {
+    "R149Functional45": "FAIL",
+    "R149Collection45": "INCOMPLETE",
+    "R152": "FAIL_FIXTURE_CONTRACT",
+    "R153": "PASS_BOUNDED_FIXTURE_QUALIFIED",
+    "MemoryP0": "HOLD",
+    "Readiness120": "HOLD",
+    "Release": "HOLD"
+  },
+  "next": "Separate approval for test-only case-insensitive correlation read and immediate loss-stop/cleanup propagation with real parser focused regression; no product search optimization or new45."
+}

@@ -1,0 +1,51 @@
+{
+  "schema": "media-server.v450.r154.independent-review.v1",
+  "reviewer": "independent_r147",
+  "model": {
+    "requested": {
+      "main": "gpt-6-astra/high",
+      "independent": "gpt-6-astra/high"
+    },
+    "toolAccepted": {
+      "main": null,
+      "independent": "existing independent_r147 historical acceptance only; resumed runtime not exposed"
+    },
+    "actualRuntimeModel": {
+      "main": null,
+      "independent": null
+    },
+    "actualRuntimeEffort": {
+      "main": null,
+      "independent": null
+    }
+  },
+  "mode": "read-only; no implementation/test execution/delegation/commit/push",
+  "preflightDecision": "PASS_SOURCE_LINKAGE_PREFLIGHT before run; missed header case and loss propagation defects",
+  "finalDecision": "FAIL_BOUNDED_HTTP_CONTRACT",
+  "attribution": "UNQUALIFIED",
+  "findings": [
+    {
+      "priority": "P1",
+      "path": "scripts/internal/recording_http_cost_overlay.py",
+      "cause": "X-R154-ID sent, x-r154-id direct map lookup; parser preserves header case",
+      "evidence": "28 server and3 Search id0/loss true; output first loss line56",
+      "impact": "client/server/request cost binding invalid"
+    },
+    {
+      "priority": "P1",
+      "path": "scripts/internal/recording_http_cost_run.py",
+      "cause": "qualify_trace runs only after base.run completes",
+      "impact": "first loss not propagated immediately; all28 requests continue"
+    }
+  ],
+  "confirmed": [
+    "four overlay objects linked; original four archive members absent; principal symbols unique",
+    "source/binary/runtime/dependency hashes match",
+    "cycle1/53.371s, original fixture HTTP28, background2401/2401/files41",
+    "normal Finish/logical owner0/group absent",
+    "preserve execution fixture PASS and attribution FAIL separately",
+    "do not infer IDs from order/time or claim R149 cause"
+  ],
+  "reviewerAcknowledgement": "Header handling and immediate loss propagation were missed in pre-execution review. Final failure findings supersede preflight adequacy for correlation, not actual linkage proof.",
+  "remaining": "remote evidence verification and owned cleanup pending; see closure"
+}

@@ -1,0 +1,24 @@
+{
+  "schema": "media-server.v450.r154.closure.v1",
+  "decision": "FAIL_BOUNDED_HTTP_CONTRACT",
+  "status": "PRESERVED_LOCAL_REMOTE_AND_CLEANUP_PENDING",
+  "baselineHead": "90631f37e5a5b86ad9a59b0de9f7a42e6b4494fc",
+  "instrumentationCommit": "6dbc3a79464df059be361cad906955b7c22def45",
+  "integratedCycles": 1,
+  "reruns": 0,
+  "productStarts": 0,
+  "remoteBytesVerified": false,
+  "ownedTemporaryRootRemoved": false,
+  "processPortCheck": "154-process-check.json; no process matches and port refused",
+  "historical": {
+    "R149Functional45": "FAIL",
+    "R149Collection45": "INCOMPLETE",
+    "R152": "FAIL_FIXTURE_CONTRACT",
+    "R153": "PASS_BOUNDED_FIXTURE_QUALIFIED",
+    "MemoryP0": "HOLD",
+    "Readiness120": "HOLD",
+    "Release": "HOLD",
+    "new45": "NOT_RUN"
+  },
+  "nextExecution": "NOT_AUTHORIZED; separate test-only correlation/fail-fast repair proposal only"
+}

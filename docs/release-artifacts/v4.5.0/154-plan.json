@@ -1,0 +1,13 @@
+{
+  "baseline": "90631f37e5a5b86ad9a59b0de9f7a42e6b4494fc",
+  "integratedMax": 1,
+  "seconds": 180,
+  "work": 166,
+  "cleanup": 14,
+  "httpMs": 5000,
+  "normalMs": 2000,
+  "logCap": 4194304,
+  "input": "R153 unchanged17/990",
+  "method": "temporary whole-TU overlays, explicit object before unchanged archive; unchanged class definitions; fixed test-only TLS counters; numeric header correlation",
+  "red": "new qualifier absent / invalid traces rejected; no product RED"
+}

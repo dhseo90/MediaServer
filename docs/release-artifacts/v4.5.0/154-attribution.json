@@ -1,0 +1,5 @@
+{
+  "fixtureExit": 0,
+  "decision": "FAIL_BOUNDED_HTTP_CONTRACT",
+  "error": "request identity"
+}
