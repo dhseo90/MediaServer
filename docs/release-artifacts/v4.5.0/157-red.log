@@ -1,0 +1,5 @@
+Traceback (most recent call last):
+  File "<string>", line 1, in <module>
+    from pathlib import Path; from recording_http_cost_overlay import generate; generate(Path('<OWNED_ROOT>/red-overlay')); s=Path('<OWNED_ROOT>/red-overlay/recording_catalog.cpp').read_text(); assert 'r157::Hold' in s, 'R157 hold instrumentation absent'
+                                                                                                                                                                                                                                                               ^^^^^^^^^^^^^^^^^
+AssertionError: R157 hold instrumentation absent

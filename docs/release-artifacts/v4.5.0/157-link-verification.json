@@ -1,0 +1,345 @@
+{
+  "products": {
+    "media_server": "33f516d35d56cb2f6cafc75647b6c37d2ced67115302d1205cca23bf51ab7f79",
+    "libmedia_server_runtime.a": "2d91cf35fe7e805e0c06e00d16779c86849b35db635e087582277e1b676d198c"
+  },
+  "fixtureSha256": "55fe453389e40a1b7c7da64b8289513d04ce356b823db3c56a2ce939043a2895",
+  "mapSha256": "a3c1ba50c3c287a8d6d449ddb15b40e2388704e50de392862b88573821067d3d",
+  "uniquePrincipalDefinitions": {
+    "AcquireMediaWithContext": [
+      "0000000100125f1c T __ZN9recording16RecordingCatalog23AcquireMediaWithContextERKNSt3__112basic_stringIcNS1_11char_traitsIcEENS1_9allocatorIcEEEES9_PNS_20RecordingMemoryValueINS_24RecordingSegmentV2FieldsEEEPNS1_4pairINS1_4__fs10filesystem4pathESH_EEPS7_PNS0_14JobReadContextE"
+    ],
+    "ValidateMediaWithContext": [
+      "0000000100126540 T __ZNK9recording16RecordingCatalog24ValidateMediaWithContextERKNS_20RecordingMemoryValueINS_24RecordingSegmentV2FieldsEEERKNSt3__14pairINS6_4__fs10filesystem4pathESA_EEPNS0_14JobReadContextE"
+    ],
+    "AdjustHoldCountLocked": [
+      "000000010014238c T __ZN9recording16RecordingCatalog21AdjustHoldCountLockedERKNSt3__112basic_stringIcNS1_11char_traitsIcEENS1_9allocatorIcEEEExPS7_"
+    ],
+    "UpdateGenerationHoldsLocked": [
+      "00000001000f045c T __ZN9recording16RecordingCatalog27UpdateGenerationHoldsLockedERKNSt3__16vectorINS1_4pairINS1_12basic_stringIcNS1_11char_traitsIcEENS1_9allocatorIcEEEEyEENS7_ISA_EEEEPS9_"
+    ],
+    "CommitGenerationProtection": [
+      "00000001007b84e8 T __ZN9recording16RecordingJournal26CommitGenerationProtectionEPKvRKNSt3__18functionIFbvEEEPNS3_12basic_stringIcNS3_11char_traitsIcEENS3_9allocatorIcEEEE"
+    ]
+  },
+  "originalOverlayArchiveMembersAbsent": true,
+  "JournalOriginalArchiveMemberExpected": true,
+  "dependencies": 173,
+  "nativeCatalogRecords": [
+    {
+      "schema": 1,
+      "id": 10,
+      "begin": 1576867562098083,
+      "end": 1576867571529583,
+      "complete": true,
+      "loss": false,
+      "mutexTiming": "UNKNOWN",
+      "journalMutexTiming": "UNKNOWN",
+      "metrics": [
+        [
+          1,
+          35500,
+          501
+        ],
+        [
+          1,
+          84542,
+          3250
+        ],
+        [
+          1,
+          1297917,
+          584
+        ],
+        [
+          4,
+          435291,
+          958
+        ],
+        [
+          1,
+          4026542,
+          333
+        ],
+        [
+          1,
+          1207250,
+          375
+        ],
+        [
+          1,
+          1819125,
+          250
+        ],
+        [
+          10,
+          792,
+          792
+        ],
+        [
+          10,
+          8899124,
+          1849164
+        ],
+        [
+          1,
+          2209,
+          2209
+        ],
+        [
+          2,
+          1339042,
+          1111208
+        ],
+        [
+          2,
+          158541,
+          158541
+        ],
+        [
+          2,
+          56042,
+          56042
+        ],
+        [
+          2,
+          13251,
+          13251
+        ],
+        [
+          2,
+          36875,
+          36875
+        ],
+        [
+          1,
+          1039209,
+          1039209
+        ],
+        [
+          1,
+          1206542,
+          1047833
+        ],
+        [
+          1,
+          5584,
+          5584
+        ],
+        [
+          1,
+          1760666,
+          1037956
+        ],
+        [
+          1,
+          66750,
+          66750
+        ],
+        [
+          1,
+          29709,
+          29709
+        ],
+        [
+          1,
+          1125,
+          1125
+        ],
+        [
+          1,
+          125,
+          125
+        ],
+        [
+          1,
+          623334,
+          2377
+        ],
+        [
+          1,
+          109791,
+          109791
+        ],
+        [
+          1,
+          18708,
+          18708
+        ],
+        [
+          1,
+          16375,
+          16375
+        ],
+        [
+          1,
+          107167,
+          107167
+        ],
+        [
+          1,
+          368916,
+          111624
+        ],
+        [
+          1,
+          257292,
+          257292
+        ],
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          1,
+          1667,
+          1667
+        ],
+        [
+          1,
+          1818542,
+          1060542
+        ],
+        [
+          1,
+          73667,
+          73667
+        ],
+        [
+          1,
+          29833,
+          29833
+        ],
+        [
+          1,
+          792,
+          792
+        ],
+        [
+          1,
+          42,
+          42
+        ],
+        [
+          1,
+          651416,
+          3499
+        ],
+        [
+          1,
+          126542,
+          126542
+        ],
+        [
+          1,
+          20792,
+          20792
+        ],
+        [
+          1,
+          17458,
+          17458
+        ],
+        [
+          1,
+          124458,
+          124458
+        ],
+        [
+          1,
+          358667,
+          123792
+        ],
+        [
+          1,
+          234875,
+          234875
+        ],
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          1,
+          2250,
+          2250
+        ],
+        [
+          1,
+          750,
+          750
+        ],
+        [
+          1,
+          125,
+          125
+        ]
+      ],
+      "counts": [
+        2,
+        0,
+        0,
+        1,
+        1,
+        0,
+        1,
+        1,
+        0,
+        1,
+        0,
+        1,
+        0,
+        1,
+        1,
+        1,
+        1,
+        0,
+        0,
+        1,
+        0
+      ],
+      "outcomes": [
+        [
+          0,
+          1
+        ],
+        [
+          0,
+          1
+        ],
+        [
+          1,
+          0
+        ],
+        [
+          4,
+          0
+        ],
+        [
+          1,
+          0
+        ],
+        [
+          1,
+          0
+        ],
+        [
+          1,
+          0
+        ]
+      ]
+    }
+  ]
+}

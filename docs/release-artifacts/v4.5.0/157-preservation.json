@@ -1,0 +1,425 @@
+{
+  "schema": "media-server.v450.r157.preservation.v1",
+  "entries": [
+    {
+      "source": "entry.json",
+      "stored": "157-entry.json",
+      "rawBytes": 303,
+      "rawSha256": "e96d05f3194069419870c64f9f26b461b3a53d4ac434d0767ec341d57218483f",
+      "storedBytes": 303,
+      "storedSha256": "e96d05f3194069419870c64f9f26b461b3a53d4ac434d0767ec341d57218483f",
+      "sameBytes": true,
+      "transformation": "owned/home/repo path placeholders, fixture token placeholders when present, trailing whitespace normalization"
+    },
+    {
+      "source": "preflight.json",
+      "stored": "157-preflight.json",
+      "rawBytes": 1386,
+      "rawSha256": "879524e1fb99e24554b64540b945027e247ca7fe899a172552eeed4fe24d3a6d",
+      "storedBytes": 1386,
+      "storedSha256": "879524e1fb99e24554b64540b945027e247ca7fe899a172552eeed4fe24d3a6d",
+      "sameBytes": true,
+      "transformation": "owned/home/repo path placeholders, fixture token placeholders when present, trailing whitespace normalization"
+    },
+    {
+      "source": "pre-review.json",
+      "stored": "157-pre-review.json",
+      "rawBytes": 915,
+      "rawSha256": "91d9e9bec2b5af3257fe6798397e12d105b69680dc07514d64af43ad86df33b9",
+      "storedBytes": 915,
+      "storedSha256": "91d9e9bec2b5af3257fe6798397e12d105b69680dc07514d64af43ad86df33b9",
+      "sameBytes": true,
+      "transformation": "owned/home/repo path placeholders, fixture token placeholders when present, trailing whitespace normalization"
+    },
+    {
+      "source": "analysis.json",
+      "stored": "157-analysis.json",
+      "rawBytes": 42805,
+      "rawSha256": "cff47c735d232e787208af929c0d8a594c7401560fe4459a46de5a2cd1b2a6ff",
+      "storedBytes": 42805,
+      "storedSha256": "cff47c735d232e787208af929c0d8a594c7401560fe4459a46de5a2cd1b2a6ff",
+      "sameBytes": true,
+      "transformation": "owned/home/repo path placeholders, fixture token placeholders when present, trailing whitespace normalization"
+    },
+    {
+      "source": "input-summary.json",
+      "stored": "157-input-summary.json",
+      "rawBytes": 9594,
+      "rawSha256": "11fc085c397553109cc7f2d556ccb3e230845727cf16237ebea72361cc77cb5b",
+      "storedBytes": 9594,
+      "storedSha256": "11fc085c397553109cc7f2d556ccb3e230845727cf16237ebea72361cc77cb5b",
+      "sameBytes": true,
+      "transformation": "owned/home/repo path placeholders, fixture token placeholders when present, trailing whitespace normalization"
+    },
+    {
+      "source": "red.json",
+      "stored": "157-red.json",
+      "rawBytes": 415,
+      "rawSha256": "2c7238f410052650db84f7a19dd62fac90504d58283440c1007ba5be97802b3f",
+      "storedBytes": 361,
+      "storedSha256": "8b149eedeabdd363634778d725a372de250e250ae67acfe3254d72f3cd149ac7",
+      "sameBytes": false,
+      "transformation": "owned/home/repo path placeholders, fixture token placeholders when present, trailing whitespace normalization"
+    },
+    {
+      "source": "red.log",
+      "stored": "157-red.log",
+      "rawBytes": 705,
+      "rawSha256": "7415e838a63ddf948c8aba7bce060e9011497ac051d6d95e5d621cd8c040baa8",
+      "storedBytes": 651,
+      "storedSha256": "60243df8d7ac280ecdc49f1f103a999c920c9393c0614dba413b352c8858199f",
+      "sameBytes": false,
+      "transformation": "owned/home/repo path placeholders, fixture token placeholders when present, trailing whitespace normalization"
+    },
+    {
+      "source": "parser.log",
+      "stored": "157-parser-first.log",
+      "rawBytes": 19,
+      "rawSha256": "56397b75bb213dde50f5ed1cfe0a8739d6ccaf8ee835f3b212c399855aaa9e05",
+      "storedBytes": 19,
+      "storedSha256": "56397b75bb213dde50f5ed1cfe0a8739d6ccaf8ee835f3b212c399855aaa9e05",
+      "sameBytes": true,
+      "transformation": "owned/home/repo path placeholders, fixture token placeholders when present, trailing whitespace normalization"
+    },
+    {
+      "source": "parser-results.json",
+      "stored": "157-parser-results.json",
+      "rawBytes": 1257,
+      "rawSha256": "51d302fa384c69f30175c2bafdbcb5c94de0462d3dc2279bfbbcdd26bbe12c2b",
+      "storedBytes": 1257,
+      "storedSha256": "51d302fa384c69f30175c2bafdbcb5c94de0462d3dc2279bfbbcdd26bbe12c2b",
+      "sameBytes": true,
+      "transformation": "owned/home/repo path placeholders, fixture token placeholders when present, trailing whitespace normalization"
+    },
+    {
+      "source": "parser-cases.log",
+      "stored": "157-parser-cases.log",
+      "rawBytes": 3112,
+      "rawSha256": "c21effabb89fe729714e13513d0c0513338f56999ffb4c4bb7b7621dfb1d26fe",
+      "storedBytes": 3112,
+      "storedSha256": "c21effabb89fe729714e13513d0c0513338f56999ffb4c4bb7b7621dfb1d26fe",
+      "sameBytes": true,
+      "transformation": "owned/home/repo path placeholders, fixture token placeholders when present, trailing whitespace normalization"
+    },
+    {
+      "source": "python-results.json",
+      "stored": "157-python-results.json",
+      "rawBytes": 427,
+      "rawSha256": "1d4d44cd20e7d8ec48ca4f769d18ef151cd6a1331224184cddad3806123a8a08",
+      "storedBytes": 427,
+      "storedSha256": "1d4d44cd20e7d8ec48ca4f769d18ef151cd6a1331224184cddad3806123a8a08",
+      "sameBytes": true,
+      "transformation": "owned/home/repo path placeholders, fixture token placeholders when present, trailing whitespace normalization"
+    },
+    {
+      "source": "r153-python.log",
+      "stored": "157-r153-python.log",
+      "rawBytes": 129,
+      "rawSha256": "359772aa50dc90b6b5176299e9d459af2dee7127197baa419a5ac5106dc03202",
+      "storedBytes": 129,
+      "storedSha256": "359772aa50dc90b6b5176299e9d459af2dee7127197baa419a5ac5106dc03202",
+      "sameBytes": true,
+      "transformation": "owned/home/repo path placeholders, fixture token placeholders when present, trailing whitespace normalization"
+    },
+    {
+      "source": "r155-python.log",
+      "stored": "157-r155-python.log",
+      "rawBytes": 22377,
+      "rawSha256": "5e22f07605f13cff09c93450a7514be067fd32a39a29d78368395e5afc7d1ff9",
+      "storedBytes": 22377,
+      "storedSha256": "5e22f07605f13cff09c93450a7514be067fd32a39a29d78368395e5afc7d1ff9",
+      "sameBytes": true,
+      "transformation": "owned/home/repo path placeholders, fixture token placeholders when present, trailing whitespace normalization"
+    },
+    {
+      "source": "r156-python.log",
+      "stored": "157-r156-python.log",
+      "rawBytes": 103,
+      "rawSha256": "6273232de4d3ef7acd4ecafa5c86beeeb974f56586b21089a2990b3f72facbe6",
+      "storedBytes": 103,
+      "storedSha256": "6273232de4d3ef7acd4ecafa5c86beeeb974f56586b21089a2990b3f72facbe6",
+      "sameBytes": true,
+      "transformation": "owned/home/repo path placeholders, fixture token placeholders when present, trailing whitespace normalization"
+    },
+    {
+      "source": "hold-python-final.log",
+      "stored": "157-hold-python.log",
+      "rawBytes": 104,
+      "rawSha256": "c6b9b1f09add0403cc07e90bfdf272129b1ddfa2f8f7675ea8218862f2516371",
+      "storedBytes": 104,
+      "storedSha256": "c6b9b1f09add0403cc07e90bfdf272129b1ddfa2f8f7675ea8218862f2516371",
+      "sameBytes": true,
+      "transformation": "owned/home/repo path placeholders, fixture token placeholders when present, trailing whitespace normalization"
+    },
+    {
+      "source": "native-results.json",
+      "stored": "157-native-first-results.json",
+      "rawBytes": 85,
+      "rawSha256": "38c8bef48c8fea2e9c0045953c185e91e11310a2b96e8ee2b9def6f61fa76685",
+      "storedBytes": 85,
+      "storedSha256": "38c8bef48c8fea2e9c0045953c185e91e11310a2b96e8ee2b9def6f61fa76685",
+      "sameBytes": true,
+      "transformation": "owned/home/repo path placeholders, fixture token placeholders when present, trailing whitespace normalization"
+    },
+    {
+      "source": "native-media-results.json",
+      "stored": "157-native-media-results.json",
+      "rawBytes": 181,
+      "rawSha256": "2a1c78d465019713feec4be1875d14f67fe16803e127bfc9f7b84e92b0dcb895",
+      "storedBytes": 181,
+      "storedSha256": "2a1c78d465019713feec4be1875d14f67fe16803e127bfc9f7b84e92b0dcb895",
+      "sameBytes": true,
+      "transformation": "owned/home/repo path placeholders, fixture token placeholders when present, trailing whitespace normalization"
+    },
+    {
+      "source": "native-final-result.json",
+      "stored": "157-native-final-result.json",
+      "rawBytes": 84,
+      "rawSha256": "92d247deeab698e84eaa9d93fa9effafa8e13d7b5558c12edaa23f328508151c",
+      "storedBytes": 84,
+      "storedSha256": "92d247deeab698e84eaa9d93fa9effafa8e13d7b5558c12edaa23f328508151c",
+      "sameBytes": true,
+      "transformation": "owned/home/repo path placeholders, fixture token placeholders when present, trailing whitespace normalization"
+    },
+    {
+      "source": "focused.log",
+      "stored": "157-r153-native.log",
+      "rawBytes": 3409,
+      "rawSha256": "e505e61cabeb6f068c97f8b5262fab25dfc79ec99a99ce2bb164bd78fc99f9cc",
+      "storedBytes": 3409,
+      "storedSha256": "e505e61cabeb6f068c97f8b5262fab25dfc79ec99a99ce2bb164bd78fc99f9cc",
+      "sameBytes": true,
+      "transformation": "owned/home/repo path placeholders, fixture token placeholders when present, trailing whitespace normalization"
+    },
+    {
+      "source": "currentness-focused.log",
+      "stored": "157-native-first.log",
+      "rawBytes": 7195,
+      "rawSha256": "5bbf65d5e561f703ddd34fd1a8ac464a052b1503c690b04a9f86848186b1b106",
+      "storedBytes": 7195,
+      "storedSha256": "5bbf65d5e561f703ddd34fd1a8ac464a052b1503c690b04a9f86848186b1b106",
+      "sameBytes": true,
+      "transformation": "owned/home/repo path placeholders, fixture token placeholders when present, trailing whitespace normalization"
+    },
+    {
+      "source": "currentness-focused-final.log",
+      "stored": "157-native-final.log",
+      "rawBytes": 7827,
+      "rawSha256": "09cf98a636e500b09a24b3ac51b25dfb40f2c405cd1fdc19246f998300e3c6eb",
+      "storedBytes": 7827,
+      "storedSha256": "09cf98a636e500b09a24b3ac51b25dfb40f2c405cd1fdc19246f998300e3c6eb",
+      "sameBytes": true,
+      "transformation": "owned/home/repo path placeholders, fixture token placeholders when present, trailing whitespace normalization"
+    },
+    {
+      "source": "build.log",
+      "stored": "157-build-first.log",
+      "rawBytes": 6186,
+      "rawSha256": "e6fbdfe3f4eddfaee0cff2ca878419289017bfeaaea0b3e34a9f06b3db98b9e8",
+      "storedBytes": 5719,
+      "storedSha256": "79959261ccd278e9bccbeae6deece1c91295066dccbe6204682bf8dfa86a649b",
+      "sameBytes": false,
+      "transformation": "owned/home/repo path placeholders, fixture token placeholders when present, trailing whitespace normalization"
+    },
+    {
+      "source": "build-final.log",
+      "stored": "157-build-second.log",
+      "rawBytes": 6240,
+      "rawSha256": "064e3d31faf439372d569819b2aa2b91ae7ec0e38d1bcf480e8e2db24cd332b9",
+      "storedBytes": 5773,
+      "storedSha256": "04ef4ccefa1e8e519d572371abae396e5e59ca3f71d567756ddcee03bcf4716a",
+      "sameBytes": false,
+      "transformation": "owned/home/repo path placeholders, fixture token placeholders when present, trailing whitespace normalization"
+    },
+    {
+      "source": "build-qualified.log",
+      "stored": "157-build-qualified.log",
+      "rawBytes": 0,
+      "rawSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "storedBytes": 1,
+      "storedSha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+      "sameBytes": false,
+      "transformation": "owned/home/repo path placeholders, fixture token placeholders when present, trailing whitespace normalization"
+    },
+    {
+      "source": "focused-rebuild.json",
+      "stored": "157-focused-rebuild.json",
+      "rawBytes": 5513,
+      "rawSha256": "df092d528f7920fd7116f264cea0e54cdb33c7f22c4b61c22001f30bcede4adb",
+      "storedBytes": 5130,
+      "storedSha256": "0d63dccdc8fad8f1fe81449527fdf0843829b072cf9752ad8b67aa06d024261c",
+      "sameBytes": false,
+      "transformation": "owned/home/repo path placeholders, fixture token placeholders when present, trailing whitespace normalization"
+    },
+    {
+      "source": "binding-update.json",
+      "stored": "157-binding-update.json",
+      "rawBytes": 360,
+      "rawSha256": "5d5035f935c8dd28b11f8b0e0f21a0cc9186e9200103b47e8ffbfa612f259469",
+      "storedBytes": 360,
+      "storedSha256": "5d5035f935c8dd28b11f8b0e0f21a0cc9186e9200103b47e8ffbfa612f259469",
+      "sameBytes": true,
+      "transformation": "owned/home/repo path placeholders, fixture token placeholders when present, trailing whitespace normalization"
+    },
+    {
+      "source": "binding-final-update.json",
+      "stored": "157-binding-final-update.json",
+      "rawBytes": 647,
+      "rawSha256": "3e8eecef56cb048f46f0875fd1c48277b18f50af30c0ce672226c87eeea3cad3",
+      "storedBytes": 647,
+      "storedSha256": "3e8eecef56cb048f46f0875fd1c48277b18f50af30c0ce672226c87eeea3cad3",
+      "sameBytes": true,
+      "transformation": "owned/home/repo path placeholders, fixture token placeholders when present, trailing whitespace normalization"
+    },
+    {
+      "source": "link-verification.json",
+      "stored": "157-link-verification.json",
+      "rawBytes": 5990,
+      "rawSha256": "e562e50ec0fe68601d6bf2e9c11832d7b058577c5666ef2ea58b4d778750b889",
+      "storedBytes": 5990,
+      "storedSha256": "e562e50ec0fe68601d6bf2e9c11832d7b058577c5666ef2ea58b4d778750b889",
+      "sameBytes": true,
+      "transformation": "owned/home/repo path placeholders, fixture token placeholders when present, trailing whitespace normalization"
+    },
+    {
+      "source": "producer.log",
+      "stored": "157-producer.log",
+      "rawBytes": 12812,
+      "rawSha256": "d044f8ac77f4e3e0a7ee0672c9d63381151b9f522393a0aa536f910913ef258f",
+      "storedBytes": 12812,
+      "storedSha256": "d044f8ac77f4e3e0a7ee0672c9d63381151b9f522393a0aa536f910913ef258f",
+      "sameBytes": true,
+      "transformation": "owned/home/repo path placeholders, fixture token placeholders when present, trailing whitespace normalization"
+    },
+    {
+      "source": "readback.log",
+      "stored": "157-readback.log",
+      "rawBytes": 1141,
+      "rawSha256": "f004e8a145e0b287322992e5f2f9c356c12a495834505e9ea79a414fd1f6b6f7",
+      "storedBytes": 1141,
+      "storedSha256": "f004e8a145e0b287322992e5f2f9c356c12a495834505e9ea79a414fd1f6b6f7",
+      "sameBytes": true,
+      "transformation": "owned/home/repo path placeholders, fixture token placeholders when present, trailing whitespace normalization"
+    },
+    {
+      "source": "coverage.log",
+      "stored": "157-coverage.log",
+      "rawBytes": 604,
+      "rawSha256": "f3dd9d2ec3cd35ce7a806a391b6918dddd2c2377ca3039afa624f484985f9bce",
+      "storedBytes": 604,
+      "storedSha256": "f3dd9d2ec3cd35ce7a806a391b6918dddd2c2377ca3039afa624f484985f9bce",
+      "sameBytes": true,
+      "transformation": "owned/home/repo path placeholders, fixture token placeholders when present, trailing whitespace normalization"
+    },
+    {
+      "source": "candidate-qualified/run/execution.json",
+      "stored": "157-execution.json",
+      "rawBytes": 24167,
+      "rawSha256": "00002d458901d4c62267dad63211ee60ba613648714ebe2bc45cf117ba4707d3",
+      "storedBytes": 24167,
+      "storedSha256": "00002d458901d4c62267dad63211ee60ba613648714ebe2bc45cf117ba4707d3",
+      "sameBytes": true,
+      "transformation": "owned/home/repo path placeholders, fixture token placeholders when present, trailing whitespace normalization"
+    },
+    {
+      "source": "candidate-qualified/run/events.json",
+      "stored": "157-events.json",
+      "rawBytes": 14434,
+      "rawSha256": "82d85d1e66069ec8fa15d2ba2681d052de9fcd37d9aa068a4c282b1266b7cb67",
+      "storedBytes": 14434,
+      "storedSha256": "82d85d1e66069ec8fa15d2ba2681d052de9fcd37d9aa068a4c282b1266b7cb67",
+      "sameBytes": true,
+      "transformation": "owned/home/repo path placeholders, fixture token placeholders when present, trailing whitespace normalization"
+    },
+    {
+      "source": "candidate-qualified/run/attribution.json",
+      "stored": "157-trace.json",
+      "rawBytes": 79503,
+      "rawSha256": "d7bbb2acc18bd8aee21700d939b8b958f71724819607c4e77e087f2303d8d23b",
+      "storedBytes": 79503,
+      "storedSha256": "d7bbb2acc18bd8aee21700d939b8b958f71724819607c4e77e087f2303d8d23b",
+      "sameBytes": true,
+      "transformation": "owned/home/repo path placeholders, fixture token placeholders when present, trailing whitespace normalization"
+    },
+    {
+      "source": "candidate-qualified/run/output.log",
+      "stored": "157-output.log",
+      "rawBytes": 163309,
+      "rawSha256": "8e76647ef2cf919a6fe899812ddbaebaa28bded1a33ac7064d2cdf098d324531",
+      "storedBytes": 163307,
+      "storedSha256": "522d0385da5258761eee985876538a11d4e0372843c0184084dc759a5a6b0092",
+      "sameBytes": false,
+      "transformation": "owned/home/repo path placeholders, fixture token placeholders when present, trailing whitespace normalization"
+    },
+    {
+      "source": "candidate-qualified/instrumentation.json",
+      "stored": "157-instrumentation.json",
+      "rawBytes": 50984,
+      "rawSha256": "3404d64d451de4ba8da18be25189e71717f0da0f877cf80e2a952e17ef81c281",
+      "storedBytes": 47961,
+      "storedSha256": "2895149fb10c7e51d8c2ffbd5647225714df58c7b9f602b6b9c3403dbd6e59c3",
+      "sameBytes": false,
+      "transformation": "owned/home/repo path placeholders, fixture token placeholders when present, trailing whitespace normalization"
+    },
+    {
+      "source": "candidate-qualified/map-objects.txt",
+      "stored": "157-map-objects.txt",
+      "rawBytes": 580,
+      "rawSha256": "bb621a59071a8c603b45c9a3af6d85f4b3edf0a27fca848d4388f88173384f3f",
+      "storedBytes": 418,
+      "storedSha256": "4c48b28e4e87533f2d79d9ef81004961f095ba5a6281cdfa347eb1a335181823",
+      "sameBytes": false,
+      "transformation": "owned/home/repo path placeholders, fixture token placeholders when present, trailing whitespace normalization"
+    },
+    {
+      "source": "candidate/currentness-focused-build.log",
+      "stored": "157-compile-first.log",
+      "rawBytes": 1950,
+      "rawSha256": "b47fd9d92eeed051fe43e677a6aabf1de66b482fcabdd0a85be46099afc6a022",
+      "storedBytes": 1761,
+      "storedSha256": "0996e9faacc0c88f85c445349f6858b9bf45c502205cb3c4cfa42bbb44574560",
+      "sameBytes": false,
+      "transformation": "owned/home/repo path placeholders, fixture token placeholders when present, trailing whitespace normalization"
+    },
+    {
+      "source": "candidate-final/currentness-focused-build.log",
+      "stored": "157-compile-second.log",
+      "rawBytes": 4456,
+      "rawSha256": "1501b6f0edc3a73d268b824fb61be3e0c0ec0015ded74331da732db3ac28c8c6",
+      "storedBytes": 4071,
+      "storedSha256": "1d8c1a051cae251481d0ff6ae86d84bded318062c95b340ab3a11e40b2b8a7f8",
+      "sameBytes": false,
+      "transformation": "owned/home/repo path placeholders, fixture token placeholders when present, trailing whitespace normalization"
+    },
+    {
+      "source": "overlay.patch",
+      "stored": "157-overlay.patch",
+      "rawBytes": 49745,
+      "rawSha256": "0b6e3c8e5f622ed18dbfffe784e8abd2d0616985fede3d5ac21b7453843fe867",
+      "storedBytes": 49727,
+      "storedSha256": "38ee9d5f2befb56a72f0ebc08f8d4c4b91397a291f3ca957a947a63e4297154b",
+      "sameBytes": false,
+      "transformation": "owned/home/repo path placeholders, fixture token placeholders when present, trailing whitespace normalization"
+    },
+    {
+      "source": "focused-executions.json",
+      "stored": "157-focused-executions.json",
+      "rawBytes": 32023,
+      "rawSha256": "1d1c4fc23ebea7aec6dc62e45077c3e2a14de939fad476d25c3f110b2ac9ee7a",
+      "storedBytes": 32023,
+      "storedSha256": "1d1c4fc23ebea7aec6dc62e45077c3e2a14de939fad476d25c3f110b2ac9ee7a",
+      "sameBytes": true,
+      "transformation": "owned/home/repo path placeholders, fixture token placeholders when present, trailing whitespace normalization"
+    }
+  ],
+  "totalStoredBytes": 557873,
+  "largeFilesExcluded": [
+    "media",
+    "fixture/seed/collector/native binaries",
+    "full link map",
+    "4MiB cap fault payloads"
+  ],
+  "rawSourceRoot": "<OWNED_ROOT>",
+  "rawRootKeptUntilRemoteVerified": true,
+  "historicalArtifactsModified": false
+}

@@ -1,0 +1,39 @@
+{
+  "baseline": "db2fd146a36f283d1071d87529ccb55c4bfd8362",
+  "independentPreflight": "PASS_HOLD_BOUNDARY_STREAMING_LINKAGE_PREFLIGHT",
+  "dependencyCount": 173,
+  "bindingCurrent": true,
+  "integratedRunsBefore": 0,
+  "runLeafAbsent": true,
+  "productSourceUnchanged": true,
+  "binary": {
+    "fixture": "55fe453389e40a1b7c7da64b8289513d04ce356b823db3c56a2ce939043a2895",
+    "seed": "b3d6d5ef8666f79cbdb398e8af9454fdce05ffa83d1d75cc7cb8a3276c56a4fb",
+    "process-metrics": "2b5ad23194e1ff34ce92ce087c2dba2220ed735f7f92c8d1582579fc08b98bc7"
+  },
+  "model": {
+    "requested": {
+      "main": "gpt-6-astra/high",
+      "independent": "gpt-6-astra/high"
+    },
+    "toolAccepted": {
+      "main": null,
+      "independent": "followup_task accepted on existing independent_r155; prior requested model is not actual runtime proof"
+    },
+    "actualRuntimeModel": {
+      "main": null,
+      "independent": null
+    },
+    "actualRuntimeEffort": {
+      "main": null,
+      "independent": null
+    }
+  },
+  "bindingSequence": "producer51/0 -> readback986 and15/15negative -> coverage9/0",
+  "executionHead": "6ad79df21ba8f85a287148f2de5ce1f4c8fb0329",
+  "candidateClean": true,
+  "products": {
+    "media_server": "33f516d35d56cb2f6cafc75647b6c37d2ced67115302d1205cca23bf51ab7f79",
+    "libmedia_server_runtime.a": "2d91cf35fe7e805e0c06e00d16779c86849b35db635e087582277e1b676d198c"
+  }
+}

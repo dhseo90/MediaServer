@@ -1,0 +1,1622 @@
+{
+  "schema": "media-server.v450.r157.analysis.v1",
+  "decision": "CATALOG_HOLD_COST_BOUNDARY_IDENTIFIED",
+  "instrumentationContract": "PASS",
+  "actualCostAttribution": "QUALIFIED",
+  "units": "raw nanoseconds retained; ms derived by /1e6",
+  "requests": {
+    "10": {
+      "requestClass": "ordinary structured",
+      "clientMs": 66.100166,
+      "serverMs": 67.821084,
+      "searchMs": 65.902959,
+      "searchPhasesMs": {
+        "service-wait": 4.2e-05,
+        "service-hold": 0.035708,
+        "Capture": 1.678459,
+        "BuildOwned": 0.307042,
+        "Refresh": 2.237042,
+        "PlaybackCandidates": 0.778042,
+        "PlaybackNoCandidates": 4.2e-05,
+        "PlaybackReuse": 4.2e-05,
+        "WithPlayback": 0.923417,
+        "SnapshotBegin": 0.039917,
+        "preparation-wait": 8.4e-05,
+        "preparation-hold": 3.201875,
+        "CurrentnessJson": 62.612459
+      },
+      "currentnessRecordMs": 62.591541,
+      "mediaResolveMs": 62.475001,
+      "physicalInspectionMs": 4.01554,
+      "destructorBodyMs": 16.460749,
+      "catalogApiSumMs": 57.64388,
+      "apiOutcomes": {
+        "DeletedAPI": {
+          "positive": 0,
+          "negative": 8
+        },
+        "V1API": {
+          "positive": 0,
+          "negative": 8
+        },
+        "V2API": {
+          "positive": 8,
+          "negative": 0
+        },
+        "LinksAPI": {
+          "positive": 32,
+          "negative": 0
+        },
+        "AcquireAPI": {
+          "positive": 8,
+          "negative": 0
+        },
+        "ValidateAPI": {
+          "positive": 8,
+          "negative": 0
+        },
+        "ReleaseAPI": {
+          "positive": 8,
+          "negative": 0
+        }
+      },
+      "metrics": {
+        "DeletedAPI": {
+          "calls": 8,
+          "inclusiveNs": 9415957,
+          "selfNs": 18916,
+          "inclusiveMs": 9.415957,
+          "selfMs": 0.018916
+        },
+        "V1API": {
+          "calls": 8,
+          "inclusiveNs": 1302291,
+          "selfNs": 16374,
+          "inclusiveMs": 1.302291,
+          "selfMs": 0.016374
+        },
+        "V2API": {
+          "calls": 8,
+          "inclusiveNs": 1480043,
+          "selfNs": 18460,
+          "inclusiveMs": 1.480043,
+          "selfMs": 0.01846
+        },
+        "LinksAPI": {
+          "calls": 32,
+          "inclusiveNs": 5525336,
+          "selfNs": 69665,
+          "inclusiveMs": 5.525336,
+          "selfMs": 0.069665
+        },
+        "AcquireAPI": {
+          "calls": 8,
+          "inclusiveNs": 15866668,
+          "selfNs": 20753,
+          "inclusiveMs": 15.866668,
+          "selfMs": 0.020753
+        },
+        "ValidateAPI": {
+          "calls": 8,
+          "inclusiveNs": 7607500,
+          "selfNs": 20211,
+          "inclusiveMs": 7.6075,
+          "selfMs": 0.020211
+        },
+        "ReleaseAPI": {
+          "calls": 8,
+          "inclusiveNs": 16446085,
+          "selfNs": 20918,
+          "inclusiveMs": 16.446085,
+          "selfMs": 0.020918
+        },
+        "LockConstruction": {
+          "calls": 80,
+          "inclusiveNs": 28000372,
+          "selfNs": 28000372,
+          "inclusiveMs": 28.000372,
+          "selfMs": 28.000372
+        },
+        "OwnedBody": {
+          "calls": 80,
+          "inclusiveNs": 29458211,
+          "selfNs": 7328464,
+          "inclusiveMs": 29.458211,
+          "selfMs": 7.328464
+        },
+        "AcquireInit": {
+          "calls": 8,
+          "inclusiveNs": 26540,
+          "selfNs": 26540,
+          "inclusiveMs": 0.02654,
+          "selfMs": 0.02654
+        },
+        "Eligibility": {
+          "calls": 16,
+          "inclusiveNs": 3594292,
+          "selfNs": 508580,
+          "inclusiveMs": 3.594292,
+          "selfMs": 0.50858
+        },
+        "EligibilityCanRead": {
+          "calls": 16,
+          "inclusiveNs": 2010626,
+          "selfNs": 2010626,
+          "inclusiveMs": 2.010626,
+          "selfMs": 2.010626
+        },
+        "EligibilityLifecycle": {
+          "calls": 16,
+          "inclusiveNs": 869877,
+          "selfNs": 869877,
+          "inclusiveMs": 0.869877,
+          "selfMs": 0.869877
+        },
+        "EventProtection": {
+          "calls": 16,
+          "inclusiveNs": 205209,
+          "selfNs": 205209,
+          "inclusiveMs": 0.205209,
+          "selfMs": 0.205209
+        },
+        "LocationLookup": {
+          "calls": 16,
+          "inclusiveNs": 565039,
+          "selfNs": 565039,
+          "inclusiveMs": 0.565039,
+          "selfMs": 0.565039
+        },
+        "SegmentCopy": {
+          "calls": 8,
+          "inclusiveNs": 257125,
+          "selfNs": 257125,
+          "inclusiveMs": 0.257125,
+          "selfMs": 0.257125
+        },
+        "ValidateBody": {
+          "calls": 8,
+          "inclusiveNs": 2455667,
+          "selfNs": 359544,
+          "inclusiveMs": 2.455667,
+          "selfMs": 0.359544
+        },
+        "ContentCompare": {
+          "calls": 8,
+          "inclusiveNs": 16250,
+          "selfNs": 16250,
+          "inclusiveMs": 0.01625,
+          "selfMs": 0.01625
+        },
+        "PlusHold": {
+          "calls": 8,
+          "inclusiveNs": 8434831,
+          "selfNs": 356083,
+          "inclusiveMs": 8.434831,
+          "selfMs": 0.356083
+        },
+        "PlusRead": {
+          "calls": 8,
+          "inclusiveNs": 893623,
+          "selfNs": 893623,
+          "inclusiveMs": 0.893623,
+          "selfMs": 0.893623
+        },
+        "PlusLifecycle": {
+          "calls": 8,
+          "inclusiveNs": 453377,
+          "selfNs": 453377,
+          "inclusiveMs": 0.453377,
+          "selfMs": 0.453377
+        },
+        "PlusLookup": {
+          "calls": 8,
+          "inclusiveNs": 6459,
+          "selfNs": 6459,
+          "inclusiveMs": 0.006459,
+          "selfMs": 0.006459
+        },
+        "PlusRange": {
+          "calls": 8,
+          "inclusiveNs": 623,
+          "selfNs": 623,
+          "inclusiveMs": 0.000623,
+          "selfMs": 0.000623
+        },
+        "PlusGeneration": {
+          "calls": 8,
+          "inclusiveNs": 6709040,
+          "selfNs": 23411,
+          "inclusiveMs": 6.70904,
+          "selfMs": 0.023411
+        },
+        "PlusPrecheck": {
+          "calls": 8,
+          "inclusiveNs": 1613042,
+          "selfNs": 1613042,
+          "inclusiveMs": 1.613042,
+          "selfMs": 1.613042
+        },
+        "PlusBegin": {
+          "calls": 8,
+          "inclusiveNs": 158876,
+          "selfNs": 158876,
+          "inclusiveMs": 0.158876,
+          "selfMs": 0.158876
+        },
+        "PlusPrepare": {
+          "calls": 8,
+          "inclusiveNs": 134500,
+          "selfNs": 134500,
+          "inclusiveMs": 0.1345,
+          "selfMs": 0.1345
+        },
+        "PlusBindStep": {
+          "calls": 8,
+          "inclusiveNs": 1165836,
+          "selfNs": 1165836,
+          "inclusiveMs": 1.165836,
+          "selfMs": 1.165836
+        },
+        "PlusCommitAuthority": {
+          "calls": 8,
+          "inclusiveNs": 3613375,
+          "selfNs": 1579415,
+          "inclusiveMs": 3.613375,
+          "selfMs": 1.579415
+        },
+        "PlusCommit": {
+          "calls": 8,
+          "inclusiveNs": 2033960,
+          "selfNs": 2033960,
+          "inclusiveMs": 2.03396,
+          "selfMs": 2.03396
+        },
+        "PlusRollback": {
+          "calls": 0,
+          "inclusiveNs": 0,
+          "selfNs": 0,
+          "inclusiveMs": 0.0,
+          "selfMs": 0.0
+        },
+        "PlusLegacy": {
+          "calls": 0,
+          "inclusiveNs": 0,
+          "selfNs": 0,
+          "inclusiveMs": 0.0,
+          "selfMs": 0.0
+        },
+        "PlusMap": {
+          "calls": 8,
+          "inclusiveNs": 15626,
+          "selfNs": 15626,
+          "inclusiveMs": 0.015626,
+          "selfMs": 0.015626
+        },
+        "MinusHold": {
+          "calls": 8,
+          "inclusiveNs": 8876126,
+          "selfNs": 377581,
+          "inclusiveMs": 8.876126,
+          "selfMs": 0.377581
+        },
+        "MinusRead": {
+          "calls": 8,
+          "inclusiveNs": 1200043,
+          "selfNs": 1200043,
+          "inclusiveMs": 1.200043,
+          "selfMs": 1.200043
+        },
+        "MinusLifecycle": {
+          "calls": 8,
+          "inclusiveNs": 481167,
+          "selfNs": 481167,
+          "inclusiveMs": 0.481167,
+          "selfMs": 0.481167
+        },
+        "MinusLookup": {
+          "calls": 8,
+          "inclusiveNs": 7123,
+          "selfNs": 7123,
+          "inclusiveMs": 0.007123,
+          "selfMs": 0.007123
+        },
+        "MinusRange": {
+          "calls": 8,
+          "inclusiveNs": 460,
+          "selfNs": 460,
+          "inclusiveMs": 0.00046,
+          "selfMs": 0.00046
+        },
+        "MinusGeneration": {
+          "calls": 8,
+          "inclusiveNs": 6800043,
+          "selfNs": 19293,
+          "inclusiveMs": 6.800043,
+          "selfMs": 0.019293
+        },
+        "MinusPrecheck": {
+          "calls": 8,
+          "inclusiveNs": 1680750,
+          "selfNs": 1680750,
+          "inclusiveMs": 1.68075,
+          "selfMs": 1.68075
+        },
+        "MinusBegin": {
+          "calls": 8,
+          "inclusiveNs": 122375,
+          "selfNs": 122375,
+          "inclusiveMs": 0.122375,
+          "selfMs": 0.122375
+        },
+        "MinusPrepare": {
+          "calls": 8,
+          "inclusiveNs": 106542,
+          "selfNs": 106542,
+          "inclusiveMs": 0.106542,
+          "selfMs": 0.106542
+        },
+        "MinusBindStep": {
+          "calls": 8,
+          "inclusiveNs": 1058542,
+          "selfNs": 1058542,
+          "inclusiveMs": 1.058542,
+          "selfMs": 1.058542
+        },
+        "MinusCommitAuthority": {
+          "calls": 8,
+          "inclusiveNs": 3812541,
+          "selfNs": 1841583,
+          "inclusiveMs": 3.812541,
+          "selfMs": 1.841583
+        },
+        "MinusCommit": {
+          "calls": 8,
+          "inclusiveNs": 1970958,
+          "selfNs": 1970958,
+          "inclusiveMs": 1.970958,
+          "selfMs": 1.970958
+        },
+        "MinusRollback": {
+          "calls": 0,
+          "inclusiveNs": 0,
+          "selfNs": 0,
+          "inclusiveMs": 0.0,
+          "selfMs": 0.0
+        },
+        "MinusLegacy": {
+          "calls": 0,
+          "inclusiveNs": 0,
+          "selfNs": 0,
+          "inclusiveMs": 0.0,
+          "selfMs": 0.0
+        },
+        "MinusMap": {
+          "calls": 8,
+          "inclusiveNs": 9709,
+          "selfNs": 9709,
+          "inclusiveMs": 0.009709,
+          "selfMs": 0.009709
+        },
+        "FDClose": {
+          "calls": 8,
+          "inclusiveNs": 11665,
+          "selfNs": 11665,
+          "inclusiveMs": 0.011665,
+          "selfMs": 0.011665
+        },
+        "FDDiagnostic": {
+          "calls": 8,
+          "inclusiveNs": 959,
+          "selfNs": 959,
+          "inclusiveMs": 0.000959,
+          "selfMs": 0.000959
+        }
+      },
+      "counts": {
+        "Continuous": 16,
+        "Event": 0,
+        "OtherRetention": 0,
+        "PlusCalls": 8,
+        "MinusCalls": 8,
+        "PlusPrior": 0,
+        "PlusNext": 8,
+        "MinusPrior": 10,
+        "MinusNext": 2,
+        "PlusOK": 8,
+        "PlusFail": 0,
+        "MinusOK": 8,
+        "MinusFail": 0,
+        "GenerationPlus": 8,
+        "GenerationMinus": 8,
+        "SQLitePlus": 8,
+        "SQLiteMinus": 8,
+        "LegacyPlus": 0,
+        "LegacyMinus": 0,
+        "CloseOK": 8,
+        "CloseFail": 0
+      },
+      "availabilityCounts": {
+        "Positions": 8,
+        "Items": 8,
+        "AvailabilityCalls": 8,
+        "InvalidKeys": 0,
+        "CacheHits": 0,
+        "CacheMisses": 8,
+        "UniqueKeys": 8,
+        "ResolveCalls": 8,
+        "ResolveOK": 8,
+        "ResolveFail": 0,
+        "PreferredChecks": 8,
+        "FallbackChecks": 0,
+        "FallbackOK": 0,
+        "FallbackFail": 0,
+        "DeletedQueries": 0,
+        "ResponseBytes": 4955,
+        "V1Rows": 0,
+        "V2Rows": 8
+      },
+      "derived": {
+        "holdPlusMinusMs": 17.310957,
+        "generationPlusMinusMs": 13.509083,
+        "sqliteCommitPlusMinusMs": 4.004918,
+        "catalogApiMinusConstructorAndBodyNs": 185297,
+        "destructorResidualNs": 2040,
+        "windowMinusMeasuredSelfNs": 4934871,
+        "windowResidualMeaning": "includes out-of-Catalog media open/physical inspection and response work; not solely unexplained Catalog time",
+        "mutexWait": null,
+        "mutexHeld": null,
+        "journalMutexWait": null
+      },
+      "parentBinding": "R157 begin/end contained in same-ID R156 Currentness, API spans within corresponding parent, constructor/body aggregate within APIs; self sums not inclusive sums",
+      "holdCountMeaning": "prior/next are sums at each operation, not per-request global final state; concurrent request holds may remain at an individual return",
+      "physicalInspections": [
+        [
+          1577333781525083,
+          1577333781892583,
+          5000,
+          0,
+          0
+        ],
+        [
+          1577333787775458,
+          1577333788264166,
+          5000,
+          0,
+          0
+        ],
+        [
+          1577333798783041,
+          1577333799292083,
+          5000,
+          0,
+          0
+        ],
+        [
+          1577333805217333,
+          1577333805730500,
+          5000,
+          0,
+          0
+        ],
+        [
+          1577333810180541,
+          1577333810736541,
+          5000,
+          0,
+          0
+        ],
+        [
+          1577333817811458,
+          1577333818405250,
+          5000,
+          0,
+          0
+        ],
+        [
+          1577333826321208,
+          1577333826833875,
+          5000,
+          0,
+          0
+        ],
+        [
+          1577333838161416,
+          1577333838638291,
+          5000,
+          0,
+          0
+        ]
+      ]
+    },
+    "11": {
+      "requestClass": "ordinary structured",
+      "clientMs": 71.563666,
+      "serverMs": 73.236667,
+      "searchMs": 71.381667,
+      "searchPhasesMs": {
+        "service-wait": 0.048917,
+        "service-hold": 0.000208,
+        "Capture": 0.196958,
+        "RefreshReuse": 0.0,
+        "Refresh": 0.294,
+        "PlaybackCandidates": 3.693833,
+        "PlaybackNoCandidates": 4.2e-05,
+        "PlaybackReuse": 4.2e-05,
+        "WithPlayback": 3.77025,
+        "SnapshotBegin": 0.03525,
+        "preparation-wait": 3.19975,
+        "preparation-hold": 4.101666,
+        "CurrentnessJson": 63.993917
+      },
+      "currentnessRecordMs": 63.973209,
+      "mediaResolveMs": 63.864293,
+      "physicalInspectionMs": 4.157709,
+      "destructorBodyMs": 17.746207,
+      "catalogApiSumMs": 58.821334,
+      "apiOutcomes": {
+        "DeletedAPI": {
+          "positive": 0,
+          "negative": 8
+        },
+        "V1API": {
+          "positive": 0,
+          "negative": 8
+        },
+        "V2API": {
+          "positive": 8,
+          "negative": 0
+        },
+        "LinksAPI": {
+          "positive": 32,
+          "negative": 0
+        },
+        "AcquireAPI": {
+          "positive": 8,
+          "negative": 0
+        },
+        "ValidateAPI": {
+          "positive": 8,
+          "negative": 0
+        },
+        "ReleaseAPI": {
+          "positive": 8,
+          "negative": 0
+        }
+      },
+      "metrics": {
+        "DeletedAPI": {
+          "calls": 8,
+          "inclusiveNs": 8026043,
+          "selfNs": 16251,
+          "inclusiveMs": 8.026043,
+          "selfMs": 0.016251
+        },
+        "V1API": {
+          "calls": 8,
+          "inclusiveNs": 1454125,
+          "selfNs": 16794,
+          "inclusiveMs": 1.454125,
+          "selfMs": 0.016794
+        },
+        "V2API": {
+          "calls": 8,
+          "inclusiveNs": 1673625,
+          "selfNs": 16418,
+          "inclusiveMs": 1.673625,
+          "selfMs": 0.016418
+        },
+        "LinksAPI": {
+          "calls": 32,
+          "inclusiveNs": 4776749,
+          "selfNs": 69788,
+          "inclusiveMs": 4.776749,
+          "selfMs": 0.069788
+        },
+        "AcquireAPI": {
+          "calls": 8,
+          "inclusiveNs": 13270833,
+          "selfNs": 31377,
+          "inclusiveMs": 13.270833,
+          "selfMs": 0.031377
+        },
+        "ValidateAPI": {
+          "calls": 8,
+          "inclusiveNs": 11891126,
+          "selfNs": 21833,
+          "inclusiveMs": 11.891126,
+          "selfMs": 0.021833
+        },
+        "ReleaseAPI": {
+          "calls": 8,
+          "inclusiveNs": 17728833,
+          "selfNs": 22707,
+          "inclusiveMs": 17.728833,
+          "selfMs": 0.022707
+        },
+        "LockConstruction": {
+          "calls": 80,
+          "inclusiveNs": 26468124,
+          "selfNs": 26468124,
+          "inclusiveMs": 26.468124,
+          "selfMs": 26.468124
+        },
+        "OwnedBody": {
+          "calls": 80,
+          "inclusiveNs": 32158042,
+          "selfNs": 8425000,
+          "inclusiveMs": 32.158042,
+          "selfMs": 8.425
+        },
+        "AcquireInit": {
+          "calls": 8,
+          "inclusiveNs": 28293,
+          "selfNs": 28293,
+          "inclusiveMs": 0.028293,
+          "selfMs": 0.028293
+        },
+        "Eligibility": {
+          "calls": 16,
+          "inclusiveNs": 4693958,
+          "selfNs": 558331,
+          "inclusiveMs": 4.693958,
+          "selfMs": 0.558331
+        },
+        "EligibilityCanRead": {
+          "calls": 16,
+          "inclusiveNs": 2993500,
+          "selfNs": 2993500,
+          "inclusiveMs": 2.9935,
+          "selfMs": 2.9935
+        },
+        "EligibilityLifecycle": {
+          "calls": 16,
+          "inclusiveNs": 921962,
+          "selfNs": 921962,
+          "inclusiveMs": 0.921962,
+          "selfMs": 0.921962
+        },
+        "EventProtection": {
+          "calls": 16,
+          "inclusiveNs": 220165,
+          "selfNs": 220165,
+          "inclusiveMs": 0.220165,
+          "selfMs": 0.220165
+        },
+        "LocationLookup": {
+          "calls": 16,
+          "inclusiveNs": 594666,
+          "selfNs": 594666,
+          "inclusiveMs": 0.594666,
+          "selfMs": 0.594666
+        },
+        "SegmentCopy": {
+          "calls": 8,
+          "inclusiveNs": 275751,
+          "selfNs": 275751,
+          "inclusiveMs": 0.275751,
+          "selfMs": 0.275751
+        },
+        "ValidateBody": {
+          "calls": 8,
+          "inclusiveNs": 3443207,
+          "selfNs": 381747,
+          "inclusiveMs": 3.443207,
+          "selfMs": 0.381747
+        },
+        "ContentCompare": {
+          "calls": 8,
+          "inclusiveNs": 16959,
+          "selfNs": 16959,
+          "inclusiveMs": 0.016959,
+          "selfMs": 0.016959
+        },
+        "PlusHold": {
+          "calls": 8,
+          "inclusiveNs": 8341294,
+          "selfNs": 323334,
+          "inclusiveMs": 8.341294,
+          "selfMs": 0.323334
+        },
+        "PlusRead": {
+          "calls": 8,
+          "inclusiveNs": 917001,
+          "selfNs": 917001,
+          "inclusiveMs": 0.917001,
+          "selfMs": 0.917001
+        },
+        "PlusLifecycle": {
+          "calls": 8,
+          "inclusiveNs": 415500,
+          "selfNs": 415500,
+          "inclusiveMs": 0.4155,
+          "selfMs": 0.4155
+        },
+        "PlusLookup": {
+          "calls": 8,
+          "inclusiveNs": 7501,
+          "selfNs": 7501,
+          "inclusiveMs": 0.007501,
+          "selfMs": 0.007501
+        },
+        "PlusRange": {
+          "calls": 8,
+          "inclusiveNs": 667,
+          "selfNs": 667,
+          "inclusiveMs": 0.000667,
+          "selfMs": 0.000667
+        },
+        "PlusGeneration": {
+          "calls": 8,
+          "inclusiveNs": 6660082,
+          "selfNs": 28000,
+          "inclusiveMs": 6.660082,
+          "selfMs": 0.028
+        },
+        "PlusPrecheck": {
+          "calls": 8,
+          "inclusiveNs": 1509874,
+          "selfNs": 1509874,
+          "inclusiveMs": 1.509874,
+          "selfMs": 1.509874
+        },
+        "PlusBegin": {
+          "calls": 8,
+          "inclusiveNs": 163917,
+          "selfNs": 163917,
+          "inclusiveMs": 0.163917,
+          "selfMs": 0.163917
+        },
+        "PlusPrepare": {
+          "calls": 8,
+          "inclusiveNs": 141709,
+          "selfNs": 141709,
+          "inclusiveMs": 0.141709,
+          "selfMs": 0.141709
+        },
+        "PlusBindStep": {
+          "calls": 8,
+          "inclusiveNs": 1210790,
+          "selfNs": 1210790,
+          "inclusiveMs": 1.21079,
+          "selfMs": 1.21079
+        },
+        "PlusCommitAuthority": {
+          "calls": 8,
+          "inclusiveNs": 3605792,
+          "selfNs": 1487085,
+          "inclusiveMs": 3.605792,
+          "selfMs": 1.487085
+        },
+        "PlusCommit": {
+          "calls": 8,
+          "inclusiveNs": 2118707,
+          "selfNs": 2118707,
+          "inclusiveMs": 2.118707,
+          "selfMs": 2.118707
+        },
+        "PlusRollback": {
+          "calls": 0,
+          "inclusiveNs": 0,
+          "selfNs": 0,
+          "inclusiveMs": 0.0,
+          "selfMs": 0.0
+        },
+        "PlusLegacy": {
+          "calls": 0,
+          "inclusiveNs": 0,
+          "selfNs": 0,
+          "inclusiveMs": 0.0,
+          "selfMs": 0.0
+        },
+        "PlusMap": {
+          "calls": 8,
+          "inclusiveNs": 17209,
+          "selfNs": 17209,
+          "inclusiveMs": 0.017209,
+          "selfMs": 0.017209
+        },
+        "MinusHold": {
+          "calls": 8,
+          "inclusiveNs": 9400374,
+          "selfNs": 416247,
+          "inclusiveMs": 9.400374,
+          "selfMs": 0.416247
+        },
+        "MinusRead": {
+          "calls": 8,
+          "inclusiveNs": 1359251,
+          "selfNs": 1359251,
+          "inclusiveMs": 1.359251,
+          "selfMs": 1.359251
+        },
+        "MinusLifecycle": {
+          "calls": 8,
+          "inclusiveNs": 906044,
+          "selfNs": 906044,
+          "inclusiveMs": 0.906044,
+          "selfMs": 0.906044
+        },
+        "MinusLookup": {
+          "calls": 8,
+          "inclusiveNs": 8332,
+          "selfNs": 8332,
+          "inclusiveMs": 0.008332,
+          "selfMs": 0.008332
+        },
+        "MinusRange": {
+          "calls": 8,
+          "inclusiveNs": 751,
+          "selfNs": 751,
+          "inclusiveMs": 0.000751,
+          "selfMs": 0.000751
+        },
+        "MinusGeneration": {
+          "calls": 8,
+          "inclusiveNs": 6699499,
+          "selfNs": 21333,
+          "inclusiveMs": 6.699499,
+          "selfMs": 0.021333
+        },
+        "MinusPrecheck": {
+          "calls": 8,
+          "inclusiveNs": 1763417,
+          "selfNs": 1763417,
+          "inclusiveMs": 1.763417,
+          "selfMs": 1.763417
+        },
+        "MinusBegin": {
+          "calls": 8,
+          "inclusiveNs": 111501,
+          "selfNs": 111501,
+          "inclusiveMs": 0.111501,
+          "selfMs": 0.111501
+        },
+        "MinusPrepare": {
+          "calls": 8,
+          "inclusiveNs": 97749,
+          "selfNs": 97749,
+          "inclusiveMs": 0.097749,
+          "selfMs": 0.097749
+        },
+        "MinusBindStep": {
+          "calls": 8,
+          "inclusiveNs": 949208,
+          "selfNs": 949208,
+          "inclusiveMs": 0.949208,
+          "selfMs": 0.949208
+        },
+        "MinusCommitAuthority": {
+          "calls": 8,
+          "inclusiveNs": 3756291,
+          "selfNs": 1786500,
+          "inclusiveMs": 3.756291,
+          "selfMs": 1.7865
+        },
+        "MinusCommit": {
+          "calls": 8,
+          "inclusiveNs": 1969791,
+          "selfNs": 1969791,
+          "inclusiveMs": 1.969791,
+          "selfMs": 1.969791
+        },
+        "MinusRollback": {
+          "calls": 0,
+          "inclusiveNs": 0,
+          "selfNs": 0,
+          "inclusiveMs": 0.0,
+          "selfMs": 0.0
+        },
+        "MinusLegacy": {
+          "calls": 0,
+          "inclusiveNs": 0,
+          "selfNs": 0,
+          "inclusiveMs": 0.0,
+          "selfMs": 0.0
+        },
+        "MinusMap": {
+          "calls": 8,
+          "inclusiveNs": 10250,
+          "selfNs": 10250,
+          "inclusiveMs": 0.01025,
+          "selfMs": 0.01025
+        },
+        "FDClose": {
+          "calls": 8,
+          "inclusiveNs": 13127,
+          "selfNs": 13127,
+          "inclusiveMs": 0.013127,
+          "selfMs": 0.013127
+        },
+        "FDDiagnostic": {
+          "calls": 8,
+          "inclusiveNs": 1667,
+          "selfNs": 1667,
+          "inclusiveMs": 0.001667,
+          "selfMs": 0.001667
+        }
+      },
+      "counts": {
+        "Continuous": 16,
+        "Event": 0,
+        "OtherRetention": 0,
+        "PlusCalls": 8,
+        "MinusCalls": 8,
+        "PlusPrior": 2,
+        "PlusNext": 10,
+        "MinusPrior": 8,
+        "MinusNext": 0,
+        "PlusOK": 8,
+        "PlusFail": 0,
+        "MinusOK": 8,
+        "MinusFail": 0,
+        "GenerationPlus": 8,
+        "GenerationMinus": 8,
+        "SQLitePlus": 8,
+        "SQLiteMinus": 8,
+        "LegacyPlus": 0,
+        "LegacyMinus": 0,
+        "CloseOK": 8,
+        "CloseFail": 0
+      },
+      "availabilityCounts": {
+        "Positions": 8,
+        "Items": 8,
+        "AvailabilityCalls": 8,
+        "InvalidKeys": 0,
+        "CacheHits": 0,
+        "CacheMisses": 8,
+        "UniqueKeys": 8,
+        "ResolveCalls": 8,
+        "ResolveOK": 8,
+        "ResolveFail": 0,
+        "PreferredChecks": 8,
+        "FallbackChecks": 0,
+        "FallbackOK": 0,
+        "FallbackFail": 0,
+        "DeletedQueries": 0,
+        "ResponseBytes": 4955,
+        "V1Rows": 0,
+        "V2Rows": 8
+      },
+      "derived": {
+        "holdPlusMinusMs": 17.741668,
+        "generationPlusMinusMs": 13.359581,
+        "sqliteCommitPlusMinusMs": 4.088498,
+        "catalogApiMinusConstructorAndBodyNs": 195168,
+        "destructorResidualNs": 2580,
+        "windowMinusMeasuredSelfNs": 5136997,
+        "windowResidualMeaning": "includes out-of-Catalog media open/physical inspection and response work; not solely unexplained Catalog time",
+        "mutexWait": null,
+        "mutexHeld": null,
+        "journalMutexWait": null
+      },
+      "parentBinding": "R157 begin/end contained in same-ID R156 Currentness, API spans within corresponding parent, constructor/body aggregate within APIs; self sums not inclusive sums",
+      "holdCountMeaning": "prior/next are sums at each operation, not per-request global final state; concurrent request holds may remain at an individual return",
+      "physicalInspections": [
+        [
+          1577333785946750,
+          1577333786419166,
+          5000,
+          0,
+          0
+        ],
+        [
+          1577333792732208,
+          1577333793320416,
+          5000,
+          0,
+          0
+        ],
+        [
+          1577333801477625,
+          1577333801983750,
+          5000,
+          0,
+          0
+        ],
+        [
+          1577333811988833,
+          1577333812551333,
+          5000,
+          0,
+          0
+        ],
+        [
+          1577333820959041,
+          1577333821458000,
+          5000,
+          0,
+          0
+        ],
+        [
+          1577333830152708,
+          1577333830535875,
+          5000,
+          0,
+          0
+        ],
+        [
+          1577333836722958,
+          1577333837292416,
+          5000,
+          0,
+          0
+        ],
+        [
+          1577333843910541,
+          1577333844490041,
+          5000,
+          0,
+          0
+        ]
+      ]
+    },
+    "60": {
+      "requestClass": "A prepare",
+      "clientMs": 12.717167,
+      "serverMs": 12.591834,
+      "searchMs": 12.466708,
+      "searchPhasesMs": {
+        "service-wait": 8.4e-05,
+        "service-hold": 0.000208,
+        "Capture": 1.599667,
+        "BuildOwned": 0.095541,
+        "Refresh": 8.760833,
+        "PlaybackCandidates": 0.347583,
+        "PlaybackNoCandidates": 0.0,
+        "PlaybackBuildOwned": 0.080042,
+        "PlaybackDocuments": 0.126916,
+        "WithPlayback": 0.476167,
+        "SnapshotBegin": 0.033791,
+        "preparation-wait": 4.1e-05,
+        "preparation-hold": 9.272167,
+        "CurrentnessJson": 3.184084
+      },
+      "currentnessRecordMs": 3.165625,
+      "mediaResolveMs": 3.135625,
+      "physicalInspectionMs": 0.450708,
+      "destructorBodyMs": 0.770042,
+      "catalogApiSumMs": 2.499002,
+      "apiOutcomes": {
+        "DeletedAPI": {
+          "positive": 0,
+          "negative": 1
+        },
+        "V1API": {
+          "positive": 0,
+          "negative": 1
+        },
+        "V2API": {
+          "positive": 1,
+          "negative": 0
+        },
+        "LinksAPI": {
+          "positive": 4,
+          "negative": 0
+        },
+        "AcquireAPI": {
+          "positive": 1,
+          "negative": 0
+        },
+        "ValidateAPI": {
+          "positive": 1,
+          "negative": 0
+        },
+        "ReleaseAPI": {
+          "positive": 1,
+          "negative": 0
+        }
+      },
+      "metrics": {
+        "DeletedAPI": {
+          "calls": 1,
+          "inclusiveNs": 39334,
+          "selfNs": 459,
+          "inclusiveMs": 0.039334,
+          "selfMs": 0.000459
+        },
+        "V1API": {
+          "calls": 1,
+          "inclusiveNs": 83084,
+          "selfNs": 293,
+          "inclusiveMs": 0.083084,
+          "selfMs": 0.000293
+        },
+        "V2API": {
+          "calls": 1,
+          "inclusiveNs": 102584,
+          "selfNs": 376,
+          "inclusiveMs": 0.102584,
+          "selfMs": 0.000376
+        },
+        "LinksAPI": {
+          "calls": 4,
+          "inclusiveNs": 291208,
+          "selfNs": 708,
+          "inclusiveMs": 0.291208,
+          "selfMs": 0.000708
+        },
+        "AcquireAPI": {
+          "calls": 1,
+          "inclusiveNs": 992792,
+          "selfNs": 917,
+          "inclusiveMs": 0.992792,
+          "selfMs": 0.000917
+        },
+        "ValidateAPI": {
+          "calls": 1,
+          "inclusiveNs": 221375,
+          "selfNs": 417,
+          "inclusiveMs": 0.221375,
+          "selfMs": 0.000417
+        },
+        "ReleaseAPI": {
+          "calls": 1,
+          "inclusiveNs": 768625,
+          "selfNs": 542,
+          "inclusiveMs": 0.768625,
+          "selfMs": 0.000542
+        },
+        "LockConstruction": {
+          "calls": 10,
+          "inclusiveNs": 1166,
+          "selfNs": 1166,
+          "inclusiveMs": 0.001166,
+          "selfMs": 0.001166
+        },
+        "OwnedBody": {
+          "calls": 10,
+          "inclusiveNs": 2494124,
+          "selfNs": 517122,
+          "inclusiveMs": 2.494124,
+          "selfMs": 0.517122
+        },
+        "AcquireInit": {
+          "calls": 1,
+          "inclusiveNs": 1625,
+          "selfNs": 1625,
+          "inclusiveMs": 0.001625,
+          "selfMs": 0.001625
+        },
+        "Eligibility": {
+          "calls": 2,
+          "inclusiveNs": 299917,
+          "selfNs": 35375,
+          "inclusiveMs": 0.299917,
+          "selfMs": 0.035375
+        },
+        "EligibilityCanRead": {
+          "calls": 2,
+          "inclusiveNs": 178292,
+          "selfNs": 178292,
+          "inclusiveMs": 0.178292,
+          "selfMs": 0.178292
+        },
+        "EligibilityLifecycle": {
+          "calls": 2,
+          "inclusiveNs": 69083,
+          "selfNs": 69083,
+          "inclusiveMs": 0.069083,
+          "selfMs": 0.069083
+        },
+        "EventProtection": {
+          "calls": 2,
+          "inclusiveNs": 17167,
+          "selfNs": 17167,
+          "inclusiveMs": 0.017167,
+          "selfMs": 0.017167
+        },
+        "LocationLookup": {
+          "calls": 2,
+          "inclusiveNs": 39376,
+          "selfNs": 39376,
+          "inclusiveMs": 0.039376,
+          "selfMs": 0.039376
+        },
+        "SegmentCopy": {
+          "calls": 1,
+          "inclusiveNs": 20000,
+          "selfNs": 20000,
+          "inclusiveMs": 0.02,
+          "selfMs": 0.02
+        },
+        "ValidateBody": {
+          "calls": 1,
+          "inclusiveNs": 220375,
+          "selfNs": 30250,
+          "inclusiveMs": 0.220375,
+          "selfMs": 0.03025
+        },
+        "ContentCompare": {
+          "calls": 1,
+          "inclusiveNs": 2833,
+          "selfNs": 2833,
+          "inclusiveMs": 0.002833,
+          "selfMs": 0.002833
+        },
+        "PlusHold": {
+          "calls": 1,
+          "inclusiveNs": 815417,
+          "selfNs": 24624,
+          "inclusiveMs": 0.815417,
+          "selfMs": 0.024624
+        },
+        "PlusRead": {
+          "calls": 1,
+          "inclusiveNs": 64042,
+          "selfNs": 64042,
+          "inclusiveMs": 0.064042,
+          "selfMs": 0.064042
+        },
+        "PlusLifecycle": {
+          "calls": 1,
+          "inclusiveNs": 32708,
+          "selfNs": 32708,
+          "inclusiveMs": 0.032708,
+          "selfMs": 0.032708
+        },
+        "PlusLookup": {
+          "calls": 1,
+          "inclusiveNs": 584,
+          "selfNs": 584,
+          "inclusiveMs": 0.000584,
+          "selfMs": 0.000584
+        },
+        "PlusRange": {
+          "calls": 1,
+          "inclusiveNs": 125,
+          "selfNs": 125,
+          "inclusiveMs": 0.000125,
+          "selfMs": 0.000125
+        },
+        "PlusGeneration": {
+          "calls": 1,
+          "inclusiveNs": 689417,
+          "selfNs": 3584,
+          "inclusiveMs": 0.689417,
+          "selfMs": 0.003584
+        },
+        "PlusPrecheck": {
+          "calls": 1,
+          "inclusiveNs": 113083,
+          "selfNs": 113083,
+          "inclusiveMs": 0.113083,
+          "selfMs": 0.113083
+        },
+        "PlusBegin": {
+          "calls": 1,
+          "inclusiveNs": 18375,
+          "selfNs": 18375,
+          "inclusiveMs": 0.018375,
+          "selfMs": 0.018375
+        },
+        "PlusPrepare": {
+          "calls": 1,
+          "inclusiveNs": 15917,
+          "selfNs": 15917,
+          "inclusiveMs": 0.015917,
+          "selfMs": 0.015917
+        },
+        "PlusBindStep": {
+          "calls": 1,
+          "inclusiveNs": 117166,
+          "selfNs": 117166,
+          "inclusiveMs": 0.117166,
+          "selfMs": 0.117166
+        },
+        "PlusCommitAuthority": {
+          "calls": 1,
+          "inclusiveNs": 421292,
+          "selfNs": 125417,
+          "inclusiveMs": 0.421292,
+          "selfMs": 0.125417
+        },
+        "PlusCommit": {
+          "calls": 1,
+          "inclusiveNs": 295875,
+          "selfNs": 295875,
+          "inclusiveMs": 0.295875,
+          "selfMs": 0.295875
+        },
+        "PlusRollback": {
+          "calls": 0,
+          "inclusiveNs": 0,
+          "selfNs": 0,
+          "inclusiveMs": 0.0,
+          "selfMs": 0.0
+        },
+        "PlusLegacy": {
+          "calls": 0,
+          "inclusiveNs": 0,
+          "selfNs": 0,
+          "inclusiveMs": 0.0,
+          "selfMs": 0.0
+        },
+        "PlusMap": {
+          "calls": 1,
+          "inclusiveNs": 3917,
+          "selfNs": 3917,
+          "inclusiveMs": 0.003917,
+          "selfMs": 0.003917
+        },
+        "MinusHold": {
+          "calls": 1,
+          "inclusiveNs": 767584,
+          "selfNs": 25585,
+          "inclusiveMs": 0.767584,
+          "selfMs": 0.025585
+        },
+        "MinusRead": {
+          "calls": 1,
+          "inclusiveNs": 76416,
+          "selfNs": 76416,
+          "inclusiveMs": 0.076416,
+          "selfMs": 0.076416
+        },
+        "MinusLifecycle": {
+          "calls": 1,
+          "inclusiveNs": 33375,
+          "selfNs": 33375,
+          "inclusiveMs": 0.033375,
+          "selfMs": 0.033375
+        },
+        "MinusLookup": {
+          "calls": 1,
+          "inclusiveNs": 1375,
+          "selfNs": 1375,
+          "inclusiveMs": 0.001375,
+          "selfMs": 0.001375
+        },
+        "MinusRange": {
+          "calls": 1,
+          "inclusiveNs": 0,
+          "selfNs": 0,
+          "inclusiveMs": 0.0,
+          "selfMs": 0.0
+        },
+        "MinusGeneration": {
+          "calls": 1,
+          "inclusiveNs": 628541,
+          "selfNs": 3665,
+          "inclusiveMs": 0.628541,
+          "selfMs": 0.003665
+        },
+        "MinusPrecheck": {
+          "calls": 1,
+          "inclusiveNs": 118292,
+          "selfNs": 118292,
+          "inclusiveMs": 0.118292,
+          "selfMs": 0.118292
+        },
+        "MinusBegin": {
+          "calls": 1,
+          "inclusiveNs": 17959,
+          "selfNs": 17959,
+          "inclusiveMs": 0.017959,
+          "selfMs": 0.017959
+        },
+        "MinusPrepare": {
+          "calls": 1,
+          "inclusiveNs": 15625,
+          "selfNs": 15625,
+          "inclusiveMs": 0.015625,
+          "selfMs": 0.015625
+        },
+        "MinusBindStep": {
+          "calls": 1,
+          "inclusiveNs": 114625,
+          "selfNs": 114625,
+          "inclusiveMs": 0.114625,
+          "selfMs": 0.114625
+        },
+        "MinusCommitAuthority": {
+          "calls": 1,
+          "inclusiveNs": 358375,
+          "selfNs": 124417,
+          "inclusiveMs": 0.358375,
+          "selfMs": 0.124417
+        },
+        "MinusCommit": {
+          "calls": 1,
+          "inclusiveNs": 233958,
+          "selfNs": 233958,
+          "inclusiveMs": 0.233958,
+          "selfMs": 0.233958
+        },
+        "MinusRollback": {
+          "calls": 0,
+          "inclusiveNs": 0,
+          "selfNs": 0,
+          "inclusiveMs": 0.0,
+          "selfMs": 0.0
+        },
+        "MinusLegacy": {
+          "calls": 0,
+          "inclusiveNs": 0,
+          "selfNs": 0,
+          "inclusiveMs": 0.0,
+          "selfMs": 0.0
+        },
+        "MinusMap": {
+          "calls": 1,
+          "inclusiveNs": 2292,
+          "selfNs": 2292,
+          "inclusiveMs": 0.002292,
+          "selfMs": 0.002292
+        },
+        "FDClose": {
+          "calls": 1,
+          "inclusiveNs": 833,
+          "selfNs": 833,
+          "inclusiveMs": 0.000833,
+          "selfMs": 0.000833
+        },
+        "FDDiagnostic": {
+          "calls": 1,
+          "inclusiveNs": 417,
+          "selfNs": 417,
+          "inclusiveMs": 0.000417,
+          "selfMs": 0.000417
+        }
+      },
+      "counts": {
+        "Continuous": 2,
+        "Event": 0,
+        "OtherRetention": 0,
+        "PlusCalls": 1,
+        "MinusCalls": 1,
+        "PlusPrior": 0,
+        "PlusNext": 1,
+        "MinusPrior": 1,
+        "MinusNext": 0,
+        "PlusOK": 1,
+        "PlusFail": 0,
+        "MinusOK": 1,
+        "MinusFail": 0,
+        "GenerationPlus": 1,
+        "GenerationMinus": 1,
+        "SQLitePlus": 1,
+        "SQLiteMinus": 1,
+        "LegacyPlus": 0,
+        "LegacyMinus": 0,
+        "CloseOK": 1,
+        "CloseFail": 0
+      },
+      "availabilityCounts": {
+        "Positions": 2,
+        "Items": 2,
+        "AvailabilityCalls": 2,
+        "InvalidKeys": 0,
+        "CacheHits": 1,
+        "CacheMisses": 1,
+        "UniqueKeys": 1,
+        "ResolveCalls": 1,
+        "ResolveOK": 1,
+        "ResolveFail": 0,
+        "PreferredChecks": 2,
+        "FallbackChecks": 0,
+        "FallbackOK": 0,
+        "FallbackFail": 0,
+        "DeletedQueries": 0,
+        "ResponseBytes": 1650,
+        "V1Rows": 0,
+        "V2Rows": 1
+      },
+      "derived": {
+        "holdPlusMinusMs": 1.583001,
+        "generationPlusMinusMs": 1.317958,
+        "sqliteCommitPlusMinusMs": 0.529833,
+        "catalogApiMinusConstructorAndBodyNs": 3712,
+        "destructorResidualNs": 167,
+        "windowMinusMeasuredSelfNs": 665332,
+        "windowResidualMeaning": "includes out-of-Catalog media open/physical inspection and response work; not solely unexplained Catalog time",
+        "mutexWait": null,
+        "mutexHeld": null,
+        "journalMutexWait": null
+      },
+      "parentBinding": "R157 begin/end contained in same-ID R156 Currentness, API spans within corresponding parent, constructor/body aggregate within APIs; self sums not inclusive sums",
+      "holdCountMeaning": "prior/next are sums at each operation, not per-request global final state; concurrent request holds may remain at an individual return",
+      "physicalInspections": [
+        [
+          1577334217292250,
+          1577334217743250,
+          5000,
+          0,
+          0
+        ]
+      ]
+    }
+  },
+  "correlation": {
+    "client": 28,
+    "server": 28,
+    "search": 3,
+    "currentness": 3,
+    "hold": 3,
+    "loss": false,
+    "missing": false,
+    "duplicates": false
+  },
+  "execution": {
+    "cycles": 1,
+    "seconds": 53.31180016580038,
+    "seedStarts": 1,
+    "fixtureStarts": 1,
+    "collectorStarts": 1,
+    "productStarts": 0,
+    "firstFailure": null,
+    "cleanupErrors": [],
+    "groupsAbsent": true
+  },
+  "input": {
+    "synthetic": true,
+    "files": 17,
+    "bindings": 17,
+    "samples": 990,
+    "byChannel": {
+      "9201": {
+        "finalized": 8,
+        "bindings": 8,
+        "samples": 480,
+        "bytes": 275208,
+        "generations": 4
+      },
+      "9101": {
+        "finalized": 8,
+        "bindings": 8,
+        "samples": 480,
+        "bytes": 275208,
+        "generations": 4
+      },
+      "1": {
+        "finalized": 1,
+        "bindings": 1,
+        "samples": 30,
+        "bytes": 28161,
+        "generations": 1
+      }
+    },
+    "decodeChannels": [
+      "9101",
+      "9201"
+    ],
+    "notR149LiveStore": true
+  },
+  "background": {
+    "expected": 2402,
+    "accepted": 2402,
+    "files": 41,
+    "fullAcceptance": 1
+  },
+  "resources": {
+    "samples": 50,
+    "invalid": 0,
+    "peakRssBytes": 3207168000,
+    "peakFootprintBytes": 3159952720,
+    "peakFdCount": 29,
+    "peakStorageBytes": 5328110,
+    "finalLogical": {
+      "phase": "complete",
+      "monoNs": 1577374294291166,
+      "logicalRam": 0,
+      "scratch": 0,
+      "fd": 0
+    },
+    "limitation": "peaks sampled separately, not additive; owner0 not whole heap proof; Memory P0 HOLD"
+  },
+  "findings": [
+    "Ordinary requests spend 57.644/58.821ms in measured Catalog APIs including hold release. Constructor scopes28.000/26.468ms and owned-body scopes29.458/32.158ms partition most API elapsed; raw mutex wait/held remain UNKNOWN.",
+    "Hold+1/-1 body totals17.311/17.742ms include generation protection/SQLite13.509/13.360ms. SQL COMMIT children4.005/4.088ms are part of those totals, not additional time.",
+    "FD close plus diagnostic counter only0.012624/0.014794ms; destructor time is dominated by AdjustHoldCount(-1) API, not close.",
+    "A sequential request has constructor scope0.001166ms and hold bodies1.583001ms. Different request size and concurrency preclude causal subtraction or optimization claim.",
+    "Continuous branch only in integrated requests; event/derived denial and SQL rollback are focused negative evidence only.",
+    "No R149 server trace is recovered; R149 timeout cause remains unconfirmed."
+  ],
+  "unknown": [
+    "actual Catalog mutex wait/held and unlock/post-diagnostic split",
+    "Journal internal mutex/CPU/storage/fsync attribution",
+    "member destruction outside ResolvedRecordingMedia destructor body",
+    "quantified instrumentation overhead versus identical uninstrumented run; no extra run permitted"
+  ],
+  "nextOne": "Separately authorize a focused diagnostic to split the existing latency::Lock constructor into original mutex acquisition and diagnostic overhead, with no locking/persistence/lifetime changes; do not optimize yet."
+}

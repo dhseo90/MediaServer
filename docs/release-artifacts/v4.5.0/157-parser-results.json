@@ -1,0 +1,74 @@
+[
+  {
+    "binary": "parser",
+    "case": "upper",
+    "exit": 0,
+    "seconds": 0.14145500003360212
+  },
+  {
+    "binary": "parser",
+    "case": "lower",
+    "exit": 0,
+    "seconds": 0.1416053338907659
+  },
+  {
+    "binary": "parser",
+    "case": "mixed",
+    "exit": 0,
+    "seconds": 0.14583345805294812
+  },
+  {
+    "binary": "parser",
+    "case": "missing",
+    "exit": 0,
+    "seconds": 0.13875450007617474
+  },
+  {
+    "binary": "parser",
+    "case": "empty",
+    "exit": 0,
+    "seconds": 0.14279045816510916
+  },
+  {
+    "binary": "parser",
+    "case": "text",
+    "exit": 0,
+    "seconds": 0.13917391700670123
+  },
+  {
+    "binary": "parser",
+    "case": "zero",
+    "exit": 0,
+    "seconds": 0.14158779196441174
+  },
+  {
+    "binary": "parser",
+    "case": "range",
+    "exit": 0,
+    "seconds": 0.14161520800553262
+  },
+  {
+    "binary": "parser",
+    "case": "duplicate",
+    "exit": 0,
+    "seconds": 0.1416374589316547
+  },
+  {
+    "binary": "parser",
+    "case": "variant",
+    "exit": 0,
+    "seconds": 0.14077974995598197
+  },
+  {
+    "binary": "parser",
+    "case": "conflict",
+    "exit": 0,
+    "seconds": 0.14489783300086856
+  },
+  {
+    "binary": "parser",
+    "case": "reuse",
+    "exit": 0,
+    "seconds": 0.1488126248586923
+  }
+]

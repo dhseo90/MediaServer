@@ -1,0 +1,16 @@
+{
+  "changes": [
+    {
+      "source": "scripts/internal/recording_http_hold.test.py",
+      "before": "16575eefc842ff8ba89c9eabbe15cbd8260e4eccc776a2a970aebc1cc708ad3c",
+      "after": "38503d5e42a48287b5b7c15309c5dc712272913e0f89a874552f11e150782a59"
+    },
+    {
+      "source": "scripts/internal/recording_http_hold.py",
+      "before": "50f711a334eb2347053b1d942b90fbc3ee3a0bd15ae9419e9024239ae6f2cf0b",
+      "after": "8f19ae114dc301a49df45b1de694610473c423c4a6ebcf2704d7df08be02aed3"
+    }
+  ],
+  "reason": "immediate ownership failure validation; native generated sources and binary unchanged",
+  "focused": "hold-python-final.log6PASS"
+}

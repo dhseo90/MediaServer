@@ -1,0 +1,31 @@
+[R154-search] {"id":10,"diagnosticId":1,"begin":1576809313116166,"end":1576809313116208,"status":200,"attempt":0,"loss":false,"phases":[],"sources":[[0,0,0,0,false,false]]}
+[search-request-cost] {"id":1,"thread":1,"startNs":0,"endNs":1576809313179958,"status":200,"loss":false,"phases":[]}
+[R154-server] {"id":10,"class":1,"accepted":1576809313114333,"parsed":1576809313114416,"handler":1576809313114833,"prepared":1576809313189750,"sendBegin":0,"sendEnd":0,"sent":false,"end":1576809313189916,"loss":false,"metrics":[[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0]],"counts":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]}
+[R155-parser] case=upper PASS
+[R154-search] {"id":10,"diagnosticId":1,"begin":1576809448461625,"end":1576809448461666,"status":200,"attempt":0,"loss":false,"phases":[],"sources":[[0,0,0,0,false,false]]}
+[search-request-cost] {"id":1,"thread":1,"startNs":0,"endNs":1576809448507041,"status":200,"loss":false,"phases":[]}
+[R154-server] {"id":10,"class":1,"accepted":1576809448459250,"parsed":1576809448459458,"handler":1576809448459958,"prepared":1576809448513083,"sendBegin":0,"sendEnd":0,"sent":false,"end":1576809448513291,"loss":false,"metrics":[[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0]],"counts":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]}
+[R155-parser] case=lower PASS
+[R154-search] {"id":10,"diagnosticId":1,"begin":1576809588778750,"end":1576809588778833,"status":200,"attempt":0,"loss":false,"phases":[],"sources":[[0,0,0,0,false,false]]}
+[search-request-cost] {"id":1,"thread":1,"startNs":0,"endNs":1576809588823125,"status":200,"loss":false,"phases":[]}
+[R154-server] {"id":10,"class":1,"accepted":1576809588776541,"parsed":1576809588776666,"handler":1576809588777250,"prepared":1576809588828833,"sendBegin":0,"sendEnd":0,"sent":false,"end":1576809588829000,"loss":false,"metrics":[[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0]],"counts":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]}
+[R155-parser] case=mixed PASS
+[R154-loss] {"code":1,"at":1576809739760708}
+[R155-parser] case=missing PASS
+[R154-loss] {"code":1,"at":1576809884528000}
+[R155-parser] case=empty PASS
+[R154-loss] {"code":1,"at":1576810015232041}
+[R155-parser] case=text PASS
+[R154-loss] {"code":1,"at":1576810158576083}
+[R155-parser] case=zero PASS
+[R154-loss] {"code":1,"at":1576810304010708}
+[R155-parser] case=range PASS
+[R154-loss] {"code":2,"at":1576810446865208}
+[R155-parser] case=duplicate PASS
+[R154-loss] {"code":2,"at":1576810580714083}
+[R155-parser] case=variant PASS
+[R154-loss] {"code":2,"at":1576810725595875}
+[R155-parser] case=conflict PASS
+[R154-server] {"id":10,"class":1,"accepted":1576810866139250,"parsed":1576810866139458,"handler":1576810866139708,"prepared":1576810866139750,"sendBegin":0,"sendEnd":0,"sent":false,"end":1576810866140083,"loss":false,"metrics":[[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0]],"counts":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]}
+[R154-loss] {"code":3,"at":1576810866184083}
+[R155-parser] case=reuse PASS

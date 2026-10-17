@@ -1,0 +1,6 @@
+{
+  "expectedExit": 1,
+  "actualExit": 1,
+  "assertion": "R157 hold instrumentation absent",
+  "command": "from pathlib import Path; from recording_http_cost_overlay import generate; generate(Path('<OWNED_ROOT>/red-overlay')); s=Path('<OWNED_ROOT>/red-overlay/recording_catalog.cpp').read_text(); assert 'r157::Hold' in s, 'R157 hold instrumentation absent'"
+}

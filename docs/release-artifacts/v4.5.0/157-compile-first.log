@@ -1,0 +1,22 @@
+<OWNED_ROOT>/candidate/currentness-focused.cpp:4:21: error: unknown type name 'RecordingCatalog'
+    4 |  static sqlite3* Db(RecordingCatalog& c){return c.generation_sqlite_db_;}
+      |                     ^
+<OWNED_ROOT>/candidate/currentness-focused.cpp:5:32: error: unknown type name 'RecordingCatalog'
+    5 |  static bool EventWithoutOwner(RecordingCatalog& c,const RecordingSegmentV2& original){
+      |                                ^
+<OWNED_ROOT>/candidate/currentness-focused.cpp:5:58: error: unknown type name 'RecordingSegmentV2'
+    5 |  static bool EventWithoutOwner(RecordingCatalog& c,const RecordingSegmentV2& original){
+      |                                                          ^
+<OWNED_ROOT>/candidate/currentness-focused.cpp:9:27: error: unknown type name 'RecordingCatalog'
+    9 |  static bool LinkedDenied(RecordingCatalog& c,const RecordingSegmentV2& original){
+      |                           ^
+<OWNED_ROOT>/candidate/currentness-focused.cpp:9:53: error: unknown type name 'RecordingSegmentV2'
+    9 |  static bool LinkedDenied(RecordingCatalog& c,const RecordingSegmentV2& original){
+      |                                                     ^
+<OWNED_ROOT>/candidate/currentness-focused.cpp:6:73: error: use of undeclared identifier 'RecordingRetentionClass'
+    6 |   std::lock_guard lock(c.mu_);auto event=original;event.retention_class=RecordingRetentionClass::Event;
+      |                                                                         ^
+<OWNED_ROOT>/candidate/currentness-focused.cpp:10:31: error: unknown type name 'EventRecordingLinkV1'
+   10 |   std::lock_guard lock(c.mu_);EventRecordingLinkV1 link;link.derived_segment_id=original.segment_id;
+      |                               ^
+7 errors generated.

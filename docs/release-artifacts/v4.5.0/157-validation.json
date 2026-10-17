@@ -1,0 +1,269 @@
+{
+  "schema": "media-server.v450.r157.validation.v1",
+  "decision": "CATALOG_HOLD_COST_BOUNDARY_IDENTIFIED",
+  "instrumentationContract": "PASS",
+  "actualCostAttribution": "QUALIFIED",
+  "baselineHead": "db2fd146a36f283d1071d87529ccb55c4bfd8362",
+  "executionHead": "6ad79df21ba8f85a287148f2de5ce1f4c8fb0329",
+  "branch": "v4.5.0",
+  "entry": {
+    "localOriginEqual": true,
+    "worktreeIndexClean": true,
+    "productsMatch": true
+  },
+  "model": {
+    "requested": {
+      "main": "gpt-6-astra/high",
+      "independent": "gpt-6-astra/high"
+    },
+    "toolAccepted": {
+      "main": null,
+      "independent": "followup_task accepted on existing independent_r155; prior requested model is not actual runtime proof"
+    },
+    "actualRuntimeModel": {
+      "main": null,
+      "independent": null
+    },
+    "actualRuntimeEffort": {
+      "main": null,
+      "independent": null
+    }
+  },
+  "scope": "test-only Catalog/ReadService whole-TU numeric attribution; product src/include and fixed binaries unchanged",
+  "changedFiles": [
+    "docs/project-feature-test-inventory.md",
+    "scripts/internal/recording_http_cost_overlay.py",
+    "scripts/internal/recording_http_cost_run.py",
+    "scripts/internal/recording_http_cost_run.test.py",
+    "scripts/internal/recording_http_currentness_probe.h",
+    "scripts/internal/recording_http_hold.py",
+    "scripts/internal/recording_http_hold.test.py",
+    "scripts/internal/recording_http_hold_overlay.py",
+    "scripts/internal/recording_http_hold_probe.h",
+    "test/fixtures/project_feature_implementation_evidence.json"
+  ],
+  "binding": {
+    "dependencyFiles": 173,
+    "overlayTranslationUnits": 6,
+    "originalArchiveMembersExcluded": true,
+    "uniquePrincipalSymbols": true,
+    "journalOriginalArchiveMember": true,
+    "fixtureSha256": "55fe453389e40a1b7c7da64b8289513d04ce356b823db3c56a2ce939043a2895",
+    "linkMapSha256": "a3c1ba50c3c287a8d6d449ddb15b40e2388704e50de392862b88573821067d3d",
+    "overlaySources": {
+      "src/recording/recording_read_service.cpp": {
+        "originalSha256": "93eecb3ddd4b0ecd46bbc8ffcdbc5da02e5aa1e546c3dd53f7b0dd36a401ab48",
+        "overlaySha256": "4474d5b931b1f7fbb068e7f478975103a63c27d6ea4f6720aa35950b192156b5",
+        "overlay": "recording_read_service.cpp"
+      },
+      "src/recording/recording_catalog.cpp": {
+        "originalSha256": "beab1753eec82d074d7f8bbb519434c2fb1fe6b49304c8ec946fac50937a14ec",
+        "overlaySha256": "bb5ce0c8d0cb0efe85c98ab15b0a0c4fd95058474b50644868240b225c9775cc",
+        "overlay": "recording_catalog.cpp"
+      },
+      "src/recording/recording_search_reader.cpp": {
+        "originalSha256": "83f8aa82999ef07f97e6eb00b0e92de93a60b231e0f96714034f5ef644da5c07",
+        "overlaySha256": "0619066ecb7320b54c524eeb2c9f4b8ee9e6b6631f6605dbb5c07d9fe7939b6e",
+        "overlay": "recording_search_reader.cpp"
+      },
+      "src/ingress/recording_search_application_service.cpp": {
+        "originalSha256": "a618c7726e441ed3aeeb369d9ea9337672499138f73dc864508521f8dfcefef1",
+        "overlaySha256": "d752c3f4ed1b7b7c28d1904a6c46531cbf2f723a91bf4fe4264a6b8572dc1852",
+        "overlay": "recording_search_application_service.cpp"
+      },
+      "src/ingress/webrtc_http_server_runtime.cpp": {
+        "originalSha256": "4674fbd6b02a2c6f53a5d14a968d9eb06c5c3253aa02467d15581b84912b501e",
+        "overlaySha256": "15f0ecd01a69b01f1f3e74e5393babe9d84f078ad65ffb2022d9ecd1a22329fc",
+        "overlay": "webrtc_http_server_runtime.cpp"
+      },
+      "src/ingress/webrtc_http_server.cpp": {
+        "originalSha256": "4d5910a62693dab2d7a1cb9ab1e7296953ee74daea493ab293fe1fe1057195f1",
+        "overlaySha256": "187437aba05a72d708c8523640d81eabbcc55374b5083d6fac7c6015d7b2a5a5",
+        "overlay": "webrtc_http_server.cpp"
+      },
+      "scripts/internal/recording_accumulated_http_smoke.cpp": {
+        "originalSha256": "ecae596fe880552eeead576097a0bfd098fdf5bc8b9c990cdc4a28d01c170955",
+        "overlaySha256": "d31b45483c72af5ac163734a4679fa74218418faca4f349627e525ae8192058d",
+        "overlay": "recording_accumulated_http_smoke.cpp"
+      }
+    },
+    "producer": {
+      "exit": 0,
+      "pass": 51,
+      "fail": 0
+    },
+    "readback": {
+      "exit": 0,
+      "rows": 986,
+      "negativeFixtures": "15/15"
+    },
+    "coverage": {
+      "exit": 0,
+      "pass": 9,
+      "fail": 0
+    },
+    "manifestDiff": "inventorySha256 only; original formatting restored with identical parsed JSON"
+  },
+  "focused": {
+    "expectedRed": {
+      "assertion": "R157 hold instrumentation absent",
+      "exit": 1,
+      "rawLog": "157-red.log"
+    },
+    "green": {
+      "r153Python": 30,
+      "r155Python": 32,
+      "r156Python": 5,
+      "r157Python": 6,
+      "actualParserCases": 12,
+      "r153Native": "PASS",
+      "r156r157Native": "PASS"
+    },
+    "actualStreaming": {
+      "cases": 19,
+      "syntheticSeedStarts": 19,
+      "syntheticFixtureStarts": 1,
+      "syntheticCollectorStarts": 1,
+      "groupsAbsent": true,
+      "notIntegratedCycles": true
+    },
+    "intermediateFailures": [
+      "First overlay build failed missing catalog include; preserved compile-first.log; fixed test-only generator",
+      "Second build failed access through conditional friend; reused already-declared unconditional test friend in focused TU; preserved compile-second.log",
+      "First parser invocation incorrectly passed root instead of case; exit1 preserved parser-first.log; corrected12actual parser modes",
+      "First native R157 event-link fault input lacked required typed fields; actual retained row validation rejected, exit1 preserved native-first.log; corrected owned test input and TLS exception restoration"
+    ],
+    "notExpectedRed": "compiler/environment/invocation/fixture input failures remain actual failures; not relabeled RED",
+    "macOS": "actual native focused and integrated",
+    "Linux": "NOT_RUN; product sources/runtime unchanged; no new Linux runtime claim"
+  },
+  "execution": {
+    "cycles": 1,
+    "seconds": 53.31180016580038,
+    "seedStarts": 1,
+    "fixtureStarts": 1,
+    "collectorStarts": 1,
+    "productStarts": 0,
+    "firstFailure": null,
+    "cleanupErrors": [],
+    "groupsAbsent": true
+  },
+  "limits": {
+    "totalSeconds": 180,
+    "workSeconds": 166,
+    "cleanupReserveSeconds": 14,
+    "httpTimeoutMs": 5000,
+    "ordinaryLatencyMs": 2000,
+    "processLogBytes": 4194304,
+    "SearchRequests": 128,
+    "SearchPhases": 40
+  },
+  "input": {
+    "synthetic": true,
+    "files": 17,
+    "bindings": 17,
+    "samples": 990,
+    "byChannel": {
+      "9201": {
+        "finalized": 8,
+        "bindings": 8,
+        "samples": 480,
+        "bytes": 275208,
+        "generations": 4
+      },
+      "9101": {
+        "finalized": 8,
+        "bindings": 8,
+        "samples": 480,
+        "bytes": 275208,
+        "generations": 4
+      },
+      "1": {
+        "finalized": 1,
+        "bindings": 1,
+        "samples": 30,
+        "bytes": 28161,
+        "generations": 1
+      }
+    },
+    "decodeChannels": [
+      "9101",
+      "9201"
+    ],
+    "notR149LiveStore": true
+  },
+  "background": {
+    "expected": 2402,
+    "accepted": 2402,
+    "files": 41,
+    "fullAcceptance": 1
+  },
+  "correlation": {
+    "client": 28,
+    "server": 28,
+    "search": 3,
+    "currentness": 3,
+    "hold": 3,
+    "loss": false,
+    "missing": false,
+    "duplicates": false
+  },
+  "functional": {
+    "auth401": true,
+    "viewer403": true,
+    "structured2visual2Parallel": true,
+    "evidenceReadback": true,
+    "APrepareDraftConfirm": true,
+    "mediaInspection": true,
+    "representativeDecodeChannels": [
+      "9101",
+      "9201"
+    ],
+    "normalStopFinish": true,
+    "finalLogical": {
+      "ram": 0,
+      "scratch": 0,
+      "fd": 0
+    }
+  },
+  "outputBytes": 163309,
+  "productsBefore": {
+    "media_server": "33f516d35d56cb2f6cafc75647b6c37d2ced67115302d1205cca23bf51ab7f79",
+    "libmedia_server_runtime.a": "2d91cf35fe7e805e0c06e00d16779c86849b35db635e087582277e1b676d198c"
+  },
+  "productsAfter": {
+    "media_server": "33f516d35d56cb2f6cafc75647b6c37d2ced67115302d1205cca23bf51ab7f79",
+    "libmedia_server_runtime.a": "2d91cf35fe7e805e0c06e00d16779c86849b35db635e087582277e1b676d198c"
+  },
+  "independentReview": "PASS_BOUNDED_CATALOG_HOLD_ATTRIBUTION",
+  "memoryLimits": {
+    "samples": 50,
+    "invalid": 0,
+    "peakRssBytes": 3207168000,
+    "peakFootprintBytes": 3159952720,
+    "peakFdCount": 29,
+    "peakStorageBytes": 5328110,
+    "finalLogical": {
+      "phase": "complete",
+      "monoNs": 1577374294291166,
+      "logicalRam": 0,
+      "scratch": 0,
+      "fd": 0
+    },
+    "limitation": "peaks sampled separately, not additive; owner0 not whole heap proof; Memory P0 HOLD"
+  },
+  "historical": {
+    "R149Functional45": "FAIL",
+    "R149Collection45": "INCOMPLETE",
+    "R153": "PASS_BOUNDED_FIXTURE_QUALIFIED",
+    "R154": "FAIL_BOUNDED_HTTP_CONTRACT",
+    "R155": "ATTRIBUTION_BOUNDARY_IDENTIFIED",
+    "R156": "CURRENTNESS_COST_BOUNDARY_IDENTIFIED",
+    "MemoryP0": "HOLD",
+    "Readiness120": "HOLD",
+    "Release": "HOLD",
+    "new45": "NOT_RUN"
+  },
+  "nextOne": "Separately authorize a focused diagnostic to split the existing latency::Lock constructor into original mutex acquisition and diagnostic overhead, with no locking/persistence/lifetime changes; do not optimize yet.",
+  "preservation": "157-preservation.json; original and sanitized hashes separate; remote and cleanup in157-closure.json"
+}

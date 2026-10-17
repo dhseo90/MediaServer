@@ -1,0 +1,19 @@
+{
+  "reviewer": "independent_r155",
+  "mode": "read-only; no implementation/test writing/execution/delegation/git",
+  "decision": "PASS_HOLD_BOUNDARY_STREAMING_LINKAGE_PREFLIGHT",
+  "reviewed": [
+    "Catalog API call wrappers preserve original lock and SQL ordering",
+    "native actual generation hold +1/-1, SQL step/COMMIT fault rollback, currentness/event-link/FD",
+    "R153 native and Python30, R155 Python32 including18 streaming faults, parser12, R156 Python5, R157 Python6",
+    "6 overlay TUs and original archive member exclusion, principal symbols, 173 dependency hashes",
+    "fixed product/runtime hashes",
+    "final two Python helper/test hashes match current build binding"
+  ],
+  "limits": [
+    "actual mutex wait/held UNKNOWN",
+    "Journal internal mutex UNKNOWN",
+    "LinksAPI positive denotes normal return, not authority-success proof",
+    "integrated cycle and postflight pending"
+  ]
+}

@@ -1,0 +1,64 @@
+{
+  "schema": "media-server.v450.r157.independent-review.v1",
+  "reviewer": "independent_r155",
+  "model": {
+    "requested": {
+      "main": "gpt-6-astra/high",
+      "independent": "gpt-6-astra/high"
+    },
+    "toolAccepted": {
+      "main": null,
+      "independent": "followup_task accepted on existing independent_r155; prior requested model is not actual runtime proof"
+    },
+    "actualRuntimeModel": {
+      "main": null,
+      "independent": null
+    },
+    "actualRuntimeEffort": {
+      "main": null,
+      "independent": null
+    }
+  },
+  "mode": "read-only; no implementation, test writing/execution, delegation, commit/push",
+  "preflightDecision": "PASS_HOLD_BOUNDARY_STREAMING_LINKAGE_PREFLIGHT",
+  "postflightDecision": "PASS_BOUNDED_CATALOG_HOLD_ATTRIBUTION",
+  "finalDecision": "CATALOG_HOLD_COST_BOUNDARY_IDENTIFIED",
+  "blockers": [],
+  "reviewed": [
+    "Actual hold API/SQL/RAII unchanged; lock constructor/body not raw wait/held",
+    "Native actual V2/FD/hold and SQL step/COMMIT fault rollback, currentness/event-link protection; parser12 and actual streaming loss faults",
+    "6 overlay TUs, original members excluded, unique principal definitions, 173 current dependencies, fixed product/runtime hashes",
+    "raw vs attribution28Client/28Server/3Search/3Currentness/3Hold exact identities10/11/60",
+    "3x50 metrics and signed hold/generation/commit child/self calculations match analysis",
+    "hold +/-8/8/1, no integrated failure/rollback/close error;17healthy inspections",
+    "53.3118s, seed/fixture/collector1 each,product0, all gates; background2402/2402files41,Finishowner0,groupsAbsent"
+  ],
+  "limits": [
+    "constructor28.000/26.468ms is not actual mutex wait",
+    "Journal internal lock/fsync/CPU/I/O unknown",
+    "prior/next are operation sums under concurrency, not per-request global final hold",
+    "instrumentation overhead unquantified; no repeated comparison",
+    "R149 timeout cause unconfirmed; not remediation-ready",
+    "remote/preservation cleanup separate closure"
+  ],
+  "preservationReview": {
+    "decision": "PASS",
+    "filesAtReview": 44,
+    "manifestEntries": 41,
+    "manifestStoredBytes": 557873,
+    "rawStoredHashMismatch": 0,
+    "transformationExactlyMatched": true,
+    "fixtureTokenPlaceholders": 2,
+    "privatePathOrTokenResidue": false,
+    "intermediateFailuresPreserved": true,
+    "streamingCases": 19,
+    "syntheticRoleStarts": [
+      19,
+      1,
+      1
+    ],
+    "groupsAbsent": true,
+    "remoteCleanup": "separate closure",
+    "reviewerWritesOrTests": false
+  }
+}

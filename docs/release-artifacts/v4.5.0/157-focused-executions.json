@@ -1,0 +1,1212 @@
+[
+  {
+    "case": "stream-cap",
+    "execution": {
+      "schema": "media-server.r153.execution.v1",
+      "products": {},
+      "buildBinding": {
+        "products": {},
+        "sources": {},
+        "binaries": {},
+        "dependencies": {}
+      },
+      "seedStarts": 1,
+      "fixtureStarts": 0,
+      "productStarts": 0,
+      "limitSeconds": 180,
+      "logCapBytes": 4194304,
+      "firstFailure": "process output cap",
+      "cleanupErrors": [],
+      "firstDiagnosticFailure": {
+        "code": "process output cap",
+        "source": "collector",
+        "failurePhase": "confirmed-seed",
+        "detectionElapsedSeconds": 0.2894574170932174
+      },
+      "termination": [
+        {
+          "pid": 28167,
+          "signal": "SIGTERM",
+          "elapsedSeconds": 0.28947495901957154
+        }
+      ],
+      "pids": [
+        28167
+      ],
+      "collectorStarts": 0,
+      "processes": [
+        {
+          "role": "confirmed-seed",
+          "limitSeconds": 10,
+          "startElapsedSeconds": 1.0624993592500687e-05,
+          "elapsedSeconds": 0.29121120902709663,
+          "finalExit": -15
+        }
+      ],
+      "runnerFailure": "process output cap",
+      "diagnosticErrors": [],
+      "cleanupEvents": [],
+      "qualification": {
+        "decision": "FAIL_FIXTURE_CONTRACT"
+      },
+      "productsAfter": {},
+      "elapsedSeconds": 0.29127870919182897,
+      "outputBytes": 1048576,
+      "groupsAbsent": true
+    },
+    "output": {
+      "bytes": 1048576,
+      "sha256": "8f990ba0b577b51cf009ea049368c16bbda1b21e1b93be07a824758bb253c39b"
+    }
+  },
+  {
+    "case": "stream-cleanup-error",
+    "execution": {
+      "schema": "media-server.r153.execution.v1",
+      "products": {},
+      "buildBinding": {
+        "products": {},
+        "sources": {},
+        "binaries": {},
+        "dependencies": {}
+      },
+      "seedStarts": 1,
+      "fixtureStarts": 0,
+      "productStarts": 0,
+      "limitSeconds": 180,
+      "logCapBytes": 4194304,
+      "firstFailure": "diagnostic trace-loss-marker",
+      "cleanupErrors": [
+        "injected cleanup signal failure"
+      ],
+      "firstDiagnosticFailure": {
+        "stream": "child",
+        "line": 1,
+        "pid": 28174,
+        "detectionElapsedSeconds": 0.06695129186846316,
+        "failurePhase": "confirmed-seed",
+        "code": "trace-loss-marker",
+        "source": "marker"
+      },
+      "termination": [
+        {
+          "pid": 28174,
+          "signal": "SIGTERM",
+          "elapsedSeconds": 0.0670400420203805
+        },
+        {
+          "pid": 28174,
+          "signal": "SIGTERM",
+          "elapsedSeconds": 0.06723808287642896
+        }
+      ],
+      "pids": [
+        28174
+      ],
+      "collectorStarts": 0,
+      "processes": [
+        {
+          "role": "confirmed-seed",
+          "limitSeconds": 10,
+          "startElapsedSeconds": 1.4541903510689735e-05,
+          "elapsedSeconds": 0.06718733301386237,
+          "finalExit": null
+        }
+      ],
+      "runnerFailure": "diagnostic trace-loss-marker",
+      "diagnosticErrors": [],
+      "cleanupEvents": [],
+      "qualification": {
+        "decision": "FAIL_FIXTURE_CONTRACT"
+      },
+      "productsAfter": {},
+      "elapsedSeconds": 0.06887824996374547,
+      "outputBytes": 12,
+      "groupsAbsent": true
+    },
+    "output": {
+      "bytes": 12,
+      "sha256": "4c3533c277b80de2b0944f405ba082f2c46e540d757f25e77617bcb35dbaf4d1"
+    }
+  },
+  {
+    "case": "stream-currentness-loss",
+    "execution": {
+      "schema": "media-server.r153.execution.v1",
+      "products": {},
+      "buildBinding": {
+        "products": {},
+        "sources": {},
+        "binaries": {},
+        "dependencies": {}
+      },
+      "seedStarts": 1,
+      "fixtureStarts": 0,
+      "productStarts": 0,
+      "limitSeconds": 180,
+      "logCapBytes": 4194304,
+      "firstFailure": "diagnostic currentness incomplete/loss",
+      "cleanupErrors": [],
+      "firstDiagnosticFailure": {
+        "stream": "child",
+        "line": 1,
+        "pid": 28153,
+        "detectionElapsedSeconds": 0.23382262489758432,
+        "failurePhase": "confirmed-seed",
+        "code": "currentness incomplete/loss",
+        "source": "currentness",
+        "requestId": 10
+      },
+      "termination": [
+        {
+          "pid": 28153,
+          "signal": "SIGTERM",
+          "elapsedSeconds": 0.23392533394508064
+        }
+      ],
+      "pids": [
+        28153
+      ],
+      "collectorStarts": 0,
+      "processes": [
+        {
+          "role": "confirmed-seed",
+          "limitSeconds": 10,
+          "startElapsedSeconds": 8.958857506513596e-06,
+          "elapsedSeconds": 0.23552875011228025,
+          "finalExit": -15
+        }
+      ],
+      "runnerFailure": "diagnostic currentness incomplete/loss",
+      "diagnosticErrors": [],
+      "cleanupEvents": [],
+      "qualification": {
+        "decision": "FAIL_FIXTURE_CONTRACT"
+      },
+      "productsAfter": {},
+      "elapsedSeconds": 0.2355889999307692,
+      "outputBytes": 127,
+      "groupsAbsent": true
+    },
+    "output": {
+      "bytes": 127,
+      "sha256": "42c07f0f324d2521268dbdd461f1a4552c2ebafc56dbb7d36ef6d198f9c2842d"
+    }
+  },
+  {
+    "case": "stream-currentness-malformed",
+    "execution": {
+      "schema": "media-server.r153.execution.v1",
+      "products": {},
+      "buildBinding": {
+        "products": {},
+        "sources": {},
+        "binaries": {},
+        "dependencies": {}
+      },
+      "seedStarts": 1,
+      "fixtureStarts": 0,
+      "productStarts": 0,
+      "limitSeconds": 180,
+      "logCapBytes": 4194304,
+      "firstFailure": "diagnostic malformed-record",
+      "cleanupErrors": [],
+      "firstDiagnosticFailure": {
+        "stream": "child",
+        "line": 1,
+        "pid": 28154,
+        "detectionElapsedSeconds": 0.2430603748653084,
+        "failurePhase": "confirmed-seed",
+        "code": "malformed-record",
+        "source": "currentness"
+      },
+      "termination": [
+        {
+          "pid": 28154,
+          "signal": "SIGTERM",
+          "elapsedSeconds": 0.24320450006052852
+        }
+      ],
+      "pids": [
+        28154
+      ],
+      "collectorStarts": 0,
+      "processes": [
+        {
+          "role": "confirmed-seed",
+          "limitSeconds": 10,
+          "startElapsedSeconds": 3.654090687632561e-05,
+          "elapsedSeconds": 0.2448237920179963,
+          "finalExit": -15
+        }
+      ],
+      "runnerFailure": "diagnostic malformed-record",
+      "diagnosticErrors": [],
+      "cleanupEvents": [],
+      "qualification": {
+        "decision": "FAIL_FIXTURE_CONTRACT"
+      },
+      "productsAfter": {},
+      "elapsedSeconds": 0.2449149580206722,
+      "outputBytes": 26,
+      "groupsAbsent": true
+    },
+    "output": {
+      "bytes": 26,
+      "sha256": "824760acb60ae51c0c76c2d6946d33469aa0178f9c283d581d0702084a223350"
+    }
+  },
+  {
+    "case": "stream-duplicate",
+    "execution": {
+      "schema": "media-server.r153.execution.v1",
+      "products": {},
+      "buildBinding": {
+        "products": {},
+        "sources": {},
+        "binaries": {},
+        "dependencies": {}
+      },
+      "seedStarts": 1,
+      "fixtureStarts": 0,
+      "productStarts": 0,
+      "limitSeconds": 180,
+      "logCapBytes": 4194304,
+      "firstFailure": "diagnostic duplicate-identity",
+      "cleanupErrors": [],
+      "firstDiagnosticFailure": {
+        "stream": "child",
+        "line": 2,
+        "pid": 28165,
+        "detectionElapsedSeconds": 0.2962462499272078,
+        "failurePhase": "confirmed-seed",
+        "code": "duplicate-identity",
+        "source": "server",
+        "requestId": 10
+      },
+      "termination": [
+        {
+          "pid": 28165,
+          "signal": "SIGTERM",
+          "elapsedSeconds": 0.29630175000056624
+        }
+      ],
+      "pids": [
+        28165
+      ],
+      "collectorStarts": 0,
+      "processes": [
+        {
+          "role": "confirmed-seed",
+          "limitSeconds": 10,
+          "startElapsedSeconds": 1.2333039194345474e-05,
+          "elapsedSeconds": 0.29791820887476206,
+          "finalExit": -15
+        }
+      ],
+      "runnerFailure": "diagnostic duplicate-identity",
+      "diagnosticErrors": [],
+      "cleanupEvents": [],
+      "qualification": {
+        "decision": "FAIL_FIXTURE_CONTRACT"
+      },
+      "productsAfter": {},
+      "elapsedSeconds": 0.2979949170257896,
+      "outputBytes": 736,
+      "groupsAbsent": true
+    },
+    "output": {
+      "bytes": 736,
+      "sha256": "c9c8b812b4ef363d3dfeb34e618ac0236c08a310f927632b7a3717c0c25a40bb"
+    }
+  },
+  {
+    "case": "stream-explicit",
+    "execution": {
+      "schema": "media-server.r153.execution.v1",
+      "products": {},
+      "buildBinding": {
+        "products": {},
+        "sources": {},
+        "binaries": {},
+        "dependencies": {}
+      },
+      "seedStarts": 1,
+      "fixtureStarts": 0,
+      "productStarts": 0,
+      "limitSeconds": 180,
+      "logCapBytes": 4194304,
+      "firstFailure": "diagnostic trace-loss-marker",
+      "cleanupErrors": [],
+      "firstDiagnosticFailure": {
+        "stream": "child",
+        "line": 1,
+        "pid": 28157,
+        "detectionElapsedSeconds": 0.24090100009925663,
+        "failurePhase": "confirmed-seed",
+        "code": "trace-loss-marker",
+        "source": "marker"
+      },
+      "termination": [
+        {
+          "pid": 28157,
+          "signal": "SIGTERM",
+          "elapsedSeconds": 0.24094658298417926
+        }
+      ],
+      "pids": [
+        28157
+      ],
+      "collectorStarts": 0,
+      "processes": [
+        {
+          "role": "confirmed-seed",
+          "limitSeconds": 10,
+          "startElapsedSeconds": 1.0041985660791397e-05,
+          "elapsedSeconds": 0.2425780831836164,
+          "finalExit": -15
+        }
+      ],
+      "runnerFailure": "diagnostic trace-loss-marker",
+      "diagnosticErrors": [],
+      "cleanupEvents": [],
+      "qualification": {
+        "decision": "FAIL_FIXTURE_CONTRACT"
+      },
+      "productsAfter": {},
+      "elapsedSeconds": 0.2426624170038849,
+      "outputBytes": 12,
+      "groupsAbsent": true
+    },
+    "output": {
+      "bytes": 12,
+      "sha256": "4c3533c277b80de2b0944f405ba082f2c46e540d757f25e77617bcb35dbaf4d1"
+    }
+  },
+  {
+    "case": "stream-fixture-cap",
+    "execution": {
+      "schema": "media-server.r153.execution.v1",
+      "products": {},
+      "buildBinding": {
+        "products": {},
+        "sources": {},
+        "binaries": {},
+        "dependencies": {}
+      },
+      "seedStarts": 1,
+      "fixtureStarts": 1,
+      "productStarts": 0,
+      "limitSeconds": 180,
+      "logCapBytes": 4194304,
+      "firstFailure": "process output cap",
+      "cleanupErrors": [],
+      "firstDiagnosticFailure": {
+        "code": "process output cap",
+        "source": "collector",
+        "failurePhase": "fixture",
+        "detectionElapsedSeconds": 1.4308934169821441
+      },
+      "termination": [
+        {
+          "pid": 28149,
+          "signal": "SIGTERM",
+          "elapsedSeconds": 1.4309041248634458
+        },
+        {
+          "pid": 28150,
+          "signal": "SIGTERM",
+          "elapsedSeconds": 1.4324808749370277
+        }
+      ],
+      "pids": [
+        28146,
+        28149
+      ],
+      "collectorStarts": 1,
+      "processes": [
+        {
+          "role": "confirmed-seed",
+          "limitSeconds": 10,
+          "startElapsedSeconds": 1.1249911040067673e-05,
+          "exit": 0,
+          "elapsedSeconds": 0.30799570912495255,
+          "finalExit": 0
+        },
+        {
+          "role": "fixture",
+          "limitSeconds": 164.8179393329192,
+          "startElapsedSeconds": 1.1820619169156998,
+          "elapsedSeconds": 0.25194641714915633,
+          "finalExit": -15
+        }
+      ],
+      "runnerFailure": "process output cap",
+      "diagnosticErrors": [
+        "missing/duplicate first failure"
+      ],
+      "cleanupEvents": [],
+      "seedSeconds": 0.3080241670832038,
+      "qualification": {
+        "decision": "FAIL_FIXTURE_CONTRACT"
+      },
+      "productsAfter": {},
+      "elapsedSeconds": 1.4340974590741098,
+      "outputBytes": 4194304,
+      "groupsAbsent": true
+    },
+    "output": {
+      "bytes": 4194304,
+      "sha256": "baa7a6d36ffa957552df230235c2d51d735f28d49c58a5f3438a3a973a25a37d"
+    }
+  },
+  {
+    "case": "stream-hold-loss",
+    "execution": {
+      "schema": "media-server.r153.execution.v1",
+      "products": {},
+      "buildBinding": {
+        "products": {},
+        "sources": {},
+        "binaries": {},
+        "dependencies": {}
+      },
+      "seedStarts": 1,
+      "fixtureStarts": 0,
+      "productStarts": 0,
+      "limitSeconds": 180,
+      "logCapBytes": 4194304,
+      "firstFailure": "diagnostic hold loss/incomplete",
+      "cleanupErrors": [],
+      "firstDiagnosticFailure": {
+        "stream": "child",
+        "line": 1,
+        "pid": 28151,
+        "detectionElapsedSeconds": 0.23968775011599064,
+        "failurePhase": "confirmed-seed",
+        "code": "hold loss/incomplete",
+        "source": "hold",
+        "requestId": 10
+      },
+      "termination": [
+        {
+          "pid": 28151,
+          "signal": "SIGTERM",
+          "elapsedSeconds": 0.2398059160914272
+        }
+      ],
+      "pids": [
+        28151
+      ],
+      "collectorStarts": 0,
+      "processes": [
+        {
+          "role": "confirmed-seed",
+          "limitSeconds": 10,
+          "startElapsedSeconds": 1.6666017472743988e-05,
+          "elapsedSeconds": 0.24142466695047915,
+          "finalExit": -15
+        }
+      ],
+      "runnerFailure": "diagnostic hold loss/incomplete",
+      "diagnosticErrors": [],
+      "cleanupEvents": [],
+      "qualification": {
+        "decision": "FAIL_FIXTURE_CONTRACT"
+      },
+      "productsAfter": {},
+      "elapsedSeconds": 0.24150029104202986,
+      "outputBytes": 68,
+      "groupsAbsent": true
+    },
+    "output": {
+      "bytes": 68,
+      "sha256": "2f19b1fb80c611e641e113fca17deb6759575bddf8ed9f7e5024323154e4b816"
+    }
+  },
+  {
+    "case": "stream-hold-malformed",
+    "execution": {
+      "schema": "media-server.r153.execution.v1",
+      "products": {},
+      "buildBinding": {
+        "products": {},
+        "sources": {},
+        "binaries": {},
+        "dependencies": {}
+      },
+      "seedStarts": 1,
+      "fixtureStarts": 0,
+      "productStarts": 0,
+      "limitSeconds": 180,
+      "logCapBytes": 4194304,
+      "firstFailure": "diagnostic malformed-record",
+      "cleanupErrors": [],
+      "firstDiagnosticFailure": {
+        "stream": "child",
+        "line": 1,
+        "pid": 28152,
+        "detectionElapsedSeconds": 0.23854249995201826,
+        "failurePhase": "confirmed-seed",
+        "code": "malformed-record",
+        "source": "hold"
+      },
+      "termination": [
+        {
+          "pid": 28152,
+          "signal": "SIGTERM",
+          "elapsedSeconds": 0.23869604105129838
+        }
+      ],
+      "pids": [
+        28152
+      ],
+      "collectorStarts": 0,
+      "processes": [
+        {
+          "role": "confirmed-seed",
+          "limitSeconds": 10,
+          "startElapsedSeconds": 9.833136573433876e-06,
+          "elapsedSeconds": 0.2403229579795152,
+          "finalExit": -15
+        }
+      ],
+      "runnerFailure": "diagnostic malformed-record",
+      "diagnosticErrors": [],
+      "cleanupEvents": [],
+      "qualification": {
+        "decision": "FAIL_FIXTURE_CONTRACT"
+      },
+      "productsAfter": {},
+      "elapsedSeconds": 0.24038700014352798,
+      "outputBytes": 19,
+      "groupsAbsent": true
+    },
+    "output": {
+      "bytes": 19,
+      "sha256": "f0a0df79ec1a5e290d2905d304218ce4621969f72961f2f8d91a91d2bbbf7c4f"
+    }
+  },
+  {
+    "case": "stream-id0",
+    "execution": {
+      "schema": "media-server.r153.execution.v1",
+      "products": {},
+      "buildBinding": {
+        "products": {},
+        "sources": {},
+        "binaries": {},
+        "dependencies": {}
+      },
+      "seedStarts": 1,
+      "fixtureStarts": 0,
+      "productStarts": 0,
+      "limitSeconds": 180,
+      "logCapBytes": 4194304,
+      "firstFailure": "diagnostic request-identity",
+      "cleanupErrors": [],
+      "firstDiagnosticFailure": {
+        "stream": "child",
+        "line": 1,
+        "pid": 28155,
+        "detectionElapsedSeconds": 0.2323006670922041,
+        "failurePhase": "confirmed-seed",
+        "code": "request-identity",
+        "source": "server"
+      },
+      "termination": [
+        {
+          "pid": 28155,
+          "signal": "SIGTERM",
+          "elapsedSeconds": 0.23239045916125178
+        }
+      ],
+      "pids": [
+        28155
+      ],
+      "collectorStarts": 0,
+      "processes": [
+        {
+          "role": "confirmed-seed",
+          "limitSeconds": 10,
+          "startElapsedSeconds": 9.334180504083633e-06,
+          "elapsedSeconds": 0.2339909579604864,
+          "finalExit": -15
+        }
+      ],
+      "runnerFailure": "diagnostic request-identity",
+      "diagnosticErrors": [],
+      "cleanupEvents": [],
+      "qualification": {
+        "decision": "FAIL_FIXTURE_CONTRACT"
+      },
+      "productsAfter": {},
+      "elapsedSeconds": 0.23404591716825962,
+      "outputBytes": 367,
+      "groupsAbsent": true
+    },
+    "output": {
+      "bytes": 367,
+      "sha256": "c6ab8ae59829670129652b2cbaedb844f1fca05f765c234c4a05061fadfce093"
+    }
+  },
+  {
+    "case": "stream-invalid-valid",
+    "execution": {
+      "schema": "media-server.r153.execution.v1",
+      "products": {},
+      "buildBinding": {
+        "products": {},
+        "sources": {},
+        "binaries": {},
+        "dependencies": {}
+      },
+      "seedStarts": 1,
+      "fixtureStarts": 0,
+      "productStarts": 0,
+      "limitSeconds": 180,
+      "logCapBytes": 4194304,
+      "firstFailure": "diagnostic trace-loss-marker",
+      "cleanupErrors": [],
+      "firstDiagnosticFailure": {
+        "stream": "child",
+        "line": 1,
+        "pid": 28164,
+        "detectionElapsedSeconds": 0.23807933297939599,
+        "failurePhase": "confirmed-seed",
+        "code": "trace-loss-marker",
+        "source": "marker"
+      },
+      "termination": [
+        {
+          "pid": 28164,
+          "signal": "SIGTERM",
+          "elapsedSeconds": 0.2381556669715792
+        }
+      ],
+      "pids": [
+        28164
+      ],
+      "collectorStarts": 0,
+      "processes": [
+        {
+          "role": "confirmed-seed",
+          "limitSeconds": 10,
+          "startElapsedSeconds": 1.5832949429750443e-05,
+          "elapsedSeconds": 0.2397928750142455,
+          "finalExit": -15
+        }
+      ],
+      "runnerFailure": "diagnostic trace-loss-marker",
+      "diagnosticErrors": [],
+      "cleanupEvents": [],
+      "qualification": {
+        "decision": "FAIL_FIXTURE_CONTRACT"
+      },
+      "productsAfter": {},
+      "elapsedSeconds": 0.23987029190175235,
+      "outputBytes": 12,
+      "groupsAbsent": true
+    },
+    "output": {
+      "bytes": 12,
+      "sha256": "4c3533c277b80de2b0944f405ba082f2c46e540d757f25e77617bcb35dbaf4d1"
+    }
+  },
+  {
+    "case": "stream-loss",
+    "execution": {
+      "schema": "media-server.r153.execution.v1",
+      "products": {},
+      "buildBinding": {
+        "products": {},
+        "sources": {},
+        "binaries": {},
+        "dependencies": {}
+      },
+      "seedStarts": 1,
+      "fixtureStarts": 0,
+      "productStarts": 0,
+      "limitSeconds": 180,
+      "logCapBytes": 4194304,
+      "firstFailure": "diagnostic trace-loss",
+      "cleanupErrors": [],
+      "firstDiagnosticFailure": {
+        "stream": "child",
+        "line": 1,
+        "pid": 28156,
+        "detectionElapsedSeconds": 0.23416258301585913,
+        "failurePhase": "confirmed-seed",
+        "code": "trace-loss",
+        "source": "server",
+        "requestId": 10
+      },
+      "termination": [
+        {
+          "pid": 28156,
+          "signal": "SIGTERM",
+          "elapsedSeconds": 0.23427058290690184
+        }
+      ],
+      "pids": [
+        28156
+      ],
+      "collectorStarts": 0,
+      "processes": [
+        {
+          "role": "confirmed-seed",
+          "limitSeconds": 10,
+          "startElapsedSeconds": 4.729093052446842e-05,
+          "elapsedSeconds": 0.23587941704317927,
+          "finalExit": -15
+        }
+      ],
+      "runnerFailure": "diagnostic trace-loss",
+      "diagnosticErrors": [],
+      "cleanupEvents": [],
+      "qualification": {
+        "decision": "FAIL_FIXTURE_CONTRACT"
+      },
+      "productsAfter": {},
+      "elapsedSeconds": 0.23598658293485641,
+      "outputBytes": 367,
+      "groupsAbsent": true
+    },
+    "output": {
+      "bytes": 367,
+      "sha256": "a8459d9f15b48facd42338a22be9c611396c223fd9672b058b65387dee87fc0f"
+    }
+  },
+  {
+    "case": "stream-malformed",
+    "execution": {
+      "schema": "media-server.r153.execution.v1",
+      "products": {},
+      "buildBinding": {
+        "products": {},
+        "sources": {},
+        "binaries": {},
+        "dependencies": {}
+      },
+      "seedStarts": 1,
+      "fixtureStarts": 0,
+      "productStarts": 0,
+      "limitSeconds": 180,
+      "logCapBytes": 4194304,
+      "firstFailure": "diagnostic malformed-record",
+      "cleanupErrors": [],
+      "firstDiagnosticFailure": {
+        "stream": "child",
+        "line": 1,
+        "pid": 28166,
+        "detectionElapsedSeconds": 0.24207516689784825,
+        "failurePhase": "confirmed-seed",
+        "code": "malformed-record",
+        "source": "server"
+      },
+      "termination": [
+        {
+          "pid": 28166,
+          "signal": "SIGTERM",
+          "elapsedSeconds": 0.24221575004048645
+        }
+      ],
+      "pids": [
+        28166
+      ],
+      "collectorStarts": 0,
+      "processes": [
+        {
+          "role": "confirmed-seed",
+          "limitSeconds": 10,
+          "startElapsedSeconds": 2.0083971321582794e-05,
+          "elapsedSeconds": 0.24380733305588365,
+          "finalExit": -15
+        }
+      ],
+      "runnerFailure": "diagnostic malformed-record",
+      "diagnosticErrors": [],
+      "cleanupEvents": [],
+      "qualification": {
+        "decision": "FAIL_FIXTURE_CONTRACT"
+      },
+      "productsAfter": {},
+      "elapsedSeconds": 0.2438610838726163,
+      "outputBytes": 21,
+      "groupsAbsent": true
+    },
+    "output": {
+      "bytes": 21,
+      "sha256": "04b8ed224e3a22847a1a5bcbfb70f754b9c5cc78324df0cb96722a9f640d2fe5"
+    }
+  },
+  {
+    "case": "stream-output",
+    "execution": {
+      "schema": "media-server.r153.execution.v1",
+      "products": {},
+      "buildBinding": {
+        "products": {},
+        "sources": {},
+        "binaries": {},
+        "dependencies": {}
+      },
+      "seedStarts": 1,
+      "fixtureStarts": 0,
+      "productStarts": 0,
+      "limitSeconds": 180,
+      "logCapBytes": 4194304,
+      "firstFailure": "diagnostic trace-loss-marker",
+      "cleanupErrors": [],
+      "firstDiagnosticFailure": {
+        "stream": "child",
+        "line": 1,
+        "pid": 28172,
+        "detectionElapsedSeconds": 0.2380074590910226,
+        "failurePhase": "confirmed-seed",
+        "code": "trace-loss-marker",
+        "source": "marker"
+      },
+      "termination": [
+        {
+          "pid": 28172,
+          "signal": "SIGTERM",
+          "elapsedSeconds": 0.23805641708895564
+        }
+      ],
+      "pids": [
+        28172
+      ],
+      "collectorStarts": 0,
+      "processes": [
+        {
+          "role": "confirmed-seed",
+          "limitSeconds": 10,
+          "startElapsedSeconds": 1.4875084161758423e-05,
+          "elapsedSeconds": 0.23966404190286994,
+          "finalExit": -15
+        }
+      ],
+      "runnerFailure": "diagnostic trace-loss-marker",
+      "diagnosticErrors": [],
+      "cleanupEvents": [],
+      "qualification": {
+        "decision": "FAIL_FIXTURE_CONTRACT"
+      },
+      "productsAfter": {},
+      "elapsedSeconds": 0.23973058396950364,
+      "outputBytes": 22,
+      "groupsAbsent": true
+    },
+    "output": {
+      "bytes": 22,
+      "sha256": "c3f2324eb41c11ec48fed40cf750c2228bfcd2eff7c202b8fab4233a9d322b42"
+    }
+  },
+  {
+    "case": "stream-overflow",
+    "execution": {
+      "schema": "media-server.r153.execution.v1",
+      "products": {},
+      "buildBinding": {
+        "products": {},
+        "sources": {},
+        "binaries": {},
+        "dependencies": {}
+      },
+      "seedStarts": 1,
+      "fixtureStarts": 0,
+      "productStarts": 0,
+      "limitSeconds": 180,
+      "logCapBytes": 4194304,
+      "firstFailure": "diagnostic trace-loss-marker",
+      "cleanupErrors": [],
+      "firstDiagnosticFailure": {
+        "stream": "child",
+        "line": 1,
+        "pid": 28159,
+        "detectionElapsedSeconds": 0.23745958390645683,
+        "failurePhase": "confirmed-seed",
+        "code": "trace-loss-marker",
+        "source": "marker"
+      },
+      "termination": [
+        {
+          "pid": 28159,
+          "signal": "SIGTERM",
+          "elapsedSeconds": 0.23755691689439118
+        }
+      ],
+      "pids": [
+        28159
+      ],
+      "collectorStarts": 0,
+      "processes": [
+        {
+          "role": "confirmed-seed",
+          "limitSeconds": 10,
+          "startElapsedSeconds": 8.666887879371643e-06,
+          "elapsedSeconds": 0.239202625118196,
+          "finalExit": -15
+        }
+      ],
+      "runnerFailure": "diagnostic trace-loss-marker",
+      "diagnosticErrors": [],
+      "cleanupEvents": [],
+      "qualification": {
+        "decision": "FAIL_FIXTURE_CONTRACT"
+      },
+      "productsAfter": {},
+      "elapsedSeconds": 0.23926274990662932,
+      "outputBytes": 19,
+      "groupsAbsent": true
+    },
+    "output": {
+      "bytes": 19,
+      "sha256": "6ff1d455f5fac6191966224c3fe8f1d5a8dbbf4a0d1ffe24fc6e4d19529236f4"
+    }
+  },
+  {
+    "case": "stream-parallel-order",
+    "execution": {
+      "schema": "media-server.r153.execution.v1",
+      "products": {},
+      "buildBinding": {
+        "products": {},
+        "sources": {},
+        "binaries": {},
+        "dependencies": {}
+      },
+      "seedStarts": 1,
+      "fixtureStarts": 0,
+      "productStarts": 0,
+      "limitSeconds": 180,
+      "logCapBytes": 4194304,
+      "firstFailure": "diagnostic trace-loss-marker",
+      "cleanupErrors": [],
+      "firstDiagnosticFailure": {
+        "stream": "child",
+        "line": 14,
+        "pid": 28177,
+        "detectionElapsedSeconds": 0.8434605000074953,
+        "failurePhase": "confirmed-seed",
+        "code": "trace-loss-marker",
+        "source": "marker"
+      },
+      "termination": [
+        {
+          "pid": 28177,
+          "signal": "SIGTERM",
+          "elapsedSeconds": 0.8435008751694113
+        }
+      ],
+      "pids": [
+        28177
+      ],
+      "collectorStarts": 0,
+      "processes": [
+        {
+          "role": "confirmed-seed",
+          "limitSeconds": 10,
+          "startElapsedSeconds": 9.16607677936554e-06,
+          "elapsedSeconds": 0.8451288340147585,
+          "finalExit": -15
+        }
+      ],
+      "runnerFailure": "diagnostic trace-loss-marker",
+      "diagnosticErrors": [],
+      "cleanupEvents": [],
+      "qualification": {
+        "decision": "FAIL_FIXTURE_CONTRACT"
+      },
+      "productsAfter": {},
+      "elapsedSeconds": 0.8451962079852819,
+      "outputBytes": 4074,
+      "groupsAbsent": true
+    },
+    "output": {
+      "bytes": 4074,
+      "sha256": "644caf2a1ed350120b6ea519b87b0ddbe5512fbe741ff67e31cb1338218cfd1d"
+    }
+  },
+  {
+    "case": "stream-partial",
+    "execution": {
+      "schema": "media-server.r153.execution.v1",
+      "products": {},
+      "buildBinding": {
+        "products": {},
+        "sources": {},
+        "binaries": {},
+        "dependencies": {}
+      },
+      "seedStarts": 1,
+      "fixtureStarts": 0,
+      "productStarts": 0,
+      "limitSeconds": 180,
+      "logCapBytes": 4194304,
+      "firstFailure": "partial output record",
+      "cleanupErrors": [],
+      "firstDiagnosticFailure": {
+        "code": "partial output record",
+        "source": "collector",
+        "failurePhase": "confirmed-seed",
+        "detectionElapsedSeconds": 0.3358257079962641
+      },
+      "termination": [],
+      "pids": [
+        28168
+      ],
+      "collectorStarts": 0,
+      "processes": [
+        {
+          "role": "confirmed-seed",
+          "limitSeconds": 10,
+          "startElapsedSeconds": 9.624985978007317e-06,
+          "elapsedSeconds": 0.33583750016987324,
+          "finalExit": 0
+        }
+      ],
+      "runnerFailure": "partial output record",
+      "diagnosticErrors": [],
+      "cleanupEvents": [],
+      "qualification": {
+        "decision": "FAIL_FIXTURE_CONTRACT"
+      },
+      "productsAfter": {},
+      "elapsedSeconds": 0.3359947921708226,
+      "outputBytes": 15,
+      "groupsAbsent": true
+    },
+    "output": {
+      "bytes": 15,
+      "sha256": "0f7bd2af4f8d6aa58775107ca9688016aa92eac54291ffcc7d632a4b0683fffe"
+    }
+  },
+  {
+    "case": "stream-split",
+    "execution": {
+      "schema": "media-server.r153.execution.v1",
+      "products": {},
+      "buildBinding": {
+        "products": {},
+        "sources": {},
+        "binaries": {},
+        "dependencies": {}
+      },
+      "seedStarts": 1,
+      "fixtureStarts": 0,
+      "productStarts": 0,
+      "limitSeconds": 180,
+      "logCapBytes": 4194304,
+      "firstFailure": "diagnostic trace-loss-marker",
+      "cleanupErrors": [],
+      "firstDiagnosticFailure": {
+        "stream": "child",
+        "line": 1,
+        "pid": 28162,
+        "detectionElapsedSeconds": 0.283802208956331,
+        "failurePhase": "confirmed-seed",
+        "code": "trace-loss-marker",
+        "source": "marker"
+      },
+      "termination": [
+        {
+          "pid": 28162,
+          "signal": "SIGTERM",
+          "elapsedSeconds": 0.2838613339699805
+        }
+      ],
+      "pids": [
+        28162
+      ],
+      "collectorStarts": 0,
+      "processes": [
+        {
+          "role": "confirmed-seed",
+          "limitSeconds": 10,
+          "startElapsedSeconds": 9.916955605149269e-06,
+          "elapsedSeconds": 0.28551104199141264,
+          "finalExit": -15
+        }
+      ],
+      "runnerFailure": "diagnostic trace-loss-marker",
+      "diagnosticErrors": [],
+      "cleanupEvents": [],
+      "qualification": {
+        "decision": "FAIL_FIXTURE_CONTRACT"
+      },
+      "productsAfter": {},
+      "elapsedSeconds": 0.28560295910574496,
+      "outputBytes": 12,
+      "groupsAbsent": true
+    },
+    "output": {
+      "bytes": 12,
+      "sha256": "4c3533c277b80de2b0944f405ba082f2c46e540d757f25e77617bcb35dbaf4d1"
+    }
+  },
+  {
+    "case": "stream-valid-invalid",
+    "execution": {
+      "schema": "media-server.r153.execution.v1",
+      "products": {},
+      "buildBinding": {
+        "products": {},
+        "sources": {},
+        "binaries": {},
+        "dependencies": {}
+      },
+      "seedStarts": 1,
+      "fixtureStarts": 0,
+      "productStarts": 0,
+      "limitSeconds": 180,
+      "logCapBytes": 4194304,
+      "firstFailure": "diagnostic trace-loss-marker",
+      "cleanupErrors": [],
+      "firstDiagnosticFailure": {
+        "stream": "child",
+        "line": 2,
+        "pid": 28163,
+        "detectionElapsedSeconds": 0.28091887501068413,
+        "failurePhase": "confirmed-seed",
+        "code": "trace-loss-marker",
+        "source": "marker"
+      },
+      "termination": [
+        {
+          "pid": 28163,
+          "signal": "SIGTERM",
+          "elapsedSeconds": 0.28095483407378197
+        }
+      ],
+      "pids": [
+        28163
+      ],
+      "collectorStarts": 0,
+      "processes": [
+        {
+          "role": "confirmed-seed",
+          "limitSeconds": 10,
+          "startElapsedSeconds": 1.5666941180825233e-05,
+          "elapsedSeconds": 0.2825882500037551,
+          "finalExit": -15
+        }
+      ],
+      "runnerFailure": "diagnostic trace-loss-marker",
+      "diagnosticErrors": [],
+      "cleanupEvents": [],
+      "qualification": {
+        "decision": "FAIL_FIXTURE_CONTRACT"
+      },
+      "productsAfter": {},
+      "elapsedSeconds": 0.28267870913259685,
+      "outputBytes": 380,
+      "groupsAbsent": true
+    },
+    "output": {
+      "bytes": 380,
+      "sha256": "1a1714e5f9bc17e8457d45e3e60c6eaf4cfb20d2a5b4aee32f7909735ba2625e"
+    }
+  }
+]

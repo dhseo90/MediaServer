@@ -1,0 +1,43 @@
+<OWNED_ROOT>/candidate-final/currentness-focused.cpp:5:51: error: 'generation_sqlite_db_' is a private member of 'recording::RecordingCatalog'
+    5 |  static sqlite3* Db(RecordingCatalog& c){return c.generation_sqlite_db_;}
+      |                                                   ^
+<REPO>/include/recording/recording_catalog.h:732:14: note: declared private here
+  732 |     sqlite3* generation_sqlite_db_{nullptr};
+      |              ^
+<OWNED_ROOT>/candidate-final/currentness-focused.cpp:7:26: error: 'mu_' is a private member of 'recording::RecordingCatalog'
+    7 |   std::lock_guard lock(c.mu_);auto event=original;event.retention_class=RecordingRetentionClass::Event;
+      |                          ^
+<REPO>/include/recording/recording_catalog.h:652:24: note: declared private here
+  652 |     mutable std::mutex mu_;
+      |                        ^
+<OWNED_ROOT>/candidate-final/currentness-focused.cpp:8:12: error: 'MediaV2EligibleLocked' is a private member of 'recording::RecordingCatalog'
+    8 |   return c.MediaV2EligibleLocked(event.channel_id,event.segment_id,nullptr,&event);
+      |            ^
+<REPO>/include/recording/recording_catalog.h:456:10: note: declared private here
+  456 |     bool MediaV2EligibleLocked(const std::string& channel,const std::string& id,JobReadContext* context=nullptr,const RecordingSegmentV2* current=nullptr) const;
+      |          ^
+<OWNED_ROOT>/candidate-final/currentness-focused.cpp:11:26: error: 'mu_' is a private member of 'recording::RecordingCatalog'
+   11 |   std::lock_guard lock(c.mu_);EventRecordingLinkV1 link;link.derived_segment_id=original.segment_id;
+      |                          ^
+<REPO>/include/recording/recording_catalog.h:652:24: note: declared private here
+  652 |     mutable std::mutex mu_;
+      |                        ^
+<OWNED_ROOT>/candidate-final/currentness-focused.cpp:12:5: error: 'event_links_' is a private member of 'recording::RecordingCatalog'
+   12 |   c.event_links_.emplace("r157-focused-link",link);const bool result=c.MediaV2EligibleLocked(original.channel_id,original.segment_id,nullptr,&original);c.event_links_.erase("r157-focused-link");return !result;
+      |     ^
+<REPO>/include/recording/recording_catalog.h:725:105: note: declared private here
+  725 |     RecordingRetainedRows<EventRecordingLinkV1,ParseEventRecordingLinkV1,SerializeEventRecordingLinkV1> event_links_;
+      |                                                                                                         ^
+<OWNED_ROOT>/candidate-final/currentness-focused.cpp:12:72: error: 'MediaV2EligibleLocked' is a private member of 'recording::RecordingCatalog'
+   12 |   c.event_links_.emplace("r157-focused-link",link);const bool result=c.MediaV2EligibleLocked(original.channel_id,original.segment_id,nullptr,&original);c.event_links_.erase("r157-focused-link");return !result;
+      |                                                                        ^
+<REPO>/include/recording/recording_catalog.h:456:10: note: declared private here
+  456 |     bool MediaV2EligibleLocked(const std::string& channel,const std::string& id,JobReadContext* context=nullptr,const RecordingSegmentV2* current=nullptr) const;
+      |          ^
+<OWNED_ROOT>/candidate-final/currentness-focused.cpp:12:155: error: 'event_links_' is a private member of 'recording::RecordingCatalog'
+   12 |   c.event_links_.emplace("r157-focused-link",link);const bool result=c.MediaV2EligibleLocked(original.channel_id,original.segment_id,nullptr,&original);c.event_links_.erase("r157-focused-link");return !result;
+      |                                                                                                                                                           ^
+<REPO>/include/recording/recording_catalog.h:725:105: note: declared private here
+  725 |     RecordingRetainedRows<EventRecordingLinkV1,ParseEventRecordingLinkV1,SerializeEventRecordingLinkV1> event_links_;
+      |                                                                                                         ^
+7 errors generated.

@@ -1,0 +1,270 @@
+{
+  "byChannel": {
+    "9201": {
+      "finalized": 8,
+      "bindings": 8,
+      "samples": 480,
+      "bytes": 275208,
+      "generations": 4
+    },
+    "9101": {
+      "finalized": 8,
+      "bindings": 8,
+      "samples": 480,
+      "bytes": 275208,
+      "generations": 4
+    },
+    "1": {
+      "finalized": 1,
+      "bindings": 1,
+      "samples": 30,
+      "bytes": 28161,
+      "generations": 1
+    }
+  },
+  "manifest": {
+    "phase": "manifest",
+    "monoNs": 1577325499430875,
+    "synthetic": true,
+    "rows": [
+      {
+        "channel": "9201",
+        "segment": "0429d4b4-c74c-4d0b-9150-4a8f41786802",
+        "generation": "da5f1b8b0fdd22a7e49ec786a818bb66b2658573b72d5c81ab39ccacacf32758",
+        "bindingSegment": "0429d4b4-c74c-4d0b-9150-4a8f41786802",
+        "bindingChannel": "9201",
+        "inspection": true,
+        "samples": 60,
+        "firstOrdinal": 61,
+        "lastOrdinal": 120,
+        "bytes": 34078,
+        "sha256": "f7b4094025ebb9f61b1e361a17ba69fe0a9a3fd4bbb018fe8fecd0a3f7e1cdc7"
+      },
+      {
+        "channel": "9201",
+        "segment": "0b1f056a-4817-4408-b34c-6f9ae7179585",
+        "generation": "da5f1b8b0fdd22a7e49ec786a818bb66b2658573b72d5c81ab39ccacacf32758",
+        "bindingSegment": "0b1f056a-4817-4408-b34c-6f9ae7179585",
+        "bindingChannel": "9201",
+        "inspection": true,
+        "samples": 60,
+        "firstOrdinal": 1,
+        "lastOrdinal": 60,
+        "bytes": 34724,
+        "sha256": "682f06595f5f2b60b9ebbcdb66d8d5b58858d0dd33747c3f501635810753d84d"
+      },
+      {
+        "channel": "9101",
+        "segment": "14016405-4835-4adc-bf05-a9e0d2444dc5",
+        "generation": "86b612cc320ce5902764aa1768777dd38a5db45df8c60542a63e2cc819e52daf",
+        "bindingSegment": "14016405-4835-4adc-bf05-a9e0d2444dc5",
+        "bindingChannel": "9101",
+        "inspection": true,
+        "samples": 60,
+        "firstOrdinal": 61,
+        "lastOrdinal": 120,
+        "bytes": 34078,
+        "sha256": "f7b4094025ebb9f61b1e361a17ba69fe0a9a3fd4bbb018fe8fecd0a3f7e1cdc7"
+      },
+      {
+        "channel": "9101",
+        "segment": "1c88e36e-f540-4ff3-8478-f597138c26e5",
+        "generation": "1345e246c9f40eb6805c1d0d8a8b4b604a770691dbc57dc4f271c2d3319c112f",
+        "bindingSegment": "1c88e36e-f540-4ff3-8478-f597138c26e5",
+        "bindingChannel": "9101",
+        "inspection": true,
+        "samples": 60,
+        "firstOrdinal": 61,
+        "lastOrdinal": 120,
+        "bytes": 34078,
+        "sha256": "f7b4094025ebb9f61b1e361a17ba69fe0a9a3fd4bbb018fe8fecd0a3f7e1cdc7"
+      },
+      {
+        "channel": "9201",
+        "segment": "2ab3d281-068c-4b4a-91d6-750ab9d4ed63",
+        "generation": "adaa99e6aaf9ec9b5dacf90c088144a7cb67e047ff69562953035b0daf8e05de",
+        "bindingSegment": "2ab3d281-068c-4b4a-91d6-750ab9d4ed63",
+        "bindingChannel": "9201",
+        "inspection": true,
+        "samples": 60,
+        "firstOrdinal": 1,
+        "lastOrdinal": 60,
+        "bytes": 34724,
+        "sha256": "cb644fda5547fe1c7d6424632e1d77bb2f62597dc6c1dd67bd2c0c023b67ac04"
+      },
+      {
+        "channel": "9201",
+        "segment": "3a7ed9c4-f519-4881-9a1d-377063846523",
+        "generation": "65e993248381c661a90c773e23487bb685378fab38b261f20f3a878c999142ab",
+        "bindingSegment": "3a7ed9c4-f519-4881-9a1d-377063846523",
+        "bindingChannel": "9201",
+        "inspection": true,
+        "samples": 60,
+        "firstOrdinal": 1,
+        "lastOrdinal": 60,
+        "bytes": 34724,
+        "sha256": "cb644fda5547fe1c7d6424632e1d77bb2f62597dc6c1dd67bd2c0c023b67ac04"
+      },
+      {
+        "channel": "1",
+        "segment": "48e32653-d925-4fab-ab3e-5d7bb41740c8",
+        "generation": "probe-generation-a",
+        "bindingSegment": "48e32653-d925-4fab-ab3e-5d7bb41740c8",
+        "bindingChannel": "1",
+        "inspection": true,
+        "samples": 30,
+        "firstOrdinal": 1,
+        "lastOrdinal": 30,
+        "bytes": 28161,
+        "sha256": "9fad8ed0ebee4f75d34d81d0865a0074a77b1d0c23bdcaf519483a04d5c2efbb"
+      },
+      {
+        "channel": "9201",
+        "segment": "49be35d3-8d9c-4be5-ab7c-c19110ad0263",
+        "generation": "65e993248381c661a90c773e23487bb685378fab38b261f20f3a878c999142ab",
+        "bindingSegment": "49be35d3-8d9c-4be5-ab7c-c19110ad0263",
+        "bindingChannel": "9201",
+        "inspection": true,
+        "samples": 60,
+        "firstOrdinal": 61,
+        "lastOrdinal": 120,
+        "bytes": 34078,
+        "sha256": "a2b4463bc04934891200d7aef9edc7c689d16f32b27ba13330df1257c7d5273c"
+      },
+      {
+        "channel": "9201",
+        "segment": "5c2a1e16-ef06-4939-9bc3-0235a9a4d651",
+        "generation": "625fb3b92c8d1f6cec8268273e2c1213165d93af7a888bdbf56e0ca5620f9dec",
+        "bindingSegment": "5c2a1e16-ef06-4939-9bc3-0235a9a4d651",
+        "bindingChannel": "9201",
+        "inspection": true,
+        "samples": 60,
+        "firstOrdinal": 61,
+        "lastOrdinal": 120,
+        "bytes": 34078,
+        "sha256": "f7b4094025ebb9f61b1e361a17ba69fe0a9a3fd4bbb018fe8fecd0a3f7e1cdc7"
+      },
+      {
+        "channel": "9101",
+        "segment": "711e6cf0-5328-4d79-92fa-9c0473cbf96e",
+        "generation": "6515c3149a62c695c5feeca0d350d17df185ddfd67396e1f951a03c4069da741",
+        "bindingSegment": "711e6cf0-5328-4d79-92fa-9c0473cbf96e",
+        "bindingChannel": "9101",
+        "inspection": true,
+        "samples": 60,
+        "firstOrdinal": 61,
+        "lastOrdinal": 120,
+        "bytes": 34078,
+        "sha256": "f7b4094025ebb9f61b1e361a17ba69fe0a9a3fd4bbb018fe8fecd0a3f7e1cdc7"
+      },
+      {
+        "channel": "9101",
+        "segment": "71c595ae-b454-4390-a7cb-721e4467785c",
+        "generation": "6515c3149a62c695c5feeca0d350d17df185ddfd67396e1f951a03c4069da741",
+        "bindingSegment": "71c595ae-b454-4390-a7cb-721e4467785c",
+        "bindingChannel": "9101",
+        "inspection": true,
+        "samples": 60,
+        "firstOrdinal": 1,
+        "lastOrdinal": 60,
+        "bytes": 34724,
+        "sha256": "682f06595f5f2b60b9ebbcdb66d8d5b58858d0dd33747c3f501635810753d84d"
+      },
+      {
+        "channel": "9201",
+        "segment": "822cb595-a5dc-41d5-924e-d9d11f84a6e1",
+        "generation": "625fb3b92c8d1f6cec8268273e2c1213165d93af7a888bdbf56e0ca5620f9dec",
+        "bindingSegment": "822cb595-a5dc-41d5-924e-d9d11f84a6e1",
+        "bindingChannel": "9201",
+        "inspection": true,
+        "samples": 60,
+        "firstOrdinal": 1,
+        "lastOrdinal": 60,
+        "bytes": 34724,
+        "sha256": "682f06595f5f2b60b9ebbcdb66d8d5b58858d0dd33747c3f501635810753d84d"
+      },
+      {
+        "channel": "9101",
+        "segment": "897e78f3-d344-4f8a-a843-76b905682ae1",
+        "generation": "835f4759e363e9364151061a5056bab3305671d125d03ed62b6d7d1ba3ee76d4",
+        "bindingSegment": "897e78f3-d344-4f8a-a843-76b905682ae1",
+        "bindingChannel": "9101",
+        "inspection": true,
+        "samples": 60,
+        "firstOrdinal": 1,
+        "lastOrdinal": 60,
+        "bytes": 34724,
+        "sha256": "682f06595f5f2b60b9ebbcdb66d8d5b58858d0dd33747c3f501635810753d84d"
+      },
+      {
+        "channel": "9201",
+        "segment": "a089e04c-d965-4395-a833-9c58a5a2a1bb",
+        "generation": "adaa99e6aaf9ec9b5dacf90c088144a7cb67e047ff69562953035b0daf8e05de",
+        "bindingSegment": "a089e04c-d965-4395-a833-9c58a5a2a1bb",
+        "bindingChannel": "9201",
+        "inspection": true,
+        "samples": 60,
+        "firstOrdinal": 61,
+        "lastOrdinal": 120,
+        "bytes": 34078,
+        "sha256": "a2b4463bc04934891200d7aef9edc7c689d16f32b27ba13330df1257c7d5273c"
+      },
+      {
+        "channel": "9101",
+        "segment": "a4a543a8-dc89-426f-a61a-e03b2fdeb25b",
+        "generation": "86b612cc320ce5902764aa1768777dd38a5db45df8c60542a63e2cc819e52daf",
+        "bindingSegment": "a4a543a8-dc89-426f-a61a-e03b2fdeb25b",
+        "bindingChannel": "9101",
+        "inspection": true,
+        "samples": 60,
+        "firstOrdinal": 1,
+        "lastOrdinal": 60,
+        "bytes": 34724,
+        "sha256": "682f06595f5f2b60b9ebbcdb66d8d5b58858d0dd33747c3f501635810753d84d"
+      },
+      {
+        "channel": "9101",
+        "segment": "aff914b7-f720-4835-b98e-0201d6d780cf",
+        "generation": "1345e246c9f40eb6805c1d0d8a8b4b604a770691dbc57dc4f271c2d3319c112f",
+        "bindingSegment": "aff914b7-f720-4835-b98e-0201d6d780cf",
+        "bindingChannel": "9101",
+        "inspection": true,
+        "samples": 60,
+        "firstOrdinal": 1,
+        "lastOrdinal": 60,
+        "bytes": 34724,
+        "sha256": "682f06595f5f2b60b9ebbcdb66d8d5b58858d0dd33747c3f501635810753d84d"
+      },
+      {
+        "channel": "9101",
+        "segment": "b17e4ac9-45de-4481-a458-205fd0de8178",
+        "generation": "835f4759e363e9364151061a5056bab3305671d125d03ed62b6d7d1ba3ee76d4",
+        "bindingSegment": "b17e4ac9-45de-4481-a458-205fd0de8178",
+        "bindingChannel": "9101",
+        "inspection": true,
+        "samples": 60,
+        "firstOrdinal": 61,
+        "lastOrdinal": 120,
+        "bytes": 34078,
+        "sha256": "f7b4094025ebb9f61b1e361a17ba69fe0a9a3fd4bbb018fe8fecd0a3f7e1cdc7"
+      }
+    ]
+  },
+  "mediaDecode": [
+    {
+      "phase": "media-decode",
+      "monoNs": 1577325339057333,
+      "channel": "9201",
+      "segment": "0429d4b4-c74c-4d0b-9150-4a8f41786802",
+      "targetNs": 0
+    },
+    {
+      "phase": "media-decode",
+      "monoNs": 1577325361437041,
+      "channel": "9101",
+      "segment": "14016405-4835-4adc-bf05-a9e0d2444dc5",
+      "targetNs": 0
+    }
+  ],
+  "manifestEventSha256": "c5aa6a89d2a637e64592a60a6f65acb794d6d5911ae862d255616fbfaa884b95"
+}

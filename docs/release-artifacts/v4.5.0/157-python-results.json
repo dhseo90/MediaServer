@@ -1,0 +1,20 @@
+[
+  {
+    "script": "recording_accumulated_http_run.test.py",
+    "exit": 0,
+    "seconds": 0.05299774999730289,
+    "log": "r153-python.log"
+  },
+  {
+    "script": "recording_http_currentness.test.py",
+    "exit": 0,
+    "seconds": 0.051660000113770366,
+    "log": "r156-python.log"
+  },
+  {
+    "script": "recording_http_cost_run.test.py",
+    "exit": 0,
+    "seconds": 6.6798515419941396,
+    "log": "r155-python.log"
+  }
+]
