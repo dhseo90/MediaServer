@@ -1,0 +1,18 @@
+
+(gst-plugin-scanner:17393): GLib-GIRepository-WARNING **: 03:35:12.997: Failed to load shared library 'libgobject-2.0.0.dylib' referenced by the typelib: dlopen(libgobject-2.0.0.dylib, 0x0009): tried: 'libgobject-2.0.0.dylib' (no such file), '/System/Volumes/Preboot/Cryptexes/OSlibgobject-2.0.0.dylib' (no such file), '/usr/lib/libgobject-2.0.0.dylib' (no such file, not in dyld cache), 'libgobject-2.0.0.dylib' (no such file)
+
+(gst-plugin-scanner:17393): GLib-GIRepository-WARNING **: 03:35:12.998: Failed to load shared library 'libglib-2.0.0.dylib' referenced by the typelib: dlopen(libglib-2.0.0.dylib, 0x0009): tried: 'libglib-2.0.0.dylib' (no such file), '/System/Volumes/Preboot/Cryptexes/OSlibglib-2.0.0.dylib' (no such file), '/usr/lib/libglib-2.0.0.dylib' (no such file, not in dyld cache), 'libglib-2.0.0.dylib' (no such file)
+
+** (gst-plugin-scanner:17393): CRITICAL **: 03:35:12.999: can't find gi.repository.Gst
+objc[17393]: Class ResultReceiver is implemented in both /opt/homebrew/Cellar/gtk+3/3.24.51/lib/libgtk-3.0.dylib (<ADDRESS>) and /opt/homebrew/Cellar/gtk4/4.22.1/lib/libgtk-4.1.dylib (<ADDRESS>). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[17393]: Class GtkApplicationQuartzDelegate is implemented in both /opt/homebrew/Cellar/gtk+3/3.24.51/lib/libgtk-3.0.dylib (<ADDRESS>) and /opt/homebrew/Cellar/gtk4/4.22.1/lib/libgtk-4.1.dylib (<ADDRESS>). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[17393]: Class GNSMenuItem is implemented in both /opt/homebrew/Cellar/gtk+3/3.24.51/lib/libgtk-3.0.dylib (<ADDRESS>) and /opt/homebrew/Cellar/gtk4/4.22.1/lib/libgtk-4.1.dylib (<ADDRESS>). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[17393]: Class GNSMenu is implemented in both /opt/homebrew/Cellar/gtk+3/3.24.51/lib/libgtk-3.0.dylib (<ADDRESS>) and /opt/homebrew/Cellar/gtk4/4.22.1/lib/libgtk-4.1.dylib (<ADDRESS>). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[17393]: Class FilterComboBox is implemented in both /opt/homebrew/Cellar/gtk+3/3.24.51/lib/libgtk-3.0.dylib (<ADDRESS>) and /opt/homebrew/Cellar/gtk4/4.22.1/lib/libgtk-4.1.dylib (<ADDRESS>). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[17393]: Class gdkCoreCursor is implemented in both /opt/homebrew/Cellar/gtk+3/3.24.51/lib/libgdk-3.0.dylib (<ADDRESS>) and /opt/homebrew/Cellar/gtk4/4.22.1/lib/libgtk-4.1.dylib (<ADDRESS>). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+[R153] {"phase":"media-decode","monoNs":1569345131586083,"channel":"9101","segment":"1c628dcd-9eb0-41bb-87b0-4cdefe328b56","targetNs":0}
+[R153] {"phase":"first-failure","monoNs":1569345177298958,"error":"injected manifest"}
+[R153] {"phase":"cleanup-error","monoNs":1569345177323916,"stage":"injected-stop"}
+[R153] {"phase":"failure-cleanup-finish","monoNs":1569345177328750,"ok":true}
+[R153] {"phase":"terminal","monoNs":1569345177333916,"exit":1,"outputFailed":false}
+[R153-focused] actual V2 FD/inspection/decode and negative ownership PASS

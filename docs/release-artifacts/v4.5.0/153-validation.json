@@ -1,0 +1,418 @@
+{
+  "schema": "media-server.v450.r153.validation.v1",
+  "decision": "PASS_BOUNDED_FIXTURE_QUALIFIED",
+  "fixtureRepair": "PASS",
+  "integratedSmoke": "PASS",
+  "baselineHead": "e996ec06df24f27bff44710d2149d0533c3f54aa",
+  "branch": "v4.5.0",
+  "baselinePreflight": "local/origin HEAD equal, worktree/index clean, fixed binaries SHA matched before changes",
+  "model": {
+    "requested": {
+      "main": "gpt-6-astra/high",
+      "independent": "gpt-6-astra/high"
+    },
+    "toolAccepted": {
+      "main": null,
+      "independent": "existing independent_r147 historical acceptance only; current resumed runtime not exposed"
+    },
+    "actualRuntimeModel": {
+      "main": null,
+      "independent": null
+    },
+    "actualRuntimeEffort": {
+      "main": null,
+      "independent": null
+    }
+  },
+  "scope": "fixture V2 FD/hold reading and first-failure ordering only; no product functionality changes",
+  "platform": {
+    "native": "macOS-27.0.1-arm64-arm-64bit-Mach-O",
+    "linuxNewRun": "NOT_RUN"
+  },
+  "products": {
+    "media_server": "33f516d35d56cb2f6cafc75647b6c37d2ced67115302d1205cca23bf51ab7f79",
+    "libmedia_server_runtime.a": "2d91cf35fe7e805e0c06e00d16779c86849b35db635e087582277e1b676d198c"
+  },
+  "productsAfter": {
+    "media_server": "33f516d35d56cb2f6cafc75647b6c37d2ced67115302d1205cca23bf51ab7f79",
+    "libmedia_server_runtime.a": "2d91cf35fe7e805e0c06e00d16779c86849b35db635e087582277e1b676d198c"
+  },
+  "productExecution": 0,
+  "runtimeRebuild": 0,
+  "changes": [
+    "scripts/internal/recording_accumulated_http_smoke.cpp",
+    "scripts/internal/recording_accumulated_http_run.py",
+    "scripts/internal/recording_accumulated_http_run.test.py",
+    "scripts/internal/recording_accumulated_media_smoke.cpp",
+    "docs/project-feature-test-inventory.md",
+    "test/fixtures/project_feature_implementation_evidence.json"
+  ],
+  "contracts": {
+    "media": "ResolveMedia performs V2 current finalized/channel/hold/contained FD/SHA/native inspection. Fixture uses borrowed FD with exact regular size, EINTR-aware bounded streaming SHA/EOF and current binding check; never path fallback. Resolved object dies before reader/catalog/runtime.",
+    "failure": "Capture before unwind of owned services/runtime; first failure serialized and flushed once; cleanup stage errors separate; output failures invalidate diagnosis. Independent Stop attempts preserve remaining cleanup.",
+    "caps": {
+      "overallSeconds": 180,
+      "workSeconds": 166,
+      "cleanupReserveSeconds": 14,
+      "httpMs": 5000,
+      "ordinarySearchMs": 2000,
+      "logBytes": 4194304
+    }
+  },
+  "focused": {
+    "expectedRed": {
+      "tests": 22,
+      "failures": 2,
+      "assertions": [
+        "V1-only path removed from Manifest",
+        "pre-cleanup CaptureFailure boundary present"
+      ],
+      "evidence": "153-red.log"
+    },
+    "greenPython": {
+      "tests": 30,
+      "exit": 0,
+      "prior20Retained": true,
+      "evidence": "153-focused-python-final.log"
+    },
+    "nativeLaunches": [
+      {
+        "exit": 2,
+        "cause": "cwd isolation guard rejected before native fixture body",
+        "expectedRed": false
+      },
+      {
+        "exit": 0,
+        "seconds": 1.9350737910717726
+      },
+      {
+        "exit": 0,
+        "seconds": 2.0162316248752177,
+        "newChecks": "reached post-read exception injection / nonregular FD"
+      },
+      {
+        "exit": 0,
+        "seconds": 2.5313775409013033,
+        "source": "final failure flush serialization"
+      }
+    ],
+    "nativeContract": "V2-only normal read/decode, V1-path absence, wrong channel/identity/hash, missing/deleted/tampered/truncated/symlink/escape, FD/hold release and exception; injected first-failure before cleanup-error/failure-Finish/terminal",
+    "environmentWarnings": "existing GStreamer plugin scanner GI/duplicate class warnings preserved; not reclassified as expected RED"
+  },
+  "binding": {
+    "producer": "51 PASS exit0",
+    "prematureReadback": "exit1 inventory hash drift before producer finished; invalid and preserved separately",
+    "orderedReadback": "after producer exit0: validationErrors0 / negative15of15",
+    "coverage": "986 covered / missing0 / pass9 fail0",
+    "isRuntimeEvidence": false
+  },
+  "execution": {
+    "command": "python3 scripts/internal/recording_accumulated_http_run.py run <OWNED_ROOT>/candidate-final",
+    "starts": {
+      "seed": 1,
+      "fixture": 1,
+      "collector": 1,
+      "product": 0
+    },
+    "seconds": 53.699695583898574,
+    "nativeSeconds": 50.53442695806734,
+    "httpRequests": 28,
+    "outputBytes": 132948,
+    "firstFailure": null,
+    "cleanupErrors": [],
+    "diagnosticErrors": [],
+    "canonicalStore": "<OWNED_ROOT>/candidate-final/run/recording",
+    "input": "153-input-summary.json",
+    "seed": "initial finalized exactly1; original A package unchanged after accumulation; original media HTTP bytes hash checked",
+    "media": "FD/hash/inspection17; actual decode first original of each ordinary channel at target0; not every sample decode",
+    "auth": "no-auth structured401, viewer A-draft403, authenticated admin flows",
+    "visualReadyDocuments": 32,
+    "ordinaryHttp": [
+      {
+        "phase": "http",
+        "monoNs": 1569738496214875,
+        "id": 11,
+        "status": 200,
+        "ms": 67.075,
+        "bytes": 5120
+      },
+      {
+        "phase": "http",
+        "monoNs": 1569738497004791,
+        "id": 10,
+        "status": 200,
+        "ms": 67.858584,
+        "bytes": 5120
+      },
+      {
+        "phase": "http",
+        "monoNs": 1569738679904250,
+        "id": 12,
+        "status": 200,
+        "ms": 250.762042,
+        "bytes": 9558
+      },
+      {
+        "phase": "http",
+        "monoNs": 1569738704872958,
+        "id": 13,
+        "status": 200,
+        "ms": 275.705042,
+        "bytes": 9558
+      }
+    ],
+    "ordinaryParallel": "four server-accepted sockets before shared release; no request retry",
+    "evidencePackages": [
+      {
+        "phase": "package-readback",
+        "monoNs": 1569738840852833,
+        "id": "ep-de35691ed0381b67edd368caa3fc78d068894558f54a303c01ef55c665d5d9b7",
+        "assets": 8
+      },
+      {
+        "phase": "package-readback",
+        "monoNs": 1569738872309791,
+        "id": "ep-7bd0501ac45705ae69d381ae9583eba08ae09b64d9ba76120387ef984bfb3377",
+        "assets": 1
+      },
+      {
+        "phase": "package-readback",
+        "monoNs": 1569738913163583,
+        "id": "ep-e5b861cf695e9525dafd973662a0f0925968742ef2076075ad92e780a1390447",
+        "assets": 1
+      }
+    ],
+    "aPrepare": "channelIds=1/object=synthetic-target, track-77 hit, snapshot selection, A package readback, draft201 and confirm200 after ordinary evidence",
+    "background": {
+      "expected": 2401,
+      "accepted": 2401,
+      "files": 41,
+      "removed": 0
+    },
+    "normalCompletion": {
+      "servicesStopped": true,
+      "portRefused": true,
+      "explicitFinish": true,
+      "logicalRam": 0,
+      "scratch": 0,
+      "fd": 0,
+      "groupAbsent": true
+    },
+    "resourceObservations": "50 valid complete FD samples; RSS/footprint retained in output; logical owner0 is not whole heap no-leak",
+    "qualification": {
+      "decision": "PASS_BOUNDED_FIXTURE_QUALIFIED",
+      "httpRequests": 28,
+      "inputFiles": 17,
+      "inputSamples": 990,
+      "ordinarySearches": 4,
+      "latencyAttribution": "NOT_RUN"
+    }
+  },
+  "preservation": {
+    "manifest": [
+      {
+        "sourceRelativeToOwnedRoot": "candidate-final/run/events.json",
+        "path": "docs/release-artifacts/v4.5.0/153-events.json",
+        "rawBytes": 14440,
+        "rawSha256": "7df81b9bc57137f748b0ea749374be915225d47d0dc9860d3c48280afc5ce532",
+        "storedBytes": 14440,
+        "storedSha256": "7df81b9bc57137f748b0ea749374be915225d47d0dc9860d3c48280afc5ce532",
+        "sanitized": false
+      },
+      {
+        "sourceRelativeToOwnedRoot": "candidate-final/run/execution.json",
+        "path": "docs/release-artifacts/v4.5.0/153-execution.json",
+        "rawBytes": 20264,
+        "rawSha256": "d770c979ab1e37c660bbc4de5f50672bbb92910b92debd89fb0b2c7026b85764",
+        "storedBytes": 20264,
+        "storedSha256": "d770c979ab1e37c660bbc4de5f50672bbb92910b92debd89fb0b2c7026b85764",
+        "sanitized": false
+      },
+      {
+        "sourceRelativeToOwnedRoot": "candidate-final/run/output.log",
+        "path": "docs/release-artifacts/v4.5.0/153-output.log",
+        "rawBytes": 132948,
+        "rawSha256": "8c7d8b8c222186f2b5c9ec348e0aedc0c6c3dab82fde3fb13c5036f8b48d3422",
+        "storedBytes": 132924,
+        "storedSha256": "51cee77be8a6472fa4ed4fcb855c6deed88d21ffb9512a47ec9b2a67670f1e16",
+        "sanitized": true
+      },
+      {
+        "sourceRelativeToOwnedRoot": "plan.json",
+        "path": "docs/release-artifacts/v4.5.0/153-plan.json",
+        "rawBytes": 678,
+        "rawSha256": "8df8d75307a10640b924928d7f9ae47bd058a190a77585a610dc14c94827946b",
+        "storedBytes": 678,
+        "storedSha256": "8df8d75307a10640b924928d7f9ae47bd058a190a77585a610dc14c94827946b",
+        "sanitized": false
+      },
+      {
+        "sourceRelativeToOwnedRoot": "run-input-binding.json",
+        "path": "docs/release-artifacts/v4.5.0/153-run-input-binding.json",
+        "rawBytes": 19691,
+        "rawSha256": "59b8a0069a3c2285b5e3492b083d67863ca1593b39ba3be50497b1244dcc2a4e",
+        "storedBytes": 19664,
+        "storedSha256": "88967581b2b68f0c830c8f89fbbc97c9e53942a394e2ad986474640efa3ce467",
+        "sanitized": true
+      },
+      {
+        "sourceRelativeToOwnedRoot": "red.log",
+        "path": "docs/release-artifacts/v4.5.0/153-red.log",
+        "rawBytes": 39289,
+        "rawSha256": "e885d22f88516772cd9b67f0ede3a9394ffbf21b0c08d558a678956824672ec2",
+        "storedBytes": 39205,
+        "storedSha256": "40906718c364f38674731a9832a73a3e303d334b4324ef98d35691b65a2b0d30",
+        "sanitized": true
+      },
+      {
+        "sourceRelativeToOwnedRoot": "focused-python.log",
+        "path": "docs/release-artifacts/v4.5.0/153-focused-python.log",
+        "rawBytes": 125,
+        "rawSha256": "f380f6b4a7dec6524e5e71cb796ec363678265cee278133b4878f200d4bd24b4",
+        "storedBytes": 125,
+        "storedSha256": "f380f6b4a7dec6524e5e71cb796ec363678265cee278133b4878f200d4bd24b4",
+        "sanitized": false
+      },
+      {
+        "sourceRelativeToOwnedRoot": "focused-python-final.log",
+        "path": "docs/release-artifacts/v4.5.0/153-focused-python-final.log",
+        "rawBytes": 129,
+        "rawSha256": "8c507533531f971ea18df9a9fd268ff88f8a6662d4a36cce0854ff4e70069e0a",
+        "storedBytes": 129,
+        "storedSha256": "8c507533531f971ea18df9a9fd268ff88f8a6662d4a36cce0854ff4e70069e0a",
+        "sanitized": false
+      },
+      {
+        "sourceRelativeToOwnedRoot": "focused-native-result.json",
+        "path": "docs/release-artifacts/v4.5.0/153-focused-native-first-result.json",
+        "rawBytes": 68,
+        "rawSha256": "c46e0b3f786ffbd0d479add23545d1f9da1653bc43a2e472599c3eac084814e5",
+        "storedBytes": 68,
+        "storedSha256": "c46e0b3f786ffbd0d479add23545d1f9da1653bc43a2e472599c3eac084814e5",
+        "sanitized": false
+      },
+      {
+        "sourceRelativeToOwnedRoot": "focused-native-result-2.json",
+        "path": "docs/release-artifacts/v4.5.0/153-focused-native-second-result.json",
+        "rawBytes": 68,
+        "rawSha256": "5cce936c432903a2400a86323e78b3feb1503c11a6a1c6437c414aa34d91e092",
+        "storedBytes": 68,
+        "storedSha256": "5cce936c432903a2400a86323e78b3feb1503c11a6a1c6437c414aa34d91e092",
+        "sanitized": false
+      },
+      {
+        "sourceRelativeToOwnedRoot": "focused-native-2.log",
+        "path": "docs/release-artifacts/v4.5.0/153-focused-native-second.log",
+        "rawBytes": 3364,
+        "rawSha256": "0df23f1184607cfebfcc93fe4e6433159edd31897ccea641e8ce156dc54e3616",
+        "storedBytes": 3340,
+        "storedSha256": "0b7a2bc4e64f7faeb4f5e5ee805631569d621c77bc25cba1730c90923965f0c1",
+        "sanitized": true
+      },
+      {
+        "sourceRelativeToOwnedRoot": "focused-native-reviewed.json",
+        "path": "docs/release-artifacts/v4.5.0/153-focused-native-reviewed.json",
+        "rawBytes": 221,
+        "rawSha256": "23fdd9442784aa05f8330c8bf4ed5ecbac71c09cd613ff3bbc233520e469ebeb",
+        "storedBytes": 221,
+        "storedSha256": "23fdd9442784aa05f8330c8bf4ed5ecbac71c09cd613ff3bbc233520e469ebeb",
+        "sanitized": false
+      },
+      {
+        "sourceRelativeToOwnedRoot": "focused-native-reviewed.log",
+        "path": "docs/release-artifacts/v4.5.0/153-focused-native-reviewed.log",
+        "rawBytes": 3364,
+        "rawSha256": "e5bd982df961eca7db9e8b48c3c02ec6d9cc41a867a254b4b551880ba6684d74",
+        "storedBytes": 3340,
+        "storedSha256": "434a9c31e20158c13113058b4684d7f3c7d48a84e7e6cb851aaedcf5c7385f5a",
+        "sanitized": true
+      },
+      {
+        "sourceRelativeToOwnedRoot": "focused-native-locked.json",
+        "path": "docs/release-artifacts/v4.5.0/153-focused-native-final.json",
+        "rawBytes": 379,
+        "rawSha256": "96a86f58ac1efe455fe09998aaa5fdbc583f4397aa2027121d9008eeccfa4c32",
+        "storedBytes": 379,
+        "storedSha256": "96a86f58ac1efe455fe09998aaa5fdbc583f4397aa2027121d9008eeccfa4c32",
+        "sanitized": false
+      },
+      {
+        "sourceRelativeToOwnedRoot": "focused-native-locked.log",
+        "path": "docs/release-artifacts/v4.5.0/153-focused-native-final.log",
+        "rawBytes": 3364,
+        "rawSha256": "f6c72beb119e9c55a7bc6bb407e7b87d5f50c669629e7a7ed6fd2eaf2fb47020",
+        "storedBytes": 3340,
+        "storedSha256": "48b081ef235c1c0cca5dd68a7d14d7862851e4a9cff78d15d4caf21f7bda9830",
+        "sanitized": true
+      },
+      {
+        "sourceRelativeToOwnedRoot": "focused-build-command.json",
+        "path": "docs/release-artifacts/v4.5.0/153-focused-build-command.json",
+        "rawBytes": 4235,
+        "rawSha256": "95747dd78997d590075a9378543c59aa5dc93c5f9211ab83f7c704fac1acc771",
+        "storedBytes": 4040,
+        "storedSha256": "5ecbafa63c67456c67fe1e8251296bcdeabc76888c796cc3ca435848dc3b565f",
+        "sanitized": true
+      },
+      {
+        "sourceRelativeToOwnedRoot": "producer.log",
+        "path": "docs/release-artifacts/v4.5.0/153-producer.log",
+        "rawBytes": 12812,
+        "rawSha256": "d044f8ac77f4e3e0a7ee0672c9d63381151b9f522393a0aa536f910913ef258f",
+        "storedBytes": 12812,
+        "storedSha256": "d044f8ac77f4e3e0a7ee0672c9d63381151b9f522393a0aa536f910913ef258f",
+        "sanitized": false
+      },
+      {
+        "sourceRelativeToOwnedRoot": "readback.log",
+        "path": "docs/release-artifacts/v4.5.0/153-readback-premature-failure.log",
+        "rawBytes": 1258,
+        "rawSha256": "4eee0e7faf5a337d9ff89b54db455ca74f61292ac4c2243bc4b305214b9e990b",
+        "storedBytes": 1258,
+        "storedSha256": "4eee0e7faf5a337d9ff89b54db455ca74f61292ac4c2243bc4b305214b9e990b",
+        "sanitized": false
+      },
+      {
+        "sourceRelativeToOwnedRoot": "readback-ordered.log",
+        "path": "docs/release-artifacts/v4.5.0/153-readback.log",
+        "rawBytes": 1141,
+        "rawSha256": "f004e8a145e0b287322992e5f2f9c356c12a495834505e9ea79a414fd1f6b6f7",
+        "storedBytes": 1141,
+        "storedSha256": "f004e8a145e0b287322992e5f2f9c356c12a495834505e9ea79a414fd1f6b6f7",
+        "sanitized": false
+      },
+      {
+        "sourceRelativeToOwnedRoot": "coverage.log",
+        "path": "docs/release-artifacts/v4.5.0/153-coverage.log",
+        "rawBytes": 604,
+        "rawSha256": "f3dd9d2ec3cd35ce7a806a391b6918dddd2c2377ca3039afa624f484985f9bce",
+        "storedBytes": 604,
+        "storedSha256": "f3dd9d2ec3cd35ce7a806a391b6918dddd2c2377ca3039afa624f484985f9bce",
+        "sanitized": false
+      },
+      {
+        "sourceRelativeToOwnedRoot": "process-check.json",
+        "path": "docs/release-artifacts/v4.5.0/153-process-check.json",
+        "rawBytes": 203,
+        "rawSha256": "9654b6a6e47e4b71ffcd814c0ca867e1a8ba4e9c272aaf3ab030157844dbb238",
+        "storedBytes": 203,
+        "storedSha256": "9654b6a6e47e4b71ffcd814c0ca867e1a8ba4e9c272aaf3ab030157844dbb238",
+        "sanitized": false
+      }
+    ],
+    "sanitization": "owned/repo/home path aliases, fixed test tokens redacted, memory addresses redacted; SHA raw and sanitized distinct",
+    "excluded": "all media, native binaries, models, SDK, registry, user settings, private backups",
+    "cleanup": "see 153-closure.json; only after remote byte verification"
+  },
+  "historical": {
+    "R152": "FAIL_FIXTURE_CONTRACT",
+    "R149Functional45": "FAIL",
+    "R149Collection45": "INCOMPLETE",
+    "MemoryP0": "HOLD",
+    "Readiness120": "HOLD",
+    "Release": "HOLD",
+    "new45": "NOT_RUN",
+    "R154": "NOT_RUN"
+  },
+  "next": "R151 fixture composition blocker resolved for this synthetic profile. R154 correlation/cost attribution requires separate approval; not run."
+}

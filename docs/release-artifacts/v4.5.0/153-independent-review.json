@@ -1,0 +1,64 @@
+{
+  "schema": "media-server.v450.r153.independent-review.v1",
+  "decision": "PASS_BOUNDED_FIXTURE_QUALIFIED",
+  "reviewer": "independent_r147",
+  "model": {
+    "requested": {
+      "main": "gpt-6-astra/high",
+      "independent": "gpt-6-astra/high"
+    },
+    "toolAccepted": {
+      "main": null,
+      "independent": "existing independent_r147 historical acceptance only; current resumed runtime not exposed"
+    },
+    "actualRuntimeModel": {
+      "main": null,
+      "independent": null
+    },
+    "actualRuntimeEffort": {
+      "main": null,
+      "independent": null
+    }
+  },
+  "readOnly": true,
+  "implementationTestExecutionWritesDelegationCommitPush": false,
+  "reviewedSourceHashes": {
+    "scripts/internal/recording_accumulated_http_smoke.cpp": "ecae596fe880552eeead576097a0bfd098fdf5bc8b9c990cdc4a28d01c170955",
+    "scripts/internal/recording_accumulated_http_run.py": "5ca332cf51925f9e6995bedbef83fd9db4786f203a56f8288cbaaea66fd046b3",
+    "scripts/internal/recording_accumulated_http_run.test.py": "7414a25a73f9d078386d7013e0e96342c19a1a92a3d3c757a3a93e56a62db340",
+    "scripts/internal/recording_accumulated_media_smoke.cpp": "04266ab59f9b4f11895105a55cd26cffde149c9cdf406a90d035ab56cf3f6697"
+  },
+  "reviewFindingsResolvedBeforeSmoke": [
+    "outer catch preserves actual exception what",
+    "qualifier requires exactly two channel/segment/target-bound media-decode records",
+    "native exception ownership check proves post-read injection was reached",
+    "serialized first-failure selection and flush prevents secondary failure cleanup overtaking first record"
+  ],
+  "result": [
+    "one integrated cycle 53.699695583898574 seconds; seed1 fixture1 collector1 product0",
+    "17 files / 990 samples; two representative exact-target decode successes",
+    "4 accepted parallel connections and 4 HTTP200 results precede evidence and A",
+    "28 HTTP responses, real evidence assets read back and hash checked",
+    "normal service stop, port refusal, RuntimeStorage Finish and final logical RAM/scratch/FD0",
+    "background expected2401 accepted2401 files41; removed0",
+    "products2 sources8 dependencies142 binaries3 match input/build/execution binding",
+    "50 resource samples valid and FD complete; no inference of whole-heap release"
+  ],
+  "limits": [
+    "auth tested no-auth401/viewer-draft403/admin flow, not exhaustive scope matrix",
+    "failure ordering tested separately by focused injection; normal smoke contains no failure",
+    "retention removal not exercised (0)",
+    "root cleanup is separately recorded in closure",
+    "historical R149/R152 outcomes unchanged; no latency attribution or long-run qualification"
+  ],
+  "historical": {
+    "R152": "FAIL_FIXTURE_CONTRACT",
+    "R149Functional45": "FAIL",
+    "R149Collection45": "INCOMPLETE",
+    "MemoryP0": "HOLD",
+    "Readiness120": "HOLD",
+    "Release": "HOLD",
+    "new45": "NOT_RUN",
+    "R154": "NOT_RUN"
+  }
+}

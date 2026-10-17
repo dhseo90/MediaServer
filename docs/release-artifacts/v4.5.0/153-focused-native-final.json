@@ -1,0 +1,9 @@
+{
+  "exit": 0,
+  "seconds": 2.5313775409013033,
+  "binarySha256": "554c5d7db555c6dcf287cba4ec74af8195af8dd819482a9cdc3934345ad44fd1",
+  "sources": {
+    "recording_accumulated_media_smoke.cpp": "04266ab59f9b4f11895105a55cd26cffde149c9cdf406a90d035ab56cf3f6697",
+    "recording_accumulated_http_smoke.cpp": "ecae596fe880552eeead576097a0bfd098fdf5bc8b9c990cdc4a28d01c170955"
+  }
+}

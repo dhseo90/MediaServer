@@ -1,0 +1,31 @@
+{
+  "baseline": "e996ec06df24f27bff44710d2149d0533c3f54aa",
+  "red": [
+    "V1 path in Manifest",
+    "missing pre-cleanup failure capture boundary"
+  ],
+  "focused": "deterministic Python contracts + isolated native FD/hold/inspection/error checks, no HTTP",
+  "integratedAttempts": 1,
+  "totalSeconds": 180,
+  "requestMs": 5000,
+  "normalSearchMs": 2000,
+  "logCap": 4194304,
+  "input": {
+    "1": [
+      1,
+      30,
+      1
+    ],
+    "9101": [
+      8,
+      480,
+      4
+    ],
+    "9201": [
+      8,
+      480,
+      4
+    ]
+  },
+  "decode": "existing DecodeVisualFrame on first normal segment per channel, stored-index policy, target0; independent of SHA/inspection"
+}

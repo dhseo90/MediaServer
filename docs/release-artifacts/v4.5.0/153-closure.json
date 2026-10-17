@@ -1,0 +1,26 @@
+{
+  "schema": "media-server.v450.r153.closure.v1",
+  "decision": "PASS_BOUNDED_FIXTURE_QUALIFIED",
+  "status": "PRESERVATION_PENDING",
+  "baselineHead": "e996ec06df24f27bff44710d2149d0533c3f54aa",
+  "remoteBytesVerified": false,
+  "ownedTemporaryRootRemoved": false,
+  "processCheck": {
+    "18438": "absent",
+    "18440": "absent",
+    "port51235ConnectResult": 61,
+    "ownedProcessMatches": [],
+    "sandboxPsCheck": "initial sandbox denied ps; this read-only check used approved host access"
+  },
+  "historical": {
+    "R152": "FAIL_FIXTURE_CONTRACT",
+    "R149Functional45": "FAIL",
+    "R149Collection45": "INCOMPLETE",
+    "MemoryP0": "HOLD",
+    "Readiness120": "HOLD",
+    "Release": "HOLD",
+    "new45": "NOT_RUN",
+    "R154": "NOT_RUN"
+  },
+  "fixtureCommit": "67d61613735fff03e787ab8def0b1f7c5119e983"
+}

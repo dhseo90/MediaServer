@@ -1,0 +1,33 @@
+[fail] inventorySha256 drift; explicitly refresh and review the manifest
+[not-run] negative fixture missing-id
+[not-run] negative fixture duplicate-id
+[not-run] negative fixture wrong-section-prefix
+[not-run] negative fixture missing-source-file
+[not-run] negative fixture missing-source-anchor
+[not-run] negative fixture missing-ui-control-anchor
+[not-run] negative fixture missing-ui-screen-route
+[not-run] negative fixture unknown-verifier-command
+[not-run] negative fixture missing-verifier-assertion
+[not-run] negative fixture legacy-longrun-command
+[not-run] negative fixture inventory-hash-drift
+[not-run] negative fixture missing-reviewed-call-chain
+[not-run] negative fixture bulk-review-reason
+[not-run] negative fixture safe-140-unrelated-owner
+[not-run] negative fixture rule-017-generic-json-owner
+
+== Feature implementation evidence summary ==
+- expectedFeatureRows: 986
+- inventoryRows: 986
+- manifestRows: 986
+- sourceEvidenceRows: 986
+- uiEvidenceRows: 441
+- verifierEvidenceRows: 986
+- manualUiCaseRows: 424
+- semanticReviewedRows: 986
+- uniqueSemanticDigests: 986
+- reviewedCallChains: 986
+- uniqueReviewReasons: 986
+- validationErrors: 1
+- review4GlobalErrors: 0
+- negativeFixtures: 0/15
+- executionEvidenceStatus: not-execution-evidence
