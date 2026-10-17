@@ -1,0 +1,536 @@
+{
+  "schema": "media-server.v450.r141.validation.v1",
+  "decision": "COLLECTOR_FIXED_CAPACITY_HOLD",
+  "collector": "COLLECTOR_CONTRACT_PASS",
+  "capacity": "HOLD_45_LOG_BUDGET_PROOF_GAP",
+  "taskCompleteScope": "bounded diagnostic collector remediation and source-bound reassessment only",
+  "baselineHead": "5f09b78dcb589764e03e6917615c0a9cee7d14c1",
+  "baselineTree": "dd6142aff2c046cf4610615f466ce110aee61272",
+  "model": {
+    "requestedMain": "GPT-6 Astra / High",
+    "mainToolAcceptance": null,
+    "mainActualRuntimeModel": null,
+    "mainActualRuntimeEffort": null,
+    "projectDefaultFile": "gpt-6.1-sol/high/default is configuration, not current runtime evidence",
+    "requestedReviewer": "GPT-6 Astra / High",
+    "reviewerTaskAccepted": "/root/independent_r141",
+    "reviewerActualRuntimeModel": null,
+    "reviewerActualRuntimeEffort": null
+  },
+  "changes": {
+    "functionalProductBehavior": "unchanged; only opt-in completion diagnostic and main post-composition receipt",
+    "memoryWireInclusiveMaxBytes": 16383,
+    "memoryEmitterBufferUnchanged": 16384,
+    "combinedProcessCapUnchanged": 4194304,
+    "sharedCompletionEvidenceCapUnchanged": 2097152,
+    "receiptMaxWireExclusive": 256,
+    "receiptCountMax": 1,
+    "lossReceiptLateReservedBytes": 512,
+    "eventStageMeaningUnchanged": true,
+    "stopOrderUnchanged": true
+  },
+  "sourceAndBinary": {
+    "baselineHead": "5f09b78dcb589764e03e6917615c0a9cee7d14c1",
+    "baselineTree": "dd6142aff2c046cf4610615f466ce110aee61272",
+    "source": {
+      "include/recording/recording_completion_trace.h": {
+        "bytes": 5877,
+        "sha256": "5ef9eda8a3787b6ff7b54c18f43d71ace5a87b57856e6146010e47bd3f9c3ba4"
+      },
+      "src/main.cpp": {
+        "bytes": 455,
+        "sha256": "96818cb4a48e5f45b838dbb6eac9afe4462bf99eff9b479ad42fd29dbb6156d2"
+      },
+      "scripts/internal/recording_memory_attribution.mjs": {
+        "bytes": 6629,
+        "sha256": "3f31eb378cbd93650ddea6b23216ea70927407e7e30ca2c6ce3cee623e9d6f2d"
+      },
+      "scripts/internal/recording_diagnostic_lines.mjs": {
+        "bytes": 1495,
+        "sha256": "1a25ad9c1ac59b1e9f94c67d0256ecce5cb5f99daa5ee9a6c48f867eb9ca671e"
+      },
+      "scripts/internal/recording_completion_collection.mjs": {
+        "bytes": 3019,
+        "sha256": "b9dd0d5d80e7f9912f93cf65b404681a58c917ac89be08b196cac8b760b07557"
+      },
+      "scripts/internal/recording_completion_collection.test.mjs": {
+        "bytes": 5620,
+        "sha256": "b59f78342b449d15b5769c7fd2ec4d4ff325ba29f06cbdd575b2f2305caa196d"
+      },
+      "scripts/internal/recording_completion_receipt_smoke.cpp": {
+        "bytes": 1288,
+        "sha256": "2b605d2085581b4b6ea0d3f963e1cde98154a877f8a58dcd4fa7b2d44859a844"
+      },
+      "scripts/internal/recording_log_budget_preflight.test.mjs": {
+        "bytes": 5949,
+        "sha256": "f07dd83c082a59baca534e0e66fcf6314993d81ef2437e92dc8a216c58f6d09c"
+      },
+      "scripts/internal/recording_longrun_progress.test.mjs": {
+        "bytes": 32914,
+        "sha256": "5101df9ac93e16d05c6ae28805862262f0043ad0b79c56cbe722be8028ec680e"
+      },
+      "scripts/internal/v450_recording_a_mixed.mjs": {
+        "bytes": 56098,
+        "sha256": "1d8eca2c83b386a4495fba45c790b9d1f521cab3e792c439f1a2a39cd100e6fb"
+      },
+      "src/application/media_server_application.cpp": {
+        "bytes": 33530,
+        "sha256": "d8eeebcfaffe92df43afac6212feb2071d098e497dbbaf0fb137ee6b84db05c5"
+      },
+      "src/recording/evidence_package_store.cpp": {
+        "bytes": 23194,
+        "sha256": "45bf3d510240cfd85c46346cc1e2bc9bf574c7dc263418318f5264a1e06f8af1"
+      }
+    },
+    "binaries": {
+      "build-gst-onnx/media_server": {
+        "bytes": 37998080,
+        "sha256": "f4e6d9eb6ac9ff17b5476a238e9907c5335a3e2faad2d7349f54c68f8ffe171f"
+      },
+      "build-gst-onnx/libmedia_server_runtime.a": {
+        "bytes": 113126688,
+        "sha256": "2d91cf35fe7e805e0c06e00d16779c86849b35db635e087582277e1b676d198c"
+      }
+    },
+    "productExecuted": false,
+    "scope": "diagnostic-only source build; helper synthetic tests only",
+    "diagnosticCommit": "37f191df7d0d1c9340fe7930c78437e54bf03177"
+  },
+  "binaryUUID": "66388402-3197-3D98-9972-4233C4D72A7E arm64",
+  "environment": {
+    "macOSCompiler": "Apple clang21.0.0 clang-2100.3.34.2",
+    "node": "24.13.0",
+    "linuxImage": "sha256:ce72c8a15363984da642e9964189957896812061c6af1d0ef67e87b38ad5a588",
+    "linux": "501:20/network-none/cap-drop-ALL/no-new-privileges/read-only-repo, existing image; no installs"
+  },
+  "executionCounts": {
+    "productServer": 0,
+    "600s": 0,
+    "900s": 0,
+    "45min": 0,
+    "120min": 0,
+    "productBuild": 1
+  },
+  "focused": {
+    "macOSBoundary": {
+      "status": "PASS_COLLECTOR_BOUNDARIES_NOT_READINESS",
+      "negativeCases": [
+        "missing-opened",
+        "missing-sample",
+        "missing-before-Finish",
+        "missing-after-Finish",
+        "missing-after-storage-destruction",
+        "bad-owner",
+        "bad-owner",
+        "missing-owner",
+        "missing-resource"
+      ],
+      "lineBoundaries": [
+        {
+          "wireBytes": 16382,
+          "split": "whole",
+          "accepted": true
+        },
+        {
+          "wireBytes": 16382,
+          "split": "middle",
+          "accepted": true
+        },
+        {
+          "wireBytes": 16382,
+          "split": "newline",
+          "accepted": true
+        },
+        {
+          "wireBytes": 16383,
+          "split": "whole",
+          "accepted": true
+        },
+        {
+          "wireBytes": 16383,
+          "split": "middle",
+          "accepted": true
+        },
+        {
+          "wireBytes": 16383,
+          "split": "newline",
+          "accepted": true
+        },
+        {
+          "wireBytes": 16384,
+          "split": "whole",
+          "accepted": false
+        },
+        {
+          "wireBytes": 16384,
+          "split": "middle",
+          "accepted": false
+        },
+        {
+          "wireBytes": 16384,
+          "split": "newline",
+          "accepted": false
+        },
+        {
+          "wireBytes": 16385,
+          "split": "whole",
+          "accepted": false
+        },
+        {
+          "wireBytes": 16385,
+          "split": "middle",
+          "accepted": false
+        },
+        {
+          "wireBytes": 16385,
+          "split": "newline",
+          "accepted": false
+        },
+        {
+          "wireBytes": 16386,
+          "split": "whole",
+          "accepted": false
+        },
+        {
+          "wireBytes": 16386,
+          "split": "middle",
+          "accepted": false
+        },
+        {
+          "wireBytes": 16386,
+          "split": "newline",
+          "accepted": false
+        }
+      ],
+      "totalBoundaries": [
+        {
+          "combinedBytes": 4194303,
+          "capturedBytes": 4194303,
+          "complete": true,
+          "stopCalls": 0
+        },
+        {
+          "combinedBytes": 4194304,
+          "capturedBytes": 4194304,
+          "complete": true,
+          "stopCalls": 0
+        },
+        {
+          "combinedBytes": 4194305,
+          "capturedBytes": 2097152,
+          "complete": false,
+          "stopCalls": 1
+        }
+      ],
+      "shortWriteStopped": true,
+      "normalSyntheticFinalOwnerZero": true,
+      "completionLossTransportAccepted": true,
+      "completionLossConsumedSeparately": true,
+      "actualDeletionExecution": false,
+      "maximumLiveModelFeasibility": "unknown",
+      "productRuns": 0,
+      "longRuns": 0
+    },
+    "macOSCompletion": {
+      "status": "PASS",
+      "splitPositions": 447,
+      "negativeCases": 32,
+      "native": [
+        {
+          "mode": "normal",
+          "status": "captured",
+          "rows": 2,
+          "bytes": 266,
+          "receipt": {
+            "v": 1,
+            "rows": 2,
+            "bytes": 266,
+            "lost": false,
+            "writeError": false,
+            "complete": true
+          },
+          "wireBytes": 370
+        },
+        {
+          "mode": "exception",
+          "status": "incomplete",
+          "code": "completion-receipt-loss",
+          "rows": 2,
+          "bytes": 266,
+          "receipt": {
+            "v": 1,
+            "rows": 2,
+            "bytes": 266,
+            "lost": true,
+            "writeError": false,
+            "complete": false
+          },
+          "wireBytes": 370
+        },
+        {
+          "mode": "short",
+          "status": "incomplete",
+          "code": "Unexpected non-whitespace character after JSON at position 109 (line 1 column 110)",
+          "rows": 0,
+          "bytes": 0,
+          "receipt": null,
+          "wireBytes": 235
+        },
+        {
+          "mode": "flush",
+          "status": "incomplete",
+          "code": "completion-receipt-loss",
+          "rows": 2,
+          "bytes": 266,
+          "receipt": {
+            "v": 1,
+            "rows": 2,
+            "bytes": 266,
+            "lost": false,
+            "writeError": true,
+            "complete": false
+          },
+          "wireBytes": 370
+        },
+        {
+          "mode": "cap",
+          "status": "incomplete",
+          "code": "completion-loss",
+          "rows": 4095,
+          "bytes": 544635,
+          "receipt": null,
+          "wireBytes": 544878
+        },
+        {
+          "mode": "bytes",
+          "status": "incomplete",
+          "code": "completion-loss",
+          "rows": 0,
+          "bytes": 0,
+          "receipt": null,
+          "wireBytes": 237
+        },
+        {
+          "mode": "abnormal",
+          "status": "incomplete",
+          "code": "completion-receipt-loss",
+          "rows": 2,
+          "bytes": 266,
+          "receipt": {
+            "v": 1,
+            "rows": 2,
+            "bytes": 266,
+            "lost": false,
+            "writeError": false,
+            "complete": false
+          },
+          "wireBytes": 371
+        },
+        {
+          "mode": "late",
+          "status": "incomplete",
+          "code": "completion-after-end",
+          "rows": 2,
+          "bytes": 266,
+          "receipt": {
+            "v": 1,
+            "rows": 2,
+            "bytes": 266,
+            "lost": false,
+            "writeError": false,
+            "complete": true
+          },
+          "wireBytes": 417
+        }
+      ],
+      "productRuns": 0,
+      "receiptTransportIsNotShutdownOrJournalProof": true
+    },
+    "LinuxCompletion": {
+      "status": "PASS",
+      "splitPositions": 447,
+      "negativeCases": 32,
+      "native": [
+        {
+          "mode": "normal",
+          "status": "captured",
+          "rows": 2,
+          "bytes": 266,
+          "receipt": {
+            "v": 1,
+            "rows": 2,
+            "bytes": 266,
+            "lost": false,
+            "writeError": false,
+            "complete": true
+          },
+          "wireBytes": 370
+        },
+        {
+          "mode": "exception",
+          "status": "incomplete",
+          "code": "completion-receipt-loss",
+          "rows": 2,
+          "bytes": 266,
+          "receipt": {
+            "v": 1,
+            "rows": 2,
+            "bytes": 266,
+            "lost": true,
+            "writeError": false,
+            "complete": false
+          },
+          "wireBytes": 370
+        },
+        {
+          "mode": "short",
+          "status": "incomplete",
+          "code": "Unexpected non-whitespace character after JSON at position 109 (line 1 column 110)",
+          "rows": 0,
+          "bytes": 0,
+          "receipt": null,
+          "wireBytes": 235
+        },
+        {
+          "mode": "flush",
+          "status": "incomplete",
+          "code": "completion-receipt-loss",
+          "rows": 2,
+          "bytes": 266,
+          "receipt": {
+            "v": 1,
+            "rows": 2,
+            "bytes": 266,
+            "lost": false,
+            "writeError": true,
+            "complete": false
+          },
+          "wireBytes": 370
+        },
+        {
+          "mode": "cap",
+          "status": "incomplete",
+          "code": "completion-loss",
+          "rows": 4095,
+          "bytes": 544635,
+          "receipt": null,
+          "wireBytes": 544878
+        },
+        {
+          "mode": "bytes",
+          "status": "incomplete",
+          "code": "completion-loss",
+          "rows": 0,
+          "bytes": 0,
+          "receipt": null,
+          "wireBytes": 237
+        },
+        {
+          "mode": "abnormal",
+          "status": "incomplete",
+          "code": "completion-receipt-loss",
+          "rows": 2,
+          "bytes": 266,
+          "receipt": {
+            "v": 1,
+            "rows": 2,
+            "bytes": 266,
+            "lost": false,
+            "writeError": false,
+            "complete": false
+          },
+          "wireBytes": 371
+        },
+        {
+          "mode": "late",
+          "status": "incomplete",
+          "code": "completion-after-end",
+          "rows": 2,
+          "bytes": 266,
+          "receipt": {
+            "v": 1,
+            "rows": 2,
+            "bytes": 266,
+            "lost": false,
+            "writeError": false,
+            "complete": true
+          },
+          "wireBytes": 417
+        }
+      ],
+      "productRuns": 0,
+      "receiptTransportIsNotShutdownOrJournalProof": true
+    },
+    "macOSExistingRegression": "12/12 node tests; mixed internal82/0",
+    "LinuxExistingRegression": "memory/resource/mixed pass; completion9/9 after environment repair",
+    "firstFailures": [
+      {
+        "path": "regression.log",
+        "meaning": "existing VM fixture omitted memoryObserve; context repaired, product behavior unchanged; final-focused/regression.log pass"
+      },
+      {
+        "path": "linux/regression.log",
+        "meaning": "native children under /tmp tmpfs noexec could not spawn (status null); mount output confirms noexec; TMPDIR owned output gives completion9/9; not product failure"
+      }
+    ],
+    "actualMixedConnection": "VM executes unchanged actual on-data code with stdout/stderr split lost markers; captured bytes preserved, SIGTERM requested and collection incomplete",
+    "markerFreeException": "synthetic lost state matching TraceEvidenceFailure catch; source-reviewed, no forced runtime std::mutex exception",
+    "normalOwnerZero": "synthetic memory/resource final owner0 only",
+    "build": "macOS media_server linked; not executed"
+  },
+  "separateObservations": {
+    "processByteIntegrity": "synthetic cap-1/equal/+1 and short write tested",
+    "memoryResourcePairing": "focused pass",
+    "completionEvidenceCollection": "focused pass",
+    "newProductNormalShutdown": "not-run",
+    "newClosedJournal": "not-run",
+    "newProductFinalOwners": "not-run"
+  },
+  "capacityAnalysis": "141-collection-budget.md; R140 table reused; conditional HTTP cover139 not normal45 bound or overflow proof",
+  "notProved": [
+    "normal45 total stdout+stderr fits4MiB",
+    "source-feasible overflow",
+    "normal45 registry128 sufficient",
+    "whole heap/leak attribution",
+    "memoryP0 or release qualification"
+  ],
+  "binding": {
+    "producer": {
+      "exit": 0,
+      "pass": 51,
+      "fail": 0
+    },
+    "readback": {
+      "exit": 0,
+      "validationErrors": 0,
+      "review4GlobalErrors": 0,
+      "negativeFixtures": "15/15"
+    },
+    "coverage": {
+      "exit": 0,
+      "covered": 986,
+      "missing": 0,
+      "pass": 9,
+      "fail": 0
+    },
+    "manifestDelta": "inventorySha256 only; existing986 rows unchanged",
+    "meaning": "source/inventory binding, not runtime qualification"
+  },
+  "archive": {
+    "path": "141-execution.tar.gz",
+    "bytes": 88597,
+    "sha256": "225285ced1386f648c049fe11d1cfd3c03b5bd5737a8556fb1de4af550b5bc54",
+    "payloadFiles": 75,
+    "localReadback": "all member bytes and manifest SHA256 match",
+    "rawVsSanitized": "per-member original/stored hashes; sanitized files not asserted byte-identical",
+    "sourceBinding": "final tested source hashes and diagnostic commit; initial unit outputs preserved separately",
+    "sanitizedPayloads": [
+      "execution/final-focused/regression.log",
+      "execution/regression.log"
+    ]
+  },
+  "historicalPreservation": "R140 HOLD and R135/R136/R137/R138/R139 original scopes unchanged",
+  "cleanup": "pending remote evidence byte verification; only owned synthetic root and completed diagnostic/helper processes; no product server/listening ports",
+  "closure": "141-closure.json",
+  "diagnosticCommit": "37f191df7d0d1c9340fe7930c78437e54bf03177"
+}

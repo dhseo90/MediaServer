@@ -17,6 +17,8 @@
 
 ## v4.5.0 잔여 개발과 릴리즈 순서
 
+[R141 수집 계약 보완](release-artifacts/v4.5.0/141-validation.json)은 **COLLECTOR_FIXED_CAPACITY_HOLD**다. 개행 포함16383B·UTF-8 분할, completion/evidence 손실과 공통 terminal receipt의 행/byte/쓰기 오류 검증을 보완했고 macOS/Linux 집중 검사와 진단 빌드를 확인했다. 제품 서버·장시간 실행은 없으며 receipt는 정상종료/닫힌 journal의 대체가 아니다. [소유·출력 근거](release-artifacts/v4.5.0/141-collection-budget.md)에서 정상45분 동시 소유/간접 출력/외부 runtime 총량은 여전히 미확정이다. R140 HOLD와 과거 기능 PASS, 메모리 P0·45분/120분·출시 보류를 유지한다.
+
 [R140 로그 예산 분석](release-artifacts/v4.5.0/140-validation.json)은 **HOLD_45_LOG_BUDGET_PROOF_GAP**다. 제품 실행 없이 source/합성 경계로4MiB 초과 수집실패와16KiB emitter의 무부분출력 거부를 확인했다. 정상45분 동시model·삭제간접출력·전체runtime 출력 상한은 미확정이며, 원천 자료형을 반영한 형식30,239B를 실현가능 overflow로 주장하지 않는다. collector의 newline 경계 차이와 completion loss 소비자 공백을 보존했다. [prefix별 근거·최소 후속안](release-artifacts/v4.5.0/140-log-budget.md)의 소비자 계약 정합/소유 상한 또는 lossless 표현 변경은 별도 승인 대상이다. R139 HOLD·기존 기능 PASS·메모리P0와 출시 보류를 유지하며45분/장시간은 실행하지 않았다.
 
 [139 장시간 메모리 진입 사전 검증](release-artifacts/v4.5.0/139-validation.json)은 **HOLD_45_INSUFFICIENT_EVIDENCE**다. 제품·자원 수명 변경 없이45분 모드에 site/allocator 관측을 연결하고, 중간 owner 누락·필수 자료 부재·잘린 출력이 실패로 전파되도록 보완했다. 합성580표본과 오류 반례는 통과했으나 대표 로그 예상3,456,040B는 삭제 구간·소유자 수/숫자폭 증가의 상한 증명이 아니다. 기존4MiB cap에서 안전하게 중단되는 것과45분 필수 자료 확보 적격성을 구분한다. [독립 검토](release-artifacts/v4.5.0/139-independent-review.json)도 같은 판단이며, 다음은 **제품 실행 없이 owner 수·counter 숫자폭·삭제 단계 로그의 한정 예산 근거 보완**이다. 추가 Evidence Create·600/900/45/120은 실행하지 않았고 R138 한정 귀속·기존 기능 PASS와 메모리P0/출시 HOLD는 유지한다.

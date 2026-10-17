@@ -1,0 +1,78 @@
+{
+  "schema": "media-server.v450.r141.independent-review.v1",
+  "reviewerTask": "/root/independent_r141",
+  "requestedModel": "gpt-6-astra",
+  "requestedEffort": "high",
+  "toolAccepted": {
+    "task": "/root/independent_r141",
+    "requestModel": "gpt-6-astra",
+    "requestEffort": "high"
+  },
+  "actualRuntimeModel": null,
+  "actualRuntimeEffort": null,
+  "independence": "read-only; no implementation, test writing/execution or redelegation",
+  "collector": "COLLECTOR_CONTRACT_PASS",
+  "capacity": "HOLD_45_LOG_BUDGET_PROOF_GAP",
+  "combined": "COLLECTOR_FIXED_CAPACITY_HOLD",
+  "blockingFindings": [],
+  "findings": [
+    "wire byte boundary/fatal UTF8 and per-stream framing preserve exact limits",
+    "receipt after composition return follows recording HTTP drain and derived join/local destruction, no Stop reorder",
+    "shared completion/evidence cap2MiB and process4MiB unchanged",
+    "conditional HTTP owner cover139 is not normal45 unique maximum or feasible overflow",
+    "Linux initial tmpfs noexec environment failure preserved; targeted9/9 recheck",
+    "receipt is not all TLS/static output, shutdown or journal completeness proof"
+  ],
+  "minorCorrection": "normal chunk splits explicitly allowed; malformed UTF8/incomplete tails rejected; corrected in analysis",
+  "reviewedLogs": [
+    "final-focused/boundary.log",
+    "final-focused/regression.log",
+    "integration-focused/completion.log",
+    "linux-integration/completion.log",
+    "linux/completion-regression-recheck.log",
+    "build.log"
+  ],
+  "pendingAtReview": [
+    "remote byte verification",
+    "owned cleanup"
+  ],
+  "historicalRecordsUnchanged": true,
+  "bindingReportedByMain": {
+    "producer": {
+      "exit": 0,
+      "pass": 51,
+      "fail": 0
+    },
+    "readback": {
+      "exit": 0,
+      "validationErrors": 0,
+      "review4GlobalErrors": 0,
+      "negativeFixtures": "15/15"
+    },
+    "coverage": {
+      "exit": 0,
+      "covered": 986,
+      "missing": 0,
+      "pass": 9,
+      "fail": 0
+    },
+    "manifestDelta": "inventorySha256 only; existing986 rows unchanged",
+    "meaning": "source/inventory binding, not runtime qualification"
+  },
+  "localArchiveReview": {
+    "verdict": "PASS",
+    "bytes": 88597,
+    "sha256": "225285ced1386f648c049fe11d1cfd3c03b5bd5737a8556fb1de4af550b5bc54",
+    "payloadFiles": 75,
+    "allHashesMatch": true,
+    "sourceFilesMatchDiagnosticCommit": 12,
+    "originalLogAndMetadataMatches": 62,
+    "sanitizedPayloads": [
+      "execution/final-focused/regression.log",
+      "execution/regression.log"
+    ],
+    "sanitization": "only owned temporary path replaced; original and stored hashes distinct; remaining73 payloads exact",
+    "bindingVerified": "producer51/0->readback0errors15/15->coverage986/9869/0; inventory hash only",
+    "historyPreserved": true
+  }
+}
