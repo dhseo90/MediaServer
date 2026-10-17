@@ -40,6 +40,26 @@ try{
     assert.equal(saved.collectorDiagnostic.measurement.anonymousFileBytes,null);assert.equal(saved.primary,'observer-collector-unavailable');
   });
   const fdScope={scope:'complete-round-sequential-v1',complete:true,startIdentity:'macos:1:2',startedAt:1,completedAt:2,roundStartedAt:1,roundCompletedAt:2,rounds:1,capacityRetries:0,closedRetries:0,detailCalls:1,failures:[]};
+  await check('R149-Prep bounded delayed complete sample accepted by real consumer',async()=>{
+    const file=path.join(root,'collector-delay.js'),value={...metric(123),fdObservation:fdScope};
+    fs.writeFileSync(file,`#!${process.execPath}\nsetTimeout(()=>console.log(${JSON.stringify(JSON.stringify(value))}),250);\n`,{mode:0o700});
+    const begin=performance.now(),sample=await collectProcess(file,123),elapsed=performance.now()-begin;
+    assert.equal(sample.valid,true);assert.ok(elapsed>=250&&elapsed<3000);
+    console.log('[consumer-timing] '+JSON.stringify({kind:'delayed-complete',elapsedMs:elapsed}));
+  });
+  await check('R149-Prep unchanged 3000ms timeout kills native substitute without children',async()=>{
+    const file=path.join(root,'collector-timeout.js');
+    fs.writeFileSync(file,`#!${process.execPath}\nsetInterval(()=>{},1000);\n`,{mode:0o700});
+    const begin=performance.now();
+    await assert.rejects(()=>collectProcess(file,123),error=>error.collectorDiagnostic.killed&&error.collectorDiagnostic.signal==='SIGKILL');
+    console.log('[consumer-timing] '+JSON.stringify({kind:'timeout',elapsedMs:performance.now()-begin,timeoutMs:3000}));
+  });
+  await check('R149-Prep unchanged 16384 byte output rejection',async()=>{
+    const file=path.join(root,'collector-output.js'),value={...metric(123),fdObservation:fdScope,padding:'x'.repeat(32768)};
+    fs.writeFileSync(file,`#!${process.execPath}\nprocess.stdout.write(${JSON.stringify(JSON.stringify(value))});\n`,{mode:0o700});
+    await assert.rejects(()=>collectProcess(file,123),error=>
+      error.collectorDiagnostic.spawnCode==='ERR_CHILD_PROCESS_STDIO_MAXBUFFER');
+  });
   for(const [name,change] of [['missing',undefined],['incomplete',{...fdScope,complete:false}],['identity',{...fdScope,startIdentity:'macos:2:3'}],['short-structure',{scope:fdScope.scope}],['wrong-scope',{...fdScope,scope:'atomic'}]]){
     await check(`R102-F01 exit0 ${name} observation rejected`,async()=>{
       const file=path.join(root,`collector-${name}.sh`),value={...metric(123),fdObservation:change};

@@ -83,6 +83,12 @@ try {
     const transitions=spawnSync(path.join(root,'fixture'),['--transitions'],{cwd:root,encoding:'utf8',timeout:5000});
     process.stdout.write(transitions.stdout);passed+=(transitions.stdout.match(/^\[pass\]/gm)||[]).length;
     if(transitions.status!==0)throw Error('PM07 transition failed: '+transitions.stderr);
+    if(process.platform==='darwin'){
+      compile('recording_process_metrics_timing_fixture.cpp',path.join(root,'timing'));
+      const timing=spawnSync(path.join(root,'timing'),['candidate'],{cwd:root,encoding:'utf8',timeout:5000});
+      process.stdout.write(timing.stdout);passed+=(timing.stdout.match(/^\[pass\]/gm)||[]).length;
+      if(timing.status!==0)throw Error('R149-Prep timing contract failed: '+timing.stderr);
+    }
     child.stdin.end('quit\n');
     const until=Date.now()+5000;
     while (!closed && Date.now()<until) await new Promise(r=>setTimeout(r,20));

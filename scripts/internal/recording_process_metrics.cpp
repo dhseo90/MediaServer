@@ -21,6 +21,7 @@
 #ifdef __APPLE__
 #include <libproc.h>
 #include <sys/proc_info.h>
+#include <thread>
 #endif
 namespace recording_metrics {
 std::string ClassifyError(int code, const char* stage) {
@@ -80,6 +81,11 @@ struct Observation {
 };
 #ifdef RECORDING_METRICS_TESTING
 inline std::function<void(unsigned)> before_fd_round;
+inline std::function<void(unsigned)> after_fd_round;
+struct TestRoundScope {
+    unsigned attempt;
+    ~TestRoundScope(){if(after_fd_round)after_fd_round(attempt);}
+};
 inline std::function<void(unsigned)> after_fd_list;
 inline std::function<void(int)> before_fd_detail;
 inline std::function<void(int&,int&)> detail_result_override;
@@ -106,6 +112,24 @@ void AddObserved(Sample& sample,std::vector<ObservedFile>& seen,std::uint64_t de
     sample.anonymousBytes+=more;sample.anonymousAllocated+=more_allocated;
 }
 #ifdef __APPLE__
+using RetryClock = std::chrono::steady_clock;
+#ifdef RECORDING_METRICS_TESTING
+inline std::function<RetryClock::time_point()> retry_now_override;
+inline std::function<void(RetryClock::time_point)> retry_sleep_override;
+inline std::function<void(int&,std::size_t)> fd_list_result_override;
+#endif
+RetryClock::time_point RetryNow() {
+#ifdef RECORDING_METRICS_TESTING
+    if(retry_now_override)return retry_now_override();
+#endif
+    return RetryClock::now();
+}
+void RetrySleepUntil(RetryClock::time_point target) {
+#ifdef RECORDING_METRICS_TESTING
+    if(retry_sleep_override){retry_sleep_override(target);return;}
+#endif
+    std::this_thread::sleep_until(target);
+}
 std::string Identity(int pid) {
     proc_bsdinfo value{};
     errno = 0;
@@ -134,9 +158,21 @@ Sample Collect(int pid, Observation* observation=nullptr) {
     bool complete = false;
     unsigned capacity_retries=0, closed_retries=0;
     std::size_t minimum = 64 * sizeof(proc_fdinfo);
+    const auto retry_anchor=RetryNow();
+    bool previous_vnode_race=false;
+    constexpr std::array<int,4> retry_start_ms{0,25,100,250};
     for (int attempt = 0; attempt < 4; ++attempt) {
+        // One shared attempt budget. Only a preceding vnode race delays this
+        // round; capacity retries never inherit a pending delay. These are
+        // absolute monotonic offsets, not cumulative sleeps.
+        if(previous_vnode_race){
+            const auto target=retry_anchor+std::chrono::milliseconds(retry_start_ms[attempt]);
+            if(RetryNow()<target)RetrySleepUntil(target);
+        }
+        previous_vnode_race=false;
         diagnostic.rounds=attempt+1;diagnostic.roundStarted=ClockMs();
 #ifdef RECORDING_METRICS_TESTING
+        TestRoundScope round_scope{static_cast<unsigned>(attempt)};
         if(before_fd_round)before_fd_round(attempt);
 #endif
         errno = 0;
@@ -147,7 +183,10 @@ Sample Collect(int pid, Observation* observation=nullptr) {
         std::vector<proc_fdinfo> entries((requested + sizeof(proc_fdinfo) - 1) / sizeof(proc_fdinfo));
         const auto capacity = entries.size() * sizeof(proc_fdinfo);
         errno = 0;
-        const int read = proc_pidinfo(pid, PROC_PIDLISTFDS, 0, entries.data(), static_cast<int>(capacity));
+        int read = proc_pidinfo(pid, PROC_PIDLISTFDS, 0, entries.data(), static_cast<int>(capacity));
+#ifdef RECORDING_METRICS_TESTING
+        if(fd_list_result_override)fd_list_result_override(read,capacity);
+#endif
         if (read <= 0) throw std::runtime_error(IoError("fd-read-unavailable"));
         if (static_cast<std::size_t>(read) % sizeof(proc_fdinfo) != 0) throw std::runtime_error("fd-read-incomplete");
         if (CompleteFdRead(read, capacity, sizeof(proc_fdinfo))) {
@@ -198,7 +237,7 @@ Sample Collect(int pid, Observation* observation=nullptr) {
                 AddObserved(sample,seen,static_cast<std::uint64_t>(st.vst_dev),static_cast<std::uint64_t>(st.vst_ino),
                     static_cast<std::uint64_t>(st.vst_size),static_cast<std::uint64_t>(st.vst_blocks),max_seen);
             }
-            if(raced){++closed_retries;diagnostic.closed=closed_retries;continue;}
+            if(raced){++closed_retries;diagnostic.closed=closed_retries;previous_vnode_race=true;continue;}
             sample.anonymousMeasured=true;
             rusage_info_v2 usage{};
             if(proc_pid_rusage(pid,RUSAGE_INFO_V2,reinterpret_cast<rusage_info_t*>(&usage))==0){sample.footprintMeasured=true;sample.footprint=usage.ri_phys_footprint;}
