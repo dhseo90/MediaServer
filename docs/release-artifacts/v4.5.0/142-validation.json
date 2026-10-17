@@ -1,0 +1,375 @@
+{
+  "schema": "media-server.v450.r142.validation.v1",
+  "decision": "COMPACT_DIAGNOSTIC_PASS_CAPACITY_UNPROVEN",
+  "baselineHead": "710f8da23790dbcc33f9bef700978989b39284c9",
+  "sourceAndBinary": {
+    "commit": "16fb51cb7bfe88e0aee4bc483ef0a537f2383540",
+    "tree": "5f607a4c234d0a002780eeeee0cba38fd896ebcb",
+    "source": {
+      "include/recording/recording_memory_diagnostic_output.h": {
+        "bytes": 7028,
+        "sha256": "f738fc055f2c8208710c5f94238df38311877f20751e3f2c9fdbcd01909e1b78"
+      },
+      "include/recording/recording_resource_trace.h": {
+        "bytes": 3960,
+        "sha256": "bcae51153ae4db208777afb54635bfb65aaee2e74c942d61aa4580490089de18"
+      },
+      "include/recording/recording_memory_diagnostic.h": {
+        "bytes": 6067,
+        "sha256": "c06574daf59b6b05a79a83850321bb48501d3f8ca5a5049832b90b2d9b9be59d"
+      },
+      "scripts/internal/recording_memory_attribution.mjs": {
+        "bytes": 8112,
+        "sha256": "deeb80f7ebf2e34196956ea7e170adabca07edbd781b2d0b6a1dbec262831139"
+      },
+      "scripts/internal/recording_memory_compact.test.mjs": {
+        "bytes": 8033,
+        "sha256": "acc759dc57d774f2020ff312a1eac442a6462f212366d53825f402be1fdc64b8"
+      },
+      "scripts/internal/recording_memory_compact_smoke.cpp": {
+        "bytes": 3717,
+        "sha256": "cb5c71c04e6c1b2546e95ce8fdee1d40ff40deee33f4192764aaf95d6e431c93"
+      },
+      "scripts/internal/v450_recording_a_mixed.mjs": {
+        "bytes": 56149,
+        "sha256": "7d3aa023351dfe0038e468eae6e0c60949cdf3296d3e4ce1fdd18ca39d6ebaa4"
+      },
+      "scripts/internal/recording_diagnostic_lines.mjs": {
+        "bytes": 1495,
+        "sha256": "1a25ad9c1ac59b1e9f94c67d0256ecce5cb5f99daa5ee9a6c48f867eb9ca671e"
+      },
+      "scripts/internal/recording_completion_collection.mjs": {
+        "bytes": 3019,
+        "sha256": "b9dd0d5d80e7f9912f93cf65b404681a58c917ac89be08b196cac8b760b07557"
+      }
+    },
+    "binaries": {
+      "build-gst-onnx/media_server": {
+        "bytes": 38000080,
+        "sha256": "33f516d35d56cb2f6cafc75647b6c37d2ced67115302d1205cca23bf51ab7f79"
+      },
+      "build-gst-onnx/libmedia_server_runtime.a": {
+        "bytes": 113126688,
+        "sha256": "2d91cf35fe7e805e0c06e00d16779c86849b35db635e087582277e1b676d198c"
+      }
+    },
+    "uuid": "CA3C5BE2-4F52-375D-A88B-7F20DF06EB73 arm64",
+    "productExecuted": false
+  },
+  "model": {
+    "requestedMain": "GPT-6 Astra / High",
+    "mainToolAcceptance": null,
+    "mainRuntimeModel": null,
+    "mainRuntimeEffort": null,
+    "requestedReviewer": "GPT-6 Astra / High",
+    "acceptedReviewerTask": "/root/independent_r142",
+    "reviewerRuntimeModel": null,
+    "reviewerRuntimeEffort": null
+  },
+  "measurementBefore": {
+    "inputMember": "observer/server-1.sanitized.log",
+    "inputBytes": 742158,
+    "inputSHA256": "cc59a16e48aa52c4f50fde1ffda10bee909d2209fd46a865a25e1a55c5d29aaa",
+    "rows": 124,
+    "wireBytes": 297266,
+    "eventValueBytesExcludingArraySeparators": 147226,
+    "repeatedEventValueBytes": 127507,
+    "newObservedEventValueBytes": 19719,
+    "modelPoolValueBytes": 29535,
+    "eventDeltas": {
+      "0": 4,
+      "1": 35,
+      "13": 4,
+      "4": 3,
+      "9": 11,
+      "3": 9,
+      "8": 12,
+      "10": 3,
+      "2": 27,
+      "7": 13,
+      "6": 2,
+      "12": 1
+    },
+    "gaps": [],
+    "maxDelta": 13
+  },
+  "focused": {
+    "macOS": {
+      "status": "PASS",
+      "nativeFrozenRoundtrip": 7,
+      "negativeCases": [
+        {
+          "name": "gap",
+          "error": "memory-event-gap"
+        },
+        {
+          "name": "duplicate-sequence",
+          "error": "memory-event-order"
+        },
+        {
+          "name": "reorder",
+          "error": "memory-event-order"
+        },
+        {
+          "name": "missing-event",
+          "error": "memory-event-order"
+        },
+        {
+          "name": "second-full",
+          "error": "memory-event-initial"
+        },
+        {
+          "name": "unknown-version",
+          "error": "memory-event-version"
+        },
+        {
+          "name": "v1-downgrade",
+          "error": "memory-event-version"
+        },
+        {
+          "name": "boolean-event",
+          "error": "memory-event-order"
+        },
+        {
+          "name": "unsafe-sequence",
+          "error": "memory-event-range"
+        },
+        {
+          "name": "totals-mismatch",
+          "error": "memory-event-range"
+        },
+        {
+          "name": "overflow-33",
+          "error": "memory-event-range"
+        }
+      ],
+      "initialFull32": true,
+      "deltaCounts": [
+        0,
+        1,
+        32
+      ],
+      "boundedRing": 32,
+      "resourceTraceModeWiring": true,
+      "v1Compatibility": true,
+      "synthetic": {
+        "rows": 7,
+        "v1Bytes": 19293,
+        "v2Bytes": 17384,
+        "largeWitnessValueBytes": 1481,
+        "description": "frozen synthetic witness/model/eviction/zero-owner changes; not R137 observations"
+      },
+      "replay": {
+        "rows": 124,
+        "oldBytes": 297266,
+        "newBytes": 178386,
+        "savedBytes": 118880,
+        "savedPercent": 39.99111906507976,
+        "oldMean": 2397.3064516129034,
+        "newMean": 1438.5967741935483,
+        "oldMax": 2553,
+        "newMax": 1862,
+        "recentEventsArrayBytes": 151218,
+        "modelPoolArrayBytes": 29535,
+        "remainingWireBytes": 116513,
+        "scenario580": {
+          "method": "historical average delta saving * 580; scenario only, no new maximum or 45 minute proof",
+          "historicalR139Representative": 3456040,
+          "projectedSaving": 556051.6129032258,
+          "representativeAfter": 2899988.3870967743,
+          "remainingMargin": 1294315.6129032257
+        }
+      },
+      "productExecutions": 0
+    },
+    "Linux": {
+      "status": "PASS",
+      "nativeFrozenRoundtrip": 7,
+      "negativeCases": [
+        {
+          "name": "gap",
+          "error": "memory-event-gap"
+        },
+        {
+          "name": "duplicate-sequence",
+          "error": "memory-event-order"
+        },
+        {
+          "name": "reorder",
+          "error": "memory-event-order"
+        },
+        {
+          "name": "missing-event",
+          "error": "memory-event-order"
+        },
+        {
+          "name": "second-full",
+          "error": "memory-event-initial"
+        },
+        {
+          "name": "unknown-version",
+          "error": "memory-event-version"
+        },
+        {
+          "name": "v1-downgrade",
+          "error": "memory-event-version"
+        },
+        {
+          "name": "boolean-event",
+          "error": "memory-event-order"
+        },
+        {
+          "name": "unsafe-sequence",
+          "error": "memory-event-range"
+        },
+        {
+          "name": "totals-mismatch",
+          "error": "memory-event-range"
+        },
+        {
+          "name": "overflow-33",
+          "error": "memory-event-range"
+        }
+      ],
+      "initialFull32": true,
+      "deltaCounts": [
+        0,
+        1,
+        32
+      ],
+      "boundedRing": 32,
+      "resourceTraceModeWiring": true,
+      "v1Compatibility": true,
+      "synthetic": {
+        "rows": 7,
+        "v1Bytes": 19272,
+        "v2Bytes": 17363,
+        "largeWitnessValueBytes": 1481,
+        "description": "frozen synthetic witness/model/eviction/zero-owner changes; not R137 observations"
+      },
+      "replay": {
+        "rows": 124,
+        "oldBytes": 297266,
+        "newBytes": 178386,
+        "savedBytes": 118880,
+        "savedPercent": 39.99111906507976,
+        "oldMean": 2397.3064516129034,
+        "newMean": 1438.5967741935483,
+        "oldMax": 2553,
+        "newMax": 1862,
+        "recentEventsArrayBytes": 151218,
+        "modelPoolArrayBytes": 29535,
+        "remainingWireBytes": 116513,
+        "scenario580": {
+          "method": "historical average delta saving * 580; scenario only, no new maximum or 45 minute proof",
+          "historicalR139Representative": 3456040,
+          "projectedSaving": 556051.6129032258,
+          "representativeAfter": 2899988.3870967743,
+          "remainingMargin": 1294315.6129032257
+        }
+      },
+      "productExecutions": 0
+    },
+    "existingRegression": "5 test files PASS on each platform, including memory/witness/state580/resource/16KiB4MiB/mixed82",
+    "strictPairing": "native ResourceTrace v1/v2 complete phases and actual strict collector on macOS; Linux wiring only (native process/allocator probes unsupported there)",
+    "initialFailures": "initial native fixture constructor omitted Usage argument; build failed before execution, fixed. Earlier negative overflow test had false precursor failure and was corrected; no product failure hidden",
+    "platform": "existing mediaserver-v450-verify:rc58-arm64 sha256:ce72c8a15363984da642e9964189957896812061c6af1d0ef67e87b38ad5a588;501:20/network-none/cap-drop-ALL/no-new-privileges/read-only repo; no installation",
+    "build": "macOS product linked only; runtime .a unchanged, application diagnostic header rebuilt"
+  },
+  "capacity": {
+    "structured": "PASS for valid consecutive <=32 deltas and complete records within existing caps; all tested loss boundaries fail closed",
+    "whole45": "UNPROVEN; R140 source proof gap remains",
+    "remaining": "normal concurrent owners and indirect deletion/search/state/error log count; GStreamer/ORT/startup output complete bound unknown, not0 and not assumed flood",
+    "scenario": "R139 representative minus historical average event saving*580; illustrative, not new max or actual45 measurement",
+    "risk": ">32 events between samples fails even if older v1 ring could show only last32; observed R137 max13 is not future bound. New owner state may exceed16383 or combined logs4MiB. Existing stop/collection failure propagation preserved",
+    "next45Recommendation": "A source-derived capacity guaranteed run is not established. Separately authorized single fail-closed diagnostic accepting residual overflow risk is the minimal next empirical step; any cap/sequence loss makes full run FAIL. Do not repeat static analysis indefinitely. No45 run authorized by this result."
+  },
+  "executionCounts": {
+    "productServer": 0,
+    "600s": 0,
+    "900s": 0,
+    "45min": 0,
+    "120min": 0,
+    "productBuild": 1
+  },
+  "preservedHistory": "R135 warm/cold, R136 functional900, R137 functional600, R138 attribution, R141 collector PASS remain historical/source-bound; no retroactive changes",
+  "holds": [
+    "Memory P0",
+    "45min",
+    "120min",
+    "release"
+  ],
+  "binding": {
+    "producer": {
+      "exit": 0,
+      "pass": 51,
+      "fail": 0
+    },
+    "readbackFinal": {
+      "exit": 0,
+      "validationErrors": 0,
+      "review4GlobalErrors": 0,
+      "negativeFixtures": "15/15"
+    },
+    "coverage": {
+      "exit": 0,
+      "covered": 986,
+      "missing": 0,
+      "pass": 9,
+      "fail": 0
+    },
+    "manifestDelta": "inventorySha256 only; 986 feature rows unchanged",
+    "sequence": "producer exit0 → final readback exit0 → coverage exit0",
+    "excludedPrematureReadback": {
+      "exit": 1,
+      "validationErrors": 1,
+      "negativeFixtures": "0/15",
+      "reason": "started before producer applied manifest; preserved but not final evidence"
+    },
+    "meaning": "source/inventory binding only, not performance or product run"
+  },
+  "archive": {
+    "path": "142-execution.tar.gz",
+    "bytes": 92817,
+    "sha256": "61a27bbcb935d1ea1c100a9b8c38c8f3067a21c032e77314b2da5afeb56f7a11",
+    "payloadFiles": 47,
+    "localReadback": "all exact stored bytes and source hashes verified",
+    "sanitized": [
+      "execution/focused.log",
+      "execution/measurement-before.json",
+      "execution/native-build.log"
+    ],
+    "rawDistinction": "manifest retains original/stored hashes; sanitized bytes are not original bytes"
+  },
+  "cleanup": "pending remote evidence bytes; owned synthetic root only; no server/ports",
+  "bindingSequenceCorrection": "첫 readback은 producer 중간 PASS 출력 후 실제 종료 전에 시작해 최종 결속 근거에서 제외; 원출력 보존. producer exit0 확인 후 새 readback→coverage만 최종 근거로 사용.",
+  "diagnosticSchema": {
+    "old": "version absent (v1) remains readable unchanged",
+    "new": 2,
+    "activation": "MEDIA_SERVER_VERIFY_MEMORY_COMPACT=1 only set by --state-diagnostic; existing memory600/contention900/other modes unchanged",
+    "initial": "complete owner and last32 events, [max(0,end-32),end), eventFull=true",
+    "later": "all other current owner fields unchanged; [previousEnd,end) new events with explicit sequence+original6values",
+    "sequence": "totals[8] equals eventSequence; contiguous zero-based labels; no reset/full rebase after initial",
+    "collector": "restores original6value recentEvents ring before existing owner validator; stores last owner and <=32events, bounded counters; transient concat <=64",
+    "failures": "gap/duplicate/reorder/missing/unsafe integer/rollback/>32 delta/mixed versions/malformed/truncated and emitter short write/cap are FAIL; no dropping or silent full fallback",
+    "limits": {
+      "wireBytes": 16383,
+      "processCombinedBytes": 4194304,
+      "completionEvidenceSharedBytes": 2097152,
+      "samples": 1600,
+      "ring": 32
+    },
+    "preserved": "owner/tickets/site witness/unknown peak/models/pools/visual current-retired/live-peak-totals/allocator/RSS/footprint/time/phases/loss, resource seq/phase pairing, completion terminal receipt",
+    "compatibility": "old readers do not understand v2; archived originals untouched; use current collector for new opt-in wire",
+    "overhead": "cursor16B plus setting flag/alignment per resource trace; existing frozen arrays consolidated in13720B stack sample; no retained product object/heap/FD; O(32) event work, no measured product CPU performance claim",
+    "nearCap": "v2 metadata and labels can increase rows with all32 new events; same hard cap rejects oversized rows, not universal per-row saving"
+  },
+  "commands": [
+    "R142_ROOT=<exclusive-owned-attempt> node scripts/internal/recording_memory_compact.test.mjs",
+    "node --test scripts/internal/recording_memory_attribution.test.mjs scripts/internal/recording_memory_state_preflight.test.mjs scripts/internal/recording_log_budget_preflight.test.mjs scripts/internal/recording_resource_trace.test.mjs scripts/internal/recording_longrun_progress.test.mjs",
+    "cmake --build build-gst-onnx --target media_server -j2",
+    "node scripts/internal/verify_v390_review4_feature_semantic_source_audit.mjs --apply-approved-manifest",
+    "node scripts/internal/verify_feature_implementation_evidence.mjs",
+    "node scripts/internal/verify_feature_inventory_coverage.mjs"
+  ]
+}

@@ -17,6 +17,8 @@
 
 ## v4.5.0 잔여 개발과 릴리즈 순서
 
+[R142 손실 없는 이벤트 delta](release-artifacts/v4.5.0/142-validation.json)는 **COMPACT_DIAGNOSTIC_PASS_CAPACITY_UNPROVEN**이다. state-diagnostic만 명시적v2를 사용하며 최근32개 이벤트를 정확히 복원하고 gap/overwrite/중복/역순을 거부한다. R137 보존124표본의 passive replay는297,266→178,386B(39.991%)이며 새 제품 실행이 아니다. 기존 cap/receipt/owner 의미와v1 호환은 유지한다. 580대표 시나리오는 용량 보장이 아니며 외부runtime·삭제 간접출력·동시 소유 상한은 미확정이다. 다음45분은 별도 승인된 잔여 overflow 위험을 수용한 단일 fail-closed 진단으로만 제안하며, Memory P0·45/120·출시 HOLD를 유지한다.
+
 [R141 수집 계약 보완](release-artifacts/v4.5.0/141-validation.json)은 **COLLECTOR_FIXED_CAPACITY_HOLD**다. 개행 포함16383B·UTF-8 분할, completion/evidence 손실과 공통 terminal receipt의 행/byte/쓰기 오류 검증을 보완했고 macOS/Linux 집중 검사와 진단 빌드를 확인했다. 제품 서버·장시간 실행은 없으며 receipt는 정상종료/닫힌 journal의 대체가 아니다. [소유·출력 근거](release-artifacts/v4.5.0/141-collection-budget.md)에서 정상45분 동시 소유/간접 출력/외부 runtime 총량은 여전히 미확정이다. R140 HOLD와 과거 기능 PASS, 메모리 P0·45분/120분·출시 보류를 유지한다.
 
 [R140 로그 예산 분석](release-artifacts/v4.5.0/140-validation.json)은 **HOLD_45_LOG_BUDGET_PROOF_GAP**다. 제품 실행 없이 source/합성 경계로4MiB 초과 수집실패와16KiB emitter의 무부분출력 거부를 확인했다. 정상45분 동시model·삭제간접출력·전체runtime 출력 상한은 미확정이며, 원천 자료형을 반영한 형식30,239B를 실현가능 overflow로 주장하지 않는다. collector의 newline 경계 차이와 completion loss 소비자 공백을 보존했다. [prefix별 근거·최소 후속안](release-artifacts/v4.5.0/140-log-budget.md)의 소비자 계약 정합/소유 상한 또는 lossless 표현 변경은 별도 승인 대상이다. R139 HOLD·기존 기능 PASS·메모리P0와 출시 보류를 유지하며45분/장시간은 실행하지 않았다.
