@@ -1,0 +1,44 @@
+{
+  "schema": "media-server.v450.r151.closure.v1",
+  "status": "PRESERVATION_PENDING",
+  "decision": "BLOCKED_BOUNDED_FIXTURE",
+  "baselineHead": "9eeb94b65ab86979f85624b575f043820e170358",
+  "scope": "실행 전 fixture 적격성 차단 기록만 보존",
+  "sourceChanges": false,
+  "productRuntimeChanged": false,
+  "counts": {
+    "productServerStarts": 0,
+    "fixtureRuns": 0,
+    "focusedTests": 0,
+    "compiles": 0,
+    "boundedCycles": 0
+  },
+  "remoteVerification": null,
+  "cleanup": {
+    "fixtureRootsCreated": 0,
+    "ownedProductProcesses": 0,
+    "portsAllocated": 0,
+    "containersCreated": 0,
+    "temporaryArtifactsCreated": 0,
+    "action": "NOT_NEEDED; no experiment resources were created",
+    "globalProcessPortAbsenceClaimed": false,
+    "settingsPrivateBackupsModelsSdkTouched": false
+  },
+  "historical": {
+    "R149": "FAIL_STATE_DIAGNOSTIC45_HTTP_TIMEOUT",
+    "functional45": "FAIL",
+    "collection45": "INCOMPLETE",
+    "memoryP0": "HOLD",
+    "readiness120": "HOLD",
+    "release": "HOLD",
+    "R150": "대화의 읽기 전용 분석; 새 과거 artifact 또는 실행 원장을 만들지 않음"
+  },
+  "checks": [
+    "JSON parse",
+    "source reference paths/line existence",
+    "16 source/product/runtime size and SHA match",
+    "git diff --check",
+    "independent read-only fixture and record review"
+  ],
+  "finalVerification": "원격 보존과 실제 bytes 검증은 아직 미완료; 이후 closure 갱신 및 최종 원격 HEAD/readback 결과로 구분"
+}

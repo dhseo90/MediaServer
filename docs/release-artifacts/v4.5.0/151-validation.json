@@ -1,0 +1,259 @@
+{
+  "schema": "media-server.v450.r151.validation.v1",
+  "decision": "BLOCKED_BOUNDED_FIXTURE",
+  "scope": "실행 전 기존 direct fixture 적격성 확인; HTTP 비용 실험 미실행",
+  "recordedAt": "2026-10-17T16:07:01.503080+00:00",
+  "baselineHead": "9eeb94b65ab86979f85624b575f043820e170358",
+  "branch": "v4.5.0",
+  "model": {
+    "main": {
+      "requested": "gpt-6-astra/high",
+      "toolAccepted": null,
+      "actualRuntimeModel": null,
+      "actualRuntimeEffort": null
+    },
+    "reviewer": {
+      "requested": "gpt-6-astra/high",
+      "toolAccepted": "existing independent_r147; historical tool acceptance gpt-6-astra/high, not runtime attestation",
+      "actualRuntimeModel": null,
+      "actualRuntimeEffort": null
+    }
+  },
+  "preflight": {
+    "head": "9eeb94b65ab86979f85624b575f043820e170358",
+    "originHead": "9eeb94b65ab86979f85624b575f043820e170358",
+    "worktreeClean": true,
+    "indexClean": true,
+    "remoteCheck": "actual git ls-remote; initial restricted DNS failure, read-only network-authorized lookup succeeded",
+    "bindings": {
+      "build-gst-onnx/media_server": {
+        "bytes": 38000080,
+        "sha256": "33f516d35d56cb2f6cafc75647b6c37d2ced67115302d1205cca23bf51ab7f79"
+      },
+      "build-gst-onnx/libmedia_server_runtime.a": {
+        "bytes": 113126688,
+        "sha256": "2d91cf35fe7e805e0c06e00d16779c86849b35db635e087582277e1b676d198c"
+      }
+    }
+  },
+  "archive": {
+    "path": "docs/release-artifacts/v4.5.0/149-execution.tar.gz",
+    "bytes": 14213695,
+    "sha256": "47689cbb01cec1cda46ecfec1c4092bdf24bc3ccdd2f875666c4ff45024e9b43",
+    "members": 57,
+    "payloads": 56,
+    "safeRegularUniqueMembers": true,
+    "allStoredPayloadSizesAndHashesMatched": true,
+    "fullLiveStore": false,
+    "originalRelation": "기존manifest의 original/stored hash 관계 보존. 삭제된 원본은 이번에 재검증하지 않음.",
+    "remoteHistoricalClosure": "149-closure.json; 이번 archive remote readback으로 대체하지 않음"
+  },
+  "fixtureAssessment": [
+    {
+      "candidate": "current-integration / actual-app",
+      "source": [
+        "scripts/internal/recording_current_integration_suite.mjs:8",
+        "scripts/internal/verify_recording_current_app.mjs:56",
+        "scripts/internal/verify_recording_current_app.mjs:69"
+      ],
+      "existing": "통합 suite와 실제 앱 event/timeline·재시작 검증",
+      "gap": "suite 여러 단계/actual-app 두 기동; AUTH_MODE off·해당 HTTP 4초. 누적 2+2 검색→증거→A 단회 경로 없음."
+    },
+    {
+      "candidate": "catalog-cost",
+      "source": [
+        "scripts/internal/recording_catalog_cost_probe.cpp:8",
+        "scripts/internal/recording_catalog_cost_probe.cpp:28"
+      ],
+      "existing": "실제 MP4를 사용한 1/8 source Catalog 확정·조회·재Open",
+      "gap": "HTTP/auth/visual/A 요청이 없는 native Catalog 검사. 이를 HTTP 비용 실험으로 사용할 수 없음."
+    },
+    {
+      "candidate": "accumulation",
+      "source": [
+        "scripts/internal/recording_accumulation_probe.cpp:36",
+        "scripts/internal/recording_accumulation_plan.mjs:3"
+      ],
+      "existing": "16/1020/2048/2049 sources와 typed mutation·원장 복구 검사",
+      "gap": "deleted/tombstone 자료이며 mediaFiles=0. 현재 재생·증거가 가능한 정상 누적 입력이 아니고 HTTP/A/visual 경로 없음."
+    },
+    {
+      "candidate": "degraded-http / source-parallel",
+      "source": [
+        "scripts/internal/recording_degraded_http_smoke.cpp:103",
+        "scripts/internal/recording_degraded_http_smoke.cpp:112",
+        "scripts/internal/recording_degraded_http_smoke.cpp:132",
+        "scripts/internal/recording_degraded_http_run.py:22",
+        "scripts/internal/recording_degraded_http_run.py:31"
+      ],
+      "existing": "token 인증·실제 structured2/visual2 HTTP·5초 요청·실제 background source·단일 server",
+      "gap": "3묶음12개와 publication/aux 시나리오. app에는 visual만 연결하고 evidence/A review 서비스는 연결하지 않음. 기존 R125 사본 입력 경로이며 신규 합성 누적+A 입력 mode 없음. cycle wrapper630초/ready500초; 다른scale wrapper180초도 필요한 단회 시나리오를 제공하지 않음. 180초 내 불가능하다고 실측한 것은 아님."
+    },
+    {
+      "candidate": "search-capacity-http",
+      "source": [
+        "scripts/internal/recording_search_capacity_http_smoke.cpp:31",
+        "scripts/internal/recording_search_capacity_http_smoke.cpp:42",
+        "scripts/internal/recording_search_capacity_http_smoke.cpp:48",
+        "scripts/internal/recording_search_capacity_http_smoke.cpp:57"
+      ],
+      "existing": "보존25526문서 native 페이지·실제HTTP/cursor/seek/evidence 및 readback; evidence composition 재사용 가능",
+      "gap": "채널9101 직렬 검색과 별도 source 추가. visual2병렬/A channel1 서비스 및 지정 cycle 없음."
+    },
+    {
+      "candidate": "search-runtime-load / search focused",
+      "source": [
+        "scripts/internal/recording_search_runtime_load_smoke.cpp:89",
+        "scripts/internal/recording_search_runtime_load_smoke.cpp:121",
+        "scripts/internal/recording_search_http_checks.mjs:3"
+      ],
+      "existing": "직접 Search와8writer/4검색, 별도 HTTP role/scope/cursor 기능검사",
+      "gap": "runtime-load는 HTTP가 아닌 app.Search 직접호출;8채널 부하이며 visual/evidence/A cycle 없음. HTTP checks는channel1/limit1 기능검사로 지정부하 대체 불가."
+    },
+    {
+      "candidate": "confirmed A HTTP / seed",
+      "source": [
+        "scripts/internal/va_review_confirmed_checks.h:11",
+        "scripts/internal/va_review_confirmed_checks.h:20",
+        "scripts/internal/va_review_confirmed_http.mjs:59",
+        "scripts/internal/va_review_confirmed_http.mjs:139",
+        "scripts/internal/va_review_confirmed_http.mjs:234"
+      ],
+      "existing": "실제 writer+정확한 source binding+track77 synthetic-target seed, 인증 HTTP/A evidence·확인 경로",
+      "gap": "seed는FinalizedSegmentIds size==1 기대. 누적 원본 뒤 그대로 호출할 수 없음. HTTP suite는visual off이며여러 기동/권한반례,일반 누적2+2/background cycle 없음. seed를 먼저 만들고 다른 typed 자료를 추가하는 구성은 가능성만 있으며 현재 적격 입력 generator/driver는 없음."
+    },
+    {
+      "candidate": "existing mixed execution",
+      "source": [
+        "scripts/internal/v450_recording_a_mixed.mjs:127",
+        "scripts/internal/v450_recording_a_mixed.mjs:315",
+        "scripts/internal/v450_recording_a_load.mjs:30"
+      ],
+      "existing": "원래4병렬→evidence→A prepare 순서는 존재; MixedALoad는 재사용 가능한 모듈",
+      "gap": "evidenceLoad는top-level실행기 내부이며독립 cycle export가 아님. 현재누적합성입력/단회direct mode 없음. state-diagnostic 또는다른부하모드를실행/변형하여대체하지 않음."
+    }
+  ],
+  "sourceBindings": {
+    "scripts/internal/recording_current_integration_suite.mjs": {
+      "bytes": 7857,
+      "sha256": "d851954a274953b18cfc5f808361a3d624b4e85dd1af3e9ea35211fb73dd9fb5"
+    },
+    "scripts/internal/verify_recording_current_app.mjs": {
+      "bytes": 37960,
+      "sha256": "1b097fc66c8cc4930b4e4acf83d52df0b992fd43365ad797b44e7a989cdc8b9d"
+    },
+    "scripts/internal/recording_catalog_cost_probe.cpp": {
+      "bytes": 3870,
+      "sha256": "8c0fba45f36d143577f885615e6cf194ebd2ae19ab18de097569c5097588b9c4"
+    },
+    "scripts/internal/recording_accumulation_probe.cpp": {
+      "bytes": 34497,
+      "sha256": "e3e1c89b73ab1e7bd499f946743de6b58510ffc0bc31cd118dacae0e2e6455d6"
+    },
+    "scripts/internal/recording_accumulation_plan.mjs": {
+      "bytes": 4595,
+      "sha256": "755430258f4c764c4cc4ec8ad0fd86628d3046fb2f60648e494b5b82ae51a053"
+    },
+    "scripts/internal/recording_degraded_http_smoke.cpp": {
+      "bytes": 25570,
+      "sha256": "5444f19291e80930887a7b4597413f1958ba713916c2f1fbc739d4f363540715"
+    },
+    "scripts/internal/recording_degraded_http_run.py": {
+      "bytes": 10988,
+      "sha256": "26ea2a9500744465e9d3092092266fef3bb24a88171605c40bcc1f7580e7a522"
+    },
+    "scripts/internal/recording_search_capacity_http_smoke.cpp": {
+      "bytes": 8363,
+      "sha256": "cc36df981706018b08af371fd5e8ec836a9e087dd7c55854b175482451a12060"
+    },
+    "scripts/internal/recording_search_runtime_load_smoke.cpp": {
+      "bytes": 16652,
+      "sha256": "04dc4cfe37c701d0fa75a53ff992f9a154382bf50409ef96a5c0c785408f766c"
+    },
+    "scripts/internal/va_review_confirmed_http.mjs": {
+      "bytes": 31591,
+      "sha256": "b0ada53976859f56b8579dc57632ec1ae1ded77598cd26a68d36feb0b7d98c30"
+    },
+    "scripts/internal/va_review_confirmed_checks.h": {
+      "bytes": 15809,
+      "sha256": "787409e75deec2f646ac7131c675bd58753f68cafb8c92082c9a2a6aaf7a8b7b"
+    },
+    "scripts/internal/recording_search_http_checks.mjs": {
+      "bytes": 5963,
+      "sha256": "2c58c7edee4374bb9910682123206e45eb55a8425e542a7d3d372ffe464469dd"
+    },
+    "scripts/internal/v450_recording_a_mixed.mjs": {
+      "bytes": 56149,
+      "sha256": "7d3aa023351dfe0038e468eae6e0c60949cdf3296d3e4ce1fdd18ca39d6ebaa4"
+    },
+    "scripts/internal/v450_recording_a_load.mjs": {
+      "bytes": 11580,
+      "sha256": "fcb30638d05d9899f081c5825fb76e61f0f462a479e9501179bcad8a57f6e31f"
+    }
+  },
+  "blockingBoundary": {
+    "qualifiedExistingEntry": false,
+    "selectedFixture": null,
+    "generatedInputSha256": null,
+    "inputGeneration": "NOT_RUN",
+    "reason": "필요한 재사용 부품은 있으나 인증된 정상 누적 일반/A 자료를 한 저장소에 결속하고, 기존 background·증거·A 준비를 단일180초 실행에서 함께 판정하는 기존 진입점이 없음. 입력 생성·서비스 구성·cycle/수명/정리 oracle을 새로 결합해야 하며 단순 instrumentation 범위를 넘는 신규 통합 경로로 판단.",
+    "notClaimed": [
+      "모든 가능한 fixture 조합의 불가능성",
+      "180초 실제 timeout",
+      "R149 live state 복원",
+      "제품 동작 실패"
+    ]
+  },
+  "execution": {
+    "boundedCycles": 0,
+    "productServerStarts": 0,
+    "fixtureRuns": 0,
+    "focusedTests": 0,
+    "compiles": 0,
+    "instrumentationChanges": 0,
+    "elapsedSeconds": null,
+    "requestCount": 0,
+    "clientServerAttribution": "NOT_RUN",
+    "referenceCounts": null,
+    "latencyStatistics": null,
+    "inputRoot": null,
+    "processesStarted": [],
+    "portsAllocated": [],
+    "containersCreated": 0
+  },
+  "notRun": [
+    "instrumentation/focused tests (fixture 선행 적격성 미충족)",
+    "단회4검색→evidence→A cycle",
+    "request correlation와phase/counter 검증",
+    "원인귀속",
+    "45분/600/900/120분"
+  ],
+  "historical": {
+    "R149": "FAIL_STATE_DIAGNOSTIC45_HTTP_TIMEOUT",
+    "functional45": "FAIL",
+    "collection45": "INCOMPLETE",
+    "memoryP0": "HOLD",
+    "readiness120": "HOLD",
+    "release": "HOLD",
+    "R150": "대화의 읽기 전용 분석; 새 과거 artifact 또는 실행 원장을 만들지 않음"
+  },
+  "nextOneTask": {
+    "proposal": "기존 degraded HTTP/source·confirmed A seed·evidence 서비스·MixedALoad를 재사용하는 제한된 synthetic 누적 단회 fixture 구성의 별도 승인",
+    "requiredScope": [
+      "하나의 runtime/catalog에 채널1의정확한synthetic-target와일반채널누적bound media를typed API로생성하고입력manifest 고정",
+      "실제인증/visual/evidence/A 서비스수명 및기존background를결합",
+      "4병렬→evidence/readback→A prepare의단회driver와180초/5초/4MiB/기존자원한도·cleanup oracle",
+      "이후승인된test-only correlation/phase/count계측과실행적격성검토"
+    ],
+    "notAuthorizedAutomatically": "제품최적화/장시간실행/현재단회실행권한소비를자동진행하지 않음"
+  },
+  "preservation": "R151 실행결과가 아닌 실제 preflight 차단기록만 보존; 제품/fixture/test 소스 불변",
+  "independentReview": "151-independent-review.json",
+  "closure": "151-closure.json",
+  "recordChecks": {
+    "jsonParse": true,
+    "sourceReferencePathsAndLinesExist": true,
+    "sourceAndProductHashesUnchanged": true,
+    "bindingProcedure": "NOT_RUN; no code/test/inventory change; document-only JSON/reference/hash/diff checks. Not runtime qualification."
+  }
+}
