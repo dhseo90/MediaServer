@@ -33,9 +33,29 @@ export function validateMemoryAttribution(row,pid){
  if(row.snapshotPools.some(p=>p[9]))throw Error('memory-attribution-pool-overflow');
  return row;
 }
+// v1 remains readable without reinterpretation. v2 stores only the last 32
+// event values in state.last; sequence labels are transport integrity, not new owners.
+export function restoreMemoryEvents(state,input){
+ const version=input.schemaVersion??1;
+ if(![1,2].includes(version)||state.wireVersion&&state.wireVersion!==version)throw Error('memory-event-version');
+ if(version===1){
+  if(['eventFull','eventStartSequence','eventSequence'].some(k=>k in input))throw Error('memory-event-version');
+  state.wireVersion=1;return input;
+ }
+ const {schemaVersion,eventFull,eventStartSequence:start,eventSequence:end,...row}=input;
+ const num=n=>Number.isSafeInteger(n)&&n>=0;
+ if(!num(start)||!num(end)||end<start||end-start>32||end!==row.totals?.[8]||typeof eventFull!=='boolean')throw Error('memory-event-range');
+ if(eventFull){if(state.wireVersion||start!==Math.max(0,end-32))throw Error('memory-event-initial');}
+ else if(state.wireVersion!==2||start!==state.eventEnd)throw Error('memory-event-gap');
+ const events=row.recentEvents;
+ if(!Array.isArray(events)||events.length!==end-start||events.some((e,i)=>!Array.isArray(e)||e.length!==7||e[0]!==start+i||!e.every(num)))throw Error('memory-event-order');
+ row.recentEvents=(eventFull?[]:state.last.recentEvents).concat(events.map(e=>e.slice(1))).slice(-32);
+ if(row.recentEvents.length!==Math.min(32,end))throw Error('memory-event-incomplete-ring');
+ state.wireVersion=2;state.eventEnd=end;return row;
+}
 export function collectMemoryAttribution(state,chunk){
  if(state.error)return;try{
-  state.lines.append(chunk,(line)=>{if(line.startsWith('[recording-resource] ')){if(state.strict)acceptResource(state,line);return;}if(!line.startsWith(prefix))throw Error('memory-attribution-prefix');const row=validateMemoryAttribution(JSON.parse(line.slice(prefix.length)),state.pid);if(state.strict){if(!state.pendingResource||state.pendingResource.phase!==row.phase)throw Error('memory-attribution-resource-pair');if(!row.ticketWitness||!row.ticketWitness.allocator[0]||!row.ticketWitness.allocator[1])throw Error('memory-attribution-required-witness-allocator');state.pendingResource=null;}if(row.sampleStartNs<=state.lastEndNs)throw Error('memory-attribution-clock-reversal');
+  state.lines.append(chunk,(line)=>{if(line.startsWith('[recording-resource] ')){if(state.strict)acceptResource(state,line);return;}if(!line.startsWith(prefix))throw Error('memory-attribution-prefix');const row=validateMemoryAttribution(restoreMemoryEvents(state,JSON.parse(line.slice(prefix.length))),state.pid);if(state.strict){if(!state.pendingResource||state.pendingResource.phase!==row.phase)throw Error('memory-attribution-resource-pair');if(!row.ticketWitness||!row.ticketWitness.allocator[0]||!row.ticketWitness.allocator[1])throw Error('memory-attribution-required-witness-allocator');state.pendingResource=null;}if(row.sampleStartNs<=state.lastEndNs)throw Error('memory-attribution-clock-reversal');
    const order=['opened','sample','before-Finish','after-Finish','after-storage-destruction'];
    const prior=state.last?.phase;if(!prior&&row.phase!=='opened')throw Error('memory-attribution-open-missing');
    if(prior&&(order.indexOf(row.phase)<order.indexOf(prior)||(row.phase===prior&&row.phase!=='sample')))throw Error('memory-attribution-phase-order');

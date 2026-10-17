@@ -85,6 +85,7 @@ function environment(http,rtsp,stun){const env={PATH:process.env.PATH,HOME:proce
     VERIFY_RECORDING_STATE_TRACE:1,VERIFY_CATALOG_HOLDER_TRACE:diagnose&&!stateDiagnose?1:0,VERIFY_VISUAL_REQUEST_TRACE:1,VERIFY_RECORDING_SEARCH_TRACE:1,VERIFY_VISUAL_LATENCY_TRACE:short?1:0,VERIFY_RECORDING_RESOURCE_TRACE:1,VERIFY_FRAME_TRACE:frameTraceMode,VERIFY_RECORDING_LATENCY_TRACE:1,VERIFY_RECORDING_LATENCY_SLOW_ONLY:1,
     GST_CACHE_DIR:path.join(root,'gst-cache'),GST_PLUGIN_PROFILE:'headless',WEBRTC_STUN_SERVER:`stun://127.0.0.1:${stun}`,WEBRTC_TURN_SERVER:''};
   if(memoryObserve)values.VERIFY_MEMORY_ATTRIBUTION=1;
+  if(stateDiagnose)values.VERIFY_MEMORY_COMPACT=1;
   if(memoryDiagnose)values.VERIFY_CATALOG_SUBCOSTS=1;
   if(contentionDiagnose||memoryDiagnose)values.VERIFY_CATALOG_HOLDER_WHOLE_REQUESTS='slow-first';
   for(const [k,v] of Object.entries(values))env['MEDIA_SERVER_'+k]=String(v);return env;

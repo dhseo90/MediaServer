@@ -38,7 +38,7 @@ public:
             U(usage.disk_bytes),U(peak.disk_bytes),U(limits.disk_bytes),U(usage.file_descriptors),U(peak.file_descriptors),U(limits.file_descriptors),
             U(usage.ram_bytes),U(scratch_->preserved_disk_bytes()),U(scratch_->preserved_fds()),scratch_->ReaderCleanupHealthy()?"true":"false");
         if(n<=0||n>=static_cast<int>(sizeof(line))||!sink_(line,static_cast<std::size_t>(n)))return valid_=false;
-        if(!memory_diagnostic::Emit(*memory_,phase,sink_))return valid_=false;
+        if(!memory_diagnostic::Emit(*memory_,phase,sink_,compact_?&event_cursor_:nullptr))return valid_=false;
         ++sequence_;last_=now;return true;
     }
     ~RecordingResourceTrace(){if(enabled_&&memory_)(void)Emit("after-storage-destruction");}
@@ -48,6 +48,8 @@ private:
     using Clock=std::chrono::steady_clock;
     static unsigned long long U(std::uint64_t n){return static_cast<unsigned long long>(n);}
     static bool Write(const char* p,std::size_t n){return std::fwrite(p,1,n,stderr)==n&&std::fflush(stderr)==0;}
+    const bool compact_=[] {const char* p=std::getenv("MEDIA_SERVER_VERIFY_MEMORY_COMPACT");return p&&std::strcmp(p,"1")==0;}();
+    memory_diagnostic::EventCursor event_cursor_;
     bool enabled_,valid_;Sink sink_;std::uint64_t sequence_{0};
     Clock::time_point start_{Clock::now()},last_{start_};
     // Observer keeps only owner counter objects alive; no Catalog/reader/value reference.
