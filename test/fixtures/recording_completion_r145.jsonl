@@ -1,0 +1,2 @@
+[recording-completion] {"v":1,"event":10,"begin":"4682000418","end":"4881844460","thread":2,"request":0,"reference":"1de3dc55653e746bb273ec151bb9f90d0dd42c3e104e796d3bc0db1c72178fd7","job":null,"n":1,"x":0,"y":23336}
+[recording-completion-end] {"v":1,"rows":1,"bytes":217,"lost":false,"writeError":false,"complete":true}

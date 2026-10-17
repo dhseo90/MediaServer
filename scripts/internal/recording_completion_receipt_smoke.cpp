@@ -9,7 +9,7 @@ std::size_t Short(const char* text,std::size_t size) noexcept {
     return std::fwrite(text,1,count,stdout);
 }
 void Sink(const char* text,std::size_t size) noexcept {(void)std::fwrite(text,1,size,stdout);}
-void Emit(){c::Emit(c::Event::Media,1,2,{},{},3,2,1);}
+void Emit(){c::Emit(c::Event::Media,1,2,{},{},3,2);}
 struct Local {~Local(){Emit();}};
 void Composition(){Local last_writer;Emit();}
 int main(int argc,char** argv){

@@ -1,4 +1,8 @@
 // 파일 용도: 검증 전용: 원문은 반환하지 않고 고정 스키마와 hash만 보존한다.
+import {createHash} from 'node:crypto';
+// RequestMedia의 고정 작업 레이블이다. 사용자 reference/segment/job ID가 아니다.
+const mediaPreparationReferences=new Set(['visual-index-build','visual-search-request']
+  .map(label=>createHash('sha256').update(label).digest('hex')));
 const prefix='[recording-completion] ';
 const integer=x=>Number.isSafeInteger(x)&&x>=0;
 const hash=x=>x===null||(typeof x==='string'&&/^[a-f0-9]{64}$/.test(x));
@@ -8,7 +12,21 @@ export function validateCompletionRow(x){
   if(!x||Array.isArray(x)||Object.keys(x).length!==keys.length||!keys.every(k=>Object.hasOwn(x,k))||x.v!==1||!integer(x.event)||x.event<1||x.event>15||!time(x.begin)||!time(x.end)||BigInt(x.end)<BigInt(x.begin)||!['thread','request','n','x','y'].every(k=>integer(x[k]))||!hash(x.reference)||!hash(x.job))throw Error('completion-invalid');
   if(x.event<10&&(!x.reference||(x.event>1&&!x.job)||x.begin!==x.end||x.request!==0))throw Error('completion-identity');
   if(x.event<10&&(!x.thread||x.x||x.y||(x.event===1&&x.job!==null)||(x.event===5?x.n>2:x.n!==0)))throw Error('completion-event');
-  if(x.event>=10&&x.event<=13&&(x.reference!==null||x.job!==null||!x.request))throw Error('completion-request');
+  if(x.event>=10&&x.event<=13){
+    // identity와 request는 독립 축이다. worker/구조화 playback 경로는 request0,
+    // 공개 Timeline의 외부 Scope는 양수 request를 사용한다. 둘 다 실제 uint32 문맥이다.
+    if(!x.thread||x.thread>0xffffffff||x.request>0xffffffff||x.job!==null)throw Error('completion-context');
+    if(x.event===10){
+      if(x.reference!==null){
+        // preparation: n=prepared, x=reused(반복 sample이므로 n보다 클 수 있음), y=peak bytes.
+        if(!mediaPreparationReferences.has(x.reference))throw Error('completion-media-reference');
+      }else if(x.y!==0||x.x>x.n)throw Error('completion-media-payload'); // input rows / unique media
+    }else{
+      // FinishTimelineWithContext의 세 단계. request0 허용은 위 실제 caller에 한정된 wire 의미다.
+      if(x.reference!==null)throw Error('completion-request');
+      if(x.event<13?(x.x!==0||x.y!==0):(x.y===0||x.n>x.y))throw Error('completion-timeline-payload');
+    }
+  }
   if(x.event===14&&(x.reference!==null||x.job!==null||x.begin!=='0'||x.end!=='0'||x.thread||x.request||x.n!==1||x.x||x.y))throw Error('completion-loss-invalid');
   if(x.event===15&&(x.reference!==null||x.job!==null||!x.thread||![1,2,3,4,5,101,102,103,104,105,106].includes(x.n)))throw Error('completion-timeline-invalid');
   if(x.event===15&&x.n===106&&(x.begin!==x.end||x.x>x.y))throw Error('completion-timeline-memo-invalid');

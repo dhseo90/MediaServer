@@ -8,7 +8,7 @@ import {captureBoundedProcessLog} from './recording_longrun_progress.mjs';
 import {spawnSync} from 'node:child_process';
 import {completionCollection} from './recording_completion_collection.mjs';
 const line=(p,x)=>p+' '+JSON.stringify(x)+'\n';
-const completion={v:1,event:10,begin:'1',end:'2',thread:0,request:1,reference:null,job:null,n:3,x:2,y:1};
+const completion={v:1,event:10,begin:'1',end:'2',thread:1,request:1,reference:null,job:null,n:3,x:2,y:0};
 const evidence={stage:'application',first:'evidence-exception',exception:1,builder:'',http:'evidence-create-failed',published:0,checked:1,current:0,captureRevision:1,checkRevision:1};
 const a=line('[recording-completion]',completion),b=line('[recording-evidence]',evidence);
 const end=(rows,bytes,extra={})=>line('[recording-completion-end]',{v:1,rows,bytes,lost:false,writeError:false,complete:true,...extra});
