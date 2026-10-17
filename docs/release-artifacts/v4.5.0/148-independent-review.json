@@ -1,0 +1,51 @@
+{
+  "schema": "media-server.v450.r148.independent-review.v1",
+  "decision": "AGREE_HOLD_FD_COLLECTOR_REMEDIATION",
+  "reviewer": "/root/independent_r147",
+  "requested": {
+    "model": "gpt-6-astra",
+    "effort": "high"
+  },
+  "toolAccepted": {
+    "model": "gpt-6-astra",
+    "effort": "high",
+    "provenance": "R147 separate-agent creation; same independent reviewer reused sequentially"
+  },
+  "actualRuntime": {
+    "model": null,
+    "effort": null
+  },
+  "participation": {
+    "implementation": false,
+    "testWriting": false,
+    "testExecution": false,
+    "productExecution": false,
+    "redelegation": false,
+    "commitPush": false
+  },
+  "codeFindings": [],
+  "verified": [
+    "new fixture expects existing contract PASS, not an expected RED or remediation proof",
+    "actual command/ack close/reuse separated from injected identity/permission/short-structure failures",
+    "macOS70+40 and Linux67+40 logs match",
+    "test-only collector additions; non-testing algorithm/cap4/8MiB/consumer3s unchanged",
+    "product/runtime SHA matched directly",
+    "Apple public source and local SDK confirm errno interpretation and nextType0 ambiguity",
+    "R147 actual FD35/36 operation and safe remediation unconfirmed; HOLD appropriate"
+  ],
+  "preservationReview": {
+    "decision": "AGREE_HOLD_FD_COLLECTOR_REMEDIATION",
+    "findings": [],
+    "archiveBytes": 61879,
+    "archiveSha256": "9ea0db235095c7de554aaf11ab6137dbb3fa6e3452158e3a98c48d738ee70a2b",
+    "members": 19,
+    "verifiedPayloads": 18,
+    "originalAndSanitizedHashMatched": true,
+    "r147ParsedDiagnosticMatchesHistoricalArchive": true,
+    "bindingSequenceReadback": "producer51/0 -> readback0errors/15negative -> coverage986covered/0missing/9pass; inventory initial17/1 preserved, final18/0",
+    "sourceBindingAndProductRuntimeShaVerified": true,
+    "manifestDiff": "inventorySha256 only",
+    "observedHead": "3917223e0885b26dce7afbdae7196846ad4531dd"
+  },
+  "remoteAndCleanup": "not independently reviewed; main will verify remote bytes and record cleanup in148-closure.json"
+}

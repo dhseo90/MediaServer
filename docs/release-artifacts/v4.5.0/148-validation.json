@@ -1,0 +1,425 @@
+{
+  "schema": "media-server.v450.r148.validation.v1",
+  "decision": "HOLD_FD_COLLECTOR_REMEDIATION",
+  "baselineHead": "904847076a940bc3307e8f72c3d3b6df722d4cdd",
+  "branch": "v4.5.0",
+  "baselineClean": true,
+  "baselineRemoteMatched": true,
+  "model": {
+    "main": {
+      "requested": {
+        "model": "gpt-6-astra",
+        "effort": "high"
+      },
+      "toolAccepted": null,
+      "actualRuntime": {
+        "model": null,
+        "effort": null
+      }
+    },
+    "independent": {
+      "requested": {
+        "model": "gpt-6-astra",
+        "effort": "high"
+      },
+      "toolAccepted": {
+        "model": "gpt-6-astra",
+        "effort": "high",
+        "source": "same separate reviewer creation in R147; sequential reuse in R148"
+      },
+      "actualRuntime": {
+        "model": null,
+        "effort": null
+      }
+    }
+  },
+  "scope": {
+    "productExecutions": 0,
+    "launcherExecutions": 0,
+    "longRuns": 0,
+    "productOrRuntimeBuilds": 0,
+    "collectorAlgorithmChanged": false,
+    "testOnlyHook": "RECORDING_METRICS_TESTING identity_result_override, after real OS identity read",
+    "nonTestingPreprocessedSource": [
+      {
+        "name": "baseline",
+        "preprocessedSha256": "77ad287fd28d9ac0f3fefd02e24ac676ffe3c690453b87d58d69757b0aee2602",
+        "bytes": 2998225
+      },
+      {
+        "name": "current",
+        "preprocessedSha256": "77ad287fd28d9ac0f3fefd02e24ac676ffe3c690453b87d58d69757b0aee2602",
+        "bytes": 2998225
+      }
+    ],
+    "unchangedCaps": {
+      "memoryBytes": 8388608,
+      "rounds": 4,
+      "consumerTimeoutMs": 3000
+    }
+  },
+  "historicalR147": {
+    "decision": "INCOMPLETE_45_COLLECTION_FAILURE",
+    "functional45": "INCOMPLETE",
+    "collection45": "FAIL",
+    "source": "147-execution.tar.gz/artifacts/workspace-first-failure.json",
+    "parsedDiagnostic": {
+      "schema": "recording-workspace-failure-v1",
+      "status": "failed",
+      "primary": "observer-collector-unavailable",
+      "decision": null,
+      "collectorDiagnostic": {
+        "exitCode": 1,
+        "spawnCode": null,
+        "signal": null,
+        "killed": false,
+        "stdoutBytes": 903,
+        "measurement": {
+          "pid": 87892,
+          "startIdentity": null,
+          "rssBytes": null,
+          "threadCount": null,
+          "fdCount": null,
+          "anonymousFileBytes": null,
+          "anonymousAllocatedBytes": null,
+          "anonymousFiles": null,
+          "footprintBytes": null,
+          "sampledAt": 1792220836240,
+          "valid": false,
+          "error": "fd-observation-incomplete:capacity=0:closed=4",
+          "fdObservation": {
+            "scope": "complete-round-sequential-v1",
+            "complete": false,
+            "startIdentity": "macos:1792220655:33956",
+            "startedAt": 1792220836237,
+            "completedAt": 1792220836240,
+            "roundStartedAt": 1792220836237,
+            "roundCompletedAt": 0,
+            "rounds": 4,
+            "capacityRetries": 0,
+            "closedRetries": 4,
+            "detailCalls": 49,
+            "failures": [
+              {
+                "fd": 35,
+                "listedType": 1,
+                "returned": 0,
+                "errno": 9,
+                "nextType": 1,
+                "at": 1792220836237
+              },
+              {
+                "fd": 35,
+                "listedType": 1,
+                "returned": 0,
+                "errno": 9,
+                "nextType": 0,
+                "at": 1792220836237
+              },
+              {
+                "fd": 36,
+                "listedType": 1,
+                "returned": 0,
+                "errno": 9,
+                "nextType": 0,
+                "at": 1792220836237
+              },
+              {
+                "fd": 35,
+                "listedType": 1,
+                "returned": 0,
+                "errno": 9,
+                "nextType": -1,
+                "at": 1792220836237
+              }
+            ]
+          }
+        }
+      },
+      "context": {
+        "kind": "sample-collection",
+        "pid": 87892,
+        "sampleIndex": 35,
+        "measurementStartedAt": 184195.071541,
+        "failedAt": 184200.921166
+      },
+      "capturedAt": 184200.965625
+    },
+    "rawStdout903Bytes": "not preserved; not reconstructed"
+  },
+  "analysis": {
+    "proven": "R147 exhausted four complete-round attempts on vnode-detail returned0/errno9; no capacity retry or timeout. The same failure class is reproducible via controlled real FD transitions. This does not identify the R147 operation that changed FD35/36.",
+    "osApi": [
+      {
+        "url": "https://github.com/apple-oss-distributions/xnu/blob/main/libsyscall/wrappers/libproc/libproc.c",
+        "symbol": "proc_pidfdinfo",
+        "meaning": "Underlying syscall -1 becomes public return0; errno is retained. Return0 with EBADF is an API error, not a zero-size vnode."
+      },
+      {
+        "url": "https://github.com/apple-oss-distributions/xnu/blob/main/bsd/kern/proc_info.c",
+        "symbol": "proc_pidfdinfo / PROC_PIDFDVNODEINFO",
+        "meaning": "Vnode lookup requests fp_get_ftype with DTYPE_VNODE and EBADF for wrong type. Roster and detail are distinct calls."
+      },
+      {
+        "url": "https://github.com/apple-oss-distributions/xnu/blob/main/bsd/kern/kern_descrip.c",
+        "symbol": "fp_get_ftype",
+        "meaning": "Absent/out-of-range/reserved FD returns EBADF; wrong type returns supplied EBADF. Successful lookup retains the fileproc for that detail operation."
+      }
+    ],
+    "osEvidenceLimit": "Apple public source inspected 2026-10-17. It is not asserted to be the exact installed Darwin27 xnu-13432.1.9 build. Local OS transitions corroborate EBADF for close and type change; the focused log preserves errno/rounds but not the numeric return for each case. R147 itself preserved returned0 in parsed diagnostic.",
+    "hypotheses": {
+      "A_close": "Reproduced in fixture; plausible in R147, exact operation unconfirmed",
+      "B_reuseDifferentInode": "Reproduced successfully and independently accounted; R147 nextType1 only proves vnode in next roster, not same inode",
+      "C_vnodeToPipe": "macOS real transition returns EBADF and nextType6; possible but not identified in R147",
+      "D_returnSemantics": "return0/EBADF interpretation corroborated; no misclassification found",
+      "E_order": "Existing collector already prioritizes previous failed vnode slot. Alternating slots can exhaust all four rounds despite that. No R147 evidence that another ordering would complete",
+      "F_other": "Reserved/closing state or other kernel path not distinguished by R147 parsed data"
+    },
+    "pm07Gap": "Existing PM07 already expects four same-slot close failures to reject. It was never a guarantee of observation success under sustained churn. R148 adds alternating slots, failed-round inode discard and native final identity guard injection; not a reproduction of the exact product churn schedule.",
+    "noRemediationReason": "No proved contract-preserving ordering/timing change makes the R147 sample complete. Ignoring a failed FD, mixing rounds or extending retries would violate the request. Preserve fail-closed algorithm and HOLD.",
+    "nextMinimumDecision": "Before R149, obtain explicit approval for narrowly bounded observation of the actual FD-changing caller/operation and round timing, or another specified collector design study. No automatic product execution; no permission to relax completeness/retry/time limits.",
+    "nextTypeLimit": "nextType0 is used as absent sentinel, but local SDK also defines PROX_FDTYPE_ATALK=0. R147 zero is not independently conclusive absence/type classification. nextType-1 means no subsequent roster; nextType1 does not prove object identity.",
+    "sequentialScope": "complete-round-sequential-v1 is a full successful roster/detail traversal, not an atomic live process snapshot. Same inode observations use within-round maxima; successful FD reuse reads the new object, not a retained old FD identity.",
+    "localSdkEvidence": {
+      "path": "/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/proc_info.h",
+      "definitions": {
+        "PROX_FDTYPE_ATALK": 0,
+        "PROX_FDTYPE_VNODE": 1,
+        "PROX_FDTYPE_PIPE": 6
+      },
+      "sdkChanged": false
+    }
+  },
+  "plan": {
+    "task": "R148",
+    "baseline": "904847076a940bc3307e8f72c3d3b6df722d4cdd",
+    "planBeforeExecution": true,
+    "productExecutions": 0,
+    "runsPerPlatform": 1,
+    "tests": [
+      "existing PM01-PM07",
+      "alternating actual FD200/202 close: three failed rounds then fourth complete",
+      "alternating actual FD200/202 close: four failed rounds reject",
+      "stale first-round inode absent from successful new round",
+      "injected final start identity mismatch",
+      "existing consumer scope/identity/incomplete rejection"
+    ],
+    "expected": "Existing collector is expected to pass these contract tests. They are not expected RED or proof of an R147 remedy. No speculative collection algorithm change.",
+    "constraints": {
+      "rounds": 4,
+      "bytes": 8388608,
+      "consumerTimeoutMs": 3000
+    },
+    "cleanup": "fixture command/ack child quits and joins; preserve logs before owned root cleanup"
+  },
+  "focusedResults": {
+    "macOS": {
+      "metrics": {
+        "passed": 70,
+        "failed": 0,
+        "exit": 0,
+        "elapsedMs": 1400
+      },
+      "consumer": {
+        "passed": 40,
+        "failed": 0,
+        "exit": 0,
+        "elapsedMs": 1629
+      },
+      "actualOs": "libproc owned fork child; close and pipe each two rounds, one EBADF; replacement vnode measured",
+      "alternating": [
+        {
+          "failedRounds": 3,
+          "rounds": 4,
+          "detailCalls": 9,
+          "result": "complete8192B/1inode"
+        },
+        {
+          "failedRounds": 4,
+          "rounds": 4,
+          "detailCalls": 9,
+          "result": "incomplete"
+        }
+      ]
+    },
+    "Linux": {
+      "metrics": {
+        "passed": 67,
+        "failed": 0,
+        "exit": 0,
+        "elapsedMs": 812
+      },
+      "consumer": {
+        "passed": 40,
+        "failed": 0,
+        "exit": 0,
+        "elapsedMs": 19
+      },
+      "actualOs": "procfs owned fork child; close ENOENT restarts; pipe stat succeeds in same round, no vnode-only libproc assumption",
+      "alternating": [
+        {
+          "failedRounds": 3,
+          "rounds": 4,
+          "detailCalls": 28,
+          "result": "complete8192B/1inode"
+        },
+        {
+          "failedRounds": 4,
+          "rounds": 4,
+          "detailCalls": 28,
+          "result": "incomplete"
+        }
+      ],
+      "container": {
+        "image": "mediaserver-v450-verify:rc58-arm64",
+        "sha256": "ce72c8a15363984da642e9964189957896812061c6af1d0ef67e87b38ad5a588",
+        "user": "65534:65534",
+        "network": "none",
+        "rootAndRepo": "read-only",
+        "capabilities": "all dropped",
+        "noNewPrivileges": true,
+        "tmpfs": "128MiB rw,exec,nosuid,nodev"
+      }
+    },
+    "cases": {
+      "1": "existing stable exact FD16 increase/return; anonymous duplicate FD3 count1 size8192 and allocated>=8192",
+      "2": "existing single close, next full round complete",
+      "3": "existing sameFD differentinode 12288/2; added failed-round oldinode discard 8192/1",
+      "4": "actual vnode-to-pipe; per-platform semantics preserved",
+      "5": "actual alternating200/202,3fails then4thcomplete",
+      "6": "same-slot and alternating4fail remain incomplete",
+      "7": "injected EACCES/EPERM on both; actual Linux nondumpable denies; injected macOS positive-short structure rejects; injected final identity mismatch rejects after two real reads; consumer identity mismatch/invalid scope rejects"
+    },
+    "injectionLimit": "Final identity replacement and permission/short struct overrides are deliberate injections. No actual PID-number reuse or macOS authorization denial is claimed. No new errno injection for close/type/alternating cases.",
+    "expectedRed": "not applicable; no collection algorithm remedy proposed; all new assertions are expected PASS for current complete-round contract",
+    "noPerformanceClaim": "~millisecond fixture results are not product FD-churn feasibility or 45-minute coverage; one pass per platform, no same-binary attempts selected for success."
+  },
+  "binary": [
+    {
+      "path": "build-gst-onnx/media_server",
+      "bytes": 38000080,
+      "sha256": "33f516d35d56cb2f6cafc75647b6c37d2ced67115302d1205cca23bf51ab7f79"
+    },
+    {
+      "path": "build-gst-onnx/libmedia_server_runtime.a",
+      "bytes": 113126688,
+      "sha256": "2d91cf35fe7e805e0c06e00d16779c86849b35db635e087582277e1b676d198c"
+    }
+  ],
+  "sourceBinding": [
+    {
+      "path": "scripts/internal/recording_process_metrics.cpp",
+      "bytes": 19795,
+      "sha256": "f80c0dc4441237c48163207b0df97e9a824d254aec970de53edb6f529048cfe6"
+    },
+    {
+      "path": "scripts/internal/recording_process_metrics_fixture.cpp",
+      "bytes": 15674,
+      "sha256": "23f9f6304f672deebc7c03045af7b0c0b3456836e1f1be631368b99e27442360"
+    },
+    {
+      "path": "scripts/internal/recording_process_metrics.test.mjs",
+      "bytes": 7642,
+      "sha256": "628c3bfd7e6b2f8aefe061f3dbd61e823ae2b3ccf009493d80958199c8bf5d03"
+    },
+    {
+      "path": "scripts/internal/recording_foundation_observer.mjs",
+      "bytes": 7338,
+      "sha256": "508c971558a73fa20fb4f6602abbbee754200e1421898d57b80321b0ca6c7d42"
+    },
+    {
+      "path": "scripts/internal/recording_foundation_observer.test.mjs",
+      "bytes": 10662,
+      "sha256": "c2212d62c100114491a07de33870bf6e6edfa14182c77c857f9fad5f05f919af"
+    },
+    {
+      "path": "scripts/internal/recording_current_observer.mjs",
+      "bytes": 52848,
+      "sha256": "74af90b6e9903533619cfb4ea08437fe746a43ed6934d00e5f470b2796752f13"
+    },
+    {
+      "path": "scripts/internal/v450_recording_a_mixed.mjs",
+      "bytes": 56149,
+      "sha256": "7d3aa023351dfe0038e468eae6e0c60949cdf3296d3e4ce1fdd18ca39d6ebaa4"
+    },
+    {
+      "path": "docs/project-feature-test-inventory.md",
+      "bytes": 1085933,
+      "sha256": "d74796448177c91b345b71ed2694b3509278771c193fd5896242dfcb8db694b2"
+    },
+    {
+      "path": "test/fixtures/project_feature_implementation_evidence.json",
+      "bytes": 26350232,
+      "sha256": "4fa091425f1f65a7aec51e1db484df7cb16378488c6b20a35a1f75a6246032c6"
+    }
+  ],
+  "functional45": "INCOMPLETE",
+  "collection45": "FAIL_R147",
+  "memoryP0": "HOLD",
+  "readiness120": "HOLD",
+  "release": "HOLD",
+  "r149": "NOT_RUN; separate approval and unresolved collection feasibility remain",
+  "independentReview": "148-independent-review.json; separate read-only reviewer agrees HOLD after source/test, archive and binding checks",
+  "binding": {
+    "status": "PASS",
+    "earlyInventoryCheck": {
+      "exit": 1,
+      "pass": 17,
+      "fail": 1,
+      "error": "inventorySha256 drift; explicitly refresh and review the manifest",
+      "classification": "pre-refresh inventory check; not a product/collector regression or expected RED",
+      "log": "inventory.log",
+      "handling": "preserve first result; after producer actual exit, perform canonical readback and coverage in order"
+    },
+    "producer": {
+      "exit": 0,
+      "pass": 51,
+      "fail": 0
+    },
+    "readback": {
+      "exit": 0,
+      "validationErrors": 0,
+      "review4GlobalErrors": 0,
+      "negativeFixtures": "15/15"
+    },
+    "manifestChange": "inventorySha256 only; all986 feature items and original formatting unchanged",
+    "coverage": {
+      "exit": 0,
+      "covered": 986,
+      "missing": 0,
+      "pass": 9,
+      "fail": 0
+    },
+    "sequence": "producer actual exit0 -> readback actual exit0 -> coverage actual exit0",
+    "scope": "test/inventory binding only, not R147 remediation or runtime longrun qualification",
+    "finalInventory": {
+      "exit": 0,
+      "pass": 18,
+      "fail": 0,
+      "reason": "after explicit producer manifest refresh; early hash drift resolved"
+    }
+  },
+  "cleanup": {
+    "fixtureChildren": "macOS child and transition child exit0; Linux children exit0",
+    "fixtureTemporaryRoots": "absent verified in each test output",
+    "linuxContainer": "media-server-r148-focused absent after --rm",
+    "productProcessesOrPortsCreated": 0,
+    "evidenceRoot": "pending remote preservation; final result in148-closure.json"
+  },
+  "preservedHistory": {
+    "R145": "INCOMPLETE",
+    "R146": "PASS_COMPLETION_CONTRACT_FOCUSED",
+    "R147": "INCOMPLETE_45_COLLECTION_FAILURE"
+  },
+  "archive": {
+    "path": "docs/release-artifacts/v4.5.0/148-execution.tar.gz",
+    "bytes": 61879,
+    "sha256": "9ea0db235095c7de554aaf11ab6137dbb3fa6e3452158e3a98c48d738ee70a2b",
+    "members": 19,
+    "manifestPayloads": 18,
+    "originalAndStoredShaSeparated": true,
+    "rawStdout903NotReconstructed": true
+  },
+  "productRuntimeShaUnchangedAfterTests": true,
+  "testCommit": "3917223e0885b26dce7afbdae7196846ad4531dd"
+}
