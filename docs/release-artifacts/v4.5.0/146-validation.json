@@ -1,0 +1,297 @@
+{
+  "schema": "media-server.v450.r146.validation.v1",
+  "decision": "PASS_COMPLETION_CONTRACT_FOCUSED",
+  "baselineHead": "da2d800d82eadb89679457f5b8fd5c29ae64b0c5",
+  "baselineBranch": "v4.5.0",
+  "baselineLocalRemoteMatched": true,
+  "baselineIndexWorktreeClean": true,
+  "model": {
+    "requestedMain": "GPT-6 Astra / High",
+    "mainToolAccepted": null,
+    "actualMainModel": null,
+    "actualMainEffort": null,
+    "requestedIndependent": "GPT-6 Astra / High",
+    "reviewerToolAccepted": "gpt-6-astra / high; existing independent reviewer reused",
+    "actualReviewerModel": null,
+    "actualReviewerEffort": null
+  },
+  "scope": "JS completion consumer and focused diagnostic tests only; no C++ product emitter/wire changes",
+  "rootCause": "event10..13 blanket null identity/positive request rule rejected legitimate RequestMedia background preparation label hash with request0",
+  "contracts": [
+    {
+      "event": "10 preparation",
+      "producer": "RequestMedia destructor -> TracePreparationCompleted -> Emit(Media)",
+      "references": [
+        "visual-index-build",
+        "visual-search-request"
+      ],
+      "referenceSha256": [
+        "1de3dc55653e746bb273ec151bb9f90d0dd42c3e104e796d3bc0db1c72178fd7",
+        "7e3a93e25086ef47fcb1db6b120b0e07ae7930b505afe7e02dab531d2b9dac57"
+      ],
+      "request": "uint32,0 or positive; identity is separate from request tracing",
+      "job": null,
+      "payload": "n=prepared,x=reused (may exceed n),y=peak_bytes; nonnegative safe integers",
+      "source": "src/ingress/visual_search_application_service.cpp:131,140,271,336; src/recording/recording_read_service.cpp:566"
+    },
+    {
+      "event": "10 timeline",
+      "producer": "FinishTimelineWithContext",
+      "reference": null,
+      "job": null,
+      "request": "uint32,0 or positive according to caller",
+      "payload": "n=input_rows,x=unique media<=n,y=0"
+    },
+    {
+      "event": "11 overlap / 12 sort",
+      "producer": "FinishTimelineWithContext",
+      "reference": null,
+      "job": null,
+      "request": "uint32,0 or positive according to caller",
+      "payload": "n=result items,x=0,y=0"
+    },
+    {
+      "event": "13 page",
+      "producer": "FinishTimelineWithContext",
+      "reference": null,
+      "job": null,
+      "request": "uint32,0 or positive according to caller",
+      "payload": "n=page items<=y,x=offset,y=positive query limit"
+    }
+  ],
+  "requestContextEvidence": {
+    "background": "worker encode factory creates RequestMedia visual-index-build; no outer request Scope",
+    "visualSearch": "RequestMedia default visual-search-request; VisualRequestSummary/VisualPhase do not allocate latency.local.request",
+    "timelineHttp": "recording_application_service.cpp:181 Scope(...true,true) assigns request identity",
+    "structuredPlayback": "Search -> WithPlayback -> PlaybackCandidates -> QuerySearchEventTimeline -> QueryTimelineImpl -> FinishTimelineWithContext; no request Scope, thus request0 valid",
+    "thread": "actual Local thread initialized positive; uint32 validation retained; no arbitrary reference/job allowed"
+  },
+  "unchangedEvents": "1–9,14,15 unchanged. Legacy collector exposes explicit loss status; strict completionCollection rejects event14 as incomplete. Receipt requirement belongs to strict collector only.",
+  "fixture": {
+    "baseline": "da2d800d82eadb89679457f5b8fd5c29ae64b0c5",
+    "root": "/private/tmp/media-server-r146-5rjj8084",
+    "uid": 501,
+    "inode": 175665444,
+    "fixtureSourceArchive": "145-execution.tar.gz",
+    "member": "server-diagnostic-raw.jsonl",
+    "rowBytes": 217,
+    "rowSha256": "046dade16275ed144542971403163f5ba2df45a2ea8b255c6d0042038425e30d",
+    "fixtureSha256": "b01e2ea1b1c56799db0fbf38d69fe95c8a721c708708a1cb7b6f5cecbdbea455"
+  },
+  "replay": {
+    "scope": "R145 preserved bytes post-analysis only; no R145 execution reclassification",
+    "validator": {
+      "v": 1,
+      "event": 10,
+      "begin": "4682000418",
+      "end": "4881844460",
+      "thread": 2,
+      "request": 0,
+      "reference": "1de3dc55653e746bb273ec151bb9f90d0dd42c3e104e796d3bc0db1c72178fd7",
+      "job": null,
+      "n": 1,
+      "x": 0,
+      "y": 23336
+    },
+    "legacy": {
+      "status": "observed",
+      "code": "none",
+      "rows": 1,
+      "bytes": 217
+    },
+    "strict": {
+      "status": "captured",
+      "rows": 1,
+      "bytes": 217,
+      "receipt": {
+        "v": 1,
+        "rows": 1,
+        "bytes": 217,
+        "lost": false,
+        "writeError": false,
+        "complete": true
+      }
+    }
+  },
+  "tests": {
+    "expectedRed": {
+      "exit": 1,
+      "tests": 7,
+      "pass": 4,
+      "fail": 3,
+      "reason": "actual R145 / fixed preparation / unscoped timeline legitimate forms rejected by original validator"
+    },
+    "macOS": {
+      "focused": {
+        "tests": 7,
+        "pass": 7,
+        "exit": 0
+      },
+      "existingImpact": {
+        "tests": 11,
+        "pass": 11,
+        "exit": 0,
+        "includes": "LP22/LP26/R110; receipt native8 modes; longrun progress82 assertions (no actual longrun)"
+      }
+    },
+    "Linux": {
+      "first": {
+        "exit": 1,
+        "tests": 18,
+        "pass": 13,
+        "fail": 5,
+        "cause": "native temporary binaries blocked by tmpfs noexec; status null, direct diagnostic EACCES; not product/contract failure"
+      },
+      "final": {
+        "exit": 0,
+        "tests": 18,
+        "pass": 18,
+        "image": "mediaserver-v450-verify:rc58-arm64 existing",
+        "user": "65534:65534",
+        "network": "none",
+        "rootFilesystem": "read-only",
+        "repository": "read-only",
+        "capabilities": "ALL dropped; no-new-privileges",
+        "tmpfs": "128MiB rw,exec,nosuid,nodev; no limits raised",
+        "adjustment": "explicit tmpfs exec only; retained first failure and direct mount diagnostic"
+      }
+    }
+  },
+  "negativeCoverage": [
+    "hash format/unknown label/job",
+    "11–13 forbidden reference/job",
+    "zero/unsafe thread, negative/uint32-overflow request",
+    "negative/unsafe/fractional payload",
+    "timeline payload contradictions",
+    "time reversal/extra/missing fields",
+    "malformed JSON/UTF8/partial row",
+    "event14 loss/invalid15",
+    "missing/mismatched/late receipt",
+    "completion byte/row cap",
+    "process log4MiB cap; native short-write/flush/exception/abnormal/late loss"
+  ],
+  "binary": {
+    "build-gst-onnx/media_server": {
+      "bytes": 38000080,
+      "sha256": "33f516d35d56cb2f6cafc75647b6c37d2ced67115302d1205cca23bf51ab7f79"
+    },
+    "build-gst-onnx/libmedia_server_runtime.a": {
+      "bytes": 113126688,
+      "sha256": "2d91cf35fe7e805e0c06e00d16779c86849b35db635e087582277e1b676d198c"
+    }
+  },
+  "productRuntimeShaUnchanged": true,
+  "productExecutions": 0,
+  "launcherExecutions": 0,
+  "longRuns": "600/900/45/120 NOT_RUN",
+  "evidenceAWorkload": "NOT_RUN",
+  "memoryP0": "HOLD",
+  "readiness45": "first completion-contract blocker only; R145 missing-probe and actual45 collection/function qualification remain unverified; new run requires separate approval",
+  "release": "HOLD",
+  "historicalR145": "INCOMPLETE_45_COLLECTION_STARTUP_FAILURE unchanged; replay captured is not retroactive execution PASS",
+  "independentReview": "146-independent-review.json: PASS, read-only new judgment",
+  "binding": {
+    "producer": {
+      "exit": 0,
+      "pass": 51,
+      "fail": 0
+    },
+    "readback": {
+      "exit": 0,
+      "validationErrors": 0,
+      "negativeFixtures": "15/15"
+    },
+    "coverage": {
+      "exit": 0,
+      "covered": 986,
+      "missing": 0,
+      "pass": 9,
+      "fail": 0
+    },
+    "sequence": "producer actual exit0 -> final readback actual exit0 -> coverage",
+    "prematureReadback": {
+      "exit": 143,
+      "excludedFromQualification": true,
+      "cause": "main started readback after intermediate51PASS text, before producer manifest apply completed; stopped owned readback and retained log before running ordered final checks"
+    },
+    "manifestChange": "inventorySha256 only; all986 items and original formatting preserved",
+    "scope": "source/inventory binding, not runtime/performance proof"
+  },
+  "cleanup": "pending remote preservation",
+  "sourceBinding": [
+    {
+      "path": "scripts/internal/recording_completion_trace.mjs",
+      "bytes": 8890,
+      "sha256": "82aaed56bcc2e01f4ee91bc72ee3aacea3d541a2dde15a7f25d2fdeb610a2453"
+    },
+    {
+      "path": "scripts/internal/recording_completion_contract.test.mjs",
+      "bytes": 5543,
+      "sha256": "819c4ded485e737b404df04274bfed210f2a027845dc69746a27441049ef2788"
+    },
+    {
+      "path": "scripts/internal/recording_completion_collection.test.mjs",
+      "bytes": 5620,
+      "sha256": "760e6a009754a7ffaa7c66740dcf0858827f4e95bed094e3d1cf0e53a80c33fd"
+    },
+    {
+      "path": "scripts/internal/recording_completion_receipt_smoke.cpp",
+      "bytes": 1286,
+      "sha256": "e4b035fa1b8685aa535b26910f3ad6efdd574de9f780b2cb3ea205cfd034f378"
+    },
+    {
+      "path": "test/fixtures/recording_completion_r145.jsonl",
+      "bytes": 321,
+      "sha256": "b01e2ea1b1c56799db0fbf38d69fe95c8a721c708708a1cb7b6f5cecbdbea455"
+    },
+    {
+      "path": "docs/project-feature-test-inventory.md",
+      "bytes": 1085004,
+      "sha256": "bde77613ab6584a0d77677d382ae51ff713b85275c0d59566960c16d921e92e5"
+    },
+    {
+      "path": "test/fixtures/project_feature_implementation_evidence.json",
+      "bytes": 26350232,
+      "sha256": "cc9b329da8ef8ae18b98b4d83c3e95c51ad668520675f01cc16f9f062754163d"
+    },
+    {
+      "path": "include/recording/recording_completion_trace.h",
+      "bytes": 5877,
+      "sha256": "5ef9eda8a3787b6ff7b54c18f43d71ace5a87b57856e6146010e47bd3f9c3ba4"
+    },
+    {
+      "path": "src/recording/recording_read_service.cpp",
+      "bytes": 47467,
+      "sha256": "93eecb3ddd4b0ecd46bbc8ffcdbc5da02e5aa1e546c3dd53f7b0dd36a401ab48"
+    },
+    {
+      "path": "src/ingress/visual_search_application_service.cpp",
+      "bytes": 34785,
+      "sha256": "04bef8cdc15a67b0cb44d62c8a95163d9f71e7c672b65acfbe0013500b45589e"
+    },
+    {
+      "path": "src/recording/recording_search_reader.cpp",
+      "bytes": 43752,
+      "sha256": "83f8aa82999ef07f97e6eb00b0e92de93a60b231e0f96714034f5ef644da5c07"
+    },
+    {
+      "path": "src/ingress/recording_search_application_service.cpp",
+      "bytes": 20583,
+      "sha256": "a618c7726e441ed3aeeb369d9ea9337672499138f73dc864508521f8dfcefef1"
+    },
+    {
+      "path": "src/ingress/recording_application_service.cpp",
+      "bytes": 16332,
+      "sha256": "ff5e527fd3797458bde15254b007cb84031383a1f5f1455a86ed06bb9812e6d8"
+    }
+  ],
+  "preservation": {
+    "archive": "146-execution.tar.gz",
+    "bytes": 22316,
+    "sha256": "7c352a219375d0c0260384c20aab31d22b8156c75e12f6255ecf2d57f8cd1196",
+    "members": 30,
+    "readback": "every member byte-equal to selected payload",
+    "originalVsSanitized": "manifest records original and sanitized hashes; R145 exact fixture unchanged"
+  },
+  "consumerTestCommit": "964a37b2b07758f0cf56651f13f24ba939755261"
+}
