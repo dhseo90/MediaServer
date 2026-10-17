@@ -73,6 +73,9 @@ def generate(out):
         if name.endswith('recording_search_application_service.cpp'):
             from recording_http_currentness_overlay import search
             s=search(s)
+        from recording_http_hold_overlay import catalog as hold_catalog, read as hold_read
+        if name.endswith('recording_catalog.cpp'):s=hold_catalog(s)
+        if name.endswith('recording_read_service.cpp'):s=hold_read(s)
         path=out/Path(name).name;path.write_text('#include "recording_http_currentness_probe.h"\n'+s)
         result[name]={'originalSha256':hashlib.sha256(raw.encode()).hexdigest(),'overlaySha256':hashlib.sha256(path.read_bytes()).hexdigest(),'overlay':path.name}
     return result

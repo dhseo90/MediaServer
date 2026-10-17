@@ -2,6 +2,7 @@
 // R156 only: fixed TLS aggregation; no product types/layout/ownership changes.
 #include "recording_http_cost_probe.h"
 #include <exception>
+#include "recording_http_hold_probe.h"
 namespace r156 {
 using U=r154::U;
 enum Stage {ResponseAdmission,JsonInitialization,AvailabilityKey,AvailabilityCache,MediaResolve,FallbackResolve,DeletedState,ItemSerialization,ResponseTail,AuthorizationRecheck,JsonTake,DeletedIdCheck,SegmentLookup,EventLinkLookup,MediaHoldAcquire,ContainedMediaOpen,PhysicalInspection,MediaCurrentValidation,MediaObjectRelease,StageCount};
@@ -24,15 +25,15 @@ template<class F> auto Inspect(U budget,F&& f)->decltype(f()){
  if(active){if(active->samples>=active->inspections.size())r154::Latch(157);else active->inspections[active->samples++]={begin,end,budget,static_cast<U>(result.state),result.detail.find("timeout")!=std::string::npos||result.detail.find("deadline")!=std::string::npos?1ULL:0ULL};}return result;
 }
 struct Currentness {
- Record record;Record* prior;Phase* priorTop;int exceptions=std::uncaught_exceptions();
- Currentness():prior(active),priorTop(top){record.id=r154::active?r154::active->id:0;record.begin=r154::Tick();if(prior||!record.id)r154::Latch(156);active=&record;top=nullptr;}
- ~Currentness(){if(std::uncaught_exceptions()!=exceptions)record.complete=false;record.end=r154::Tick();if(record.depth||top)r154::Latch(156);active=prior;top=priorTop;r154::FlushLoss();char b[24576];int n=std::snprintf(b,sizeof(b),"[R156-currentness] {\"schema\":1,\"id\":%u,\"method\":\"GET\",\"routeClass\":\"structured-search\",\"begin\":%llu,\"end\":%llu,\"complete\":%s,\"loss\":%s,\"metrics\":[",record.id,(unsigned long long)record.begin,(unsigned long long)record.end,record.complete?"true":"false",r154::loss?"true":"false");
+ r157::Window hold;Record record;Record* prior;Phase* priorTop;int exceptions=std::uncaught_exceptions();
+ Currentness():prior(active),priorTop(top){record.id=r154::active?r154::active->id:0;record.begin=r154::Tick();if(prior||!record.id)r154::Latch(156);active=&record;top=nullptr;hold.Start(record.id);}
+ ~Currentness(){if(std::uncaught_exceptions()!=exceptions)record.complete=false;hold.End(record.complete);record.end=r154::Tick();if(record.depth||top)r154::Latch(156);active=prior;top=priorTop;r154::FlushLoss();char b[24576];int n=std::snprintf(b,sizeof(b),"[R156-currentness] {\"schema\":1,\"id\":%u,\"method\":\"GET\",\"routeClass\":\"structured-search\",\"begin\":%llu,\"end\":%llu,\"complete\":%s,\"loss\":%s,\"metrics\":[",record.id,(unsigned long long)record.begin,(unsigned long long)record.end,record.complete?"true":"false",r154::loss?"true":"false");
  for(unsigned i=0;i<StageCount&&n>0&&n<int(sizeof(b));++i)n+=std::snprintf(b+n,sizeof(b)-n,"%s[%llu,%llu,%llu]",i?",":"",(unsigned long long)record.calls[i],(unsigned long long)record.inclusive[i],(unsigned long long)record.self[i]);
  if(n>0&&n<int(sizeof(b)))n+=std::snprintf(b+n,sizeof(b)-n,"],\"counts\":[");
  for(unsigned i=0;i<CounterCount&&n>0&&n<int(sizeof(b));++i)n+=std::snprintf(b+n,sizeof(b)-n,"%s%llu",i?",":"",(unsigned long long)record.counts[i]);
  if(n>0&&n<int(sizeof(b)))n+=std::snprintf(b+n,sizeof(b)-n,"],\"inspections\":[");
  for(unsigned i=0;i<record.samples&&n>0&&n<int(sizeof(b));++i){const auto& s=record.inspections[i];n+=std::snprintf(b+n,sizeof(b)-n,"%s[%llu,%llu,%llu,%llu,%llu]",i?",":"",(unsigned long long)s.begin,(unsigned long long)s.end,(unsigned long long)s.budgetMs,(unsigned long long)s.state,(unsigned long long)s.timeout);}
- if(n>0&&n+4<int(sizeof(b))){std::memcpy(b+n,"]}\n",3);r154::Write(b,n+3);}else r154::Lose(158);
+ if(n>0&&n+4<int(sizeof(b))){std::memcpy(b+n,"]}\n",3);r154::Write(b,n+3);}else r154::Lose(158);hold.Emit();
  }
 };
 }
