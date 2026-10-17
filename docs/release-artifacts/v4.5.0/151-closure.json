@@ -1,6 +1,6 @@
 {
   "schema": "media-server.v450.r151.closure.v1",
-  "status": "PRESERVATION_PENDING",
+  "status": "REMOTE_BYTES_VERIFIED_NO_EXPERIMENT_RESOURCES",
   "decision": "BLOCKED_BOUNDED_FIXTURE",
   "baselineHead": "9eeb94b65ab86979f85624b575f043820e170358",
   "scope": "실행 전 fixture 적격성 차단 기록만 보존",
@@ -13,7 +13,34 @@
     "compiles": 0,
     "boundedCycles": 0
   },
-  "remoteVerification": null,
+  "remoteVerification": {
+    "preservationCommit": "150faa1848b35b6a4ca8c8ed1796a5fec884f29b",
+    "remoteHead": "150faa1848b35b6a4ca8c8ed1796a5fec884f29b",
+    "method": "actual origin branch SHA plus GitHub Git blobs API decoded bytes bound to commit tree",
+    "files": [
+      {
+        "path": "docs/release-artifacts/v4.5.0/151-validation.json",
+        "gitBlob": "7b53c11aea636a16c768788ef465595ef590df71",
+        "bytes": 12496,
+        "sha256": "efc297ccdef95ed3606d11a4b603d2f896c124fa1e34a0ade3863dcfffc6f697",
+        "remoteBytesEqualLocal": true
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/151-independent-review.json",
+        "gitBlob": "8301e7f7e6cb2a8a55e2e150613b379571a44ef6",
+        "bytes": 2360,
+        "sha256": "79ad64525b83aff954f760b59ba985d416fad5da48495b73cfa15f2b2c90a9a7",
+        "remoteBytesEqualLocal": true
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/151-closure.json",
+        "gitBlob": "98614eaddd770c6d77f711ae059d9dbcff5e0370",
+        "bytes": 1505,
+        "sha256": "3d8cde619655ae14c43203f9541a654a67dffeeccf0f0a42d74858e8433c4d69",
+        "remoteBytesEqualLocal": true
+      }
+    ]
+  },
   "cleanup": {
     "fixtureRootsCreated": 0,
     "ownedProductProcesses": 0,
@@ -40,5 +67,5 @@
     "git diff --check",
     "independent read-only fixture and record review"
   ],
-  "finalVerification": "원격 보존과 실제 bytes 검증은 아직 미완료; 이후 closure 갱신 및 최종 원격 HEAD/readback 결과로 구분"
+  "finalVerification": "이 closure 갱신은 별도 commit/push 후 원격 blob bytes와 최종 local/remote HEAD를 재확인한다. self hash는 문서에 순환 기록하지 않고 최종 응답에서 확인 결과를 보고한다."
 }
