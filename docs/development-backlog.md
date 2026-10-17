@@ -17,6 +17,8 @@
 
 ## v4.5.0 잔여 개발과 릴리즈 순서
 
+[139 장시간 메모리 진입 사전 검증](release-artifacts/v4.5.0/139-validation.json)은 **HOLD_45_INSUFFICIENT_EVIDENCE**다. 제품·자원 수명 변경 없이45분 모드에 site/allocator 관측을 연결하고, 중간 owner 누락·필수 자료 부재·잘린 출력이 실패로 전파되도록 보완했다. 합성580표본과 오류 반례는 통과했으나 대표 로그 예상3,456,040B는 삭제 구간·소유자 수/숫자폭 증가의 상한 증명이 아니다. 기존4MiB cap에서 안전하게 중단되는 것과45분 필수 자료 확보 적격성을 구분한다. [독립 검토](release-artifacts/v4.5.0/139-independent-review.json)도 같은 판단이며, 다음은 **제품 실행 없이 owner 수·counter 숫자폭·삭제 단계 로그의 한정 예산 근거 보완**이다. 추가 Evidence Create·600/900/45/120은 실행하지 않았고 R138 한정 귀속·기존 기능 PASS와 메모리P0/출시 HOLD는 유지한다.
+
 [138 미귀속 예약 직접 진단](release-artifacts/v4.5.0/138-validation.json)은 **ATTRIBUTION_SOURCE_IDENTIFIED(유력 callsite·수명 한정)**다. 증거 이미지 추출의 기존132,808,915B 예약을 실제 writer/Extract에서 유지·결과 split·마지막 해제까지 재현했다. 실제160×90 RGB43,200B와 예약은 다르며, 두 caller의8MiB씩을 합친149,586,131B는 소스상 설명이지 그 세 예약의 동시 실측이 아니다. R137의15ticket 전체와 잔여496,340B는 미확정이다. History raw/visitor 소유, 고정 ticket witness와 macOS malloc 통계·비특권 Linux 영향 회귀를 확인했고, 특정 owner 결함은 확인하지 못했다.
 
 새 진단은 기존 category/640MiB·수식·Reservation24B·수명을 유지한다. domain당 고정 메타데이터4,880B 증분은 workload 예약과 별도다. malloc in-use의1MiB 증가/해제 복귀는 확인했으나 전체 heap·RSS 귀속이나 persistent growth의 판정은 아니다. [독립 검토](release-artifacts/v4.5.0/138-independent-review.json)와 한계를 보존한다. R135/R136/R137 기능 PASS와 R137 memory HOLD는 유지하며, **메모리P0·45분/120분·출시 HOLD**다. 다음은 필요 시 단일 실제 증거 요청의 동시 ticket 결속과 고정 자료량/마지막 owner 경계의 live allocation 관측이며, 장시간은 별도 승인 없이 실행하지 않는다. 원격 증거 bytes와 소유 시험자료 정리는 [138 closure](release-artifacts/v4.5.0/138-closure.json)로 확인한다.

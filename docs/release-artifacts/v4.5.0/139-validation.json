@@ -1,0 +1,357 @@
+{
+  "schema": "media-server.v450.r139.validation.v1",
+  "status": "HOLD_45_INSUFFICIENT_EVIDENCE",
+  "collectionPreparation": "FOCUSED_PASS",
+  "confirmedSafetyBlocker": false,
+  "baseline": "2bf2c88203dd812b3152b5dc02ee6529ba4807f0",
+  "functionalProductBase": "c438911431c631d239580367eee4a2c7e22045de",
+  "models": {
+    "requestedMain": {
+      "model": "gpt-6-astra",
+      "effort": "high"
+    },
+    "mainToolAcceptance": null,
+    "mainActualRuntimeModel": null,
+    "mainActualRuntimeEffort": null,
+    "requestedReviewer": {
+      "model": "gpt-6-astra",
+      "effort": "high"
+    },
+    "reviewer": "/root/independent_r135",
+    "reviewerNewToolAcceptance": null,
+    "reviewerActualRuntimeModel": null,
+    "reviewerActualRuntimeEffort": null
+  },
+  "bindingSource": {
+    "head": "2bf2c88203dd812b3152b5dc02ee6529ba4807f0",
+    "tree": "8ec4ea11c8066ad6ede07e1bba061d1f133dbdf9",
+    "branch": "v4.5.0",
+    "sourceFingerprint": {
+      "algorithm": "sorted src/include path + NUL + SHA256 bytes",
+      "files": 402,
+      "sha256": "8813a6b0276d2b89b15e8c64618e19923463142d73ebecf7c34806b82716dc1e"
+    },
+    "artifacts": {
+      "build-gst-onnx/media_server": {
+        "bytes": 37996528,
+        "sha256": "44212bf0f988456f6b2b25bb4e04f6c065b8461c5c640dffa132fc23343ce93c"
+      },
+      "build-gst-onnx/libmedia_server_runtime.a": {
+        "bytes": 113117768,
+        "sha256": "2c8c5a8461ea0f8438364f8b084b7919af532fc9c331bcfde5b0f14ad484c0af"
+      },
+      "build-gst-onnx/CMakeFiles/media_server_runtime.dir/flags.make": {
+        "bytes": 2372,
+        "sha256": "596a03ca54d4db831f4b22b080cc94613945accdbbc2c0d5378c7141f43b34bc"
+      },
+      "build-gst-onnx/CMakeFiles/media_server.dir/link.txt": {
+        "bytes": 1720,
+        "sha256": "e5d847bb5c30bf754978ae78d6ae143d1382181d99ea3f0681443b9692ec1724"
+      }
+    }
+  },
+  "ownershipAndObservation": {
+    "reuse": {
+      "R135": "warm/cold direct PASS unchanged scope",
+      "R136": "functional900 PASS unchanged scope",
+      "R137": "functional600 PASS; HOLD_ATTRIBUTION_INSUFFICIENT",
+      "R138": "ATTRIBUTION_SOURCE_IDENTIFIED likely image reservation/lifetime only"
+    },
+    "image": {
+      "directReservation": 132808915,
+      "rgbBytes": 43200,
+      "resultReservationMac": 11400,
+      "lastRelease": 0,
+      "twoCallersSourceOnly": [
+        8388608,
+        8388608
+      ],
+      "sourceDerivedSum": 149586131,
+      "historicalR137Tickets": 15,
+      "historicalUnassignedDifference": 496340,
+      "historicalExactComposition": "unknown"
+    },
+    "evidenceCreate": {
+      "executions": 0,
+      "reason": "R138 actual Extract normal/cancel/admission rejection and source lifetime audit suffice for bounded diagnostic entry. Exact historical simultaneous triple is not a new prerequisite. New combined public request not claimed."
+    },
+    "ownerRisk": {
+      "shortOwners": [
+        "image working memory until result split/return",
+        "package local/manifest owner",
+        "response memory moves into ApplicationServiceResult then HTTP response last owner"
+      ],
+      "longerOwners": [
+        "Catalog fixed search invalidation state",
+        "Journal generation refs/History owned rows until last reader",
+        "retention cut held until pass/last reader",
+        "A input/tasks until bounded eviction/cancel/Stop",
+        "current/previous models and snapshots until last owner"
+      ],
+      "assessment": "No new owner defect identified; not all Unattributed is temporary. Compare live categories/sites and last-owner boundaries after real deletion. No claim to identify496340B."
+    },
+    "timeline": {
+      "clock": "product steady_clock nanoseconds and node process.hrtime.bigint; store each capture boundary and skew, do not atomically combine sequential reads",
+      "progress": "current-observation same cycle: finalized/deleted per channel, retained finalized-minus-deleted in observed prefix; root-storage classified media/ledger/evidence/A bytes and counts",
+      "catalog": "tickets.catalogRow/retainedRaw/sourceCut live bytes, live SourceCutRows; external identityBytes/combinedLogicalIds/Bytes are observer costs not live product Catalog row count",
+      "history": "site JournalIdentity/Proof/HistoryRaw/Visitor/Generation numeric live/peak; raw/order identity complete product count not emitted; fixed current Catalog invalidation is Unspecified; no invented complete mapping",
+      "models": "models active unique identity/bytes/docs/current/snapshotrefs; snapshotPools entries/matches/uniqueModels/bytes/expiry; totals expiry/eviction/create/destroy; shared references not added twice",
+      "visual": "totals current/retired bytes/docs/references and capture time; not every transient generation",
+      "allocator": "supported/called all malloc zones size_in_use/size_allocated/blocks; HWM0 unusable; nonmalloc excluded; no success return from void API",
+      "process": "RSS/footprint plus external FD/anonymous/workspace; not SearchResidency limit equivalents",
+      "recorder": "state mode has bounded deliveryLoss64/writer + preserved file source binding and finalization gaps. Subcost off means no full enqueued/dequeued/accepted callback totals, do not report drop0",
+      "finish": "nearest owner at disable has age; exact emitted beforeFinish/afterFinish/afterStorage phase records differ. Process OS reclaim not product release proof"
+    },
+    "analysisPlan": {
+      "binsSeconds": [
+        [
+          0,
+          300
+        ],
+        [
+          300,
+          900
+        ],
+        [
+          900,
+          1500
+        ],
+        [
+          1500,
+          2100
+        ],
+        [
+          2100,
+          2700
+        ]
+      ],
+      "perBin": "count/first/last/min/max of actual same-clock fields; first actual durable deletion before/after separately; do not treat order chunks as wall-clock bins",
+      "missing": "null/unmeasured, never0; ring events potentially overwritten, cumulative counters separate",
+      "causality": "correlation alone insufficient; no extrapolation of R137 RSS, no purge; compare active data stability, model owners and allocated vs in-use. Growth before deletion not convergence evidence."
+    },
+    "overhead": {
+      "productSource": "unchanged fromR138; fixed diagnosticState +4880/domain already acknowledged; collector holds lastrow/onependingpair and boundedcarry only",
+      "locks": "ledger snapshot lock ends before role snapshot lock ends before proc query/malloc_zone_statistics; no added Catalog/Journal lock. Allocator internals and existing diagnostic mutex contention nonzero",
+      "R138MacAllocatorCallNs": [
+        63500,
+        55084,
+        62167,
+        80333,
+        70709
+      ],
+      "latency": "no performance execution now; existing45 p95<=2s/max<=5s and request/error gates remain applicable; diagnostic cost cannot excuse functional failure"
+    },
+    "platform": {
+      "macOS": "new JS collector/preflight focused; R138 unchanged native ticket57/attribution42/cursor53/visual61/resource trace reused",
+      "Linux": "New shared JS tests bothPASS in existing ce72c8a image uid501:20,networknone,readonly,capdropALL/no-new-privileges. R138 native evidence reused; no product/native C++ changes or new inference claim."
+    },
+    "newExecutions": {
+      "product": 0,
+      "longrun": 0,
+      "authenticatedEvidenceCreate": 0
+    },
+    "expectedFailureTest": {
+      "child": "one malformed collector with existing run_owned, exit1/FAIL and process groups absent",
+      "harnessError": "post-run assertion used nonexistent exitCode/ passed receipt keys, KeyError; preserved receipt re-read using actual exit/status keys without rerunning child; not product failure or retroactive rerun PASS"
+    }
+  },
+  "changeScope": {
+    "productSourceChanged": false,
+    "productBuilt": false,
+    "testOnly": [
+      "state-diagnostic memoryObserve env/collector/cycles/disable/Finish wiring",
+      "strict resource seq/phase pairing and mandatory site witness/mac allocator",
+      "15s existing freshness boundary and failure propagation",
+      "bounded unrelated line fragment handling",
+      "synthetic preflight tests and inventory"
+    ],
+    "unchanged": [
+      "2700s observation/2880s total",
+      "continuous-r114,108MiB/channel,S=P71237",
+      "640MiB shared RAM,448MiB live workspace",
+      "5s product sampling,16KiB line,1600records,4MiB process log",
+      "state deletion required and p95<=2000/max<=5000/normal gates",
+      "state holder/subcost off; workload/settings/source policies unchanged"
+    ]
+  },
+  "logBudget": {
+    "basis": "R137 actual600 log + actual R138 largest witness, state-only disabled source guards; estimate not45execution or simultaneous vector",
+    "observed137Bytes": 742158,
+    "actual137MemoryRows": 124,
+    "actual137OwnerMaxBytes": 2553,
+    "actual138MaxWitnessBytes": 1188,
+    "combinedRepresentativeMaxBytes": 3758,
+    "numericWidthScenarioMaxBytes": 5093,
+    "maxRowsFor2880Seconds": 580,
+    "recordCap": 16384,
+    "collectorSampleCap": 1600,
+    "projectedOtherLogBytes": 1276400,
+    "projectedByPrefix": {
+      "[env]": 303,
+      "run": 101,
+      "listen:": 250,
+      "ops:": 111,
+      "client:": 125,
+      "file": 432,
+      "default": 576,
+      "stop:": 63,
+      "[recording-resource]": 222548,
+      "media-server": 135,
+      "recording": 634,
+      "[gst]": 2031,
+      "[visual-frame]": 17688,
+      "[recording-completion]": 581645,
+      "[recording-state]": 3836,
+      "[visual-request-probe]": 120,
+      "[search-failure-probe]": 240,
+      "[search-request-cost]": 115712,
+      "[visual-preparation]": 46220,
+      "[visual-request]": 252010,
+      "[recorder-cost]": 3562,
+      "[writer-cost]": 13608,
+      "[R119-index-failure]": 303,
+      "[R129-index-failure-binding]": 864,
+      "[visual-request-end]": 245,
+      "[recording-latency]": 11136,
+      "[recording-slow-summary]": 365,
+      "[recording-complete-summary]": 744,
+      "gstreamer": 168,
+      "webrtc": 154,
+      "ops": 149,
+      "client": 149,
+      "running...": 173
+    },
+    "disabledByModeObservedBytes": {
+      "[R119-admission]": 15200,
+      "[R131-periodic]": 15285,
+      "[search-capture-cost]": 3467,
+      "[recording-completion]": 86381,
+      "[catalog-subcost-basis]": 91,
+      "[catalog-holder-end]": 232
+    },
+    "projectedTotalBytes": 3456040,
+    "numericWidthScenarioTotalBytes": 4230340,
+    "capBytes": 4194304,
+    "representativeMarginBytes": 738264,
+    "widthScenarioMarginBytes": -36036,
+    "completionProjectedRows": 3120,
+    "completionCapRows": 4095,
+    "notBound": "Future owner counts, numeric widths and deletion output are not bounded by these observations. 580*16KiB exceeds4MiB. Safe cap failure is verified;45min collection eligibility remains unconfirmed/HOLD."
+  },
+  "focused": {
+    "commands": [
+      {
+        "command": "node scripts/internal/recording_memory_attribution.test.mjs",
+        "log": "logs/collector-existing.log",
+        "exit": 0
+      },
+      {
+        "command": "node scripts/internal/recording_memory_state_preflight.test.mjs",
+        "log": "logs/state-preflight.log",
+        "exit": 0
+      },
+      {
+        "command": "existing run_owned: node invalid memory collector once",
+        "log": "logs/expected-collector-failure.log",
+        "childExit": 1,
+        "expectedWrapper": "FAIL",
+        "receipt": "analysis/failure-propagation.json",
+        "harnessError": "KeyError exitCode after receipt written; saved actual exit/status validated; no child rerun"
+      },
+      {
+        "command": "docker run existing ce72c8a image, uid501:20, networknone, readonly,capdropALL,no-new-privileges; same2node tests",
+        "log": "logs/linux-collector.log",
+        "exit": 0
+      },
+      {
+        "command": "node --check scripts/internal/v450_recording_a_mixed.mjs",
+        "exit": 0
+      },
+      {
+        "command": "git diff --check",
+        "exit": 0
+      }
+    ],
+    "host": "macOS-27.0.1-arm64-arm-64bit-Mach-O",
+    "node": "v24.13.0",
+    "productExecutions": 0,
+    "longrunExecutions": 0
+  },
+  "failurePropagation": {
+    "status": "FAIL",
+    "childExit": 1,
+    "exit": 1,
+    "executionElapsedSeconds": 0.045774666825309396,
+    "elapsedSeconds": 0.04582483391277492,
+    "timeoutSeconds": 10,
+    "timedOut": false,
+    "interruptedSignals": [],
+    "residualGroupAfterCommand": false,
+    "cleanupSignals": [],
+    "processGroupAbsent": true,
+    "cleanupErrors": [],
+    "cleanupOnlySeconds": 9.37492586672306e-06,
+    "registeredGroupsAbsent": true,
+    "residualRegisteredGroups": false,
+    "registeredGroupSignals": [],
+    "registeredGroupCleanupSeconds": 6.082933396100998e-06,
+    "finishedAt": "2026-10-17T02:49:03.893626+00:00"
+  },
+  "remaining": {
+    "readiness45": "Need source-bounded owner-count/counter-width/deletion-output envelope, not only representative600 scaling. Numeric-width sensitivity is not actual inevitable overflow. Safe fail-closed collection is verified separately.",
+    "memoryP0": "HOLD; heap attribution/RSS growth/real deletion stability not established",
+    "minimumNext": "Read-only source budget analysis of bounded live models/sites and deletion logs; independent reconsideration. No cap increase or required-record omission. Separate execution approval still required.",
+    "execution45": false,
+    "execution600": false,
+    "execution900": false,
+    "execution120": false,
+    "release": "HOLD"
+  },
+  "independentReview": "139-independent-review.json",
+  "binding": {
+    "order": [
+      "producer",
+      "readback",
+      "coverage"
+    ],
+    "exitCodes": [
+      0,
+      0,
+      0
+    ],
+    "producer": {
+      "pass": 51,
+      "fail": 0
+    },
+    "readback": {
+      "validationErrors": 0,
+      "review4GlobalErrors": 0,
+      "negativeFixtures": "15/15"
+    },
+    "coverage": {
+      "covered": 986,
+      "missing": 0,
+      "pass": 9,
+      "fail": 0
+    },
+    "manifest": "inventorySha256 only; all986 items unchanged; JSON formatting preserved",
+    "runtimeQualification": false,
+    "logs": {
+      "producer": "d044f8ac77f4e3e0a7ee0672c9d63381151b9f522393a0aa536f910913ef258f",
+      "readback": "f004e8a145e0b287322992e5f2f9c356c12a495834505e9ea79a414fd1f6b6f7",
+      "coverage": "f3dd9d2ec3cd35ce7a806a391b6918dddd2c2377ca3039afa624f484985f9bce"
+    }
+  },
+  "preservation": {
+    "archive": "139-execution.tar.gz",
+    "bytes": 34909,
+    "sha256": "b6e61b87ed26847124285d6fb4016b83c52644048ac5ea0e5203cbbdfbb44cae",
+    "payloadFiles": 20,
+    "allMemberBytesVerified": true,
+    "sanitizedFiles": 1,
+    "rawVsSanitized": "rawSHA/size preserved in manifest; private local paths removed from remote payload, not claimed identical bytes",
+    "excluded": "existing original R137/R138 archives, settings/private backup/models/SDK/binaries"
+  },
+  "cleanup": "pending remote byte verification",
+  "diagnosticCommit": "79257d22614821f676604cf9194f348a101045c6"
+}
