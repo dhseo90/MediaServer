@@ -239,10 +239,47 @@
   },
   "cleanup": {
     "ownedRoot": "/private/tmp/media-server-r165-work",
-    "remotePreservation": "PENDING",
-    "rootRemoval": "PENDING",
+    "remotePreservation": {
+      "remoteHead": "720fdbcc89848670aefdbf86afaca00ab48fdfcf",
+      "files": [
+        {
+          "path": "docs/project-feature-test-inventory.md",
+          "bytes": 1096982,
+          "sha256": "811cecc7dac024522f340bf130f999edf1c72fa776730e7d65d5c75ca3248f95"
+        },
+        {
+          "path": "docs/release-artifacts/v4.5.0/165-validation.json",
+          "bytes": 69844,
+          "sha256": "0deae1dffa011e532951919663666e4eca452aa46c2c42a724e5beaf30e9a398"
+        },
+        {
+          "path": "scripts/internal/recording_accumulated_cost.mjs",
+          "bytes": 3638,
+          "sha256": "70daa1b861ea71598c168b55597935013b35beb2335982c4af9cd8409a2c6b6e"
+        },
+        {
+          "path": "scripts/internal/recording_accumulated_cost.py",
+          "bytes": 13763,
+          "sha256": "7de4219c19f04e77600843a5896f9d246d4289136f7c0d0716e6fad17eedb607"
+        },
+        {
+          "path": "scripts/internal/recording_accumulated_cost.test.mjs",
+          "bytes": 4753,
+          "sha256": "c9dd111d7e5274303e144ee6530be98448068bfc51df8c99fa562c0a1989ee16"
+        }
+      ],
+      "allBytesEqual": true
+    },
+    "rootRemoval": "COMPLETE",
     "focusedGroupsAbsent": true,
-    "httpListener": "Start failed; process exited, no surviving server claimed"
+    "httpListener": "Start failed; process exited, no surviving server claimed",
+    "ownedProcessesAbsent": true,
+    "openFilesAbsent": true,
+    "observedListener": "No owned process survives; direct portClosed assertion was NOT_RUN because HTTP Start failed",
+    "deletedFiles": 77,
+    "deletedBytes": 141871869,
+    "rootAbsent": true,
+    "processInspectionPermission": "ps required escalated read-only inspection; initial sandbox denial did not authorize deletion before verification"
   },
   "historical": {
     "R149Functional45": "FAIL",
