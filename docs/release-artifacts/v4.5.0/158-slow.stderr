@@ -1,0 +1,2 @@
+[recording-slow-summary] {"seen":0,"retained":0,"thresholdNs":10000000}
+[recording-complete-summary] {"lockCount":3,"spanCount":0,"maxWaitNs":166,"maxHoldNs":625,"maxSpanNs":0,"countOverflow":false}

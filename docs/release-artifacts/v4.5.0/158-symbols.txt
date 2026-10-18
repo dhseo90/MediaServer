@@ -1,0 +1,222 @@
+0000000100004f50 s GCC_except_table11
+0000000100004f6c s GCC_except_table13
+0000000100004f8c s GCC_except_table14
+0000000100004fac s GCC_except_table16
+0000000100004fc8 s GCC_except_table19
+0000000100004d90 s GCC_except_table2
+0000000100004ff0 s GCC_except_table20
+0000000100005018 s GCC_except_table21
+0000000100005034 s GCC_except_table24
+0000000100005044 s GCC_except_table26
+0000000100005064 s GCC_except_table27
+000000010000507c s GCC_except_table28
+0000000100005098 s GCC_except_table30
+00000001000050a8 s GCC_except_table31
+00000001000050c4 s GCC_except_table32
+00000001000050d0 s GCC_except_table36
+00000001000050e0 s GCC_except_table38
+0000000100004ea8 s GCC_except_table4
+0000000100005108 s GCC_except_table40
+0000000100005124 s GCC_except_table42
+0000000100004eb8 s GCC_except_table5
+0000000100004f18 s GCC_except_table6
+0000000100004f34 s GCC_except_table8
+0000000100004768 t _OUTLINED_FUNCTION_0
+0000000100004780 t _OUTLINED_FUNCTION_1
+0000000100004808 t _OUTLINED_FUNCTION_10
+0000000100004820 t _OUTLINED_FUNCTION_11
+000000010000482c t _OUTLINED_FUNCTION_12
+0000000100004838 t _OUTLINED_FUNCTION_13
+0000000100004850 t _OUTLINED_FUNCTION_14
+000000010000485c t _OUTLINED_FUNCTION_15
+0000000100004798 t _OUTLINED_FUNCTION_2
+00000001000047b0 t _OUTLINED_FUNCTION_3
+00000001000047bc t _OUTLINED_FUNCTION_4
+00000001000047cc t _OUTLINED_FUNCTION_5
+00000001000047d8 t _OUTLINED_FUNCTION_6
+00000001000047e4 t _OUTLINED_FUNCTION_7
+00000001000047f0 t _OUTLINED_FUNCTION_8
+00000001000047fc t _OUTLINED_FUNCTION_9
+                 U __Unwind_Resume
+00000001000ceb88 S guard variable for recording::latency::local
+00000001000cec50 s __ZGVN9recording7latency5localE$tlv$init
+00000001000ceb50 D guard variable for recording::latency::HolderEnabled()::yes
+00000001000cc4a0 D guard variable for recording::latency::SubcostEnabled()::yes
+00000001000ce330 D guard variable for recording::latency::Now()::epoch
+00000001000cc490 D guard variable for recording::latency::Holder()::value
+00000001000ceb40 D guard variable for recording::latency::Enabled()::enabled
+00000001000ceb60 D guard variable for recording::latency::SlowOnly()::enabled
+00000001000ce320 D guard variable for recording::latency::SlowTail()::ring
+0000000100001648 t Need(bool)
+00000001000049f4 t Need(bool) (.cold.1)
+00000001000d37e0 b count
+00000001000ce338 d records
+00000001000ceba0 s request
+00000001000cec58 s __ZL7request$tlv$init
+0000000100001698 t Call::Cut()
+0000000100004a10 t Call::Cut() (.cold.1)
+0000000100004a10 t Call::Cut() (.cold.2)
+0000000100004a38 t Call::Cut() (.cold.3)
+0000000100004a38 t Call::Cut() (.cold.4)
+00000001000038e4 t Call::Call(std::__1::mutex&, unsigned int, bool, bool)
+0000000100004a10 t Call::Call(std::__1::mutex&, unsigned int, bool, bool) (.cold.1)
+0000000100004a10 t Call::Call(std::__1::mutex&, unsigned int, bool, bool) (.cold.2)
+0000000100003f3c t Call::~Call()
+0000000100004a10 t Call::~Call() (.cold.1)
+0000000100004a10 t Call::~Call() (.cold.2)
+0000000100003070 t recording::latency::HolderTrace::Add(recording::latency::HolderTrace::Event const&)
+0000000100002940 t recording::latency::HolderTrace::PrintSlow()
+0000000100004a9c t recording::latency::HolderTrace::PrintSlow() (.cold.1)
+0000000100004a38 t recording::latency::HolderTrace::PrintSlow() (.cold.2)
+000000010000234c t recording::latency::HolderTrace::HolderTrace()
+0000000100002348 t recording::latency::HolderTrace::~HolderTrace()
+00000001000024c0 t recording::latency::HolderTrace::~HolderTrace()
+0000000100004a9c t recording::latency::HolderTrace::~HolderTrace() (.cold.1)
+0000000100004a38 t recording::latency::HolderTrace::~HolderTrace() (.cold.2)
+0000000100004a38 t recording::latency::HolderTrace::~HolderTrace() (.cold.3)
+00000001000cebd0 S recording::latency::holder_work
+00000001000cec68 s __ZN9recording7latency11holder_workE$tlv$init
+000000010000c000 D recording::latency::next_thread
+000000010000153c t recording::latency::FinishThread()
+0000000100004900 t recording::latency::FinishThread() (.cold.1)
+00000001000ceb68 D recording::latency::loss_emitted
+000000010000c008 D recording::latency::emitted_bytes
+00000001000cec00 S recording::latency::holder_counts
+00000001000cec98 s __ZN9recording7latency13holder_countsE$tlv$init
+00000001000cebe8 S recording::latency::journal_subcost
+00000001000cec78 s __ZN9recording7latency15journal_subcostE$tlv$init
+00000001000cec18 S recording::latency::VisualRequestSummary::current
+00000001000cec70 s __ZN9recording7latency20VisualRequestSummary7currentE$tlv$init
+0000000100001a0c t recording::latency::Now()
+0000000100004a10 t recording::latency::Now() (.cold.1)
+0000000100001dac t recording::latency::Emit(recording::latency::Row const&)
+0000000100002108 t recording::latency::Lock::Acquire()
+0000000100004a10 t recording::latency::Lock::Acquire() (.cold.1)
+0000000100004a10 t recording::latency::Lock::Acquire() (.cold.2)
+0000000100004a9c t recording::latency::Lock::Acquire() (.cold.3)
+0000000100002c78 t recording::latency::Lock::Release()
+0000000100004a10 t recording::latency::Lock::Release() (.cold.1)
+0000000100004a9c t recording::latency::Lock::Release() (.cold.2)
+0000000100004a9c t recording::latency::Lock::Release() (.cold.3)
+0000000100004a9c t recording::latency::Lock::Release() (.cold.4)
+0000000100004a9c t recording::latency::Lock::Release() (.cold.5)
+00000001000cebb8 S recording::latency::Lock::current_
+00000001000cec60 s __ZN9recording7latency4Lock8current_E$tlv$init
+0000000100003af8 t recording::latency::Lock::Lock(std::__1::mutex&, recording::latency::Source, unsigned int, std::__1::try_to_lock_t, char const*)
+0000000100004900 t recording::latency::Lock::Lock(std::__1::mutex&, recording::latency::Source, unsigned int, std::__1::try_to_lock_t, char const*) (.cold.1)
+0000000100004900 t recording::latency::Lock::Lock(std::__1::mutex&, recording::latency::Source, unsigned int, std::__1::try_to_lock_t, char const*) (.cold.2)
+0000000100004a5c t recording::latency::Lock::Lock(std::__1::mutex&, recording::latency::Source, unsigned int, std::__1::try_to_lock_t, char const*) (.cold.3)
+0000000100004a10 t recording::latency::Lock::Lock(std::__1::mutex&, recording::latency::Source, unsigned int, std::__1::try_to_lock_t, char const*) (.cold.4)
+0000000100004a10 t recording::latency::Lock::Lock(std::__1::mutex&, recording::latency::Source, unsigned int, std::__1::try_to_lock_t, char const*) (.cold.5)
+0000000100004a9c t recording::latency::Lock::Lock(std::__1::mutex&, recording::latency::Source, unsigned int, std::__1::try_to_lock_t, char const*) (.cold.6)
+0000000100001ed8 t recording::latency::Lock::Lock(std::__1::mutex&, recording::latency::Source, unsigned int, bool, char const*, bool)
+0000000100004900 t recording::latency::Lock::Lock(std::__1::mutex&, recording::latency::Source, unsigned int, bool, char const*, bool) (.cold.1)
+0000000100004900 t recording::latency::Lock::Lock(std::__1::mutex&, recording::latency::Source, unsigned int, bool, char const*, bool) (.cold.2)
+0000000100004a5c t recording::latency::Lock::Lock(std::__1::mutex&, recording::latency::Source, unsigned int, bool, char const*, bool) (.cold.3)
+0000000100001c54 t recording::latency::Flush()
+00000001000006c0 t recording::latency::Local::~Local()
+0000000100004900 t recording::latency::Local::~Local() (.cold.1)
+00000001000ceb70 S recording::latency::local
+00000001000cecb8 s __ZN9recording7latency5localE$tlv$init
+000000010000334c t recording::latency::Append(recording::latency::Row, bool)
+0000000100004adc t recording::latency::Append(recording::latency::Row, bool) (.cold.1)
+0000000100004b1c t recording::latency::Append(recording::latency::Row, bool) (.cold.2)
+000000010000c004 D recording::latency::emitted
+000000010000c010 D recording::latency::mutexes
+0000000100003608 t recording::latency::SlowRing::Add(recording::latency::Row const&)
+000000010000373c t recording::latency::SlowRing::~SlowRing()
+0000000100003740 t recording::latency::SlowRing::~SlowRing()
+                 U std::logic_error::logic_error(char const*)
+00000001000042e4 t std::length_error::length_error[abi:nqe220106](char const*)
+                 U std::length_error::~length_error()
+                 U std::runtime_error::runtime_error(char const*)
+                 U std::runtime_error::~runtime_error()
+0000000100004244 t std::__1::unique_ptr<std::__1::__thread_struct, std::__1::default_delete<std::__1::__thread_struct>>::~unique_ptr[abi:nqe220106]()
+00000001000041fc t std::__1::unique_ptr<std::__1::tuple<std::__1::unique_ptr<std::__1::__thread_struct, std::__1::default_delete<std::__1::__thread_struct>>, main::$_0>, std::__1::default_delete<std::__1::tuple<std::__1::unique_ptr<std::__1::__thread_struct, std::__1::default_delete<std::__1::__thread_struct>>, main::$_0>>>::~unique_ptr[abi:nqe220106]()
+00000001000041fc t std::__1::unique_ptr<std::__1::tuple<std::__1::unique_ptr<std::__1::__thread_struct, std::__1::default_delete<std::__1::__thread_struct>>, main::$_1>, std::__1::default_delete<std::__1::tuple<std::__1::unique_ptr<std::__1::__thread_struct, std::__1::default_delete<std::__1::__thread_struct>>, main::$_1>>>::~unique_ptr[abi:nqe220106]()
+00000001000041fc t std::__1::unique_ptr<std::__1::tuple<std::__1::unique_ptr<std::__1::__thread_struct, std::__1::default_delete<std::__1::__thread_struct>>, main::$_3>, std::__1::default_delete<std::__1::tuple<std::__1::unique_ptr<std::__1::__thread_struct, std::__1::default_delete<std::__1::__thread_struct>>, main::$_3>>>::~unique_ptr[abi:nqe220106]()
+00000001000041fc t std::__1::unique_ptr<std::__1::tuple<std::__1::unique_ptr<std::__1::__thread_struct, std::__1::default_delete<std::__1::__thread_struct>>, Call::Cut()::'lambda'()>, std::__1::default_delete<std::__1::tuple<std::__1::unique_ptr<std::__1::__thread_struct, std::__1::default_delete<std::__1::__thread_struct>>, Call::Cut()::'lambda'()>>>::~unique_ptr[abi:nqe220106]()
+                 U std::__1::this_thread::sleep_for(std::__1::chrono::duration<long long, std::__1::ratio<1l, 1000000000l>> const&)
+0000000100001b1c t std::__1::unique_lock<std::__1::mutex>::unlock[abi:nqe220106]()
+0000000100004280 t std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>>::__throw_length_error[abi:nqe220106]()
+0000000100004308 t void* std::__1::__thread_proxy[abi:nqe220106]<std::__1::tuple<std::__1::unique_ptr<std::__1::__thread_struct, std::__1::default_delete<std::__1::__thread_struct>>, main::$_0>>(void*)
+000000010000443c t void* std::__1::__thread_proxy[abi:nqe220106]<std::__1::tuple<std::__1::unique_ptr<std::__1::__thread_struct, std::__1::default_delete<std::__1::__thread_struct>>, main::$_1>>(void*)
+000000010000453c t void* std::__1::__thread_proxy[abi:nqe220106]<std::__1::tuple<std::__1::unique_ptr<std::__1::__thread_struct, std::__1::default_delete<std::__1::__thread_struct>>, main::$_3>>(void*)
+0000000100004174 t void* std::__1::__thread_proxy[abi:nqe220106]<std::__1::tuple<std::__1::unique_ptr<std::__1::__thread_struct, std::__1::default_delete<std::__1::__thread_struct>>, Call::Cut()::'lambda'()>>(void*)
+                 U std::__1::__thread_struct::__thread_struct()
+                 U std::__1::__thread_struct::~__thread_struct()
+                 U std::__1::condition_variable::notify_one()
+                 U std::__1::condition_variable::wait(std::__1::unique_lock<std::__1::mutex>&)
+                 U std::__1::condition_variable::~condition_variable()
+                 U std::__1::__thread_local_data()
+0000000100004294 t std::__1::__throw_length_error[abi:nqe220106](char const*)
+                 U std::__1::__throw_system_error(int, char const*)
+                 U std::__1::mutex::lock()
+                 U std::__1::mutex::unlock()
+                 U std::__1::mutex::try_lock()
+                 U std::__1::mutex::~mutex()
+                 U std::__1::chrono::steady_clock::now()
+                 U std::__1::thread::join()
+000000010000194c t std::__1::thread::thread[abi:nqe220106]<main::$_0, 0>(main::$_0&&)
+0000000100001a4c t std::__1::thread::thread[abi:nqe220106]<main::$_1, 0>(main::$_1&&)
+0000000100001b80 t std::__1::thread::thread[abi:nqe220106]<main::$_3, 0>(main::$_3&&)
+00000001000040b4 t std::__1::thread::thread[abi:nqe220106]<Call::Cut()::'lambda'(), 0>(Call::Cut()::'lambda'()&&)
+                 U std::__1::thread::~thread()
+0000000100004078 t std::__1::optional<recording::latency::Lock::Unlocked>::~optional()
+                 U std::terminate()
+0000000100004638 t thread-local initialization routine for recording::latency::local
+                 U typeinfo for std::length_error
+                 U typeinfo for std::runtime_error
+                 U typeinfo for int
+                 U vtable for std::length_error
+0000000100001b5c t thread-local wrapper routine for recording::latency::local
+00000001000ceb48 D recording::latency::HolderEnabled()::yes
+00000001000cc498 D recording::latency::SubcostEnabled()::yes
+00000001000ce328 D recording::latency::Now()::epoch
+000000010000c410 D recording::latency::Holder()::value
+00000001000ceb38 D recording::latency::Enabled()::enabled
+00000001000ceb58 D recording::latency::SlowOnly()::enabled
+00000001000cc4a8 D recording::latency::SlowTail()::ring
+                 U operator delete(void*)
+                 U operator new(unsigned long)
+0000000100001c44 t ___clang_call_terminate
+                 U ___cxa_allocate_exception
+                 U ___cxa_atexit
+                 U ___cxa_begin_catch
+                 U ___cxa_end_catch
+                 U ___cxa_free_exception
+                 U ___cxa_guard_acquire
+                 U ___cxa_guard_release
+                 U ___cxa_throw
+0000000100004868 t ___cxx_global_var_init
+                 U ___gxx_personality_v0
+                 U ___stack_chk_fail
+                 U ___stack_chk_guard
+                 U ___stderrp
+                 U ___stdoutp
+00000001000cec30 s ___tls_guard
+00000001000cec48 s ___tls_guard$tlv$init
+0000000100004638 t ___tls_init
+0000000100000000 T __mh_execute_header
+                 U __tlv_atexit
+                 U __tlv_bootstrap
+                 U _abort
+                 U _bzero
+                 U _close
+                 U _fflush
+                 U _fprintf
+                 U _fputs
+                 U _fwrite
+                 U _getenv
+00000001000007e0 T _main
+0000000100004940 t _main.cold.1
+0000000100004940 t _main.cold.2
+000000010000497c t _main.cold.3
+00000001000049b8 t _main.cold.4
+                 U _memmove
+                 U _printf
+                 U _pthread_create
+                 U _pthread_setspecific
+                 U _snprintf
+                 U _strcmp
+                 U _strlen

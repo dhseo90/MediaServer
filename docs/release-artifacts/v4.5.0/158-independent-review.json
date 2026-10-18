@@ -1,0 +1,41 @@
+{
+  "schema": "media-server.v450.r158.independent-review.v1",
+  "decision": "PASS",
+  "recommendedDecision": "QUALIFIED_APPROXIMATE_LOCK_WINDOWS",
+  "reviewer": "/root/independent_r155",
+  "models": {
+    "requested": {
+      "model": "gpt-6-astra",
+      "effort": "high"
+    },
+    "toolAccepted": "existing independent agent followup accepted; current model setting not independently exposed",
+    "actualRuntimeModel": null,
+    "actualRuntimeEffort": null
+  },
+  "readOnly": true,
+  "implementationTestingExecutionDelegation": false,
+  "initialFindings": [
+    {
+      "issue": "execution flags not checked against expected bool values",
+      "resolution": "qualify exact bool settings plus disabled-as-normal/holder-as-normal real raw rejection"
+    },
+    {
+      "issue": "individual row operation/source not verified",
+      "resolution": "o=1/s=1 check plus wrong-operation/source mutations"
+    }
+  ],
+  "finalEvidence": [
+    "8 child stdout/stderr byte/hash matches; groups absent",
+    "normal/holder each 10 sidecars and 9 individual rows independently matched",
+    "ownerBegin<=b<ownerRelease<=a actual contention",
+    "header hash unchanged; single TU plus system libraries",
+    "4 Python tests and 4 additional real raw negative mutations checked",
+    "8 original raw requalified; native reruns0"
+  ],
+  "remainingBlockers": [],
+  "limitations": [
+    "approximate acquisition/held observation windows only",
+    "not pure OS wait or complete overhead decomposition",
+    "no retrospective R157 attribution"
+  ]
+}

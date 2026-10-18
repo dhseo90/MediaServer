@@ -1,0 +1,9 @@
+normal accepted
+holder accepted
+disabled accepted
+aggregate accepted
+slow accepted
+lost-output rejected missing/ambiguous acquisition
+cap rejected cleanup/loss
+byte-cap rejected cleanup/loss
+native mutations 11

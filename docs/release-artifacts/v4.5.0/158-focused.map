@@ -1,0 +1,359 @@
+# Path: <OWNED_ROOT>/focused
+# Arch: arm64
+# Object files:
+[  0] linker synthesized
+[  1] <COMPILER_TMP>/recording_lock_timing_smoke-4406cb.o
+[  2] /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib/libc++.tbd
+[  3] /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib/libSystem.tbd
+[  4] /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib/system/libdyld.tbd
+[  5] /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib/system/libsystem_c.tbd
+[  6] /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib/system/libsystem_kernel.tbd
+[  7] /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib/system/libsystem_pthread.tbd
+[  8] /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib/system/libunwind.tbd
+# Sections:
+# Address	Size    	Segment	Section
+0x1000006C0	0x000044A8	__TEXT	__text
+0x100004B68	0x00000228	__TEXT	__stubs
+0x100004D90	0x000003C0	__TEXT	__gcc_except_tab
+0x100005150	0x00000008	__TEXT	__const
+0x100005158	0x00000737	__TEXT	__cstring
+0x100005890	0x000001D8	__TEXT	__unwind_info
+0x100008000	0x00000290	__DATA_CONST	__got
+0x10000C000	0x000C2B69	__DATA	__data
+0x1000CEB70	0x000000D8	__DATA	__thread_vars
+0x1000CEC48	0x00004B98	__DATA	__thread_bss
+0x1000D37E0	0x00000004	__DATA	__bss
+# Symbols:
+# Address	Size    	File  Name
+0x100000000	0x00000000	[  0] __mh_execute_header
+0x100000000	0x00000000	[  0] ___dso_handle
+0x1000006C0	0x00000120	[  1] __ZN9recording7latency5LocalD1Ev
+0x1000007E0	0x00000D5C	[  1] _main
+0x10000153C	0x0000010C	[  1] __ZN9recording7latency12FinishThreadEv
+0x100001648	0x00000050	[  1] __ZL4Needb
+0x100001698	0x000002B4	[  1] __ZN4Call3CutEv
+0x10000194C	0x000000C0	[  1] __ZNSt3__16threadC1B9nqe220106IZ4mainE3$_0JELi0EEEOT_DpOT0_
+0x100001A0C	0x00000040	[  1] __ZN9recording7latency3NowEv
+0x100001A4C	0x000000D0	[  1] __ZNSt3__16threadC1B9nqe220106IZ4mainE3$_1JELi0EEEOT_DpOT0_
+0x100001B1C	0x00000040	[  1] __ZNSt3__111unique_lockINS_5mutexEE6unlockB9nqe220106Ev
+0x100001B5C	0x00000024	[  1] __ZTWN9recording7latency5localE
+0x100001B80	0x000000C4	[  1] __ZNSt3__16threadC1B9nqe220106IZ4mainE3$_3JELi0EEEOT_DpOT0_
+0x100001C44	0x00000010	[  1] ___clang_call_terminate
+0x100001C54	0x00000158	[  1] __ZN9recording7latency5FlushEv
+0x100001DAC	0x0000012C	[  1] __ZN9recording7latency4EmitERKNS0_3RowE
+0x100001ED8	0x00000230	[  1] __ZN9recording7latency4LockC2ERNSt3__15mutexENS0_6SourceEjbPKcb
+0x100002108	0x00000240	[  1] __ZN9recording7latency4Lock7AcquireEv
+0x100002348	0x00000004	[  1] __ZN9recording7latency11HolderTraceD1Ev
+0x10000234C	0x00000174	[  1] __ZN9recording7latency11HolderTraceC2Ev
+0x1000024C0	0x00000480	[  1] __ZN9recording7latency11HolderTraceD2Ev
+0x100002940	0x00000338	[  1] __ZN9recording7latency11HolderTrace9PrintSlowEv
+0x100002C78	0x000003F8	[  1] __ZN9recording7latency4Lock7ReleaseEv
+0x100003070	0x000002DC	[  1] __ZN9recording7latency11HolderTrace3AddERKNS1_5EventE
+0x10000334C	0x000002BC	[  1] __ZN9recording7latency6AppendENS0_3RowEb
+0x100003608	0x00000134	[  1] __ZN9recording7latency8SlowRing3AddERKNS0_3RowE
+0x10000373C	0x00000004	[  1] __ZN9recording7latency8SlowRingD1Ev
+0x100003740	0x000001A4	[  1] __ZN9recording7latency8SlowRingD2Ev
+0x1000038E4	0x00000214	[  1] __ZN4CallC2ERNSt3__15mutexEjbb
+0x100003AF8	0x00000444	[  1] __ZN9recording7latency4LockC2ERNSt3__15mutexENS0_6SourceEjNS2_13try_to_lock_tEPKc
+0x100003F3C	0x0000013C	[  1] __ZN4CallD2Ev
+0x100004078	0x0000003C	[  1] __ZNSt3__18optionalIN9recording7latency4Lock8UnlockedEED1Ev
+0x1000040B4	0x000000C0	[  1] __ZNSt3__16threadC2B9nqe220106IZN4Call3CutEvEUlvE_JELi0EEEOT_DpOT0_
+0x100004174	0x00000088	[  1] __ZNSt3__114__thread_proxyB9nqe220106INS_5tupleIJNS_10unique_ptrINS_15__thread_structENS_14default_deleteIS3_EEEEZN4Call3CutEvEUlvE_EEEEEPvSA_
+0x1000041FC	0x00000048	[  1] __ZNSt3__110unique_ptrINS_5tupleIJNS0_INS_15__thread_structENS_14default_deleteIS2_EEEEZN4Call3CutEvEUlvE_EEENS3_IS8_EEED1B9nqe220106Ev
+0x1000041FC	0x00000000	[  0] __ZNSt3__110unique_ptrINS_5tupleIJNS0_INS_15__thread_structENS_14default_deleteIS2_EEEEZ4mainE3$_0EEENS3_IS7_EEED1B9nqe220106Ev
+0x1000041FC	0x00000000	[  0] __ZNSt3__110unique_ptrINS_5tupleIJNS0_INS_15__thread_structENS_14default_deleteIS2_EEEEZ4mainE3$_1EEENS3_IS7_EEED1B9nqe220106Ev
+0x1000041FC	0x00000000	[  0] __ZNSt3__110unique_ptrINS_5tupleIJNS0_INS_15__thread_structENS_14default_deleteIS2_EEEEZ4mainE3$_3EEENS3_IS7_EEED1B9nqe220106Ev
+0x100004244	0x0000003C	[  1] __ZNSt3__110unique_ptrINS_15__thread_structENS_14default_deleteIS1_EEED1B9nqe220106Ev
+0x100004280	0x00000014	[  1] __ZNSt3__112basic_stringIcNS_11char_traitsIcEENS_9allocatorIcEEE20__throw_length_errorB9nqe220106Ev
+0x100004294	0x00000050	[  1] __ZNSt3__120__throw_length_errorB9nqe220106EPKc
+0x1000042E4	0x00000024	[  1] __ZNSt12length_errorC1B9nqe220106EPKc
+0x100004308	0x00000134	[  1] __ZNSt3__114__thread_proxyB9nqe220106INS_5tupleIJNS_10unique_ptrINS_15__thread_structENS_14default_deleteIS3_EEEEZ4mainE3$_0EEEEEPvS9_
+0x10000443C	0x00000100	[  1] __ZNSt3__114__thread_proxyB9nqe220106INS_5tupleIJNS_10unique_ptrINS_15__thread_structENS_14default_deleteIS3_EEEEZ4mainE3$_1EEEEEPvS9_
+0x10000453C	0x000000FC	[  1] __ZNSt3__114__thread_proxyB9nqe220106INS_5tupleIJNS_10unique_ptrINS_15__thread_structENS_14default_deleteIS3_EEEEZ4mainE3$_3EEEEEPvS9_
+0x100004638	0x00000130	[  1] ___tls_init
+0x100004638	0x00000000	[  1] __ZTHN9recording7latency5localE
+0x100004768	0x00000018	[  1] _OUTLINED_FUNCTION_0
+0x100004780	0x00000018	[  1] _OUTLINED_FUNCTION_1
+0x100004798	0x00000018	[  1] _OUTLINED_FUNCTION_2
+0x1000047B0	0x0000000C	[  1] _OUTLINED_FUNCTION_3
+0x1000047BC	0x00000010	[  1] _OUTLINED_FUNCTION_4
+0x1000047CC	0x0000000C	[  1] _OUTLINED_FUNCTION_5
+0x1000047D8	0x0000000C	[  1] _OUTLINED_FUNCTION_6
+0x1000047E4	0x0000000C	[  1] _OUTLINED_FUNCTION_7
+0x1000047F0	0x0000000C	[  1] _OUTLINED_FUNCTION_8
+0x1000047FC	0x0000000C	[  1] _OUTLINED_FUNCTION_9
+0x100004808	0x00000018	[  1] _OUTLINED_FUNCTION_10
+0x100004820	0x0000000C	[  1] _OUTLINED_FUNCTION_11
+0x10000482C	0x0000000C	[  1] _OUTLINED_FUNCTION_12
+0x100004838	0x00000018	[  1] _OUTLINED_FUNCTION_13
+0x100004850	0x0000000C	[  1] _OUTLINED_FUNCTION_14
+0x10000485C	0x0000000C	[  1] _OUTLINED_FUNCTION_15
+0x100004868	0x00000098	[  1] ___cxx_global_var_init
+0x100004900	0x00000040	[  1] __ZN9recording7latency5LocalD1Ev.cold.1
+0x100004900	0x00000000	[  0] __ZN9recording7latency12FinishThreadEv.cold.1
+0x100004900	0x00000000	[  0] __ZN9recording7latency4LockC2ERNSt3__15mutexENS0_6SourceEjbPKcb.cold.1
+0x100004900	0x00000000	[  0] __ZN9recording7latency4LockC2ERNSt3__15mutexENS0_6SourceEjbPKcb.cold.2
+0x100004900	0x00000000	[  0] __ZN9recording7latency4LockC2ERNSt3__15mutexENS0_6SourceEjNS2_13try_to_lock_tEPKc.cold.1
+0x100004900	0x00000000	[  0] __ZN9recording7latency4LockC2ERNSt3__15mutexENS0_6SourceEjNS2_13try_to_lock_tEPKc.cold.2
+0x100004940	0x0000003C	[  1] _main.cold.1
+0x100004940	0x00000000	[  0] _main.cold.2
+0x10000497C	0x0000003C	[  1] _main.cold.3
+0x1000049B8	0x0000003C	[  1] _main.cold.4
+0x1000049F4	0x0000001C	[  1] __ZL4Needb.cold.1
+0x100004A10	0x00000028	[  1] __ZN4Call3CutEv.cold.1
+0x100004A10	0x00000000	[  0] __ZN4Call3CutEv.cold.2
+0x100004A10	0x00000000	[  0] __ZN9recording7latency3NowEv.cold.1
+0x100004A10	0x00000000	[  0] __ZN9recording7latency4Lock7AcquireEv.cold.1
+0x100004A10	0x00000000	[  0] __ZN9recording7latency4Lock7AcquireEv.cold.2
+0x100004A10	0x00000000	[  0] __ZN9recording7latency4Lock7ReleaseEv.cold.1
+0x100004A10	0x00000000	[  0] __ZN4CallC2ERNSt3__15mutexEjbb.cold.1
+0x100004A10	0x00000000	[  0] __ZN4CallC2ERNSt3__15mutexEjbb.cold.2
+0x100004A10	0x00000000	[  0] __ZN9recording7latency4LockC2ERNSt3__15mutexENS0_6SourceEjNS2_13try_to_lock_tEPKc.cold.4
+0x100004A10	0x00000000	[  0] __ZN9recording7latency4LockC2ERNSt3__15mutexENS0_6SourceEjNS2_13try_to_lock_tEPKc.cold.5
+0x100004A10	0x00000000	[  0] __ZN4CallD2Ev.cold.1
+0x100004A10	0x00000000	[  0] __ZN4CallD2Ev.cold.2
+0x100004A38	0x00000024	[  1] __ZN4Call3CutEv.cold.3
+0x100004A38	0x00000000	[  0] __ZN4Call3CutEv.cold.4
+0x100004A38	0x00000000	[  0] __ZN9recording7latency11HolderTraceD2Ev.cold.2
+0x100004A38	0x00000000	[  0] __ZN9recording7latency11HolderTraceD2Ev.cold.3
+0x100004A38	0x00000000	[  0] __ZN9recording7latency11HolderTrace9PrintSlowEv.cold.2
+0x100004A5C	0x00000040	[  1] __ZN9recording7latency4LockC2ERNSt3__15mutexENS0_6SourceEjbPKcb.cold.3
+0x100004A5C	0x00000000	[  0] __ZN9recording7latency4LockC2ERNSt3__15mutexENS0_6SourceEjNS2_13try_to_lock_tEPKc.cold.3
+0x100004A9C	0x00000040	[  1] __ZN9recording7latency4Lock7AcquireEv.cold.3
+0x100004A9C	0x00000000	[  0] __ZN9recording7latency11HolderTraceD2Ev.cold.1
+0x100004A9C	0x00000000	[  0] __ZN9recording7latency11HolderTrace9PrintSlowEv.cold.1
+0x100004A9C	0x00000000	[  0] __ZN9recording7latency4Lock7ReleaseEv.cold.2
+0x100004A9C	0x00000000	[  0] __ZN9recording7latency4Lock7ReleaseEv.cold.3
+0x100004A9C	0x00000000	[  0] __ZN9recording7latency4Lock7ReleaseEv.cold.4
+0x100004A9C	0x00000000	[  0] __ZN9recording7latency4Lock7ReleaseEv.cold.5
+0x100004A9C	0x00000000	[  0] __ZN9recording7latency4LockC2ERNSt3__15mutexENS0_6SourceEjNS2_13try_to_lock_tEPKc.cold.6
+0x100004ADC	0x00000040	[  1] __ZN9recording7latency6AppendENS0_3RowEb.cold.1
+0x100004B1C	0x0000004C	[  1] __ZN9recording7latency6AppendENS0_3RowEb.cold.2
+0x100004B68	0x0000000C	[  8] __Unwind_Resume.stub
+0x100004B74	0x0000000C	[  2] __ZNSt11logic_errorC2EPKc.stub
+0x100004B80	0x0000000C	[  2] __ZNSt13runtime_errorC1EPKc.stub
+0x100004B8C	0x0000000C	[  2] __ZNSt3__111this_thread9sleep_forERKNS_6chrono8durationIxNS_5ratioILl1ELl1000000000EEEEE.stub
+0x100004B98	0x0000000C	[  2] __ZNSt3__115__thread_structC1Ev.stub
+0x100004BA4	0x0000000C	[  2] __ZNSt3__115__thread_structD1Ev.stub
+0x100004BB0	0x0000000C	[  2] __ZNSt3__118condition_variable10notify_oneEv.stub
+0x100004BBC	0x0000000C	[  2] __ZNSt3__118condition_variable4waitERNS_11unique_lockINS_5mutexEEE.stub
+0x100004BC8	0x0000000C	[  2] __ZNSt3__118condition_variableD1Ev.stub
+0x100004BD4	0x0000000C	[  2] __ZNSt3__119__thread_local_dataEv.stub
+0x100004BE0	0x0000000C	[  2] __ZNSt3__120__throw_system_errorEiPKc.stub
+0x100004BEC	0x0000000C	[  2] __ZNSt3__15mutex4lockEv.stub
+0x100004BF8	0x0000000C	[  2] __ZNSt3__15mutex6unlockEv.stub
+0x100004C04	0x0000000C	[  2] __ZNSt3__15mutex8try_lockEv.stub
+0x100004C10	0x0000000C	[  2] __ZNSt3__15mutexD1Ev.stub
+0x100004C1C	0x0000000C	[  2] __ZNSt3__16chrono12steady_clock3nowEv.stub
+0x100004C28	0x0000000C	[  2] __ZNSt3__16thread4joinEv.stub
+0x100004C34	0x0000000C	[  2] __ZNSt3__16threadD1Ev.stub
+0x100004C40	0x0000000C	[  2] __ZSt9terminatev.stub
+0x100004C4C	0x0000000C	[  2] __ZdlPv.stub
+0x100004C58	0x0000000C	[  2] __Znwm.stub
+0x100004C64	0x0000000C	[  2] ___cxa_allocate_exception.stub
+0x100004C70	0x0000000C	[  5] ___cxa_atexit.stub
+0x100004C7C	0x0000000C	[  2] ___cxa_begin_catch.stub
+0x100004C88	0x0000000C	[  2] ___cxa_end_catch.stub
+0x100004C94	0x0000000C	[  2] ___cxa_free_exception.stub
+0x100004CA0	0x0000000C	[  2] ___cxa_guard_acquire.stub
+0x100004CAC	0x0000000C	[  2] ___cxa_guard_release.stub
+0x100004CB8	0x0000000C	[  2] ___cxa_throw.stub
+0x100004CC4	0x0000000C	[  5] ___stack_chk_fail.stub
+0x100004CD0	0x0000000C	[  4] __tlv_atexit.stub
+0x100004CDC	0x0000000C	[  5] _abort.stub
+0x100004CE8	0x0000000C	[  5] _bzero.stub
+0x100004CF4	0x0000000C	[  6] _close.stub
+0x100004D00	0x0000000C	[  5] _fflush.stub
+0x100004D0C	0x0000000C	[  5] _fprintf.stub
+0x100004D18	0x0000000C	[  5] _fputs.stub
+0x100004D24	0x0000000C	[  5] _fwrite.stub
+0x100004D30	0x0000000C	[  5] _getenv.stub
+0x100004D3C	0x0000000C	[  5] _memmove.stub
+0x100004D48	0x0000000C	[  5] _printf.stub
+0x100004D54	0x0000000C	[  7] _pthread_create.stub
+0x100004D60	0x0000000C	[  7] _pthread_setspecific.stub
+0x100004D6C	0x0000000C	[  5] _snprintf.stub
+0x100004D78	0x0000000C	[  5] _strcmp.stub
+0x100004D84	0x0000000C	[  5] _strlen.stub
+0x100004D90	0x00000118	[  1] GCC_except_table2
+0x100004EA8	0x00000010	[  1] GCC_except_table4
+0x100004EB8	0x00000060	[  1] GCC_except_table5
+0x100004F18	0x0000001C	[  1] GCC_except_table6
+0x100004F34	0x0000001C	[  1] GCC_except_table8
+0x100004F50	0x0000001C	[  1] GCC_except_table11
+0x100004F6C	0x00000020	[  1] GCC_except_table13
+0x100004F8C	0x00000020	[  1] GCC_except_table14
+0x100004FAC	0x0000001C	[  1] GCC_except_table16
+0x100004FC8	0x00000028	[  1] GCC_except_table19
+0x100004FF0	0x00000028	[  1] GCC_except_table20
+0x100005018	0x0000001C	[  1] GCC_except_table21
+0x100005034	0x00000010	[  1] GCC_except_table24
+0x100005044	0x00000020	[  1] GCC_except_table26
+0x100005064	0x00000018	[  1] GCC_except_table27
+0x10000507C	0x0000001C	[  1] GCC_except_table28
+0x100005098	0x00000010	[  1] GCC_except_table30
+0x1000050A8	0x0000001C	[  1] GCC_except_table31
+0x1000050C4	0x0000000C	[  1] GCC_except_table32
+0x1000050D0	0x00000010	[  1] GCC_except_table36
+0x1000050E0	0x00000028	[  1] GCC_except_table38
+0x100005108	0x0000001C	[  1] GCC_except_table40
+0x100005124	0x0000002C	[  1] GCC_except_table42
+0x100005150	0x00000008	[  1] 8-byte-literal
+0x100005158	0x00000007	[  1] literal string: normal
+0x10000515F	0x0000000C	[  1] literal string: lost-output
+0x10000516B	0x00000004	[  1] literal string: cap
+0x10000516F	0x00000009	[  1] literal string: byte-cap
+0x100005178	0x0000000A	[  1] literal string: aggregate
+0x100005182	0x00000005	[  1] literal string: slow
+0x100005187	0x0000000A	[  1] literal string: r158-fast
+0x100005191	0x0000007D	[  1] literal string: [R158-call] {\"request\":%u,\"call\":%u,\"part\":%u,\"thread\":%u,\"mutex\":%u,\"cb\":%llu,\"ce\":%llu,\"rb\":%llu,\"re\":%llu,\"acquired\":%s}\n
+0x10000520E	0x00000005	[  1] literal string: true
+0x100005213	0x00000006	[  1] literal string: false
+0x100005219	0x0000008B	[  1] literal string: [R158-end] {\"calls\":%u,\"enabled\":%s,\"holder\":%s,\"slow\":%s,\"contention\":%s,\"ownerBegin\":%llu,\"ownerRelease\":%llu,\"cleanup\":true,\"loss\":%s}\n
+0x1000052A4	0x00000018	[  1] literal string: [R158-failure] focused\n
+0x1000052BC	0x0000009E	[  1] literal string: [recording-latency] {\"k\":%llu,\"o\":%llu,\"s\":%llu,\"l\":%llu,\"m\":%llu,\"t\":%llu,\"r\":%llu,\"b\":%llu,\"a\":%llu,\"e\":%llu,\"n\":%llu,\"w\":%llu,\"h\":%llu,\"x\":%llu,\"y\":%llu}\n
+0x10000535A	0x00000032	[  1] literal string: MEDIA_SERVER_VERIFY_CATALOG_HOLDER_WHOLE_REQUESTS
+0x10000538C	0x0000000B	[  1] literal string: slow-first
+0x100005397	0x00000005	[  1] literal string: late
+0x10000539C	0x0000000B	[  1] literal string: mixed-late
+0x1000053A7	0x0000005C	[  1] literal string: [catalog-subcost-basis] journal-wait,managed-authority,identity-lookup,cold-read-inclusive\n
+0x100005403	0x00000088	[  1] literal string: [catalog-holder] {\"id\":%u,\"m\":%u,\"t\":%u,\"r\":%u,\"l\":%u,\"work\":%u,\"site\":\"%s\",\"b\":%llu,\"a\":%llu,\"e\":%llu,\"counts\":[%llu,%llu,%llu,%llu]}\n
+0x10000548B	0x00000008	[  1] literal string: unknown
+0x100005493	0x0000009F	[  1] literal string: [catalog-holder-end] {\"version\":2,\"records\":%u,\"loss\":%s,\"inflight\":%u,\"endNs\":%llu,\"requests\":[%u,%u,%u],\"windows\":[%llu,%llu,%llu],\"ends\":[%llu,%llu,%llu]}\n
+0x100005532	0x0000001D	[  1] literal string: [catalog-holder-loss] write\n
+0x10000554F	0x00000080	[  1] literal string: [catalog-holder-end] {\"version\":1,\"records\":%u,\"loss\":%s,\"inflight\":%u,\"endNs\":%llu,\"widthNs\":%llu,\"windows\":[%llu,%llu,%llu]}\n
+0x1000055CF	0x000000D3	[  1] literal string: [catalog-holder-end] {\"version\":3,\"records\":%u,\"loss\":%s,\"inflight\":%u,\"endNs\":%llu,\"request\":%u,\"begin\":%llu,\"end\":%llu,\"thresholdNs\":%llu,\"overwrittenEndNs\":%llu,\"completedRequests\":%u,\"maxCompletedNs\":%llu}\n
+0x1000056A2	0x00000025	[  1] literal string: MEDIA_SERVER_VERIFY_CATALOG_SUBCOSTS
+0x1000056C7	0x0000004F	[  1] literal string: [recording-slow-summary] {\"seen\":%llu,\"retained\":%llu,\"thresholdNs\":10000000}\n
+0x100005716	0x00000088	[  1] literal string: [recording-complete-summary] {\"lockCount\":%llu,\"spanCount\":%llu,\"maxWaitNs\":%llu,\"maxHoldNs\":%llu,\"maxSpanNs\":%llu,\"countOverflow\":%s}\n
+0x10000579E	0x00000009	[  1] literal string: r158-try
+0x1000057A7	0x0000000A	[  1] literal string: r158-call
+0x1000057B1	0x00000012	[  1] literal string: focused assertion
+0x1000057C3	0x0000001A	[  1] literal string: thread constructor failed
+0x1000057DD	0x0000002C	[  1] literal string: MEDIA_SERVER_VERIFY_RECORDING_LATENCY_TRACE
+0x100005809	0x00000029	[  1] literal string: MEDIA_SERVER_VERIFY_CATALOG_HOLDER_TRACE
+0x100005832	0x00000030	[  1] literal string: MEDIA_SERVER_VERIFY_RECORDING_LATENCY_SLOW_ONLY
+0x100005862	0x0000000D	[  1] literal string: basic_string
+0x10000586F	0x00000020	[  1] literal string: unique_lock::unlock: not locked
+0x100005890	0x000001D8	[  0] compact unwind info
+0x100008000	0x00000008	[  2] __ZNSt11logic_errorC2EPKc.got
+0x100008008	0x00000008	[  2] __ZNSt12length_errorD1Ev.got
+0x100008010	0x00000008	[  2] __ZNSt13runtime_errorC1EPKc.got
+0x100008018	0x00000008	[  2] __ZNSt13runtime_errorD1Ev.got
+0x100008020	0x00000008	[  2] __ZNSt3__111this_thread9sleep_forERKNS_6chrono8durationIxNS_5ratioILl1ELl1000000000EEEEE.got
+0x100008028	0x00000008	[  2] __ZNSt3__115__thread_structC1Ev.got
+0x100008030	0x00000008	[  2] __ZNSt3__115__thread_structD1Ev.got
+0x100008038	0x00000008	[  2] __ZNSt3__118condition_variable10notify_oneEv.got
+0x100008040	0x00000008	[  2] __ZNSt3__118condition_variable4waitERNS_11unique_lockINS_5mutexEEE.got
+0x100008048	0x00000008	[  2] __ZNSt3__118condition_variableD1Ev.got
+0x100008050	0x00000008	[  2] __ZNSt3__119__thread_local_dataEv.got
+0x100008058	0x00000008	[  2] __ZNSt3__120__throw_system_errorEiPKc.got
+0x100008060	0x00000008	[  2] __ZNSt3__15mutex4lockEv.got
+0x100008068	0x00000008	[  2] __ZNSt3__15mutex6unlockEv.got
+0x100008070	0x00000008	[  2] __ZNSt3__15mutex8try_lockEv.got
+0x100008078	0x00000008	[  2] __ZNSt3__15mutexD1Ev.got
+0x100008080	0x00000008	[  2] __ZNSt3__16chrono12steady_clock3nowEv.got
+0x100008088	0x00000008	[  2] __ZNSt3__16thread4joinEv.got
+0x100008090	0x00000008	[  2] __ZNSt3__16threadD1Ev.got
+0x100008098	0x00000008	[  2] __ZSt9terminatev.got
+0x1000080A0	0x00000008	[  2] __ZTISt13runtime_error.got
+0x1000080A8	0x00000008	[  2] __ZTIi.got
+0x1000080B0	0x00000008	[  2] __ZTVSt12length_error.got
+0x1000080B8	0x00000008	[  2] ___cxa_allocate_exception.got
+0x1000080C0	0x00000008	[  2] ___cxa_begin_catch.got
+0x1000080C8	0x00000008	[  2] ___cxa_end_catch.got
+0x1000080D0	0x00000008	[  2] ___cxa_free_exception.got
+0x1000080D8	0x00000008	[  2] ___cxa_guard_acquire.got
+0x1000080E0	0x00000008	[  2] ___cxa_guard_release.got
+0x1000080E8	0x00000008	[  2] ___cxa_throw.got
+0x1000080F0	0x00000008	[  2] ___gxx_personality_v0.got
+0x1000080F8	0x00000008	[  8] __Unwind_Resume.got
+0x100008100	0x00000008	[  5] ___cxa_atexit.got
+0x100008108	0x00000008	[  5] ___stack_chk_fail.got
+0x100008110	0x00000008	[  5] ___stack_chk_guard.got
+0x100008118	0x00000008	[  5] ___stderrp.got
+0x100008120	0x00000008	[  5] ___stdoutp.got
+0x100008128	0x00000008	[  4] __tlv_atexit.got
+0x100008130	0x00000008	[  5] _abort.got
+0x100008138	0x00000008	[  5] _bzero.got
+0x100008140	0x00000008	[  6] _close.got
+0x100008148	0x00000008	[  5] _fflush.got
+0x100008150	0x00000008	[  5] _fprintf.got
+0x100008158	0x00000008	[  5] _fputs.got
+0x100008160	0x00000008	[  5] _fwrite.got
+0x100008168	0x00000008	[  5] _getenv.got
+0x100008170	0x00000008	[  5] _memmove.got
+0x100008178	0x00000008	[  5] _printf.got
+0x100008180	0x00000008	[  7] _pthread_create.got
+0x100008188	0x00000008	[  7] _pthread_setspecific.got
+0x100008190	0x00000008	[  5] _snprintf.got
+0x100008198	0x00000008	[  5] _strcmp.got
+0x1000081A0	0x00000008	[  5] _strlen.got
+0x1000081A8	0x00000008	[  0] __ZGVN9recording7latency5localE.got
+0x1000081B0	0x00000008	[  1] __ZGVZN9recording7latency13HolderEnabledEvE3yes.got
+0x1000081B8	0x00000008	[  1] __ZGVZN9recording7latency14SubcostEnabledEvE3yes.got
+0x1000081C0	0x00000008	[  1] __ZGVZN9recording7latency3NowEvE5epoch.got
+0x1000081C8	0x00000008	[  1] __ZGVZN9recording7latency6HolderEvE5value.got
+0x1000081D0	0x00000008	[  1] __ZGVZN9recording7latency7EnabledEvE7enabled.got
+0x1000081D8	0x00000008	[  1] __ZGVZN9recording7latency8SlowOnlyEvE7enabled.got
+0x1000081E0	0x00000008	[  1] __ZGVZN9recording7latency8SlowTailEvE4ring.got
+0x1000081E8	0x00000008	[  0] __ZN9recording7latency11holder_workE.got
+0x1000081F0	0x00000008	[  1] __ZN9recording7latency11next_threadE.got
+0x1000081F8	0x00000008	[  1] __ZN9recording7latency12loss_emittedE.got
+0x100008200	0x00000008	[  1] __ZN9recording7latency13emitted_bytesE.got
+0x100008208	0x00000008	[  0] __ZN9recording7latency13holder_countsE.got
+0x100008210	0x00000008	[  0] __ZN9recording7latency15journal_subcostE.got
+0x100008218	0x00000008	[  0] __ZN9recording7latency20VisualRequestSummary7currentE.got
+0x100008220	0x00000008	[  0] __ZN9recording7latency4Lock8current_E.got
+0x100008228	0x00000008	[  0] __ZN9recording7latency5localE.got
+0x100008230	0x00000008	[  1] __ZN9recording7latency7emittedE.got
+0x100008238	0x00000008	[  1] __ZN9recording7latency7mutexesE.got
+0x100008240	0x00000008	[  2] __ZTISt12length_error.got
+0x100008248	0x00000008	[  1] __ZZN9recording7latency13HolderEnabledEvE3yes.got
+0x100008250	0x00000008	[  1] __ZZN9recording7latency14SubcostEnabledEvE3yes.got
+0x100008258	0x00000008	[  1] __ZZN9recording7latency3NowEvE5epoch.got
+0x100008260	0x00000008	[  1] __ZZN9recording7latency6HolderEvE5value.got
+0x100008268	0x00000008	[  1] __ZZN9recording7latency7EnabledEvE7enabled.got
+0x100008270	0x00000008	[  1] __ZZN9recording7latency8SlowOnlyEvE7enabled.got
+0x100008278	0x00000008	[  1] __ZZN9recording7latency8SlowTailEvE4ring.got
+0x100008280	0x00000008	[  2] __ZdlPv.got
+0x100008288	0x00000008	[  2] __Znwm.got
+0x10000C000	0x00000004	[  1] __ZN9recording7latency11next_threadE
+0x10000C004	0x00000004	[  1] __ZN9recording7latency7emittedE
+0x10000C008	0x00000008	[  1] __ZN9recording7latency13emitted_bytesE
+0x10000C010	0x00000400	[  1] __ZN9recording7latency7mutexesE
+0x10000C410	0x000C0080	[  1] __ZZN9recording7latency6HolderEvE5value
+0x1000CC490	0x00000008	[  1] __ZGVZN9recording7latency6HolderEvE5value
+0x1000CC498	0x00000008	[  1] __ZZN9recording7latency14SubcostEnabledEvE3yes
+0x1000CC4A0	0x00000008	[  1] __ZGVZN9recording7latency14SubcostEnabledEvE3yes
+0x1000CC4A8	0x00001E78	[  1] __ZZN9recording7latency8SlowTailEvE4ring
+0x1000CE320	0x00000008	[  1] __ZGVZN9recording7latency8SlowTailEvE4ring
+0x1000CE328	0x00000008	[  1] __ZZN9recording7latency3NowEvE5epoch
+0x1000CE330	0x00000008	[  1] __ZGVZN9recording7latency3NowEvE5epoch
+0x1000CE338	0x00000800	[  1] __ZL7records
+0x1000CEB38	0x00000008	[  1] __ZZN9recording7latency7EnabledEvE7enabled
+0x1000CEB40	0x00000008	[  1] __ZGVZN9recording7latency7EnabledEvE7enabled
+0x1000CEB48	0x00000008	[  1] __ZZN9recording7latency13HolderEnabledEvE3yes
+0x1000CEB50	0x00000008	[  1] __ZGVZN9recording7latency13HolderEnabledEvE3yes
+0x1000CEB58	0x00000008	[  1] __ZZN9recording7latency8SlowOnlyEvE7enabled
+0x1000CEB60	0x00000008	[  1] __ZGVZN9recording7latency8SlowOnlyEvE7enabled
+0x1000CEB68	0x00000001	[  1] __ZN9recording7latency12loss_emittedE
+0x1000CEB70	0x00000018	[  0] __ZN9recording7latency5localE
+0x1000CEB88	0x00000018	[  0] __ZGVN9recording7latency5localE
+0x1000CEBA0	0x00000018	[  0] __ZL7request
+0x1000CEBB8	0x00000018	[  0] __ZN9recording7latency4Lock8current_E
+0x1000CEBD0	0x00000018	[  0] __ZN9recording7latency11holder_workE
+0x1000CEBE8	0x00000018	[  0] __ZN9recording7latency15journal_subcostE
+0x1000CEC00	0x00000018	[  0] __ZN9recording7latency13holder_countsE
+0x1000CEC18	0x00000018	[  0] __ZN9recording7latency20VisualRequestSummary7currentE
+0x1000CEC30	0x00000018	[  0] ___tls_guard
+0x1000CEC48	0x00000001	[  1] ___tls_guard$tlv$init
+0x1000CEC50	0x00000008	[  1] __ZGVN9recording7latency5localE$tlv$init
+0x1000CEC58	0x00000008	[  1] __ZL7request$tlv$init
+0x1000CEC60	0x00000008	[  1] __ZN9recording7latency4Lock8current_E$tlv$init
+0x1000CEC68	0x00000008	[  1] __ZN9recording7latency11holder_workE$tlv$init
+0x1000CEC70	0x00000008	[  1] __ZN9recording7latency20VisualRequestSummary7currentE$tlv$init
+0x1000CEC78	0x00000020	[  1] __ZN9recording7latency15journal_subcostE$tlv$init
+0x1000CEC98	0x00000020	[  1] __ZN9recording7latency13holder_countsE$tlv$init
+0x1000CECB8	0x00004B28	[  1] __ZN9recording7latency5localE$tlv$init
+0x1000D37E0	0x00000004	[  1] __ZL5count

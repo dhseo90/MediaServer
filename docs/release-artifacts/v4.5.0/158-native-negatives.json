@@ -1,0 +1,46 @@
+[
+  {
+    "case": "duplicate-call",
+    "rejection": "duplicate call identity"
+  },
+  {
+    "case": "duplicate-row",
+    "rejection": "missing/ambiguous acquisition"
+  },
+  {
+    "case": "wrong-request",
+    "rejection": "request/call mismatch"
+  },
+  {
+    "case": "wrong-mutex",
+    "rejection": "mutex/row identity"
+  },
+  {
+    "case": "missing-acquisition",
+    "rejection": "row order/missing"
+  },
+  {
+    "case": "missing-row",
+    "rejection": "missing/ambiguous acquisition"
+  },
+  {
+    "case": "reverse-call",
+    "rejection": "call order"
+  },
+  {
+    "case": "overflow",
+    "rejection": "numeric bound"
+  },
+  {
+    "case": "cleanup-missing",
+    "rejection": "cleanup/loss"
+  },
+  {
+    "case": "aggregate-as-single",
+    "rejection": "mutex/row identity"
+  },
+  {
+    "case": "contention-not-overlap",
+    "rejection": "contention not observed"
+  }
+]

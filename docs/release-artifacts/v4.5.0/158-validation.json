@@ -1,0 +1,185 @@
+{
+  "schema": "media-server.v450.r158.validation.v1",
+  "decision": "QUALIFIED_APPROXIMATE_LOCK_WINDOWS",
+  "focusedContract": "PASS",
+  "actualHttpAttribution": "NOT_RUN",
+  "baseline": "dfb12bcb4b0631681aef40daf92213dadcf7c4bc",
+  "entry": {
+    "baseline": "dfb12bcb4b0631681aef40daf92213dadcf7c4bc",
+    "branch": "v4.5.0",
+    "entryClean": true,
+    "localOriginEqual": true,
+    "headerSha256": "2747d96d1c1a156692f8d77e05ddc5f89142291dfc60caf5c784d3a550001d1d",
+    "products": {
+      "media_server": "33f516d35d56cb2f6cafc75647b6c37d2ced67115302d1205cca23bf51ab7f79",
+      "libmedia_server_runtime.a": "2d91cf35fe7e805e0c06e00d16779c86849b35db635e087582277e1b676d198c"
+    }
+  },
+  "models": {
+    "requested": {
+      "model": "gpt-6-astra",
+      "effort": "high"
+    },
+    "toolAccepted": null,
+    "actualRuntimeModel": null,
+    "actualRuntimeEffort": null,
+    "note": "Main session runtime model/effort not exposed; no setting change claimed."
+  },
+  "sourcesSha256": {
+    "scripts/internal/recording_lock_timing_smoke.cpp": "6c0382f859ee6baffd7da3f5276636de2883b846585e3310f11662378600fad7",
+    "scripts/internal/recording_lock_timing.py": "e9aba0789687df1952418bd3020fd12a0d52f43d25bb379655543f9651dae696",
+    "scripts/internal/recording_lock_timing.test.py": "fd127d7cc03f093cb6e1c54e669857c042cc4eef136e24b2fd1df5679c775330",
+    "include/recording/recording_latency_trace.h": "2747d96d1c1a156692f8d77e05ddc5f89142291dfc60caf5c784d3a550001d1d"
+  },
+  "productsAfter": {
+    "media_server": "33f516d35d56cb2f6cafc75647b6c37d2ced67115302d1205cca23bf51ab7f79",
+    "libmedia_server_runtime.a": "2d91cf35fe7e805e0c06e00d16779c86849b35db635e087582277e1b676d198c"
+  },
+  "productHeaderUnchanged": true,
+  "build": {
+    "compileCount": 1,
+    "exit": 0,
+    "command": "c++ -std=c++17 -Wall -Wextra -Werror -pthread -O2 -Iinclude -MMD -MF <OWNED_ROOT>/focused.d scripts/internal/recording_lock_timing_smoke.cpp -Wl,-map,<OWNED_ROOT>/focused.map -o <OWNED_ROOT>/focused",
+    "binaryBytes": 874680,
+    "binarySha256": "57a6c2baab89a735c6206606f9dd1e4cafce9f27696a631385d3e1f10424bca1",
+    "linkMapRawSha256": "c239490b905fcfaedc049e92f92464275a4e045d090d504dec43a9bef19c2051",
+    "originalHeaderOnly": true,
+    "recordingLatencyTraceTestDefined": false,
+    "runtimeArchiveLinked": false,
+    "shadowHeader": false,
+    "ODR": "single TU original inline definitions; no replacement definitions or runtime archive; integration linkage NOT_TESTED"
+  },
+  "execution": {
+    "nativeChildren": 8,
+    "nativeReruns": 0,
+    "productStarts": 0,
+    "integratedCycles": 0,
+    "httpRequests": 0,
+    "portsOpened": 0,
+    "containers": 0,
+    "eachChildTimeoutSeconds": 5,
+    "qualifierOutputCapBytes": 65536,
+    "elapsedSeconds": [
+      {
+        "case": "normal",
+        "seconds": 0.3312192091252655
+      },
+      {
+        "case": "holder",
+        "seconds": 0.0353086250834167
+      },
+      {
+        "case": "disabled",
+        "seconds": 0.03486254205927253
+      },
+      {
+        "case": "aggregate",
+        "seconds": 0.0037640000227838755
+      },
+      {
+        "case": "slow",
+        "seconds": 0.002848374890163541
+      },
+      {
+        "case": "lost-output",
+        "seconds": 0.034004957880824804
+      },
+      {
+        "case": "cap",
+        "seconds": 0.0370217498857528
+      },
+      {
+        "case": "byte-cap",
+        "seconds": 0.03629050008021295
+      }
+    ],
+    "groupsAbsent": true,
+    "originalRaw": "158-results.json",
+    "finalQualification": "158-requalification.json",
+    "normalExpected": 5,
+    "intentionalRejectionExpected": 3
+  },
+  "focused": {
+    "pythonFinalTests": 4,
+    "actualRawNegativeMutations": 15,
+    "expectedTddRed": "NOT_RUN: no preimplementation RED claimed",
+    "caseCoverage": [
+      "uncontended cold/warm",
+      "synchronized contention with Row overlap",
+      "try success/failure",
+      "Unlocked reacquire",
+      "nested locks",
+      "exception unwind",
+      "enabled/disabled separate processes",
+      "holder enabled/disabled separate processes",
+      "normal/aggregate/slow-only",
+      "missing acquisition/order/negative/overflow",
+      "duplicate request-call/Row and wrong mutex/op/source",
+      "native record and byte cap",
+      "closed stderr sink loss detected by missing exact Row",
+      "cleanup missing and partial terminal rejection"
+    ],
+    "independentCorrections": "two qualifier holes fixed; original raw requalified without native rerun"
+  },
+  "contract": {
+    "clock": "latency::Now own steady_clock epoch; r154 Tick absolute times not subtracted",
+    "b": "normal Acquire: immediately before mutex_.lock(), after Holder setup",
+    "a": "after successful mutex_.lock(), owned_=true and retention_costs_=false",
+    "e": "before holder counters and mutex_.unlock()",
+    "aMinusB": "mutex acquisition observation window, not pure OS execution or exact contention-only time",
+    "eMinusA": "held observation window ends before unlock completion",
+    "constructorMinusAcquire": "boundary residual, not exact diagnostic overhead",
+    "try": "b before Holder setup; failed try emits no Row; success may aggregate",
+    "enabledFalse": "no b/a/e measurement",
+    "rowIdentity": "t/r captured at Append, not Acquire; call-local TLS must survive through release",
+    "aggregate": "k2 loses per-call source/line; never expand into individual calls",
+    "slowOnly": "short records omitted before always flag; slow ring bounded64",
+    "output": "original fwrite return ignored; absence of loss marker does not prove completeness; exact sidecar+terminal matching required",
+    "memberDestruction": "not separately measured"
+  },
+  "futureMinimumDesign": {
+    "scope": "design only; not integrated or implemented in product",
+    "method": "callsite-only fixed sidecar around original Lock construction/release; unchanged original header everywhere; selected normal calls original always=true; Enabled1 SlowOnly0 Holder0",
+    "identity": "request ID + API/call ordinal + hold +/- stage + local.thread + mutex identity; local.request saved/restored across destructor; Unlocked parts explicit",
+    "parent": "Currentness bounds also captured using latency::Now; no cross-epoch subtraction",
+    "loss": "reject missing/duplicate Row/sidecar/terminal and cap; flush outside product mutex",
+    "requiredNextApproval": "new request-bound callsite overlay, native linkage/focused proof, then separately authorized one bounded cycle",
+    "excluded": "shadow inline header mixing with runtime archive; pure mutex OS wait claims"
+  },
+  "R157": {
+    "historicalLockConstructionMs": {
+      "10": 28.0,
+      "11": 26.468,
+      "60": "approximately0.001"
+    },
+    "rowWindows": "NOT_MEASURED in R157; no reconstruction",
+    "sourceEnvironmentEvidence": "native isolation removes MEDIA_SERVER_*; cost runner enables SEARCH_TRACE only; LATENCY/HOLDER flags absent in bound fixture/overlay",
+    "cause": "R149 timeout remains unresolved"
+  },
+  "binding": {
+    "order": [
+      "producer",
+      "readback",
+      "coverage"
+    ],
+    "results": [
+      "PASS",
+      "PASS",
+      "PASS"
+    ],
+    "implementationManifestSemanticChange": "inventorySha256 only"
+  },
+  "toolError": "158-command-error.json; wrong shell file read by Node failed at parse before execution; not TDD RED",
+  "independentReview": "158-independent-review.json",
+  "history": {
+    "R157": "CATALOG_HOLD_COST_BOUNDARY_IDENTIFIED",
+    "R149Functional45": "FAIL",
+    "R149Collection45": "INCOMPLETE",
+    "MemoryP0": "HOLD",
+    "Readiness120": "HOLD",
+    "Release": "HOLD",
+    "new45": "NOT_RUN"
+  },
+  "cleanup": "pending remote preservation; closure follows",
+  "implementationCommit": "e3357c2b5a0dacfbb6f7ee878f640a9a6ddf404c"
+}

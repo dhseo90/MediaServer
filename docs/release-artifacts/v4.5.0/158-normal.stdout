@@ -1,0 +1,11 @@
+[R158-call] {"request":10,"call":1,"part":1,"thread":1,"mutex":1,"cb":42,"ce":709,"rb":751,"re":9084,"acquired":true}
+[R158-call] {"request":10,"call":2,"part":1,"thread":1,"mutex":1,"cb":10542,"ce":10584,"rb":10626,"re":11667,"acquired":true}
+[R158-call] {"request":11,"call":4,"part":1,"thread":1,"mutex":2,"cb":11792,"ce":11834,"rb":11876,"re":11917,"acquired":true}
+[R158-call] {"request":11,"call":3,"part":1,"thread":1,"mutex":1,"cb":11709,"ce":11751,"rb":11917,"re":13376,"acquired":true}
+[R158-call] {"request":60,"call":5,"part":1,"thread":1,"mutex":1,"cb":13376,"ce":13417,"rb":25792,"re":27001,"acquired":true}
+[R158-call] {"request":60,"call":6,"part":1,"thread":1,"mutex":1,"cb":27292,"ce":27376,"rb":27376,"re":28209,"acquired":true}
+[R158-call] {"request":60,"call":6,"part":2,"thread":1,"mutex":1,"cb":84126,"ce":84167,"rb":84209,"re":86667,"acquired":true}
+[R158-call] {"request":60,"call":7,"part":1,"thread":2,"mutex":0,"cb":97334,"ce":97709,"rb":97709,"re":97751,"acquired":false}
+[R158-call] {"request":60,"call":8,"part":1,"thread":1,"mutex":1,"cb":107792,"ce":107834,"rb":3133917,"re":3145251,"acquired":true}
+[R158-call] {"request":10,"call":9,"part":1,"thread":3,"mutex":1,"cb":3188959,"ce":33237834,"rb":33238209,"re":33249584,"acquired":true}
+[R158-end] {"calls":10,"enabled":true,"holder":false,"slow":false,"contention":true,"ownerBegin":3145459,"ownerRelease":33223167,"cleanup":true,"loss":false}

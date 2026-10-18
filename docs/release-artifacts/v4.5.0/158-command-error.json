@@ -1,0 +1,11 @@
+{
+  "command": "node scripts/internal/verify_v450_recording_a_mixed.sh --help",
+  "exit": 1,
+  "error": "SyntaxError: Invalid or unexpected token at shell comment line2",
+  "evidenceSource": "tool output transcript, raw redirected log not retained",
+  "classification": "mistaken command selection; Node parse rejection before module evaluation; not expected RED",
+  "launcherBodyExecuted": false,
+  "productStarts": 0,
+  "integratedCycles": 0,
+  "correctiveAction": "no retry of launcher; use intended producer verification"
+}
