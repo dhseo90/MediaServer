@@ -1,0 +1,114 @@
+{
+  "schema": "media-server.v450.r160.closure.v1",
+  "decision": "FAIL_TRACE_BUDGET_CONTRACT",
+  "remotePreservation": {
+    "result": "PASS",
+    "head": "a78ec4c894ee75ff5484c88fd33d336503fece1a",
+    "remoteHead": "a78ec4c894ee75ff5484c88fd33d336503fece1a",
+    "method": "GitHub Git blob API decoded actual bytes equal local committed bytes",
+    "files": [
+      {
+        "path": "docs/project-feature-test-inventory.md",
+        "bytes": 1095955,
+        "sha256": "9547c8e026b0abca12743f2894979a12dcdf93664dc9e3619a24b2f078aa28ec",
+        "gitBlob": "c90ed4766957a31e05b153064260ecca32a1cac2"
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/160-binding.json",
+        "bytes": 16316,
+        "sha256": "70d8c7bf4d867b8097c195c391c7eb52cc06e58caf7c10ca3e52e46d5994ed16",
+        "gitBlob": "cc3d8b1d147954e0285a0d9c6d5e228de413d257"
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/160-budget-analysis.json",
+        "bytes": 38126,
+        "sha256": "666da8d10eb2750f8a644931f6bbaa92369e1fbf0a7558b36a488fbbc5c04963",
+        "gitBlob": "7cc6163ca5d8b0ed6de2d5e613b7b5ea77cd224c"
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/160-focused-evidence.json",
+        "bytes": 22142,
+        "sha256": "693ae69fe69b8b5c830ed1cc1ba8526e70aed149ce708af97d7512a6a48e0da3",
+        "gitBlob": "bfcc3fdc0be533f0e102f4e47003a126f6de0653"
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/160-independent-review.json",
+        "bytes": 1916,
+        "sha256": "aba1d20d41e1a50821e2011ec4a8d414175c457b7ab73c74751098db382a9082",
+        "gitBlob": "228d944da8a5c0063aaa3b4557e526874c92b585"
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/160-validation.json",
+        "bytes": 4511,
+        "sha256": "205395a853a08fc7daede23afc1b399f293b1a48802b4eec78cda578c87735f4",
+        "gitBlob": "b26f2001547d04f1c4ffda41f88026d1f7478e99"
+      },
+      {
+        "path": "scripts/internal/recording_trace_budget.py",
+        "bytes": 2489,
+        "sha256": "3c61fc483f07d8130936307614e1efeea605e0eece0d8f46c1ef554fb6c961dc",
+        "gitBlob": "08c6ef2a08583d6ea73342f20eae40fd8859fe86"
+      },
+      {
+        "path": "scripts/internal/recording_trace_budget.test.py",
+        "bytes": 6854,
+        "sha256": "437c4ee6dfcbc708a04b1fff91047ea877b87d8979e66962e677b32c37d9d312",
+        "gitBlob": "40ae5a471156e83d2dcf0dc119c2e5e763e5305a"
+      },
+      {
+        "path": "scripts/internal/recording_trace_budget_smoke.cpp",
+        "bytes": 2396,
+        "sha256": "295488657188b138f86cb8583feb78c9261efb2dcbfdcc70c74530f36c879a39",
+        "gitBlob": "5a2927340dd4f1b7c0861146a3818c151eff76f4"
+      },
+      {
+        "path": "test/fixtures/project_feature_implementation_evidence.json",
+        "bytes": 26350232,
+        "sha256": "4f7cef65f400c5faed3b41e2ca8fc6492c3076698bca8d9e6274ef24937df579",
+        "gitBlob": "b31676d647ef15e37f08b3c9fbdb6a568d890b9c"
+      }
+    ]
+  },
+  "cleanup": {
+    "result": "PASS",
+    "ownedRoot": "<R160_OWNED>",
+    "rootAbsent": true,
+    "ownedProcessGroups": 11,
+    "groupsAbsent": true,
+    "bindingAndCompilerDriversCompleted": true,
+    "portsOpened": 0,
+    "portCheck": "No focused code creates/listens on a network port; no product/fixture server or container launched.",
+    "symlinkCount": 0,
+    "ownershipChecked": true,
+    "deletedFiles": 39,
+    "deletedBytes": 940488,
+    "method": "Validated exclusive root and every entry ownership/type; explicit per-file unlink and deepest-directory rmdir after remote evidence verification",
+    "errors": []
+  },
+  "fixedSHA256": {
+    "product": "33f516d35d56cb2f6cafc75647b6c37d2ced67115302d1205cca23bf51ab7f79",
+    "runtime": "2d91cf35fe7e805e0c06e00d16779c86849b35db635e087582277e1b676d198c",
+    "header": "2747d96d1c1a156692f8d77e05ddc5f89142291dfc60caf5c784d3a550001d1d"
+  },
+  "historyPreserved": {
+    "R159": "BLOCKED_LOCK_CALLSITE_INSTRUMENTATION",
+    "R149Functional45": "FAIL",
+    "R149Collection45": "INCOMPLETE",
+    "MemoryP0": "HOLD",
+    "Readiness120": "HOLD",
+    "Release": "HOLD"
+  },
+  "execution": {
+    "integrated": 0,
+    "actualSeed": 0,
+    "product": 0,
+    "new45": "NOT_RUN",
+    "HTTPAttribution": "NOT_RUN"
+  },
+  "git": {
+    "testCommit": "2a8054952eda85a243b01777c69e2d4a2c49cd03",
+    "evidenceCommit": "a78ec4c894ee75ff5484c88fd33d336503fece1a",
+    "preClosureWorktreeClean": true,
+    "closureCommit": "Recorded by this file commit; final local/remote HEAD and closure bytes verified after ordinary push"
+  }
+}
