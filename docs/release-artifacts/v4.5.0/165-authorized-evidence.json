@@ -1,0 +1,441 @@
+{
+  "task": "R165 authorized continuation; selected sanitized excerpts, not complete raw logs",
+  "rawFiles": {
+    "wrapper.log": {
+      "bytes": 6265831,
+      "sha256": "34ac299d8266c83373aadc33c4329b547c4382f82c85e805f4299d12a80f6870"
+    },
+    "server.private.log": {
+      "bytes": 1534146,
+      "sha256": "778cde245b4cf8166f9009610ea74d839120db57f1690df834859d931e8ff5fd"
+    },
+    "focused.log": {
+      "bytes": 6182,
+      "sha256": "0a8fc2daeb0ce299a3f107263e1b4fc13a1f93d306c7b04fbefb9c152b2c86b4"
+    },
+    "report.json": {
+      "bytes": 143030,
+      "sha256": "3462c0e8507592fdf15b51a6136a00281a1170dc115f6b3d4c105ff7d083c1db"
+    }
+  },
+  "focused": [
+    {
+      "line": 13,
+      "text": "[R153] {\"phase\":\"http\",\"monoNs\":1610321374176583,\"id\":1,\"status\":401,\"ms\":0.397750,\"bytes\":243}"
+    },
+    {
+      "line": 15,
+      "text": "[R154-search] {\"id\":1,\"diagnosticId\":1,\"begin\":1610321374409000,\"end\":1610321388919000,\"status\":200,\"attempt\":0,\"loss\":false,\"phases\":[[\"service-wait\",1610321374427000,1610321374427083],[\"service-hold\",1610321374427083,1610321374450791],[\"Capture\",1610321374462208,1610321377277250],[\"BuildOwned\",1610321377375125,1610321377820500],[\"Refresh\",1610321374451750,1610321377821208],[\"PlaybackCandidates\",1610321377821958,1610321380074500],[\"PlaybackNoCandidates\",1610321380074541,1610321380074541],[\"PlaybackReuse\",1610321380133500,1610321380133541],[\"WithPlayback\",1610321377821458,1610321380133958],[\"SnapshotBegin\",1610321380134041,1610321380184166],[\"preparation-wait\",1610321374451416,1610321374451458],[\"preparation-hold\",1610321374451458,1610321380184291],[\"CurrentnessJson\",1610321380184416,1610321388918000]],\"sources\":[[1,4,0,0,false,true]]}"
+    },
+    {
+      "line": 17,
+      "text": "[R154-server] {\"id\":1,\"class\":1,\"accepted\":1610321374322541,\"parsed\":1610321374370000,\"handler\":1610321374370666,\"prepared\":1610321388940250,\"sendBegin\":1610321388950208,\"sendEnd\":1610321388968375,\"sent\":true,\"end\":1610321388970208,\"loss\":false,\"metrics\":[[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0]],\"counts\":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]}"
+    },
+    {
+      "line": 18,
+      "text": "[R153] {\"phase\":\"http\",\"monoNs\":1610321389044708,\"id\":10,\"status\":200,\"ms\":14.837375,\"bytes\":11122}"
+    },
+    {
+      "line": 20,
+      "text": "[R165-client] {\"id\":1,\"loss\":false,\"status\":200,\"outcome\":\"ok\",\"phase\":\"complete\",\"bytes\":11122,\"totalElapsedMs\":15}"
+    },
+    {
+      "line": 21,
+      "text": "[R165-native-focused] actual parser/Search/send; auth401; portClosed true"
+    },
+    {
+      "line": 22,
+      "text": "[R165-focused-finish] PASS"
+    }
+  ],
+  "wrapper": [
+    {
+      "line": 146,
+      "text": "[R165-client] {\"method\":\"GET\",\"routeClass\":\"other\",\"status\":200,\"headerElapsedMs\":3,\"bodyElapsedMs\":0,\"totalElapsedMs\":3,\"bytes\":484,\"phase\":\"complete\",\"outcome\":\"ok\",\"id\":2,\"loss\":false,\"observationMs\":738.7548750000005,\"channels\":{\"9101\":{\"finalized\":0,\"deleted\":0,\"lastAt\":8681.711333,\"order\":\"0\",\"store\":null,\"knownMappings\":0,\"unknownMappings\":0},\"9201\":{\"finalized\":0,\"deleted\":0,\"lastAt\":8681.711333,\"order\":\"0\",\"store\":null,\"knownMappings\":0,\"unknownMappings\":0}}}"
+    },
+    {
+      "line": 148,
+      "text": "[R165-client] {\"method\":\"GET\",\"routeClass\":\"other\",\"status\":200,\"headerElapsedMs\":4,\"bodyElapsedMs\":0,\"totalElapsedMs\":4,\"bytes\":484,\"phase\":\"complete\",\"outcome\":\"ok\",\"id\":1,\"loss\":false,\"observationMs\":739.4688750000005,\"channels\":{\"9101\":{\"finalized\":0,\"deleted\":0,\"lastAt\":8681.711333,\"order\":\"0\",\"store\":null,\"knownMappings\":0,\"unknownMappings\":0},\"9201\":{\"finalized\":0,\"deleted\":0,\"lastAt\":8681.711333,\"order\":\"0\",\"store\":null,\"knownMappings\":0,\"unknownMappings\":0}}}"
+    },
+    {
+      "line": 166,
+      "text": "[R165-client] {\"method\":\"GET\",\"routeClass\":\"other\",\"status\":200,\"headerElapsedMs\":9,\"bodyElapsedMs\":0,\"totalElapsedMs\":9,\"bytes\":1650,\"phase\":\"complete\",\"outcome\":\"ok\",\"id\":3,\"loss\":false,\"observationMs\":820.0249170000006,\"channels\":{\"9101\":{\"finalized\":0,\"deleted\":0,\"lastAt\":8681.711333,\"order\":\"0\",\"store\":null,\"knownMappings\":0,\"unknownMappings\":0},\"9201\":{\"finalized\":0,\"deleted\":0,\"lastAt\":8681.711333,\"order\":\"0\",\"store\":null,\"knownMappings\":0,\"unknownMappings\":0}}}"
+    },
+    {
+      "line": 3663,
+      "text": "[R165-client] {\"method\":\"GET\",\"routeClass\":\"other\",\"status\":200,\"headerElapsedMs\":402,\"bodyElapsedMs\":0,\"totalElapsedMs\":402,\"bytes\":11787,\"phase\":\"complete\",\"outcome\":\"ok\",\"id\":5,\"loss\":false,\"observationMs\":601279.999375,\"channels\":{\"9101\":{\"finalized\":300,\"deleted\":0,\"lastAt\":609434.192708,\"order\":\"600\",\"store\":\"87a6dc053347613741795ac7f3e26925ca6f9ab84b6bb7ccd7bf87ae5ce7cb18\",\"knownMappings\":240,\"unknownMappings\":7500},\"9201\":{\"finalized\":300,\"deleted\":0,\"lastAt\":609434.192708,\"order\":\"601\",\"store\":\"87a6dc053347613741795ac7f3e26925ca6f9ab84b6bb7ccd7bf87ae5ce7cb18\",\"knownMappings\":222,\"unknownMappings\":7672}}}"
+    },
+    {
+      "line": 3665,
+      "text": "[R165-client] {\"method\":\"GET\",\"routeClass\":\"other\",\"status\":200,\"headerElapsedMs\":403,\"bodyElapsedMs\":0,\"totalElapsedMs\":403,\"bytes\":11787,\"phase\":\"complete\",\"outcome\":\"ok\",\"id\":4,\"loss\":false,\"observationMs\":601280.9767080001,\"channels\":{\"9101\":{\"finalized\":300,\"deleted\":0,\"lastAt\":609434.192708,\"order\":\"600\",\"store\":\"87a6dc053347613741795ac7f3e26925ca6f9ab84b6bb7ccd7bf87ae5ce7cb18\",\"knownMappings\":240,\"unknownMappings\":7500},\"9201\":{\"finalized\":300,\"deleted\":0,\"lastAt\":609434.192708,\"order\":\"601\",\"store\":\"87a6dc053347613741795ac7f3e26925ca6f9ab84b6bb7ccd7bf87ae5ce7cb18\",\"knownMappings\":222,\"unknownMappings\":7672}}}"
+    },
+    {
+      "line": 3712,
+      "text": "[R165-client] {\"method\":\"GET\",\"routeClass\":\"other\",\"status\":200,\"headerElapsedMs\":420,\"bodyElapsedMs\":0,\"totalElapsedMs\":421,\"bytes\":1650,\"phase\":\"complete\",\"outcome\":\"ok\",\"id\":6,\"loss\":false,\"observationMs\":602146.669125,\"channels\":{\"9101\":{\"finalized\":300,\"deleted\":0,\"lastAt\":609434.192708,\"order\":\"600\",\"store\":\"87a6dc053347613741795ac7f3e26925ca6f9ab84b6bb7ccd7bf87ae5ce7cb18\",\"knownMappings\":240,\"unknownMappings\":7500},\"9201\":{\"finalized\":300,\"deleted\":0,\"lastAt\":609434.192708,\"order\":\"601\",\"store\":\"87a6dc053347613741795ac7f3e26925ca6f9ab84b6bb7ccd7bf87ae5ce7cb18\",\"knownMappings\":222,\"unknownMappings\":7672}}}"
+    },
+    {
+      "line": 7206,
+      "text": "[R165-client] {\"method\":\"GET\",\"routeClass\":\"other\",\"status\":200,\"headerElapsedMs\":952,\"bodyElapsedMs\":0,\"totalElapsedMs\":952,\"bytes\":11790,\"phase\":\"complete\",\"outcome\":\"ok\",\"id\":7,\"loss\":false,\"observationMs\":1203180.9274169998,\"channels\":{\"9101\":{\"finalized\":600,\"deleted\":0,\"lastAt\":1210415.926416,\"order\":\"1200\",\"store\":\"87a6dc053347613741795ac7f3e26925ca6f9ab84b6bb7ccd7bf87ae5ce7cb18\",\"knownMappings\":444,\"unknownMappings\":18512},\"9201\":{\"finalized\":600,\"deleted\":0,\"lastAt\":1210415.926416,\"order\":\"1201\",\"store\":\"87a6dc053347613741795ac7f3e26925ca6f9ab84b6bb7ccd7bf87ae5ce7cb18\",\"knownMappings\":430,\"unknownMappings\":19054}}}"
+    },
+    {
+      "line": 7208,
+      "text": "[R165-client] {\"method\":\"GET\",\"routeClass\":\"other\",\"status\":200,\"headerElapsedMs\":953,\"bodyElapsedMs\":0,\"totalElapsedMs\":953,\"bytes\":11790,\"phase\":\"complete\",\"outcome\":\"ok\",\"id\":8,\"loss\":false,\"observationMs\":1203181.5892919998,\"channels\":{\"9101\":{\"finalized\":600,\"deleted\":0,\"lastAt\":1210415.926416,\"order\":\"1200\",\"store\":\"87a6dc053347613741795ac7f3e26925ca6f9ab84b6bb7ccd7bf87ae5ce7cb18\",\"knownMappings\":444,\"unknownMappings\":18512},\"9201\":{\"finalized\":600,\"deleted\":0,\"lastAt\":1210415.926416,\"order\":\"1201\",\"store\":\"87a6dc053347613741795ac7f3e26925ca6f9ab84b6bb7ccd7bf87ae5ce7cb18\",\"knownMappings\":430,\"unknownMappings\":19054}}}"
+    },
+    {
+      "line": 7255,
+      "text": "[R165-client] {\"method\":\"GET\",\"routeClass\":\"other\",\"status\":200,\"headerElapsedMs\":2782,\"bodyElapsedMs\":0,\"totalElapsedMs\":2782,\"bytes\":1650,\"phase\":\"complete\",\"outcome\":\"ok\",\"id\":9,\"loss\":false,\"observationMs\":1206199.0078329998,\"channels\":{\"9101\":{\"finalized\":600,\"deleted\":0,\"lastAt\":1210415.926416,\"order\":\"1200\",\"store\":\"87a6dc053347613741795ac7f3e26925ca6f9ab84b6bb7ccd7bf87ae5ce7cb18\",\"knownMappings\":444,\"unknownMappings\":18512},\"9201\":{\"finalized\":600,\"deleted\":0,\"lastAt\":1210415.926416,\"order\":\"1201\",\"store\":\"87a6dc053347613741795ac7f3e26925ca6f9ab84b6bb7ccd7bf87ae5ce7cb18\",\"knownMappings\":430,\"unknownMappings\":19054}}}"
+    },
+    {
+      "line": 8263,
+      "text": "[R165-client] {\"method\":\"GET\",\"routeClass\":\"other\",\"status\":200,\"headerElapsedMs\":1829,\"bodyElapsedMs\":0,\"totalElapsedMs\":1829,\"bytes\":11790,\"phase\":\"complete\",\"outcome\":\"ok\",\"id\":10,\"loss\":false,\"observationMs\":1383062.5265,\"channels\":{\"9101\":{\"finalized\":688,\"deleted\":0,\"lastAt\":1387782.431375,\"order\":\"1378\",\"store\":\"87a6dc053347613741795ac7f3e26925ca6f9ab84b6bb7ccd7bf87ae5ce7cb18\",\"knownMappings\":502,\"unknownMappings\":21868},\"9201\":{\"finalized\":689,\"deleted\":0,\"lastAt\":1387782.431375,\"order\":\"1377\",\"store\":\"87a6dc053347613741795ac7f3e26925ca6f9ab84b6bb7ccd7bf87ae5ce7cb18\",\"knownMappings\":495,\"unknownMappings\":22270}}}"
+    },
+    {
+      "line": 8265,
+      "text": "[R165-client] {\"method\":\"GET\",\"routeClass\":\"other\",\"status\":200,\"headerElapsedMs\":1851,\"bodyElapsedMs\":0,\"totalElapsedMs\":1851,\"bytes\":11790,\"phase\":\"complete\",\"outcome\":\"ok\",\"id\":11,\"loss\":false,\"observationMs\":1383084.656542,\"channels\":{\"9101\":{\"finalized\":688,\"deleted\":0,\"lastAt\":1387782.431375,\"order\":\"1378\",\"store\":\"87a6dc053347613741795ac7f3e26925ca6f9ab84b6bb7ccd7bf87ae5ce7cb18\",\"knownMappings\":502,\"unknownMappings\":21868},\"9201\":{\"finalized\":689,\"deleted\":0,\"lastAt\":1387782.431375,\"order\":\"1377\",\"store\":\"87a6dc053347613741795ac7f3e26925ca6f9ab84b6bb7ccd7bf87ae5ce7cb18\",\"knownMappings\":495,\"unknownMappings\":22270}}}"
+    },
+    {
+      "line": 8310,
+      "text": "[R165-client] {\"method\":\"GET\",\"routeClass\":\"other\",\"status\":200,\"headerElapsedMs\":3685,\"bodyElapsedMs\":0,\"totalElapsedMs\":3685,\"bytes\":1650,\"phase\":\"complete\",\"outcome\":\"ok\",\"id\":12,\"loss\":false,\"observationMs\":1386995.609833,\"channels\":{\"9101\":{\"finalized\":688,\"deleted\":0,\"lastAt\":1387782.431375,\"order\":\"1378\",\"store\":\"87a6dc053347613741795ac7f3e26925ca6f9ab84b6bb7ccd7bf87ae5ce7cb18\",\"knownMappings\":502,\"unknownMappings\":21868},\"9201\":{\"finalized\":689,\"deleted\":0,\"lastAt\":1387782.431375,\"order\":\"1377\",\"store\":\"87a6dc053347613741795ac7f3e26925ca6f9ab84b6bb7ccd7bf87ae5ce7cb18\",\"knownMappings\":495,\"unknownMappings\":22270}}}"
+    },
+    {
+      "line": 8964,
+      "text": "[R165-client] {\"method\":\"GET\",\"routeClass\":\"other\",\"status\":200,\"headerElapsedMs\":2344,\"bodyElapsedMs\":0,\"totalElapsedMs\":2344,\"bytes\":11790,\"phase\":\"complete\",\"outcome\":\"ok\",\"id\":13,\"loss\":false,\"observationMs\":1503021.053417,\"channels\":{\"9101\":{\"finalized\":748,\"deleted\":0,\"lastAt\":1508437.752875,\"order\":\"1496\",\"store\":\"87a6dc053347613741795ac7f3e26925ca6f9ab84b6bb7ccd7bf87ae5ce7cb18\",\"knownMappings\":556,\"unknownMappings\":23546},\"9201\":{\"finalized\":748,\"deleted\":0,\"lastAt\":1508437.752875,\"order\":\"1497\",\"store\":\"87a6dc053347613741795ac7f3e26925ca6f9ab84b6bb7ccd7bf87ae5ce7cb18\",\"knownMappings\":539,\"unknownMappings\":23858}}}"
+    },
+    {
+      "line": 8966,
+      "text": "[R165-client] {\"method\":\"GET\",\"routeClass\":\"other\",\"status\":200,\"headerElapsedMs\":2344,\"bodyElapsedMs\":0,\"totalElapsedMs\":2344,\"bytes\":11790,\"phase\":\"complete\",\"outcome\":\"ok\",\"id\":14,\"loss\":false,\"observationMs\":1503021.6713329998,\"channels\":{\"9101\":{\"finalized\":748,\"deleted\":0,\"lastAt\":1508437.752875,\"order\":\"1496\",\"store\":\"87a6dc053347613741795ac7f3e26925ca6f9ab84b6bb7ccd7bf87ae5ce7cb18\",\"knownMappings\":556,\"unknownMappings\":23546},\"9201\":{\"finalized\":748,\"deleted\":0,\"lastAt\":1508437.752875,\"order\":\"1497\",\"store\":\"87a6dc053347613741795ac7f3e26925ca6f9ab84b6bb7ccd7bf87ae5ce7cb18\",\"knownMappings\":539,\"unknownMappings\":23858}}}"
+    },
+    {
+      "line": 9011,
+      "text": "[R165-client] {\"method\":\"GET\",\"routeClass\":\"other\",\"status\":200,\"headerElapsedMs\":4081,\"bodyElapsedMs\":0,\"totalElapsedMs\":4081,\"bytes\":1650,\"phase\":\"complete\",\"outcome\":\"ok\",\"id\":15,\"loss\":false,\"observationMs\":1507281.5583749998,\"channels\":{\"9101\":{\"finalized\":748,\"deleted\":0,\"lastAt\":1508437.752875,\"order\":\"1496\",\"store\":\"87a6dc053347613741795ac7f3e26925ca6f9ab84b6bb7ccd7bf87ae5ce7cb18\",\"knownMappings\":556,\"unknownMappings\":23546},\"9201\":{\"finalized\":748,\"deleted\":0,\"lastAt\":1508437.752875,\"order\":\"1497\",\"store\":\"87a6dc053347613741795ac7f3e26925ca6f9ab84b6bb7ccd7bf87ae5ce7cb18\",\"knownMappings\":539,\"unknownMappings\":23858}}}"
+    },
+    {
+      "line": 10696,
+      "text": "[R165-qualified] {\"requests\":15,\"goalMet\":true}"
+    },
+    {
+      "line": 10698,
+      "text": "[R165-latency-gate] {\"count\":480,\"p95\":2172.728208000073,\"max\":3145.1451249998063,\"limitP95\":2000,\"limitMax\":5000,\"pass\":false}"
+    },
+    {
+      "line": 10705,
+      "text": "[R165-first-failure] {\"code\":\"functional-failure\",\"atMs\":1808797.5765}"
+    },
+    {
+      "line": 10708,
+      "text": "[fail] current observation: LP26-O05 both channels retained and progressed"
+    },
+    {
+      "line": 10710,
+      "text": "[process-cleanup] {\"schema\":\"recording-process-cleanup-v1\",\"attemptCount\":1,\"pid\":51208,\"exitCode\":0,\"signalCode\":null,\"exitedObserved\":true,\"stopCode\":\"complete\",\"forcedTermination\":\"not-used\",\"normalExitPass\":true,\"normalShutdownPass\":true,\"archiveSafe\":true,\"ports\":[{\"kind\":\"http\",\"port\":62091,\"status\":\"pass\",\"code\":\"closed\",\"closed\":true},{\"kind\":\"rtsp\",\"port\":62092,\"status\":\"pass\",\"code\":\"closed\",\"closed\":true}]}"
+    },
+    {
+      "line": 10714,
+      "text": "[completion-collection-summary] {\"status\":\"incomplete\",\"code\":\"completion-receipt-missing\",\"rows\":0,\"bytes\":0,\"receipt\":null}"
+    },
+    {
+      "line": 10715,
+      "text": "[fail] completion-evidence-collection"
+    },
+    {
+      "line": 10716,
+      "text": "[resource-trace-summary] {\"status\":\"captured\",\"count\":363,\"final\":{\"pid\":51208,\"seq\":362,\"phase\":\"after-storage-destruction\",\"elapsedMs\":1807133,\"ram\":0,\"ramPeak\":352775656,\"ramLimit\":671088640,\"ramRejected\":0,\"scratchDisk\":0,\"scratchDiskPeak\":265723904,\"scratchDiskLimit\":160340262912,\"scratchFd\":0,\"scratchFdPeak\":19,\"scratchFdLimit\":1048572,\"scratchRam\":0,\"preservedDisk\":0,\"preservedFd\":0,\"readerCleanupHealthy\":true},\"scope\":\"actual shared product owner; logical charges, not total heap or RSS; sequential counter reads\"}"
+    },
+    {
+      "line": 10723,
+      "text": "[wrapper-exit] 1"
+    }
+  ],
+  "server": [
+    {
+      "line": 33,
+      "text": "[R154-search] {\"id\":2,\"diagnosticId\":2,\"begin\":1610530271029458,\"end\":1610530271860125,\"status\":200,\"attempt\":0,\"loss\":false,\"phases\":[[\"service-wait\",1610530271042125,1610530271042250],[\"service-hold\",1610530271042250,1610530271079833],[\"Capture\",1610530271091541,1610530271307916],[\"BuildOwned\",1610530271389416,1610530271466041],[\"Refresh\",1610530271080916,1610530271466833],[\"PlaybackCandidates\",1610530271477083,1610530271758750],[\"PlaybackNoCandidates\",1610530271758791,1610530271758791],[\"PlaybackReuse\",1610530271822041,1610530271822083],[\"WithPlayback\",1610530271467750,1610530271822625],[\"SnapshotBegin\",1610530271822666,1610530271849541],[\"preparation-wait\",1610530271080500,1610530271080541],[\"preparation-hold\",1610530271080541,1610530271849666],[\"CurrentnessJson\",1610530271851291,1610530271859750]],\"sources\":[[1,2,0,0,false,true]]}"
+    },
+    {
+      "line": 35,
+      "text": "[R154-server] {\"id\":2,\"class\":1,\"accepted\":1610530270517000,\"parsed\":1610530270679166,\"handler\":1610530270680666,\"prepared\":1610530271874291,\"sendBegin\":1610530271885166,\"sendEnd\":1610530271891458,\"sent\":true,\"end\":1610530271892708,\"loss\":false,\"metrics\":[[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0]],\"counts\":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]}"
+    },
+    {
+      "line": 36,
+      "text": "[R154-search] {\"id\":1,\"diagnosticId\":1,\"begin\":1610530271216666,\"end\":1610530273180750,\"status\":200,\"attempt\":0,\"loss\":false,\"phases\":[[\"service-wait\",1610530271222083,1610530271222166],[\"service-hold\",1610530271222166,1610530271222208],[\"Capture\",1610530271861208,1610530272093375],[\"RefreshReuse\",1610530272239750,1610530272239833],[\"Refresh\",1610530271860500,1610530272241208],[\"PlaybackCandidates\",1610530272242125,1610530272946708],[\"PlaybackNoCandidates\",1610530272946958,1610530272947000],[\"PlaybackReuse\",1610530273105416,1610530273105458],[\"WithPlayback\",1610530272241541,1610530273107375],[\"SnapshotBegin\",1610530273107583,1610530273157750],[\"preparation-wait\",1610530271222708,1610530271858791],[\"preparation-hold\",1610530271858791,1610530273158375],[\"CurrentnessJson\",1610530273158708,1610530273179875]],\"sources\":[[1,2,0,0,false,true]]}"
+    },
+    {
+      "line": 38,
+      "text": "[R154-server] {\"id\":1,\"class\":1,\"accepted\":1610530270502375,\"parsed\":1610530270574208,\"handler\":1610530270577041,\"prepared\":1610530273213333,\"sendBegin\":1610530273238375,\"sendEnd\":1610530273249208,\"sent\":true,\"end\":1610530273252125,\"loss\":false,\"metrics\":[[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0]],\"counts\":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]}"
+    },
+    {
+      "line": 43,
+      "text": "[R154-search] {\"id\":3,\"diagnosticId\":3,\"begin\":1610530346532708,\"end\":1610530354404833,\"status\":200,\"attempt\":0,\"loss\":false,\"phases\":[[\"service-wait\",1610530346540333,1610530346540416],[\"service-hold\",1610530346540416,1610530346540708],[\"Capture\",1610530346542375,1610530347606250],[\"BuildOwned\",1610530351375208,1610530351473500],[\"Refresh\",1610530346541958,1610530351475291],[\"PlaybackCandidates\",1610530351476583,1610530351710041],[\"PlaybackNoCandidates\",1610530351710083,1610530351710125],[\"PlaybackBuildOwned\",1610530351740500,1610530351812291],[\"PlaybackDocuments\",1610530351710666,1610530351812625],[\"WithPlayback\",1610530351475875,1610530351813083],[\"SnapshotBegin\",1610530351813125,1610530351845833],[\"preparation-wait\",1610530346541291,1610530346541333],[\"preparation-hold\",1610530346541333,1610530351846000],[\"CurrentnessJson\",1610530351846166,1610530354404208]],\"sources\":[[1,2,0,0,false,true]]}"
+    },
+    {
+      "line": 45,
+      "text": "[R154-server] {\"id\":3,\"class\":3,\"accepted\":1610530346111166,\"parsed\":1610530346203500,\"handler\":1610530346204833,\"prepared\":1610530354422750,\"sendBegin\":1610530354435041,\"sendEnd\":1610530354448708,\"sent\":true,\"end\":1610530354450208,\"loss\":false,\"metrics\":[[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0]],\"counts\":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]}"
+    },
+    {
+      "line": 440,
+      "text": "[R154-search] {\"id\":5,\"diagnosticId\":5,\"begin\":1611130413909833,\"end\":1611130813994333,\"status\":200,\"attempt\":0,\"loss\":false,\"phases\":[[\"service-wait\",1611130413918583,1611130413918666],[\"service-hold\",1611130413918666,1611130413918750],[\"Capture\",1611130647841875,1611130650270041],[\"RefreshReuse\",1611130650338916,1611130650338958],[\"Refresh\",1611130647841625,1611130650339916],[\"PlaybackCandidates\",1611130650340958,1611130663458000],[\"PlaybackNoCandidates\",1611130663458083,1611130663458125],[\"PlaybackReuse\",1611130665318166,1611130665318166],[\"WithPlayback\",1611130650340375,1611130665319625],[\"SnapshotBegin\",1611130665319791,1611130666110958],[\"preparation-wait\",1611130413919291,1611130647841166],[\"preparation-hold\",1611130647841166,1611130666111250],[\"CurrentnessJson\",1611130666111458,1611130813993083]],\"sources\":[[1,1202,0,0,false,true]]}"
+    },
+    {
+      "line": 442,
+      "text": "[R154-server] {\"id\":5,\"class\":1,\"accepted\":1611130412961791,\"parsed\":1611130413200041,\"handler\":1611130413201916,\"prepared\":1611130814015833,\"sendBegin\":1611130814031500,\"sendEnd\":1611130814051250,\"sent\":true,\"end\":1611130814053333,\"loss\":false,\"metrics\":[[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0]],\"counts\":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]}"
+    },
+    {
+      "line": 443,
+      "text": "[R154-search] {\"id\":4,\"diagnosticId\":4,\"begin\":1611130413902458,\"end\":1611130815452750,\"status\":200,\"attempt\":0,\"loss\":false,\"phases\":[[\"service-wait\",1611130413913208,1611130413913333],[\"service-hold\",1611130413913333,1611130413913583],[\"Capture\",1611130413915666,1611130535777000],[\"BuildOwned\",1611130535961583,1611130630572291],[\"Refresh\",1611130413915166,1611130630640666],[\"PlaybackCandidates\",1611130630644166,1611130644619708],[\"PlaybackNoCandidates\",1611130644619791,1611130644619833],[\"PlaybackReuse\",1611130646401875,1611130646401916],[\"WithPlayback\",1611130630642500,1611130646403541],[\"SnapshotBegin\",1611130646403625,1611130647826416],[\"preparation-wait\",1611130413914666,1611130413914708],[\"preparation-hold\",1611130413914708,1611130647826750],[\"CurrentnessJson\",1611130647828583,1611130815451833]],\"sources\":[[1,1202,0,0,false,true]]}"
+    },
+    {
+      "line": 445,
+      "text": "[R154-server] {\"id\":4,\"class\":1,\"accepted\":1611130412920541,\"parsed\":1611130413102750,\"handler\":1611130413107041,\"prepared\":1611130815466750,\"sendBegin\":1611130815478083,\"sendEnd\":1611130815485333,\"sent\":true,\"end\":1611130815487041,\"loss\":false,\"metrics\":[[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0]],\"counts\":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]}"
+    },
+    {
+      "line": 450,
+      "text": "[R154-search] {\"id\":6,\"diagnosticId\":6,\"begin\":1611131261555916,\"end\":1611131680989500,\"status\":200,\"attempt\":0,\"loss\":false,\"phases\":[[\"service-wait\",1611131261563083,1611131261563333],[\"service-hold\",1611131261563333,1611131261563500],[\"Capture\",1611131261564708,1611131306140458],[\"BuildOwned\",1611131664936083,1611131665037041],[\"Refresh\",1611131261564291,1611131665042000],[\"PlaybackCandidates\",1611131665043833,1611131677729833],[\"PlaybackNoCandidates\",1611131677730041,1611131677730041],[\"PlaybackBuildOwned\",1611131677769541,1611131677863375],[\"PlaybackDocuments\",1611131677731416,1611131677863833],[\"WithPlayback\",1611131665042833,1611131677864541],[\"SnapshotBegin\",1611131677864583,1611131677918166],[\"preparation-wait\",1611131261563916,1611131261563958],[\"preparation-hold\",1611131261563958,1611131677918333],[\"CurrentnessJson\",1611131677918583,1611131680988458]],\"sources\":[[1,1202,0,0,false,true]]}"
+    },
+    {
+      "line": 452,
+      "text": "[R154-server] {\"id\":6,\"class\":3,\"accepted\":1611131261148958,\"parsed\":1611131261227250,\"handler\":1611131261228916,\"prepared\":1611131681010833,\"sendBegin\":1611131681027416,\"sendEnd\":1611131681040750,\"sent\":true,\"end\":1611131681042666,\"loss\":false,\"metrics\":[[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0]],\"counts\":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]}"
+    },
+    {
+      "line": 849,
+      "text": "[R154-search] {\"id\":7,\"diagnosticId\":7,\"begin\":1611731764256833,\"end\":1611732715126000,\"status\":200,\"attempt\":0,\"loss\":false,\"phases\":[[\"service-wait\",1611731764263833,1611731764264000],[\"service-hold\",1611731764264000,1611731764264208],[\"Capture\",1611731764265333,1611732278632916],[\"BuildOwned\",1611732278739166,1611732470585708],[\"Refresh\",1611731764265125,1611732470637583],[\"PlaybackCandidates\",1611732470639166,1611732499107875],[\"PlaybackNoCandidates\",1611732499108083,1611732499108083],[\"PlaybackReuse\",1611732500251583,1611732500251625],[\"WithPlayback\",1611732470638416,1611732500252958],[\"SnapshotBegin\",1611732500253125,1611732501670000],[\"preparation-wait\",1611731764264750,1611731764264791],[\"preparation-hold\",1611731764264791,1611732501670375],[\"CurrentnessJson\",1611732501672041,1611732715124541]],\"sources\":[[1,2402,0,0,false,true]]}"
+    },
+    {
+      "line": 851,
+      "text": "[R154-server] {\"id\":7,\"class\":1,\"accepted\":1611731763717958,\"parsed\":1611731763838500,\"handler\":1611731763839750,\"prepared\":1611732715144833,\"sendBegin\":1611732715159250,\"sendEnd\":1611732715176000,\"sent\":true,\"end\":1611732715177875,\"loss\":false,\"metrics\":[[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0]],\"counts\":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]}"
+    },
+    {
+      "line": 852,
+      "text": "[R154-search] {\"id\":8,\"diagnosticId\":8,\"begin\":1611731764449083,\"end\":1611732716133958,\"status\":200,\"attempt\":0,\"loss\":false,\"phases\":[[\"service-wait\",1611731764453625,1611731764453666],[\"service-hold\",1611731764453666,1611731764453708],[\"Capture\",1611732501675541,1611732506782708],[\"RefreshReuse\",1611732506855625,1611732506855666],[\"Refresh\",1611732501675208,1611732506856708],[\"PlaybackCandidates\",1611732506857791,1611732535230083],[\"PlaybackNoCandidates\",1611732535230250,1611732535230291],[\"PlaybackReuse\",1611732537697291,1611732537697333],[\"WithPlayback\",1611732506856916,1611732537699041],[\"SnapshotBegin\",1611732537699083,1611732541524125],[\"preparation-wait\",1611731764454041,1611732501674333],[\"preparation-hold\",1611732501674333,1611732541524708],[\"CurrentnessJson\",1611732541524958,1611732716133250]],\"sources\":[[1,2402,0,0,false,true]]}"
+    },
+    {
+      "line": 854,
+      "text": "[R154-server] {\"id\":8,\"class\":1,\"accepted\":1611731763740083,\"parsed\":1611731763851291,\"handler\":1611731763854375,\"prepared\":1611732716149333,\"sendBegin\":1611732716161791,\"sendEnd\":1611732716170125,\"sent\":true,\"end\":1611732716171708,\"loss\":false,\"metrics\":[[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0]],\"counts\":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]}"
+    },
+    {
+      "line": 859,
+      "text": "[R154-search] {\"id\":9,\"diagnosticId\":9,\"begin\":1611732952956291,\"end\":1611735733133541,\"status\":200,\"attempt\":0,\"loss\":false,\"phases\":[[\"service-wait\",1611732952969416,1611732952969541],[\"service-hold\",1611732952969541,1611732952969791],[\"Capture\",1611732952971541,1611733045763291],[\"BuildOwned\",1611735635338291,1611735686391083],[\"Refresh\",1611732952971041,1611735686396875],[\"PlaybackCandidates\",1611735686399625,1611735724954166],[\"PlaybackNoCandidates\",1611735724954333,1611735724954333],[\"PlaybackBuildOwned\",1611735724993958,1611735727492541],[\"PlaybackDocuments\",1611735724955708,1611735727493208],[\"WithPlayback\",1611735686398541,1611735727501333],[\"SnapshotBegin\",1611735727501750,1611735727587166],[\"preparation-wait\",1611732952970500,1611732952970541],[\"preparation-hold\",1611732952970541,1611735727587500],[\"CurrentnessJson\",1611735727587791,1611735733131833]],\"sources\":[[1,2406,0,0,false,true]]}"
+    },
+    {
+      "line": 861,
+      "text": "[R154-server] {\"id\":9,\"class\":3,\"accepted\":1611732952306750,\"parsed\":1611732952422750,\"handler\":1611732952425125,\"prepared\":1611735733155916,\"sendBegin\":1611735733170000,\"sendEnd\":1611735733190083,\"sent\":true,\"end\":1611735733192166,\"loss\":false,\"metrics\":[[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0]],\"counts\":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]}"
+    },
+    {
+      "line": 982,
+      "text": "[R154-search] {\"id\":10,\"diagnosticId\":10,\"begin\":1611910769546250,\"end\":1611912596643625,\"status\":200,\"attempt\":2,\"loss\":false,\"phases\":[[\"service-wait\",1611910769552666,1611910769552791],[\"service-hold\",1611910769552791,1611910769552958],[\"Capture\",1611910769554250,1611911612390541],[\"Refresh\",1611910769553916,1611911612485541],[\"Capture\",1611911612486500,1611911850814416],[\"Refresh\",1611911612486250,1611911852601208],[\"Capture\",1611911852602208,1611912099455583],[\"BuildOwned\",1611912100726583,1611912350288666],[\"Refresh\",1611911852601916,1611912350354833],[\"PlaybackCandidates\",1611912350358166,1611912386214875],[\"PlaybackNoCandidates\",1611912386215041,1611912386215041],[\"PlaybackReuse\",1611912387186916,1611912387186958],[\"WithPlayback\",1611912350356833,1611912387188125],[\"SnapshotBegin\",1611912387188291,1611912391408375],[\"preparation-wait\",1611910769553416,1611910769553458],[\"preparation-hold\",1611910769553458,1611912391408916],[\"CurrentnessJson\",1611912391412333,1611912596642208]],\"sources\":[[1,2756,22370,0,true,true],[1,2760,22404,0,true,true],[1,2762,0,0,false,true]]}"
+    },
+    {
+      "line": 984,
+      "text": "[R154-server] {\"id\":10,\"class\":1,\"accepted\":1611910768851458,\"parsed\":1611910769005208,\"handler\":1611910769010125,\"prepared\":1611912596665041,\"sendBegin\":1611912596680291,\"sendEnd\":1611912596699166,\"sent\":true,\"end\":1611912596701041,\"loss\":false,\"metrics\":[[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0]],\"counts\":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]}"
+    },
+    {
+      "line": 985,
+      "text": "[R154-search] {\"id\":11,\"diagnosticId\":11,\"begin\":1611910769696333,\"end\":1611912618838208,\"status\":200,\"attempt\":0,\"loss\":false,\"phases\":[[\"service-wait\",1611910769706000,1611910769706166],[\"service-hold\",1611910769706166,1611910769706333],[\"Capture\",1611912391421791,1611912395772208],[\"RefreshReuse\",1611912395924333,1611912395924375],[\"Refresh\",1611912391421166,1611912395926291],[\"PlaybackCandidates\",1611912395928166,1611912434916458],[\"PlaybackNoCandidates\",1611912434916625,1611912434916666],[\"PlaybackReuse\",1611912436903916,1611912436903958],[\"WithPlayback\",1611912395927250,1611912436906125],[\"SnapshotBegin\",1611912436906291,1611912439515833],[\"preparation-wait\",1611910769706958,1611912391419458],[\"preparation-hold\",1611912391419458,1611912439516333],[\"CurrentnessJson\",1611912439516458,1611912618837000]],\"sources\":[[1,2762,0,0,false,true]]}"
+    },
+    {
+      "line": 987,
+      "text": "[R154-server] {\"id\":11,\"class\":1,\"accepted\":1611910768875208,\"parsed\":1611910769005291,\"handler\":1611910769008416,\"prepared\":1611912618860666,\"sendBegin\":1611912618876291,\"sendEnd\":1611912618893833,\"sent\":true,\"end\":1611912618895791,\"loss\":false,\"metrics\":[[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0]],\"counts\":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]}"
+    },
+    {
+      "line": 988,
+      "text": "[R154-search] {\"id\":12,\"diagnosticId\":12,\"begin\":1611912846794166,\"end\":1611916529829166,\"status\":200,\"attempt\":0,\"loss\":false,\"phases\":[[\"service-wait\",1611912846806583,1611912846806750],[\"service-hold\",1611912846806750,1611912846806916],[\"Capture\",1611912846809041,1611912955322458],[\"BuildOwned\",1611916451882958,1611916485991000],[\"Refresh\",1611912846808375,1611916485995250],[\"PlaybackCandidates\",1611916485997333,1611916524585291],[\"PlaybackNoCandidates\",1611916524585375,1611916524585416],[\"PlaybackBuildOwned\",1611916524625375,1611916525423791],[\"PlaybackDocuments\",1611916524587125,1611916525424375],[\"WithPlayback\",1611916485996458,1611916525425500],[\"SnapshotBegin\",1611916525425541,1611916525471541],[\"preparation-wait\",1611912846807666,1611912846807708],[\"preparation-hold\",1611912846807708,1611916525471875],[\"CurrentnessJson\",1611916525472291,1611916529828375]],\"sources\":[[1,2766,0,0,false,true]]}"
+    },
+    {
+      "line": 990,
+      "text": "[R154-server] {\"id\":12,\"class\":3,\"accepted\":1611912845889750,\"parsed\":1611912846061416,\"handler\":1611912846065291,\"prepared\":1611916529848291,\"sendBegin\":1611916529862541,\"sendEnd\":1611916529879416,\"sent\":true,\"end\":1611916529881083,\"loss\":false,\"metrics\":[[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0]],\"counts\":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]}"
+    },
+    {
+      "line": 1069,
+      "text": "[R154-search] {\"id\":13,\"diagnosticId\":13,\"begin\":1612030212731791,\"end\":1612032555214333,\"status\":200,\"attempt\":2,\"loss\":false,\"phases\":[[\"service-wait\",1612030212742666,1612030212742708],[\"service-hold\",1612030212742708,1612030212743000],[\"Capture\",1612030212745208,1612031105131541],[\"Refresh\",1612030212744500,1612031105336333],[\"Capture\",1612031105337500,1612031348867583],[\"BuildOwned\",1612031350447750,1612031752489083],[\"Refresh\",1612031105337125,1612031753548041],[\"Capture\",1612031753549250,1612032013207708],[\"BuildOwned\",1612032013643875,1612032273373125],[\"Refresh\",1612031753548916,1612032273410875],[\"PlaybackCandidates\",1612032273412916,1612032311074083],[\"PlaybackNoCandidates\",1612032311074333,1612032311074333],[\"PlaybackReuse\",1612032316996291,1612032316996333],[\"WithPlayback\",1612032273412000,1612032316998208],[\"SnapshotBegin\",1612032316998375,1612032322329625],[\"preparation-wait\",1612030212743708,1612030212743750],[\"preparation-hold\",1612030212743750,1612032322330041],[\"CurrentnessJson\",1612032322333333,1612032555212791]],\"sources\":[[1,2994,24102,0,true,true],[1,2998,0,0,true,true],[1,3002,0,0,false,true]]}"
+    },
+    {
+      "line": 1071,
+      "text": "[R154-server] {\"id\":13,\"class\":1,\"accepted\":1612030212134458,\"parsed\":1612030212281875,\"handler\":1612030212283125,\"prepared\":1612032555237833,\"sendBegin\":1612032555253291,\"sendEnd\":1612032555270000,\"sent\":true,\"end\":1612032555271875,\"loss\":false,\"metrics\":[[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0]],\"counts\":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]}"
+    },
+    {
+      "line": 1072,
+      "text": "[R154-search] {\"id\":14,\"diagnosticId\":14,\"begin\":1612030212991041,\"end\":1612032556044750,\"status\":200,\"attempt\":0,\"loss\":false,\"phases\":[[\"service-wait\",1612030213000000,1612030213000041],[\"service-hold\",1612030213000041,1612030213000166],[\"Capture\",1612032322342833,1612032326353125],[\"RefreshReuse\",1612032326497166,1612032326497208],[\"Refresh\",1612032322342208,1612032326498750],[\"PlaybackCandidates\",1612032326500333,1612032367403500],[\"PlaybackNoCandidates\",1612032367403708,1612032367403708],[\"PlaybackReuse\",1612032369733750,1612032369733791],[\"WithPlayback\",1612032326499291,1612032369736125],[\"SnapshotBegin\",1612032369736333,1612032372249375],[\"preparation-wait\",1612030213000750,1612032322340708],[\"preparation-hold\",1612032322340708,1612032372249791],[\"CurrentnessJson\",1612032372250041,1612032556043875]],\"sources\":[[1,3002,0,0,false,true]]}"
+    },
+    {
+      "line": 1074,
+      "text": "[R154-server] {\"id\":14,\"class\":1,\"accepted\":1612030212169166,\"parsed\":1612030212291291,\"handler\":1612030212293791,\"prepared\":1612032556060041,\"sendBegin\":1612032556072416,\"sendEnd\":1612032556080500,\"sent\":true,\"end\":1612032556081916,\"loss\":false,\"metrics\":[[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0]],\"counts\":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]}"
+    },
+    {
+      "line": 1077,
+      "text": "[R154-search] {\"id\":15,\"diagnosticId\":15,\"begin\":1612032736069833,\"end\":1612036815352500,\"status\":200,\"attempt\":0,\"loss\":false,\"phases\":[[\"service-wait\",1612032736076333,1612032736076375],[\"service-hold\",1612032736076375,1612032736076625],[\"Capture\",1612032736077666,1612032868267250],[\"BuildOwned\",1612036754909000,1612036765551750],[\"Refresh\",1612032736077458,1612036765556791],[\"PlaybackCandidates\",1612036765558791,1612036803742750],[\"PlaybackNoCandidates\",1612036803742916,1612036803742916],[\"PlaybackBuildOwned\",1612036803783083,1612036809049083],[\"PlaybackDocuments\",1612036803744416,1612036809049916],[\"WithPlayback\",1612036765557916,1612036809052333],[\"SnapshotBegin\",1612036809052500,1612036809101916],[\"preparation-wait\",1612032736077041,1612032736077083],[\"preparation-hold\",1612032736077083,1612036809102083],[\"CurrentnessJson\",1612036809102333,1612036815351125]],\"sources\":[[1,3006,0,0,false,true]]}"
+    },
+    {
+      "line": 1079,
+      "text": "[R154-server] {\"id\":15,\"class\":3,\"accepted\":1612032735612583,\"parsed\":1612032735713166,\"handler\":1612032735715666,\"prepared\":1612036815379083,\"sendBegin\":1612036815395875,\"sendEnd\":1612036815421375,\"sent\":true,\"end\":1612036815423166,\"loss\":false,\"metrics\":[[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0]],\"counts\":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]}"
+    }
+  ],
+  "result": {
+    "status": "FAIL",
+    "childExit": 1,
+    "exit": 1,
+    "executionElapsedSeconds": 1825.6594328328501,
+    "elapsedSeconds": 1825.6598066249862,
+    "timeoutSeconds": 1870,
+    "timedOut": false,
+    "interruptedSignals": [],
+    "residualGroupAfterCommand": false,
+    "cleanupSignals": [],
+    "processGroupAbsent": true,
+    "cleanupErrors": [],
+    "cleanupOnlySeconds": 1.737498678267002e-05,
+    "registeredGroupsAbsent": true,
+    "residualRegisteredGroups": false,
+    "registeredGroupSignals": [],
+    "registeredGroupCleanupSeconds": 0.00028941710479557514,
+    "finishedAt": "2026-10-18T06:31:40.421754+00:00"
+  },
+  "focusedResult": {
+    "status": "PASS",
+    "childExit": 0,
+    "exit": 0,
+    "executionElapsedSeconds": 1.9928851670119911,
+    "elapsedSeconds": 1.99294895818457,
+    "timeoutSeconds": 30,
+    "timedOut": false,
+    "interruptedSignals": [],
+    "residualGroupAfterCommand": false,
+    "cleanupSignals": [],
+    "processGroupAbsent": true,
+    "cleanupErrors": [],
+    "cleanupOnlySeconds": 1.1083902791142464e-05,
+    "registeredGroupsAbsent": true,
+    "residualRegisteredGroups": false,
+    "registeredGroupSignals": [],
+    "registeredGroupCleanupSeconds": 5.084089934825897e-06,
+    "finishedAt": "2026-10-18T05:58:10.317769+00:00"
+  },
+  "focusedBinding": {
+    "pass": true,
+    "requestId": 1,
+    "server": 1,
+    "search": 1,
+    "client": 1,
+    "phases": [
+      "service-wait",
+      "service-hold",
+      "Capture",
+      "BuildOwned",
+      "Refresh",
+      "PlaybackCandidates",
+      "PlaybackNoCandidates",
+      "PlaybackReuse",
+      "WithPlayback",
+      "SnapshotBegin",
+      "preparation-wait",
+      "preparation-hold",
+      "CurrentnessJson"
+    ],
+    "auth401": true,
+    "finish": true,
+    "portClosed": true,
+    "loss": null
+  },
+  "reportSubset": {
+    "mode": "r165-selected-accumulated-diagnostic",
+    "fixtureProfile": {
+      "name": "continuous-r114",
+      "continuousMaxBytes": 113246208,
+      "eventMaxBytes": 134217728,
+      "continuousMaxAgeMs": 10800000,
+      "eventMaxAgeMs": 10800000,
+      "segmentBytes": 71237,
+      "protectedFiles": 643,
+      "E": 67108864,
+      "H": 45805391,
+      "P": 71237,
+      "M": 260716,
+      "inputNormalizedSha256": "baebad5cad233243c4748f6bfec06fa5d2da7f06ae9b1475c9b20bfbfb04e2e7"
+    },
+    "phase": {
+      "elapsedMs": 1800115.579042,
+      "channels": {
+        "9101": {
+          "finalized": 898,
+          "deleted": 0,
+          "lastAt": 1808686.81125,
+          "order": "1796",
+          "store": "87a6dc053347613741795ac7f3e26925ca6f9ab84b6bb7ccd7bf87ae5ce7cb18",
+          "knownMappings": 676,
+          "unknownMappings": 27548
+        },
+        "9201": {
+          "finalized": 898,
+          "deleted": 0,
+          "lastAt": 1808686.81125,
+          "order": "1797",
+          "store": "87a6dc053347613741795ac7f3e26925ca6f9ab84b6bb7ccd7bf87ae5ce7cb18",
+          "knownMappings": 659,
+          "unknownMappings": 27848
+        }
+      },
+      "records": 1796,
+      "logicalBytes": 1071929
+    },
+    "resources": {
+      "status": "observed",
+      "resourceTrendPass": false,
+      "reviewRequired": true,
+      "sampleCount": 356,
+      "groups": [
+        {
+          "pid": 51208,
+          "startIdentity": "macos:1792303292:290739",
+          "sampleCount": 356,
+          "first": {
+            "phaseAt": 8922.634916,
+            "sampledAt": 1792303298658,
+            "rssBytes": 3129589760,
+            "threadCount": 38,
+            "fdCount": 34,
+            "mutationCount": 6
+          },
+          "last": {
+            "phaseAt": 1808686.81125,
+            "sampledAt": 1792305098437,
+            "rssBytes": 2127052800,
+            "threadCount": 36,
+            "fdCount": 69,
+            "mutationCount": 3598
+          },
+          "max": {
+            "rssBytes": 3156574208,
+            "threadCount": 39,
+            "fdCount": 78
+          },
+          "delta": {
+            "rssBytes": -1002536960,
+            "threadCount": -2,
+            "fdCount": 35,
+            "mutationCount": 3592
+          },
+          "elapsedMs": 1799764.176334,
+          "maxGapMs": 9826.119875000091,
+          "warmupMs": 300000,
+          "postWarmup": {
+            "status": "observed",
+            "sampleCount": 296,
+            "delta": {
+              "rssBytes": 434814976,
+              "threadCount": -1,
+              "fdCount": 35,
+              "mutationCount": 2992
+            },
+            "elapsedMs": 1499494.133167,
+            "rssMiBPerMinute": 16.592470720409985
+          }
+        }
+      ]
+    },
+    "processCount": 1,
+    "processesClosed": true,
+    "udpClosed": true,
+    "diagnosticCompleted": false,
+    "latencyPassed": false,
+    "status": "FAIL",
+    "exit": 1
+  }
+}

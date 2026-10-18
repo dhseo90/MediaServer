@@ -1,0 +1,1426 @@
+{
+  "task": "R165 continuation (same R number)",
+  "status": "FAIL_REPRESENTATIVE_RUN",
+  "baselineHead": "4163cd1d4174fdedcc472652b3fe03a33ac52f5e",
+  "branch": "v4.5.0",
+  "models": {
+    "main": {
+      "requested": "GPT-6 Astra / High",
+      "toolAccepted": "UNKNOWN",
+      "actualRuntimeModel": "UNKNOWN",
+      "actualRuntimeEffort": "UNKNOWN"
+    },
+    "independent": {
+      "requested": "GPT-6 Astra / High",
+      "toolAccepted": "gpt-6-astra/high (existing independent agent)",
+      "actualRuntimeModel": "UNKNOWN",
+      "actualRuntimeEffort": "UNKNOWN"
+    }
+  },
+  "permission": {
+    "defaultContext": "workspace-write / macOS Seatbelt; CODEX_SANDBOX_NETWORK_DISABLED=1",
+    "approvedContext": "Per-command require_escalated requests accepted by configured automatic approval reviewer",
+    "persistentSettingsChanged": false,
+    "sudo": false,
+    "sameDeniedContextBindRepeated": false,
+    "exactOriginalEnforcementRule": "UNKNOWN",
+    "interpretation": "Previously denied default-context bind succeeds in officially approved command context. Exact OS/sandbox enforcement rule not independently established.",
+    "officialReference": "https://learn.chatgpt.com/docs/sandboxing",
+    "loopbackCheck": {
+      "attempts": 1,
+      "socket": true,
+      "bind": "127.0.0.1:0",
+      "assignedPort": 61997,
+      "closed": true
+    }
+  },
+  "changes": {
+    "productSource": false,
+    "testSource": false,
+    "settings": false,
+    "onlyNewSmallEvidence": true
+  },
+  "focused": {
+    "attemptsThisContinuation": 1,
+    "status": "PASS",
+    "elapsedSeconds": 1.99294895818457,
+    "binding": {
+      "pass": true,
+      "requestId": 1,
+      "server": 1,
+      "search": 1,
+      "client": 1,
+      "phases": [
+        "service-wait",
+        "service-hold",
+        "Capture",
+        "BuildOwned",
+        "Refresh",
+        "PlaybackCandidates",
+        "PlaybackNoCandidates",
+        "PlaybackReuse",
+        "WithPlayback",
+        "SnapshotBegin",
+        "preparation-wait",
+        "preparation-hold",
+        "CurrentnessJson"
+      ],
+      "auth401": true,
+      "finish": true,
+      "portClosed": true,
+      "loss": null
+    },
+    "note": "helper request counter10 uses correlation1; unauthorized request has no correlation header"
+  },
+  "accumulated": {
+    "attemptsTotalR165": 1,
+    "result": {
+      "status": "FAIL",
+      "childExit": 1,
+      "exit": 1,
+      "executionElapsedSeconds": 1825.6594328328501,
+      "elapsedSeconds": 1825.6598066249862,
+      "timeoutSeconds": 1870,
+      "timedOut": false,
+      "interruptedSignals": [],
+      "residualGroupAfterCommand": false,
+      "cleanupSignals": [],
+      "processGroupAbsent": true,
+      "cleanupErrors": [],
+      "cleanupOnlySeconds": 1.737498678267002e-05,
+      "registeredGroupsAbsent": true,
+      "residualRegisteredGroups": false,
+      "registeredGroupSignals": [],
+      "registeredGroupCleanupSeconds": 0.00028941710479557514,
+      "finishedAt": "2026-10-18T06:31:40.421754+00:00"
+    },
+    "nominalObservationLimitSeconds": 1800,
+    "observedBoundarySeconds": 1800.115579042,
+    "boundaryOvershootMs": 115.57904199999757,
+    "boundaryNote": "115.579ms loop-boundary overrun is reported, not rounded down; no extended/repeated run",
+    "globalLatencyTrace": false,
+    "profile": "continuous-r114",
+    "inputNormalizedSha256": "baebad5cad233243c4748f6bfec06fa5d2da7f06ae9b1475c9b20bfbfb04e2e7",
+    "activeBinaryProof": [
+      {
+        "pid": 51208,
+        "ppid": 51195,
+        "executable": "/private/tmp/media-server-r165-authorized/media_server"
+      },
+      {
+        "pid": 51268,
+        "ppid": 51195,
+        "executable": "/private/tmp/media-server-r165-accumulated/media-server-current-observer-juc8Aw/normalize"
+      }
+    ],
+    "clientServerSearchCounts": [
+      15,
+      15,
+      15
+    ],
+    "qualifiedSelectedSubset": true,
+    "goalMet": true,
+    "lossDuplicateMissing": false,
+    "generalSearchSuccess": 480,
+    "generalSearchSuccessByClient": [
+      120,
+      120,
+      120,
+      120
+    ],
+    "evidenceCycles": 119,
+    "aCompleted": 30,
+    "retention": {
+      "9101": {
+        "finalized": 898,
+        "deleted": 0,
+        "lastAt": 1808686.81125,
+        "order": "1796",
+        "store": "87a6dc053347613741795ac7f3e26925ca6f9ab84b6bb7ccd7bf87ae5ce7cb18",
+        "knownMappings": 676,
+        "unknownMappings": 27548
+      },
+      "9201": {
+        "finalized": 898,
+        "deleted": 0,
+        "lastAt": 1808686.81125,
+        "order": "1797",
+        "store": "87a6dc053347613741795ac7f3e26925ca6f9ab84b6bb7ccd7bf87ae5ce7cb18",
+        "knownMappings": 659,
+        "unknownMappings": 27848
+      }
+    },
+    "latencyGate": {
+      "count": 480,
+      "p95Ms": 2172.728208000073,
+      "maxMs": 3145.1451249998063,
+      "p95LimitMs": 2000,
+      "maxLimitMs": 5000,
+      "pass": false
+    },
+    "failureOrdering": {
+      "firstFailedGate": "latency p95 >2000ms at wrapper line10698",
+      "firstFailureMarker": "functional-failure at line10705",
+      "firstThrownCheck": "LP26-O05 both channels retained and progressed; deleted0 on both channels",
+      "laterCollectionFailure": "completion-receipt-missing"
+    },
+    "normalProcessExit": true,
+    "normalCycleSuccess": false,
+    "completionReceipt": "MISSING",
+    "resourceLimitsUnchanged": true
+  },
+  "analysis": {
+    "scope": "Valid completed selected requests only; failed representative run remains FAIL",
+    "requests": [
+      {
+        "id": 1,
+        "class": "Structured",
+        "observationMs": 739.4688750000005,
+        "finalizedByChannel": {
+          "9101": 0,
+          "9201": 0
+        },
+        "httpMs": 4,
+        "searchMs": 1.964084,
+        "handlerMs": 2.636292,
+        "sendMs": 0.010833,
+        "attempt": 0,
+        "phaseOccurrencesMs": {
+          "service-wait": [
+            8.3e-05
+          ],
+          "service-hold": [
+            4.2e-05
+          ],
+          "Capture": [
+            0.232167
+          ],
+          "RefreshReuse": [
+            8.3e-05
+          ],
+          "Refresh": [
+            0.380708
+          ],
+          "PlaybackCandidates": [
+            0.704583
+          ],
+          "PlaybackNoCandidates": [
+            4.2e-05
+          ],
+          "PlaybackReuse": [
+            4.2e-05
+          ],
+          "WithPlayback": [
+            0.865834
+          ],
+          "SnapshotBegin": [
+            0.050167
+          ],
+          "preparation-wait": [
+            0.636083
+          ],
+          "preparation-hold": [
+            1.299584
+          ],
+          "CurrentnessJson": [
+            0.021167
+          ]
+        },
+        "nestedWarning": "Capture/BuildOwned are inside Refresh; Refresh/WithPlayback/Snapshot inside preparation; no inclusive sum"
+      },
+      {
+        "id": 2,
+        "class": "Structured",
+        "observationMs": 738.7548750000005,
+        "finalizedByChannel": {
+          "9101": 0,
+          "9201": 0
+        },
+        "httpMs": 3,
+        "searchMs": 0.830667,
+        "handlerMs": 1.193625,
+        "sendMs": 0.006292,
+        "attempt": 0,
+        "phaseOccurrencesMs": {
+          "service-wait": [
+            0.000125
+          ],
+          "service-hold": [
+            0.037583
+          ],
+          "Capture": [
+            0.216375
+          ],
+          "BuildOwned": [
+            0.076625
+          ],
+          "Refresh": [
+            0.385917
+          ],
+          "PlaybackCandidates": [
+            0.281667
+          ],
+          "PlaybackNoCandidates": [
+            0.0
+          ],
+          "PlaybackReuse": [
+            4.2e-05
+          ],
+          "WithPlayback": [
+            0.354875
+          ],
+          "SnapshotBegin": [
+            0.026875
+          ],
+          "preparation-wait": [
+            4.1e-05
+          ],
+          "preparation-hold": [
+            0.769125
+          ],
+          "CurrentnessJson": [
+            0.008459
+          ]
+        },
+        "nestedWarning": "Capture/BuildOwned are inside Refresh; Refresh/WithPlayback/Snapshot inside preparation; no inclusive sum"
+      },
+      {
+        "id": 3,
+        "class": "A",
+        "observationMs": 820.0249170000006,
+        "finalizedByChannel": {
+          "9101": 0,
+          "9201": 0
+        },
+        "httpMs": 9,
+        "searchMs": 7.872125,
+        "handlerMs": 8.217917,
+        "sendMs": 0.013667,
+        "attempt": 0,
+        "phaseOccurrencesMs": {
+          "service-wait": [
+            8.3e-05
+          ],
+          "service-hold": [
+            0.000292
+          ],
+          "Capture": [
+            1.063875
+          ],
+          "BuildOwned": [
+            0.098292
+          ],
+          "Refresh": [
+            4.933333
+          ],
+          "PlaybackCandidates": [
+            0.233458
+          ],
+          "PlaybackNoCandidates": [
+            4.2e-05
+          ],
+          "PlaybackBuildOwned": [
+            0.071791
+          ],
+          "PlaybackDocuments": [
+            0.101959
+          ],
+          "WithPlayback": [
+            0.337208
+          ],
+          "SnapshotBegin": [
+            0.032708
+          ],
+          "preparation-wait": [
+            4.2e-05
+          ],
+          "preparation-hold": [
+            5.304667
+          ],
+          "CurrentnessJson": [
+            2.558042
+          ]
+        },
+        "nestedWarning": "Capture/BuildOwned are inside Refresh; Refresh/WithPlayback/Snapshot inside preparation; no inclusive sum"
+      },
+      {
+        "id": 4,
+        "class": "Structured",
+        "observationMs": 601280.9767080001,
+        "finalizedByChannel": {
+          "9101": 300,
+          "9201": 300
+        },
+        "httpMs": 403,
+        "searchMs": 401.550292,
+        "handlerMs": 402.359709,
+        "sendMs": 0.00725,
+        "attempt": 0,
+        "phaseOccurrencesMs": {
+          "service-wait": [
+            0.000125
+          ],
+          "service-hold": [
+            0.00025
+          ],
+          "Capture": [
+            121.861334
+          ],
+          "BuildOwned": [
+            94.610708
+          ],
+          "Refresh": [
+            216.7255
+          ],
+          "PlaybackCandidates": [
+            13.975542
+          ],
+          "PlaybackNoCandidates": [
+            4.2e-05
+          ],
+          "PlaybackReuse": [
+            4.1e-05
+          ],
+          "WithPlayback": [
+            15.761041
+          ],
+          "SnapshotBegin": [
+            1.422791
+          ],
+          "preparation-wait": [
+            4.2e-05
+          ],
+          "preparation-hold": [
+            233.912042
+          ],
+          "CurrentnessJson": [
+            167.62325
+          ]
+        },
+        "nestedWarning": "Capture/BuildOwned are inside Refresh; Refresh/WithPlayback/Snapshot inside preparation; no inclusive sum"
+      },
+      {
+        "id": 5,
+        "class": "Structured",
+        "observationMs": 601279.999375,
+        "finalizedByChannel": {
+          "9101": 300,
+          "9201": 300
+        },
+        "httpMs": 402,
+        "searchMs": 400.0845,
+        "handlerMs": 400.813917,
+        "sendMs": 0.01975,
+        "attempt": 0,
+        "phaseOccurrencesMs": {
+          "service-wait": [
+            8.3e-05
+          ],
+          "service-hold": [
+            8.4e-05
+          ],
+          "Capture": [
+            2.428166
+          ],
+          "RefreshReuse": [
+            4.2e-05
+          ],
+          "Refresh": [
+            2.498291
+          ],
+          "PlaybackCandidates": [
+            13.117042
+          ],
+          "PlaybackNoCandidates": [
+            4.2e-05
+          ],
+          "PlaybackReuse": [
+            0.0
+          ],
+          "WithPlayback": [
+            14.97925
+          ],
+          "SnapshotBegin": [
+            0.791167
+          ],
+          "preparation-wait": [
+            233.921875
+          ],
+          "preparation-hold": [
+            18.270084
+          ],
+          "CurrentnessJson": [
+            147.881625
+          ]
+        },
+        "nestedWarning": "Capture/BuildOwned are inside Refresh; Refresh/WithPlayback/Snapshot inside preparation; no inclusive sum"
+      },
+      {
+        "id": 6,
+        "class": "A",
+        "observationMs": 602146.669125,
+        "finalizedByChannel": {
+          "9101": 300,
+          "9201": 300
+        },
+        "httpMs": 421,
+        "searchMs": 419.433584,
+        "handlerMs": 419.781917,
+        "sendMs": 0.013334,
+        "attempt": 0,
+        "phaseOccurrencesMs": {
+          "service-wait": [
+            0.00025
+          ],
+          "service-hold": [
+            0.000167
+          ],
+          "Capture": [
+            44.57575
+          ],
+          "BuildOwned": [
+            0.100958
+          ],
+          "Refresh": [
+            403.477709
+          ],
+          "PlaybackCandidates": [
+            12.686
+          ],
+          "PlaybackNoCandidates": [
+            0.0
+          ],
+          "PlaybackBuildOwned": [
+            0.093834
+          ],
+          "PlaybackDocuments": [
+            0.132417
+          ],
+          "WithPlayback": [
+            12.821708
+          ],
+          "SnapshotBegin": [
+            0.053583
+          ],
+          "preparation-wait": [
+            4.2e-05
+          ],
+          "preparation-hold": [
+            416.354375
+          ],
+          "CurrentnessJson": [
+            3.069875
+          ]
+        },
+        "nestedWarning": "Capture/BuildOwned are inside Refresh; Refresh/WithPlayback/Snapshot inside preparation; no inclusive sum"
+      },
+      {
+        "id": 7,
+        "class": "Structured",
+        "observationMs": 1203180.9274169998,
+        "finalizedByChannel": {
+          "9101": 600,
+          "9201": 600
+        },
+        "httpMs": 952,
+        "searchMs": 950.869167,
+        "handlerMs": 951.305083,
+        "sendMs": 0.01675,
+        "attempt": 0,
+        "phaseOccurrencesMs": {
+          "service-wait": [
+            0.000167
+          ],
+          "service-hold": [
+            0.000208
+          ],
+          "Capture": [
+            514.367583
+          ],
+          "BuildOwned": [
+            191.846542
+          ],
+          "Refresh": [
+            706.372458
+          ],
+          "PlaybackCandidates": [
+            28.468709
+          ],
+          "PlaybackNoCandidates": [
+            0.0
+          ],
+          "PlaybackReuse": [
+            4.2e-05
+          ],
+          "WithPlayback": [
+            29.614542
+          ],
+          "SnapshotBegin": [
+            1.416875
+          ],
+          "preparation-wait": [
+            4.1e-05
+          ],
+          "preparation-hold": [
+            737.405584
+          ],
+          "CurrentnessJson": [
+            213.4525
+          ]
+        },
+        "nestedWarning": "Capture/BuildOwned are inside Refresh; Refresh/WithPlayback/Snapshot inside preparation; no inclusive sum"
+      },
+      {
+        "id": 8,
+        "class": "Structured",
+        "observationMs": 1203181.5892919998,
+        "finalizedByChannel": {
+          "9101": 600,
+          "9201": 600
+        },
+        "httpMs": 953,
+        "searchMs": 951.684875,
+        "handlerMs": 952.294958,
+        "sendMs": 0.008334,
+        "attempt": 0,
+        "phaseOccurrencesMs": {
+          "service-wait": [
+            4.1e-05
+          ],
+          "service-hold": [
+            4.2e-05
+          ],
+          "Capture": [
+            5.107167
+          ],
+          "RefreshReuse": [
+            4.1e-05
+          ],
+          "Refresh": [
+            5.1815
+          ],
+          "PlaybackCandidates": [
+            28.372292
+          ],
+          "PlaybackNoCandidates": [
+            4.1e-05
+          ],
+          "PlaybackReuse": [
+            4.2e-05
+          ],
+          "WithPlayback": [
+            30.842125
+          ],
+          "SnapshotBegin": [
+            3.825042
+          ],
+          "preparation-wait": [
+            737.220292
+          ],
+          "preparation-hold": [
+            39.850375
+          ],
+          "CurrentnessJson": [
+            174.608292
+          ]
+        },
+        "nestedWarning": "Capture/BuildOwned are inside Refresh; Refresh/WithPlayback/Snapshot inside preparation; no inclusive sum"
+      },
+      {
+        "id": 9,
+        "class": "A",
+        "observationMs": 1206199.0078329998,
+        "finalizedByChannel": {
+          "9101": 600,
+          "9201": 600
+        },
+        "httpMs": 2782,
+        "searchMs": 2780.17725,
+        "handlerMs": 2780.730791,
+        "sendMs": 0.020083,
+        "attempt": 0,
+        "phaseOccurrencesMs": {
+          "service-wait": [
+            0.000125
+          ],
+          "service-hold": [
+            0.00025
+          ],
+          "Capture": [
+            92.79175
+          ],
+          "BuildOwned": [
+            51.052792
+          ],
+          "Refresh": [
+            2733.425834
+          ],
+          "PlaybackCandidates": [
+            38.554541
+          ],
+          "PlaybackNoCandidates": [
+            0.0
+          ],
+          "PlaybackBuildOwned": [
+            2.498583
+          ],
+          "PlaybackDocuments": [
+            2.5375
+          ],
+          "WithPlayback": [
+            41.102792
+          ],
+          "SnapshotBegin": [
+            0.085416
+          ],
+          "preparation-wait": [
+            4.1e-05
+          ],
+          "preparation-hold": [
+            2774.616959
+          ],
+          "CurrentnessJson": [
+            5.544042
+          ]
+        },
+        "nestedWarning": "Capture/BuildOwned are inside Refresh; Refresh/WithPlayback/Snapshot inside preparation; no inclusive sum"
+      },
+      {
+        "id": 10,
+        "class": "Structured",
+        "observationMs": 1383062.5265,
+        "finalizedByChannel": {
+          "9101": 688,
+          "9201": 689
+        },
+        "httpMs": 1829,
+        "searchMs": 1827.097375,
+        "handlerMs": 1827.654916,
+        "sendMs": 0.018875,
+        "attempt": 2,
+        "phaseOccurrencesMs": {
+          "service-wait": [
+            0.000125
+          ],
+          "service-hold": [
+            0.000167
+          ],
+          "Capture": [
+            842.836291,
+            238.327916,
+            246.853375
+          ],
+          "Refresh": [
+            842.931625,
+            240.114958,
+            497.752917
+          ],
+          "BuildOwned": [
+            249.562083
+          ],
+          "PlaybackCandidates": [
+            35.856709
+          ],
+          "PlaybackNoCandidates": [
+            0.0
+          ],
+          "PlaybackReuse": [
+            4.2e-05
+          ],
+          "WithPlayback": [
+            36.831292
+          ],
+          "SnapshotBegin": [
+            4.220084
+          ],
+          "preparation-wait": [
+            4.2e-05
+          ],
+          "preparation-hold": [
+            1621.855458
+          ],
+          "CurrentnessJson": [
+            205.229875
+          ]
+        },
+        "nestedWarning": "Capture/BuildOwned are inside Refresh; Refresh/WithPlayback/Snapshot inside preparation; no inclusive sum"
+      },
+      {
+        "id": 11,
+        "class": "Structured",
+        "observationMs": 1383084.656542,
+        "finalizedByChannel": {
+          "9101": 688,
+          "9201": 689
+        },
+        "httpMs": 1851,
+        "searchMs": 1849.141875,
+        "handlerMs": 1849.85225,
+        "sendMs": 0.017542,
+        "attempt": 0,
+        "phaseOccurrencesMs": {
+          "service-wait": [
+            0.000166
+          ],
+          "service-hold": [
+            0.000167
+          ],
+          "Capture": [
+            4.350417
+          ],
+          "RefreshReuse": [
+            4.2e-05
+          ],
+          "Refresh": [
+            4.505125
+          ],
+          "PlaybackCandidates": [
+            38.988292
+          ],
+          "PlaybackNoCandidates": [
+            4.1e-05
+          ],
+          "PlaybackReuse": [
+            4.2e-05
+          ],
+          "WithPlayback": [
+            40.978875
+          ],
+          "SnapshotBegin": [
+            2.609542
+          ],
+          "preparation-wait": [
+            1621.7125
+          ],
+          "preparation-hold": [
+            48.096875
+          ],
+          "CurrentnessJson": [
+            179.320542
+          ]
+        },
+        "nestedWarning": "Capture/BuildOwned are inside Refresh; Refresh/WithPlayback/Snapshot inside preparation; no inclusive sum"
+      },
+      {
+        "id": 12,
+        "class": "A",
+        "observationMs": 1386995.609833,
+        "finalizedByChannel": {
+          "9101": 688,
+          "9201": 689
+        },
+        "httpMs": 3685,
+        "searchMs": 3683.035,
+        "handlerMs": 3683.783,
+        "sendMs": 0.016875,
+        "attempt": 0,
+        "phaseOccurrencesMs": {
+          "service-wait": [
+            0.000167
+          ],
+          "service-hold": [
+            0.000166
+          ],
+          "Capture": [
+            108.513417
+          ],
+          "BuildOwned": [
+            34.108042
+          ],
+          "Refresh": [
+            3639.186875
+          ],
+          "PlaybackCandidates": [
+            38.587958
+          ],
+          "PlaybackNoCandidates": [
+            4.1e-05
+          ],
+          "PlaybackBuildOwned": [
+            0.798416
+          ],
+          "PlaybackDocuments": [
+            0.83725
+          ],
+          "WithPlayback": [
+            39.429042
+          ],
+          "SnapshotBegin": [
+            0.046
+          ],
+          "preparation-wait": [
+            4.2e-05
+          ],
+          "preparation-hold": [
+            3678.664167
+          ],
+          "CurrentnessJson": [
+            4.356084
+          ]
+        },
+        "nestedWarning": "Capture/BuildOwned are inside Refresh; Refresh/WithPlayback/Snapshot inside preparation; no inclusive sum"
+      },
+      {
+        "id": 13,
+        "class": "Structured",
+        "observationMs": 1503021.053417,
+        "finalizedByChannel": {
+          "9101": 748,
+          "9201": 748
+        },
+        "httpMs": 2344,
+        "searchMs": 2342.482542,
+        "handlerMs": 2342.954708,
+        "sendMs": 0.016709,
+        "attempt": 2,
+        "phaseOccurrencesMs": {
+          "service-wait": [
+            4.2e-05
+          ],
+          "service-hold": [
+            0.000292
+          ],
+          "Capture": [
+            892.386333,
+            243.530083,
+            259.658458
+          ],
+          "Refresh": [
+            892.591833,
+            648.210916,
+            519.861959
+          ],
+          "BuildOwned": [
+            402.041333,
+            259.72925
+          ],
+          "PlaybackCandidates": [
+            37.661167
+          ],
+          "PlaybackNoCandidates": [
+            0.0
+          ],
+          "PlaybackReuse": [
+            4.2e-05
+          ],
+          "WithPlayback": [
+            43.586208
+          ],
+          "SnapshotBegin": [
+            5.33125
+          ],
+          "preparation-wait": [
+            4.2e-05
+          ],
+          "preparation-hold": [
+            2109.586291
+          ],
+          "CurrentnessJson": [
+            232.879458
+          ]
+        },
+        "nestedWarning": "Capture/BuildOwned are inside Refresh; Refresh/WithPlayback/Snapshot inside preparation; no inclusive sum"
+      },
+      {
+        "id": 14,
+        "class": "Structured",
+        "observationMs": 1503021.6713329998,
+        "finalizedByChannel": {
+          "9101": 748,
+          "9201": 748
+        },
+        "httpMs": 2344,
+        "searchMs": 2343.053709,
+        "handlerMs": 2343.76625,
+        "sendMs": 0.008084,
+        "attempt": 0,
+        "phaseOccurrencesMs": {
+          "service-wait": [
+            4.1e-05
+          ],
+          "service-hold": [
+            0.000125
+          ],
+          "Capture": [
+            4.010292
+          ],
+          "RefreshReuse": [
+            4.2e-05
+          ],
+          "Refresh": [
+            4.156542
+          ],
+          "PlaybackCandidates": [
+            40.903167
+          ],
+          "PlaybackNoCandidates": [
+            0.0
+          ],
+          "PlaybackReuse": [
+            4.1e-05
+          ],
+          "WithPlayback": [
+            43.236834
+          ],
+          "SnapshotBegin": [
+            2.513042
+          ],
+          "preparation-wait": [
+            2109.339958
+          ],
+          "preparation-hold": [
+            49.909083
+          ],
+          "CurrentnessJson": [
+            183.793834
+          ]
+        },
+        "nestedWarning": "Capture/BuildOwned are inside Refresh; Refresh/WithPlayback/Snapshot inside preparation; no inclusive sum"
+      },
+      {
+        "id": 15,
+        "class": "A",
+        "observationMs": 1507281.5583749998,
+        "finalizedByChannel": {
+          "9101": 748,
+          "9201": 748
+        },
+        "httpMs": 4081,
+        "searchMs": 4079.282667,
+        "handlerMs": 4079.663417,
+        "sendMs": 0.0255,
+        "attempt": 0,
+        "phaseOccurrencesMs": {
+          "service-wait": [
+            4.2e-05
+          ],
+          "service-hold": [
+            0.00025
+          ],
+          "Capture": [
+            132.189584
+          ],
+          "BuildOwned": [
+            10.64275
+          ],
+          "Refresh": [
+            4029.479333
+          ],
+          "PlaybackCandidates": [
+            38.183959
+          ],
+          "PlaybackNoCandidates": [
+            0.0
+          ],
+          "PlaybackBuildOwned": [
+            5.266
+          ],
+          "PlaybackDocuments": [
+            5.3055
+          ],
+          "WithPlayback": [
+            43.494417
+          ],
+          "SnapshotBegin": [
+            0.049416
+          ],
+          "preparation-wait": [
+            4.2e-05
+          ],
+          "preparation-hold": [
+            4073.025
+          ],
+          "CurrentnessJson": [
+            6.248792
+          ]
+        },
+        "nestedWarning": "Capture/BuildOwned are inside Refresh; Refresh/WithPlayback/Snapshot inside preparation; no inclusive sum"
+      }
+    ],
+    "finding": "At ~25min #13 Refresh three attempts total2060.665ms dominates preparation2109.586ms; concurrent #14 waits2109.340ms. A#15 Refresh4029.479ms dominates Search4079.283ms.",
+    "unattributed": "A Refresh minus Capture/BuildOwned is not proven reference lookup. Retry invalidation source and removable work unproven. Cross-clock client/server timestamps not subtracted.",
+    "r149TimeoutCause": "UNKNOWN; current A slot28 completed; no retroactive repair claim",
+    "productFix": "NOT_RUN: no proven safely removable work; functional/collection failure stops further implementation"
+  },
+  "binary": {
+    "product": {
+      "bytes": 38000080,
+      "sha256": "33f516d35d56cb2f6cafc75647b6c37d2ced67115302d1205cca23bf51ab7f79"
+    },
+    "runtime": {
+      "bytes": 113126688,
+      "sha256": "2d91cf35fe7e805e0c06e00d16779c86849b35db635e087582277e1b676d198c"
+    },
+    "measurement": {
+      "bytes": 38003664,
+      "sha256": "6fb988680612c3ddd804d0199a2732b145c558612099d120210e4805f657f853"
+    },
+    "focused": {
+      "bytes": 36474800,
+      "sha256": "51c8939565c6752e872e795941c60597dde5bc56bb2b0a204f9b0ba9d7f699eb"
+    },
+    "linkMap": {
+      "bytes": 23722511,
+      "sha256": "41a79c51380b54b824ae2ab1a9c89924c9d5835c0a7793ddbe9227ced9eefad8"
+    },
+    "focusedMap": {
+      "bytes": 22617808,
+      "sha256": "cd0d4db4e67cc3a4ea39739d32aac9711c937f62ec6f01760b6d3ee9ad9b3b96"
+    },
+    "overlaySources": {
+      "src/ingress/recording_search_application_service.cpp": {
+        "original": "a618c7726e441ed3aeeb369d9ea9337672499138f73dc864508521f8dfcefef1",
+        "overlay": "f4f1070522941ea5d8392852d5a65221bd46c556b7aa3b45fc6af731c4748851"
+      },
+      "src/ingress/webrtc_http_server_runtime.cpp": {
+        "original": "4674fbd6b02a2c6f53a5d14a968d9eb06c5c3253aa02467d15581b84912b501e",
+        "overlay": "00ca6c0e3ce6caabc20ebb9423b86c9c52836430dbd157c5a3d094db5e4ba025"
+      },
+      "src/ingress/webrtc_http_server.cpp": {
+        "original": "4d5910a62693dab2d7a1cb9ab1e7296953ee74daea493ab293fe1fe1057195f1",
+        "overlay": "075b5a6fc43113f2a3b0fc6e432ee629a90b554f3e71c8e83874d71d9fa6eb27"
+      }
+    },
+    "uniqueSymbols": true,
+    "commandsAndFlags": [
+      [
+        "/usr/bin/c++",
+        "-DGST_USE_UNSTABLE_API=1",
+        "-DMEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND=1",
+        "-DMEDIA_SERVER_ENABLE_YOUTUBE_SOURCE=0",
+        "-DMEDIA_SERVER_USE_GSTREAMER=1",
+        "-DMEDIA_SERVER_USE_LIBSODIUM=1",
+        "-DMEDIA_SERVER_USE_ONNXRUNTIME=1",
+        "-DMEDIA_SERVER_USE_OPENSSL=1",
+        "-DMEDIA_SERVER_USE_PANGOCAIRO=1",
+        "-DMEDIA_SERVER_USE_SIGLIP2=1",
+        "-DMEDIA_SERVER_USE_SQLITE3=1",
+        "-I/Users/dhseo/Workspace/mediaServer/include",
+        "-I/opt/homebrew/include/onnxruntime",
+        "-I/Users/dhseo/Workspace/mediaServer/third_party/v430-embedding/sentencepiece/include",
+        "-isystem",
+        "/opt/homebrew/Cellar/gstreamer/1.28.1/include/gstreamer-1.0",
+        "-isystem",
+        "/opt/homebrew/Cellar/glib/2.86.4/include/gio-unix-2.0",
+        "-isystem",
+        "/opt/homebrew/Cellar/orc/0.4.42/include/orc-0.4",
+        "-isystem",
+        "/opt/homebrew/Cellar/glib/2.86.4/include",
+        "-isystem",
+        "/Library/Developer/CommandLineTools/SDKs/MacOSX26.sdk/usr/include/ffi",
+        "-isystem",
+        "/opt/homebrew/Cellar/glib/2.86.4/include/glib-2.0",
+        "-isystem",
+        "/opt/homebrew/Cellar/glib/2.86.4/lib/glib-2.0/include",
+        "-isystem",
+        "/opt/homebrew/opt/gettext/include",
+        "-isystem",
+        "/opt/homebrew/Cellar/pcre2/10.47_1/include",
+        "-isystem",
+        "/opt/homebrew/Cellar/pango/1.57.0_2/include/pango-1.0",
+        "-isystem",
+        "/opt/homebrew/Cellar/cairo/1.18.4/include/cairo",
+        "-isystem",
+        "/opt/homebrew/Cellar/libxext/1.3.7/include",
+        "-isystem",
+        "/opt/homebrew/Cellar/xorgproto/2025.1/include",
+        "-isystem",
+        "/opt/homebrew/Cellar/libxrender/0.9.12/include",
+        "-isystem",
+        "/opt/homebrew/Cellar/libx11/1.8.13/include",
+        "-isystem",
+        "/opt/homebrew/Cellar/libxcb/1.17.0/include",
+        "-isystem",
+        "/opt/homebrew/Cellar/libxau/1.0.12/include",
+        "-isystem",
+        "/opt/homebrew/Cellar/libxdmcp/1.1.5/include",
+        "-isystem",
+        "/opt/homebrew/Cellar/pixman/0.46.4/include/pixman-1",
+        "-isystem",
+        "/opt/homebrew/Cellar/fribidi/1.0.16/include/fribidi",
+        "-isystem",
+        "/opt/homebrew/Cellar/libthai/0.1.30/include",
+        "-isystem",
+        "/opt/homebrew/Cellar/libdatrie/0.2.14/include",
+        "-isystem",
+        "/opt/homebrew/Cellar/fontconfig/2.17.1/include",
+        "-isystem",
+        "/opt/homebrew/Cellar/harfbuzz/13.1.1/include/harfbuzz",
+        "-isystem",
+        "/opt/homebrew/opt/freetype/include/freetype2",
+        "-isystem",
+        "/opt/homebrew/opt/libpng/include/libpng16",
+        "-isystem",
+        "/opt/homebrew/opt/graphite2/include",
+        "-isystem",
+        "/opt/homebrew/Cellar/libsodium/1.0.21/include",
+        "-isystem",
+        "/opt/homebrew/Cellar/openssl@3/3.6.2/include",
+        "-std=c++17",
+        "-arch",
+        "arm64",
+        "-I/private/tmp/media-server-r165-authorized/overlay",
+        "-I/Users/dhseo/Workspace/mediaServer/scripts/internal",
+        "-I/Users/dhseo/Workspace/mediaServer/src/ingress",
+        "-c",
+        "/private/tmp/media-server-r165-authorized/overlay/recording_search_application_service.cpp",
+        "-o",
+        "/private/tmp/media-server-r165-authorized/overlay/recording_search_application_service.cpp.o"
+      ],
+      [
+        "/usr/bin/c++",
+        "-DGST_USE_UNSTABLE_API=1",
+        "-DMEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND=1",
+        "-DMEDIA_SERVER_ENABLE_YOUTUBE_SOURCE=0",
+        "-DMEDIA_SERVER_USE_GSTREAMER=1",
+        "-DMEDIA_SERVER_USE_LIBSODIUM=1",
+        "-DMEDIA_SERVER_USE_ONNXRUNTIME=1",
+        "-DMEDIA_SERVER_USE_OPENSSL=1",
+        "-DMEDIA_SERVER_USE_PANGOCAIRO=1",
+        "-DMEDIA_SERVER_USE_SIGLIP2=1",
+        "-DMEDIA_SERVER_USE_SQLITE3=1",
+        "-I/Users/dhseo/Workspace/mediaServer/include",
+        "-I/opt/homebrew/include/onnxruntime",
+        "-I/Users/dhseo/Workspace/mediaServer/third_party/v430-embedding/sentencepiece/include",
+        "-isystem",
+        "/opt/homebrew/Cellar/gstreamer/1.28.1/include/gstreamer-1.0",
+        "-isystem",
+        "/opt/homebrew/Cellar/glib/2.86.4/include/gio-unix-2.0",
+        "-isystem",
+        "/opt/homebrew/Cellar/orc/0.4.42/include/orc-0.4",
+        "-isystem",
+        "/opt/homebrew/Cellar/glib/2.86.4/include",
+        "-isystem",
+        "/Library/Developer/CommandLineTools/SDKs/MacOSX26.sdk/usr/include/ffi",
+        "-isystem",
+        "/opt/homebrew/Cellar/glib/2.86.4/include/glib-2.0",
+        "-isystem",
+        "/opt/homebrew/Cellar/glib/2.86.4/lib/glib-2.0/include",
+        "-isystem",
+        "/opt/homebrew/opt/gettext/include",
+        "-isystem",
+        "/opt/homebrew/Cellar/pcre2/10.47_1/include",
+        "-isystem",
+        "/opt/homebrew/Cellar/pango/1.57.0_2/include/pango-1.0",
+        "-isystem",
+        "/opt/homebrew/Cellar/cairo/1.18.4/include/cairo",
+        "-isystem",
+        "/opt/homebrew/Cellar/libxext/1.3.7/include",
+        "-isystem",
+        "/opt/homebrew/Cellar/xorgproto/2025.1/include",
+        "-isystem",
+        "/opt/homebrew/Cellar/libxrender/0.9.12/include",
+        "-isystem",
+        "/opt/homebrew/Cellar/libx11/1.8.13/include",
+        "-isystem",
+        "/opt/homebrew/Cellar/libxcb/1.17.0/include",
+        "-isystem",
+        "/opt/homebrew/Cellar/libxau/1.0.12/include",
+        "-isystem",
+        "/opt/homebrew/Cellar/libxdmcp/1.1.5/include",
+        "-isystem",
+        "/opt/homebrew/Cellar/pixman/0.46.4/include/pixman-1",
+        "-isystem",
+        "/opt/homebrew/Cellar/fribidi/1.0.16/include/fribidi",
+        "-isystem",
+        "/opt/homebrew/Cellar/libthai/0.1.30/include",
+        "-isystem",
+        "/opt/homebrew/Cellar/libdatrie/0.2.14/include",
+        "-isystem",
+        "/opt/homebrew/Cellar/fontconfig/2.17.1/include",
+        "-isystem",
+        "/opt/homebrew/Cellar/harfbuzz/13.1.1/include/harfbuzz",
+        "-isystem",
+        "/opt/homebrew/opt/freetype/include/freetype2",
+        "-isystem",
+        "/opt/homebrew/opt/libpng/include/libpng16",
+        "-isystem",
+        "/opt/homebrew/opt/graphite2/include",
+        "-isystem",
+        "/opt/homebrew/Cellar/libsodium/1.0.21/include",
+        "-isystem",
+        "/opt/homebrew/Cellar/openssl@3/3.6.2/include",
+        "-std=c++17",
+        "-arch",
+        "arm64",
+        "-I/private/tmp/media-server-r165-authorized/overlay",
+        "-I/Users/dhseo/Workspace/mediaServer/scripts/internal",
+        "-I/Users/dhseo/Workspace/mediaServer/src/ingress",
+        "-c",
+        "/private/tmp/media-server-r165-authorized/overlay/webrtc_http_server_runtime.cpp",
+        "-o",
+        "/private/tmp/media-server-r165-authorized/overlay/webrtc_http_server_runtime.cpp.o"
+      ],
+      [
+        "/usr/bin/c++",
+        "-DGST_USE_UNSTABLE_API=1",
+        "-DMEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND=1",
+        "-DMEDIA_SERVER_ENABLE_YOUTUBE_SOURCE=0",
+        "-DMEDIA_SERVER_USE_GSTREAMER=1",
+        "-DMEDIA_SERVER_USE_LIBSODIUM=1",
+        "-DMEDIA_SERVER_USE_ONNXRUNTIME=1",
+        "-DMEDIA_SERVER_USE_OPENSSL=1",
+        "-DMEDIA_SERVER_USE_PANGOCAIRO=1",
+        "-DMEDIA_SERVER_USE_SIGLIP2=1",
+        "-DMEDIA_SERVER_USE_SQLITE3=1",
+        "-I/Users/dhseo/Workspace/mediaServer/include",
+        "-I/opt/homebrew/include/onnxruntime",
+        "-I/Users/dhseo/Workspace/mediaServer/third_party/v430-embedding/sentencepiece/include",
+        "-isystem",
+        "/opt/homebrew/Cellar/gstreamer/1.28.1/include/gstreamer-1.0",
+        "-isystem",
+        "/opt/homebrew/Cellar/glib/2.86.4/include/gio-unix-2.0",
+        "-isystem",
+        "/opt/homebrew/Cellar/orc/0.4.42/include/orc-0.4",
+        "-isystem",
+        "/opt/homebrew/Cellar/glib/2.86.4/include",
+        "-isystem",
+        "/Library/Developer/CommandLineTools/SDKs/MacOSX26.sdk/usr/include/ffi",
+        "-isystem",
+        "/opt/homebrew/Cellar/glib/2.86.4/include/glib-2.0",
+        "-isystem",
+        "/opt/homebrew/Cellar/glib/2.86.4/lib/glib-2.0/include",
+        "-isystem",
+        "/opt/homebrew/opt/gettext/include",
+        "-isystem",
+        "/opt/homebrew/Cellar/pcre2/10.47_1/include",
+        "-isystem",
+        "/opt/homebrew/Cellar/pango/1.57.0_2/include/pango-1.0",
+        "-isystem",
+        "/opt/homebrew/Cellar/cairo/1.18.4/include/cairo",
+        "-isystem",
+        "/opt/homebrew/Cellar/libxext/1.3.7/include",
+        "-isystem",
+        "/opt/homebrew/Cellar/xorgproto/2025.1/include",
+        "-isystem",
+        "/opt/homebrew/Cellar/libxrender/0.9.12/include",
+        "-isystem",
+        "/opt/homebrew/Cellar/libx11/1.8.13/include",
+        "-isystem",
+        "/opt/homebrew/Cellar/libxcb/1.17.0/include",
+        "-isystem",
+        "/opt/homebrew/Cellar/libxau/1.0.12/include",
+        "-isystem",
+        "/opt/homebrew/Cellar/libxdmcp/1.1.5/include",
+        "-isystem",
+        "/opt/homebrew/Cellar/pixman/0.46.4/include/pixman-1",
+        "-isystem",
+        "/opt/homebrew/Cellar/fribidi/1.0.16/include/fribidi",
+        "-isystem",
+        "/opt/homebrew/Cellar/libthai/0.1.30/include",
+        "-isystem",
+        "/opt/homebrew/Cellar/libdatrie/0.2.14/include",
+        "-isystem",
+        "/opt/homebrew/Cellar/fontconfig/2.17.1/include",
+        "-isystem",
+        "/opt/homebrew/Cellar/harfbuzz/13.1.1/include/harfbuzz",
+        "-isystem",
+        "/opt/homebrew/opt/freetype/include/freetype2",
+        "-isystem",
+        "/opt/homebrew/opt/libpng/include/libpng16",
+        "-isystem",
+        "/opt/homebrew/opt/graphite2/include",
+        "-isystem",
+        "/opt/homebrew/Cellar/libsodium/1.0.21/include",
+        "-isystem",
+        "/opt/homebrew/Cellar/openssl@3/3.6.2/include",
+        "-std=c++17",
+        "-arch",
+        "arm64",
+        "-I/private/tmp/media-server-r165-authorized/overlay",
+        "-I/Users/dhseo/Workspace/mediaServer/scripts/internal",
+        "-I/Users/dhseo/Workspace/mediaServer/src/ingress",
+        "-c",
+        "/private/tmp/media-server-r165-authorized/overlay/webrtc_http_server.cpp",
+        "-o",
+        "/private/tmp/media-server-r165-authorized/overlay/webrtc_http_server.cpp.o"
+      ],
+      [
+        "/usr/bin/c++",
+        "-arch",
+        "arm64",
+        "-Wl,-search_paths_first",
+        "-Wl,-headerpad_max_install_names",
+        "-Wl,-rpath,/opt/homebrew/Cellar/gstreamer/1.28.1/lib",
+        "CMakeFiles/media_server.dir/src/application/media_server_application.cpp.o",
+        "CMakeFiles/media_server.dir/src/main.cpp.o",
+        "-o",
+        "/private/tmp/media-server-r165-authorized/media_server",
+        "/private/tmp/media-server-r165-authorized/overlay/recording_search_application_service.cpp.o",
+        "/private/tmp/media-server-r165-authorized/overlay/webrtc_http_server_runtime.cpp.o",
+        "/private/tmp/media-server-r165-authorized/overlay/webrtc_http_server.cpp.o",
+        "libmedia_server_runtime.a",
+        "/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib/libz.tbd",
+        "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstrtspserver-1.0.dylib",
+        "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstapp-1.0.dylib",
+        "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstwebrtc-1.0.dylib",
+        "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstsdp-1.0.dylib",
+        "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstpbutils-1.0.dylib",
+        "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstaudio-1.0.dylib",
+        "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstvideo-1.0.dylib",
+        "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstbase-1.0.dylib",
+        "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstreamer-1.0.dylib",
+        "/opt/homebrew/Cellar/pango/1.57.0_2/lib/libpangocairo-1.0.dylib",
+        "/opt/homebrew/Cellar/pango/1.57.0_2/lib/libpango-1.0.dylib",
+        "/opt/homebrew/Cellar/cairo/1.18.4/lib/libcairo.dylib",
+        "/opt/homebrew/Cellar/harfbuzz/13.1.1/lib/libharfbuzz.dylib",
+        "/opt/homebrew/Cellar/glib/2.86.4/lib/libgobject-2.0.dylib",
+        "/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib/libsqlite3.tbd",
+        "/opt/homebrew/Cellar/libsodium/1.0.21/lib/libsodium.dylib",
+        "/opt/homebrew/Cellar/openssl@3/3.6.2/lib/libssl.dylib",
+        "/opt/homebrew/Cellar/openssl@3/3.6.2/lib/libcrypto.dylib",
+        "/opt/homebrew/lib/libonnxruntime.dylib",
+        "/Users/dhseo/Workspace/mediaServer/third_party/v430-embedding/sentencepiece/lib/libsentencepiece.a",
+        "/opt/homebrew/Cellar/glib/2.86.4/lib/libglib-2.0.dylib",
+        "/opt/homebrew/opt/gettext/lib/libintl.dylib",
+        "-Wl,-map,/private/tmp/media-server-r165-authorized/link.map"
+      ]
+    ]
+  },
+  "preservation": {
+    "evidence": "docs/release-artifacts/v4.5.0/165-authorized-evidence.json",
+    "sanitized": {
+      "bytes": 42501,
+      "sha256": "a577668c6c9f23c599e24c70ace385d72137c1f41c5949aea432dfc03b4d3f63"
+    },
+    "rawNotCommitted": true,
+    "rawAndSanitizedNotSameBytes": true
+  },
+  "independentReview": {
+    "mode": "read-only; no implementation/test/fixture execution/redelegation",
+    "decision": "FAIL_REPRESENTATIVE_RUN is appropriate; selected subset qualified",
+    "observed": [
+      "actual focused auth401/correlation1/HTTP200/13 phases/send/Finish/port close",
+      "15 one-to-one Client/Server/Search records; no loss/duplicate/missing",
+      "latency p95 FAIL precedes retention first-failure marker",
+      "898/898 finalized but deleted0; completion receipt missing separately",
+      "normal product exit/ports/groups and logical owners released; not full-cycle PASS"
+    ],
+    "limits": [
+      "Exact original EPERM enforcement rule unknown",
+      "R149 timeout cause not established",
+      "A Refresh remainder not attributed to specific internal operation",
+      "No product fix justified",
+      "Temp path removal pending remote preservation"
+    ]
+  },
+  "cleanup": {
+    "groupsAbsent": true,
+    "portsClosed": true,
+    "logicalOwnersAtStorageDestruction": {
+      "ram": 0,
+      "scratchDisk": 0,
+      "scratchFd": 0,
+      "notWholeHeapLeakProof": true
+    },
+    "ownedRoots": "PENDING remote preservation then cleanup"
+  },
+  "historicalStatus": {
+    "R149Functional45": "FAIL",
+    "R149Collection45": "INCOMPLETE",
+    "MemoryP0": "HOLD",
+    "Readiness120": "HOLD",
+    "Release": "HOLD"
+  },
+  "oldR165RecordsUnchanged": true
+}
