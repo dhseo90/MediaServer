@@ -1,0 +1,5673 @@
+{
+  "task": "R166 Post-Fix Verification — Focused CWD Correction",
+  "status": "REPRESENTATIVE_LATENCY_STILL_FAIL",
+  "overallRepresentativeRun": "FAIL; not release/Functional45 qualification",
+  "baselineHead": "f3cbb3b74948dcd354720bb0b72307c0bbb242f7",
+  "branch": "v4.5.0",
+  "models": {
+    "main": {
+      "requested": "GPT-6 Astra / High",
+      "toolAccepted": "UNKNOWN",
+      "actualRuntimeModel": "UNKNOWN",
+      "actualRuntimeEffort": "UNKNOWN"
+    },
+    "independent": {
+      "requested": "GPT-6 Astra / High",
+      "toolAccepted": "gpt-6-astra / high (existing independent reviewer)",
+      "actualRuntimeModel": "UNKNOWN",
+      "actualRuntimeEffort": "UNKNOWN"
+    }
+  },
+  "changes": {
+    "product": false,
+    "testSource": false,
+    "generator": false,
+    "oldEvidence": false,
+    "onlyInvocationCwdAndAbsoluteEnvPathCorrected": true
+  },
+  "entry": {
+    "headMatches": true,
+    "cleanWorktreeIndex": true,
+    "actualRemoteMatches": true,
+    "binaryShaMatches": true
+  },
+  "focused": {
+    "attemptsThisAuthorization": 1,
+    "previousFailedAttemptPreservedAt": "166-post-fix-verification.json",
+    "preflight": {
+      "cwd": "/private/tmp/media-server-r166-cwd-build/focused-root",
+      "rootArg": "/private/tmp/media-server-r166-cwd-build/focused-root",
+      "executable": "/private/tmp/media-server-r166-cwd-build/selected-focused",
+      "envCommon": "/Users/dhseo/Workspace/mediaServer/scripts/internal/env_common.sh",
+      "environment": {
+        "HOME": "/private/tmp/media-server-r166-cwd-build/focused-root/home",
+        "TMPDIR": "/private/tmp/media-server-r166-cwd-build/focused-root/tmp",
+        "XDG_CACHE_HOME": "/private/tmp/media-server-r166-cwd-build/focused-root/cache",
+        "GST_REGISTRY": "/private/tmp/media-server-r166-cwd-build/focused-root/registry.bin",
+        "GST_REGISTRY_1_0": "/private/tmp/media-server-r166-cwd-build/focused-root/registry.bin",
+        "MEDIA_SERVER_SOURCE_REGISTRY": "/private/tmp/media-server-r166-cwd-build/focused-root/sources.json",
+        "MEDIA_SERVER_PUBLISHED_VIEWS": "/private/tmp/media-server-r166-cwd-build/focused-root/views.json",
+        "MEDIA_SERVER_ANALYSIS_REGISTRY": "/private/tmp/media-server-r166-cwd-build/focused-root/analysis.json",
+        "MEDIA_SERVER_AUTH_USERS_FILE": "/private/tmp/media-server-r166-cwd-build/focused-root/users.json",
+        "MEDIA_SERVER_RECORDING_STORAGE_ROOT": "/private/tmp/media-server-r166-cwd-build/focused-root/recording",
+        "MEDIA_SERVER_ANALYSIS_EVENT_STORAGE_PATH": "/private/tmp/media-server-r166-cwd-build/focused-root/events",
+        "MEDIA_SERVER_FILE_ROOT": "/private/tmp/media-server-r166-cwd-build/focused-root/input",
+        "MEDIA_SERVER_SKIP_LOCAL_ENV": "1"
+      },
+      "gstCache": "/private/tmp/media-server-r166-cwd-build/focused-root/gst-cache",
+      "command": [
+        "bash",
+        "-c",
+        "source \"$1\"; export MEDIA_SERVER_GST_CACHE_DIR=\"$2\"; media_server_apply_homebrew_gst_env; exec \"${@:3}\"",
+        "focused",
+        "/Users/dhseo/Workspace/mediaServer/scripts/internal/env_common.sh",
+        "/private/tmp/media-server-r166-cwd-build/focused-root/gst-cache",
+        "/private/tmp/media-server-r166-cwd-build/selected-focused",
+        "/private/tmp/media-server-r166-cwd-build/focused-root"
+      ],
+      "timeLimitSeconds": 45,
+      "staticAssertions": "PASS",
+      "buildBinding": {
+        "src/ingress/recording_search_application_service.cpp": {
+          "original": "61f0482fe8735afab055891cb46c14670332f3c12392293f875f0b1a565cc46e",
+          "overlay": "b14e40eb288205962b3fbebddf33cf9a21e15d99bb39af484bfd8023061e2a39"
+        },
+        "src/ingress/webrtc_http_server_runtime.cpp": {
+          "original": "4674fbd6b02a2c6f53a5d14a968d9eb06c5c3253aa02467d15581b84912b501e",
+          "overlay": "00ca6c0e3ce6caabc20ebb9423b86c9c52836430dbd157c5a3d094db5e4ba025"
+        },
+        "src/ingress/webrtc_http_server.cpp": {
+          "original": "4d5910a62693dab2d7a1cb9ab1e7296953ee74daea493ab293fe1fe1057195f1",
+          "overlay": "075b5a6fc43113f2a3b0fc6e432ee629a90b554f3e71c8e83874d71d9fa6eb27"
+        }
+      },
+      "uniqueSymbols": true
+    },
+    "result": {
+      "status": "PASS",
+      "childExit": 0,
+      "exit": 0,
+      "executionElapsedSeconds": 2.0801704998593777,
+      "elapsedSeconds": 2.0802106249611825,
+      "timeoutSeconds": 45,
+      "timedOut": false,
+      "interruptedSignals": [],
+      "residualGroupAfterCommand": false,
+      "cleanupSignals": [],
+      "processGroupAbsent": true,
+      "cleanupErrors": [],
+      "cleanupOnlySeconds": 1.3208016753196716e-05,
+      "registeredGroupsAbsent": true,
+      "residualRegisteredGroups": false,
+      "registeredGroupSignals": [],
+      "registeredGroupCleanupSeconds": 3.7080608308315277e-06,
+      "finishedAt": "2026-10-18T07:52:50.571355+00:00"
+    },
+    "binding": {
+      "pass": true,
+      "counts": {
+        "client": 1,
+        "server": 1,
+        "search": 1
+      },
+      "id": 1,
+      "auth401": true,
+      "portClosed": true,
+      "finish": true,
+      "loss": null,
+      "phases": [
+        "service-wait",
+        "service-hold",
+        "Capture",
+        "BuildOwned",
+        "Refresh",
+        "PlaybackCandidates",
+        "PlaybackNoCandidates",
+        "PlaybackReuse",
+        "WithPlayback",
+        "SnapshotBegin",
+        "preparation-wait",
+        "preparation-hold",
+        "CurrentnessJson"
+      ],
+      "records": {
+        "client": [
+          {
+            "id": 1,
+            "loss": false,
+            "status": 200,
+            "outcome": "ok",
+            "phase": "complete",
+            "bytes": 11122,
+            "totalElapsedMs": 14
+          }
+        ],
+        "server": [
+          {
+            "id": 1,
+            "class": 1,
+            "accepted": 1617201612881750,
+            "parsed": 1617201612918791,
+            "handler": 1617201612919416,
+            "prepared": 1617201627032833,
+            "sendBegin": 1617201627039791,
+            "sendEnd": 1617201627045541,
+            "sent": true,
+            "end": 1617201627046791,
+            "loss": false,
+            "metrics": [
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ]
+            ],
+            "counts": [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ]
+          }
+        ],
+        "search": [
+          {
+            "id": 1,
+            "diagnosticId": 1,
+            "begin": 1617201612954416,
+            "end": 1617201627017666,
+            "status": 200,
+            "attempt": 0,
+            "loss": false,
+            "phases": [
+              [
+                "service-wait",
+                1617201612978666,
+                1617201612978708
+              ],
+              [
+                "service-hold",
+                1617201612978708,
+                1617201613001375
+              ],
+              [
+                "Capture",
+                1617201613012250,
+                1617201615736375
+              ],
+              [
+                "BuildOwned",
+                1617201615823333,
+                1617201616253791
+              ],
+              [
+                "Refresh",
+                1617201613003458,
+                1617201616254416
+              ],
+              [
+                "PlaybackCandidates",
+                1617201616255500,
+                1617201618514750
+              ],
+              [
+                "PlaybackNoCandidates",
+                1617201618514750,
+                1617201618514791
+              ],
+              [
+                "PlaybackReuse",
+                1617201618574458,
+                1617201618574500
+              ],
+              [
+                "WithPlayback",
+                1617201616255041,
+                1617201618575000
+              ],
+              [
+                "SnapshotBegin",
+                1617201618575041,
+                1617201618634500
+              ],
+              [
+                "preparation-wait",
+                1617201613002041,
+                1617201613002125
+              ],
+              [
+                "preparation-hold",
+                1617201613002125,
+                1617201618634708
+              ],
+              [
+                "CurrentnessJson",
+                1617201618634833,
+                1617201627016958
+              ]
+            ],
+            "sources": [
+              [
+                1,
+                4,
+                0,
+                0,
+                false,
+                true
+              ]
+            ]
+          }
+        ]
+      }
+    },
+    "reruns": 0
+  },
+  "permissions": {
+    "focusedAndAccumulated": "official require_escalated command approvals accepted",
+    "sudo": false,
+    "globalSettingsChanged": false,
+    "defaultDeniedBindRepeated": false
+  },
+  "build": {
+    "existingGenerator": "scripts/internal/recording_accumulated_cost.py",
+    "generatorSha256": "7c67c6707ced22961801e69b335b43b6a607c1a6a68667dc68cc28f4ece03c35",
+    "sourceBindings": {
+      "src/ingress/recording_search_application_service.cpp": {
+        "original": "61f0482fe8735afab055891cb46c14670332f3c12392293f875f0b1a565cc46e",
+        "overlay": "b14e40eb288205962b3fbebddf33cf9a21e15d99bb39af484bfd8023061e2a39"
+      },
+      "src/ingress/webrtc_http_server_runtime.cpp": {
+        "original": "4674fbd6b02a2c6f53a5d14a968d9eb06c5c3253aa02467d15581b84912b501e",
+        "overlay": "00ca6c0e3ce6caabc20ebb9423b86c9c52836430dbd157c5a3d094db5e4ba025"
+      },
+      "src/ingress/webrtc_http_server.cpp": {
+        "original": "4d5910a62693dab2d7a1cb9ab1e7296953ee74daea493ab293fe1fe1057195f1",
+        "overlay": "075b5a6fc43113f2a3b0fc6e432ee629a90b554f3e71c8e83874d71d9fa6eb27"
+      }
+    },
+    "probeSha256": "85eb32bfe76a0275d46daf15deed85875088efc433859eabc7258012e9571b88",
+    "principalSymbolsUnique": true,
+    "originalOverlaidArchiveMembersExcluded": true,
+    "measurementBinary": {
+      "bytes": 38025744,
+      "sha256": "ea03c245a3db39f3c3b7b7e09e3af1dafc15257d7fd0718ddcd76514fed64a9f"
+    },
+    "focusedBinary": {
+      "bytes": 36480384,
+      "sha256": "0d1261988a1a078542bc4b1bec9258ca9f878d634b78343d57ba3e83e71f0576"
+    },
+    "linkMap": {
+      "bytes": 23728561,
+      "sha256": "d1deb1fa4806608491dde07ed0d92899057ab2a2d38c75b434cf5f88bb258c39"
+    },
+    "focusedMap": {
+      "bytes": 22623858,
+      "sha256": "db00d954083feabbd858de7d1de58018f4825dbbcc24a2ccee4a58dd9df0c422"
+    },
+    "compilerFlagsSourceSha256": "596a03ca54d4db831f4b22b080cc94613945accdbbc2c0d5378c7141f43b34bc",
+    "originalLinkInputsSha256": "e5d847bb5c30bf754978ae78d6ae143d1382181d99ea3f0681443b9692ec1724",
+    "activeBinaryProof": [
+      {
+        "pid": 60376,
+        "ppid": 60365,
+        "executable": "/private/tmp/media-server-r166-cwd-build/media_server"
+      },
+      {
+        "pid": 60438,
+        "ppid": 60365,
+        "executable": "/private/tmp/media-server-r166-cwd-run/media-server-current-observer-7hv1z0/normalize"
+      }
+    ]
+  },
+  "fixedBinaries": {
+    "build-gst-onnx/media_server": {
+      "bytes": 38005648,
+      "sha256": "8676366c9e5c93559555ced7be8c8a279e358cba92e763773e58a9e4a88eaf50"
+    },
+    "build-gst-onnx/libmedia_server_runtime.a": {
+      "bytes": 113163480,
+      "sha256": "5af874d42ef07ca5f474be643b2831dd28161526c992add2178c9dc04960a400"
+    }
+  },
+  "sourceUnchangedDuringRun": {
+    "binding": {
+      "head": "f3cbb3b74948dcd354720bb0b72307c0bbb242f7",
+      "fixtureProfile": "continuous-r114",
+      "fixtureProfileSourceSha256": "b7635f864c34aabdf291dde989a7c106cf6513db7a7b2b7a94e30cb408c5192e",
+      "tree": "8df627ffa1d9e99923594e96598483c038ff8b08",
+      "sourceSha256": "75d26f6e3661612b6eed78785f6c385dacd8fc0e8c0cb31d0d9388639867653b",
+      "binarySha256": "8676366c9e5c93559555ced7be8c8a279e358cba92e763773e58a9e4a88eaf50"
+    },
+    "matchesStart": true
+  },
+  "representativeAttempts": 1,
+  "analysis": {
+    "decision": "REPRESENTATIVE_LATENCY_STILL_FAIL",
+    "qualifiedSelected": true,
+    "counts": {
+      "client": 15,
+      "server": 15,
+      "search": 15
+    },
+    "allGeneral": {
+      "count": 484,
+      "p50Ms": 1008.0050840000622,
+      "p95Ms": 2333.640167000005,
+      "maxMs": 3428.7866249999497
+    },
+    "structured": {
+      "count": 242,
+      "p50Ms": 1206.1354589998955,
+      "p95Ms": 3006.019375000149,
+      "maxMs": 3428.7866249999497
+    },
+    "visual": {
+      "count": 242,
+      "p50Ms": 945.1327919999603,
+      "p95Ms": 1672.4692910001613,
+      "maxMs": 2359.782499999972
+    },
+    "timePeriods": [
+      {
+        "period": "early",
+        "batchOrdinalRangeInclusive": [
+          0,
+          39
+        ],
+        "firstVisualCompletionAtMs": 1792310042086,
+        "lastVisualCompletionAtMs": 1792310627874,
+        "all": {
+          "count": 160,
+          "p50Ms": 441.89770800003316,
+          "p95Ms": 783.3327500000014,
+          "maxMs": 946.6776250000112
+        },
+        "structured": {
+          "count": 80,
+          "p50Ms": 294.06541699997615,
+          "p95Ms": 455.52370899997186,
+          "maxMs": 505.9700839999714
+        },
+        "visual": {
+          "count": 80,
+          "p50Ms": 689.5720410000067,
+          "p95Ms": 862.9895840000245,
+          "maxMs": 946.6776250000112
+        }
+      },
+      {
+        "period": "middle",
+        "batchOrdinalRangeInclusive": [
+          40,
+          79
+        ],
+        "firstVisualCompletionAtMs": 1792310643346,
+        "lastVisualCompletionAtMs": 1792311231125,
+        "all": {
+          "count": 160,
+          "p50Ms": 1132.7647919999436,
+          "p95Ms": 1726.9744579999242,
+          "maxMs": 2173.7235410001595
+        },
+        "structured": {
+          "count": 80,
+          "p50Ms": 1205.5298750000075,
+          "p95Ms": 1837.6615410000086,
+          "maxMs": 2173.7235410001595
+        },
+        "visual": {
+          "count": 80,
+          "p50Ms": 1052.5695840000408,
+          "p95Ms": 1705.6269169999287,
+          "maxMs": 1740.4944160000887
+        }
+      },
+      {
+        "period": "late",
+        "batchOrdinalRangeInclusive": [
+          80,
+          120
+        ],
+        "firstVisualCompletionAtMs": 1792311245718,
+        "lastVisualCompletionAtMs": 1792311845916,
+        "all": {
+          "count": 164,
+          "p50Ms": 1552.3384579999838,
+          "p95Ms": 3093.5715419999324,
+          "maxMs": 3428.7866249999497
+        },
+        "structured": {
+          "count": 82,
+          "p50Ms": 2120.596250000177,
+          "p95Ms": 3146.025707999943,
+          "maxMs": 3428.7866249999497
+        },
+        "visual": {
+          "count": 82,
+          "p50Ms": 1079.8085000000428,
+          "p95Ms": 1628.5735419997945,
+          "maxMs": 2359.782499999972
+        }
+      }
+    ],
+    "timePeriodMethod": "actual successful searchLatencyMs append order verified against every visual-query-observation: each batch Visual2 then Structured2; zero503. Periods are ordered batches40/40/41, wall-clock boundaries from their recorded Visual completions; not per-Structured absolute timestamps.",
+    "generalSuccess": 484,
+    "general503": 0,
+    "searchHttpIncludingA": {
+      "count": 515,
+      "statusCounts": {
+        "200": 515
+      },
+      "outcomes": {
+        "ok": 515
+      }
+    },
+    "selectedRequests": [
+      {
+        "id": 1,
+        "class": "Structured",
+        "observationMs": 708.8006249999999,
+        "finalizedByChannel": {
+          "9101": 0,
+          "9201": 0
+        },
+        "httpMs": 2,
+        "searchMs": 0.86825,
+        "handlerMs": 1.228084,
+        "sendMs": 0.011959,
+        "attempts": 1,
+        "phaseInclusiveMs": {
+          "service-wait": 8.3e-05,
+          "service-hold": 0.036625,
+          "Capture": 0.191958,
+          "BuildOwned": 0.08075,
+          "Refresh": 0.371709,
+          "PlaybackCandidates": 0.30475,
+          "PlaybackNoCandidates": 4.2e-05,
+          "PlaybackReuse": 4.2e-05,
+          "WithPlayback": 0.397291,
+          "SnapshotBegin": 0.032167,
+          "preparation-wait": 4.2e-05,
+          "preparation-hold": 0.805375,
+          "CurrentnessJson": 0.010833
+        },
+        "phaseCounts": {
+          "service-wait": 1,
+          "service-hold": 1,
+          "Capture": 1,
+          "BuildOwned": 1,
+          "Refresh": 1,
+          "PlaybackCandidates": 1,
+          "PlaybackNoCandidates": 1,
+          "PlaybackReuse": 1,
+          "WithPlayback": 1,
+          "SnapshotBegin": 1,
+          "preparation-wait": 1,
+          "preparation-hold": 1,
+          "CurrentnessJson": 1
+        },
+        "refreshReuse": false
+      },
+      {
+        "id": 2,
+        "class": "Structured",
+        "observationMs": 709.8907500000005,
+        "finalizedByChannel": {
+          "9101": 0,
+          "9201": 0
+        },
+        "httpMs": 3,
+        "searchMs": 1.493208,
+        "handlerMs": 2.223083,
+        "sendMs": 0.008333,
+        "attempts": 1,
+        "phaseInclusiveMs": {
+          "service-wait": 8.3e-05,
+          "service-hold": 0.00025,
+          "Capture": 0.260167,
+          "RefreshReuse": 4.1e-05,
+          "Refresh": 0.413375,
+          "PlaybackCandidates": 0.508041,
+          "PlaybackNoCandidates": 4.2e-05,
+          "PlaybackReuse": 4.2e-05,
+          "WithPlayback": 0.653625,
+          "SnapshotBegin": 0.0475,
+          "preparation-wait": 0.344167,
+          "preparation-hold": 1.117583,
+          "CurrentnessJson": 0.0195
+        },
+        "phaseCounts": {
+          "service-wait": 1,
+          "service-hold": 1,
+          "Capture": 1,
+          "RefreshReuse": 1,
+          "Refresh": 1,
+          "PlaybackCandidates": 1,
+          "PlaybackNoCandidates": 1,
+          "PlaybackReuse": 1,
+          "WithPlayback": 1,
+          "SnapshotBegin": 1,
+          "preparation-wait": 1,
+          "preparation-hold": 1,
+          "CurrentnessJson": 1
+        },
+        "refreshReuse": true
+      },
+      {
+        "id": 3,
+        "class": "A",
+        "observationMs": 791.5731670000005,
+        "finalizedByChannel": {
+          "9101": 0,
+          "9201": 0
+        },
+        "httpMs": 9,
+        "searchMs": 7.503084,
+        "handlerMs": 7.847625,
+        "sendMs": 0.004958,
+        "attempts": 1,
+        "phaseInclusiveMs": {
+          "service-wait": 4.1e-05,
+          "service-hold": 0.000125,
+          "Capture": 1.012292,
+          "BuildOwned": 0.090625,
+          "Refresh": 4.686291,
+          "PlaybackCandidates": 0.218625,
+          "PlaybackNoCandidates": 4.2e-05,
+          "PlaybackBuildOwned": 0.0695,
+          "PlaybackDocuments": 0.098042,
+          "WithPlayback": 0.318333,
+          "SnapshotBegin": 0.02925,
+          "preparation-wait": 0.0,
+          "preparation-hold": 5.036166,
+          "CurrentnessJson": 2.458209
+        },
+        "phaseCounts": {
+          "service-wait": 1,
+          "service-hold": 1,
+          "Capture": 1,
+          "BuildOwned": 1,
+          "Refresh": 1,
+          "PlaybackCandidates": 1,
+          "PlaybackNoCandidates": 1,
+          "PlaybackBuildOwned": 1,
+          "PlaybackDocuments": 1,
+          "WithPlayback": 1,
+          "SnapshotBegin": 1,
+          "preparation-wait": 1,
+          "preparation-hold": 1,
+          "CurrentnessJson": 1
+        },
+        "refreshReuse": false
+      },
+      {
+        "id": 4,
+        "class": "Structured",
+        "observationMs": 601547.777542,
+        "finalizedByChannel": {
+          "9101": 299,
+          "9201": 299
+        },
+        "httpMs": 609,
+        "searchMs": 607.592792,
+        "handlerMs": 608.282125,
+        "sendMs": 0.01725,
+        "attempts": 1,
+        "phaseInclusiveMs": {
+          "service-wait": 8.3e-05,
+          "service-hold": 0.000125,
+          "Capture": 3.010542,
+          "RefreshReuse": 0.0,
+          "Refresh": 3.111,
+          "PlaybackCandidates": 19.305667,
+          "PlaybackNoCandidates": 0.0,
+          "PlaybackReuse": 8.3e-05,
+          "WithPlayback": 21.238708,
+          "SnapshotBegin": 1.105125,
+          "preparation-wait": 286.76725,
+          "preparation-hold": 25.461709,
+          "CurrentnessJson": 295.352792
+        },
+        "phaseCounts": {
+          "service-wait": 1,
+          "service-hold": 1,
+          "Capture": 1,
+          "RefreshReuse": 1,
+          "Refresh": 1,
+          "PlaybackCandidates": 1,
+          "PlaybackNoCandidates": 1,
+          "PlaybackReuse": 1,
+          "WithPlayback": 1,
+          "SnapshotBegin": 1,
+          "preparation-wait": 1,
+          "preparation-hold": 1,
+          "CurrentnessJson": 1
+        },
+        "refreshReuse": true
+      },
+      {
+        "id": 5,
+        "class": "Structured",
+        "observationMs": 601525.7905840001,
+        "finalizedByChannel": {
+          "9101": 299,
+          "9201": 299
+        },
+        "httpMs": 587,
+        "searchMs": 585.333875,
+        "handlerMs": 586.001625,
+        "sendMs": 0.017667,
+        "attempts": 1,
+        "phaseInclusiveMs": {
+          "service-wait": 0.000125,
+          "service-hold": 0.000208,
+          "Capture": 156.568417,
+          "BuildOwned": 108.170708,
+          "Refresh": 265.032,
+          "PlaybackCandidates": 17.355292,
+          "PlaybackNoCandidates": 4.2e-05,
+          "PlaybackReuse": 4.2e-05,
+          "WithPlayback": 19.491791,
+          "SnapshotBegin": 2.235208,
+          "preparation-wait": 4.2e-05,
+          "preparation-hold": 286.762,
+          "CurrentnessJson": 298.555792
+        },
+        "phaseCounts": {
+          "service-wait": 1,
+          "service-hold": 1,
+          "Capture": 1,
+          "BuildOwned": 1,
+          "Refresh": 1,
+          "PlaybackCandidates": 1,
+          "PlaybackNoCandidates": 1,
+          "PlaybackReuse": 1,
+          "WithPlayback": 1,
+          "SnapshotBegin": 1,
+          "preparation-wait": 1,
+          "preparation-hold": 1,
+          "CurrentnessJson": 1
+        },
+        "refreshReuse": false
+      },
+      {
+        "id": 6,
+        "class": "A",
+        "observationMs": 602231.20275,
+        "finalizedByChannel": {
+          "9101": 299,
+          "9201": 299
+        },
+        "httpMs": 20,
+        "searchMs": 19.1485,
+        "handlerMs": 19.503625,
+        "sendMs": 0.013792,
+        "attempts": 1,
+        "phaseInclusiveMs": {
+          "service-wait": 4.2e-05,
+          "service-hold": 0.00025,
+          "Capture": 0.128042,
+          "RefreshReuse": 4.2e-05,
+          "Refresh": 0.2075,
+          "PlaybackCandidates": 15.698708,
+          "PlaybackNoCandidates": 4.2e-05,
+          "PlaybackBuildOwned": 0.093416,
+          "PlaybackDocuments": 0.132667,
+          "WithPlayback": 15.834417,
+          "SnapshotBegin": 0.035958,
+          "preparation-wait": 4.1e-05,
+          "preparation-hold": 16.07925,
+          "CurrentnessJson": 3.060458
+        },
+        "phaseCounts": {
+          "service-wait": 1,
+          "service-hold": 1,
+          "Capture": 1,
+          "RefreshReuse": 1,
+          "Refresh": 1,
+          "PlaybackCandidates": 1,
+          "PlaybackNoCandidates": 1,
+          "PlaybackBuildOwned": 1,
+          "PlaybackDocuments": 1,
+          "WithPlayback": 1,
+          "SnapshotBegin": 1,
+          "preparation-wait": 1,
+          "preparation-hold": 1,
+          "CurrentnessJson": 1
+        },
+        "refreshReuse": true
+      },
+      {
+        "id": 7,
+        "class": "Structured",
+        "observationMs": 1204230.0196669998,
+        "finalizedByChannel": {
+          "9101": 600,
+          "9201": 600
+        },
+        "httpMs": 1450,
+        "searchMs": 1448.004667,
+        "handlerMs": 1448.409042,
+        "sendMs": 0.016167,
+        "attempts": 1,
+        "phaseInclusiveMs": {
+          "service-wait": 0.0,
+          "service-hold": 0.000125,
+          "Capture": 730.27025,
+          "BuildOwned": 287.893792,
+          "Refresh": 1018.519375,
+          "PlaybackCandidates": 30.519875,
+          "PlaybackNoCandidates": 4.2e-05,
+          "PlaybackReuse": 0.0,
+          "WithPlayback": 32.143916,
+          "SnapshotBegin": 5.065542,
+          "preparation-wait": 4.2e-05,
+          "preparation-hold": 1055.731416,
+          "CurrentnessJson": 392.262542
+        },
+        "phaseCounts": {
+          "service-wait": 1,
+          "service-hold": 1,
+          "Capture": 1,
+          "BuildOwned": 1,
+          "Refresh": 1,
+          "PlaybackCandidates": 1,
+          "PlaybackNoCandidates": 1,
+          "PlaybackReuse": 1,
+          "WithPlayback": 1,
+          "SnapshotBegin": 1,
+          "preparation-wait": 1,
+          "preparation-hold": 1,
+          "CurrentnessJson": 1
+        },
+        "refreshReuse": false
+      },
+      {
+        "id": 8,
+        "class": "Structured",
+        "observationMs": 1204248.2718749999,
+        "finalizedByChannel": {
+          "9101": 600,
+          "9201": 600
+        },
+        "httpMs": 1468,
+        "searchMs": 1466.278084,
+        "handlerMs": 1466.668,
+        "sendMs": 0.017542,
+        "attempts": 1,
+        "phaseInclusiveMs": {
+          "service-wait": 8.3e-05,
+          "service-hold": 8.4e-05,
+          "Capture": 4.666416,
+          "RefreshReuse": 4.2e-05,
+          "Refresh": 4.733875,
+          "PlaybackCandidates": 39.868875,
+          "PlaybackNoCandidates": 0.0,
+          "PlaybackReuse": 4.2e-05,
+          "WithPlayback": 45.079792,
+          "SnapshotBegin": 2.461375,
+          "preparation-wait": 1055.713291,
+          "preparation-hold": 52.278667,
+          "CurrentnessJson": 358.278625
+        },
+        "phaseCounts": {
+          "service-wait": 1,
+          "service-hold": 1,
+          "Capture": 1,
+          "RefreshReuse": 1,
+          "Refresh": 1,
+          "PlaybackCandidates": 1,
+          "PlaybackNoCandidates": 1,
+          "PlaybackReuse": 1,
+          "WithPlayback": 1,
+          "SnapshotBegin": 1,
+          "preparation-wait": 1,
+          "preparation-hold": 1,
+          "CurrentnessJson": 1
+        },
+        "refreshReuse": true
+      },
+      {
+        "id": 9,
+        "class": "A",
+        "observationMs": 1204655.6034169998,
+        "finalizedByChannel": {
+          "9101": 600,
+          "9201": 600
+        },
+        "httpMs": 54,
+        "searchMs": 52.674125,
+        "handlerMs": 53.095459,
+        "sendMs": 0.01675,
+        "attempts": 1,
+        "phaseInclusiveMs": {
+          "service-wait": 4.1e-05,
+          "service-hold": 0.000292,
+          "Capture": 0.128625,
+          "RefreshReuse": 4.1e-05,
+          "Refresh": 0.206584,
+          "PlaybackCandidates": 47.571208,
+          "PlaybackNoCandidates": 4.1e-05,
+          "PlaybackBuildOwned": 0.107959,
+          "PlaybackDocuments": 0.151458,
+          "WithPlayback": 47.725791,
+          "SnapshotBegin": 0.040375,
+          "preparation-wait": 4.2e-05,
+          "preparation-hold": 47.974583,
+          "CurrentnessJson": 4.689292
+        },
+        "phaseCounts": {
+          "service-wait": 1,
+          "service-hold": 1,
+          "Capture": 1,
+          "RefreshReuse": 1,
+          "Refresh": 1,
+          "PlaybackCandidates": 1,
+          "PlaybackNoCandidates": 1,
+          "PlaybackBuildOwned": 1,
+          "PlaybackDocuments": 1,
+          "WithPlayback": 1,
+          "SnapshotBegin": 1,
+          "preparation-wait": 1,
+          "preparation-hold": 1,
+          "CurrentnessJson": 1
+        },
+        "refreshReuse": true
+      },
+      {
+        "id": 10,
+        "class": "Structured",
+        "observationMs": 1385527.9174169998,
+        "finalizedByChannel": {
+          "9101": 689,
+          "9201": 689
+        },
+        "httpMs": 2247,
+        "searchMs": 2245.42925,
+        "handlerMs": 2245.843541,
+        "sendMs": 0.018333,
+        "attempts": 1,
+        "phaseInclusiveMs": {
+          "service-wait": 0.001209,
+          "service-hold": 8.3e-05,
+          "Capture": 6.810875,
+          "RefreshReuse": 4.2e-05,
+          "Refresh": 6.89825,
+          "PlaybackCandidates": 38.467458,
+          "PlaybackNoCandidates": 0.0,
+          "PlaybackReuse": 4.2e-05,
+          "WithPlayback": 41.140042,
+          "SnapshotBegin": 2.774292,
+          "preparation-wait": 1951.19075,
+          "preparation-hold": 50.8155,
+          "CurrentnessJson": 243.413791
+        },
+        "phaseCounts": {
+          "service-wait": 1,
+          "service-hold": 1,
+          "Capture": 1,
+          "RefreshReuse": 1,
+          "Refresh": 1,
+          "PlaybackCandidates": 1,
+          "PlaybackNoCandidates": 1,
+          "PlaybackReuse": 1,
+          "WithPlayback": 1,
+          "SnapshotBegin": 1,
+          "preparation-wait": 1,
+          "preparation-hold": 1,
+          "CurrentnessJson": 1
+        },
+        "refreshReuse": true
+      },
+      {
+        "id": 11,
+        "class": "Structured",
+        "observationMs": 1385530.4372089999,
+        "finalizedByChannel": {
+          "9101": 689,
+          "9201": 689
+        },
+        "httpMs": 2249,
+        "searchMs": 2248.301875,
+        "handlerMs": 2248.684458,
+        "sendMs": 0.008625,
+        "attempts": 2,
+        "phaseInclusiveMs": {
+          "service-wait": 8.3e-05,
+          "service-hold": 0.000292,
+          "Capture": 1174.763834,
+          "BuildOwned": 731.515626,
+          "Refresh": 1907.868291,
+          "PlaybackCandidates": 36.137125,
+          "PlaybackNoCandidates": 4.2e-05,
+          "PlaybackReuse": 4.2e-05,
+          "WithPlayback": 37.293584,
+          "SnapshotBegin": 6.018,
+          "preparation-wait": 4.1e-05,
+          "preparation-hold": 1951.183542,
+          "CurrentnessJson": 297.106792
+        },
+        "phaseCounts": {
+          "service-wait": 1,
+          "service-hold": 1,
+          "Capture": 2,
+          "BuildOwned": 2,
+          "Refresh": 2,
+          "PlaybackCandidates": 1,
+          "PlaybackNoCandidates": 1,
+          "PlaybackReuse": 1,
+          "WithPlayback": 1,
+          "SnapshotBegin": 1,
+          "preparation-wait": 1,
+          "preparation-hold": 1,
+          "CurrentnessJson": 1
+        },
+        "refreshReuse": false
+      },
+      {
+        "id": 12,
+        "class": "A",
+        "observationMs": 1385683.50925,
+        "finalizedByChannel": {
+          "9101": 689,
+          "9201": 689
+        },
+        "httpMs": 40,
+        "searchMs": 38.699333,
+        "handlerMs": 39.095542,
+        "sendMs": 0.015583,
+        "attempts": 1,
+        "phaseInclusiveMs": {
+          "service-wait": 4.1e-05,
+          "service-hold": 0.000209,
+          "Capture": 0.501083,
+          "RefreshReuse": 4.2e-05,
+          "Refresh": 0.573291,
+          "PlaybackCandidates": 34.575709,
+          "PlaybackNoCandidates": 4.2e-05,
+          "PlaybackBuildOwned": 0.144334,
+          "PlaybackDocuments": 0.181958,
+          "WithPlayback": 34.760625,
+          "SnapshotBegin": 0.032792,
+          "preparation-wait": 4.2e-05,
+          "preparation-hold": 35.36825,
+          "CurrentnessJson": 3.321834
+        },
+        "phaseCounts": {
+          "service-wait": 1,
+          "service-hold": 1,
+          "Capture": 1,
+          "RefreshReuse": 1,
+          "Refresh": 1,
+          "PlaybackCandidates": 1,
+          "PlaybackNoCandidates": 1,
+          "PlaybackBuildOwned": 1,
+          "PlaybackDocuments": 1,
+          "WithPlayback": 1,
+          "SnapshotBegin": 1,
+          "preparation-wait": 1,
+          "preparation-hold": 1,
+          "CurrentnessJson": 1
+        },
+        "refreshReuse": true
+      },
+      {
+        "id": 13,
+        "class": "Structured",
+        "observationMs": 1506074.760417,
+        "finalizedByChannel": {
+          "9101": 749,
+          "9201": 749
+        },
+        "httpMs": 2940,
+        "searchMs": 2937.918125,
+        "handlerMs": 2938.346709,
+        "sendMs": 0.021875,
+        "attempts": 2,
+        "phaseInclusiveMs": {
+          "service-wait": 8.4e-05,
+          "service-hold": 0.000166,
+          "Capture": 1493.52375,
+          "BuildOwned": 1058.585542,
+          "Refresh": 2555.38325,
+          "PlaybackCandidates": 61.871125,
+          "PlaybackNoCandidates": 4.2e-05,
+          "PlaybackReuse": 0.0,
+          "WithPlayback": 63.534333,
+          "SnapshotBegin": 2.887916,
+          "preparation-wait": 0.0,
+          "preparation-hold": 2621.809458,
+          "CurrentnessJson": 316.097208
+        },
+        "phaseCounts": {
+          "service-wait": 1,
+          "service-hold": 1,
+          "Capture": 2,
+          "BuildOwned": 2,
+          "Refresh": 2,
+          "PlaybackCandidates": 1,
+          "PlaybackNoCandidates": 1,
+          "PlaybackReuse": 1,
+          "WithPlayback": 1,
+          "SnapshotBegin": 1,
+          "preparation-wait": 1,
+          "preparation-hold": 1,
+          "CurrentnessJson": 1
+        },
+        "refreshReuse": false
+      },
+      {
+        "id": 14,
+        "class": "Structured",
+        "observationMs": 1506094.4584589999,
+        "finalizedByChannel": {
+          "9101": 749,
+          "9201": 749
+        },
+        "httpMs": 2959,
+        "searchMs": 2957.845958,
+        "handlerMs": 2958.278666,
+        "sendMs": 0.019375,
+        "attempts": 1,
+        "phaseInclusiveMs": {
+          "service-wait": 8.3e-05,
+          "service-hold": 8.4e-05,
+          "Capture": 2.85125,
+          "RefreshReuse": 4.2e-05,
+          "Refresh": 3.014209,
+          "PlaybackCandidates": 47.702208,
+          "PlaybackNoCandidates": 4.1e-05,
+          "PlaybackReuse": 4.1e-05,
+          "WithPlayback": 50.436708,
+          "SnapshotBegin": 7.71575,
+          "preparation-wait": 2621.827084,
+          "preparation-hold": 61.171208,
+          "CurrentnessJson": 274.839708
+        },
+        "phaseCounts": {
+          "service-wait": 1,
+          "service-hold": 1,
+          "Capture": 1,
+          "RefreshReuse": 1,
+          "Refresh": 1,
+          "PlaybackCandidates": 1,
+          "PlaybackNoCandidates": 1,
+          "PlaybackReuse": 1,
+          "WithPlayback": 1,
+          "SnapshotBegin": 1,
+          "preparation-wait": 1,
+          "preparation-hold": 1,
+          "CurrentnessJson": 1
+        },
+        "refreshReuse": true
+      },
+      {
+        "id": 15,
+        "class": "A",
+        "observationMs": 1506269.694375,
+        "finalizedByChannel": {
+          "9101": 749,
+          "9201": 749
+        },
+        "httpMs": 47,
+        "searchMs": 45.242459,
+        "handlerMs": 45.850333,
+        "sendMs": 0.017708,
+        "attempts": 1,
+        "phaseInclusiveMs": {
+          "service-wait": 0.00025,
+          "service-hold": 0.000166,
+          "Capture": 0.197584,
+          "RefreshReuse": 4.2e-05,
+          "Refresh": 0.271958,
+          "PlaybackCandidates": 40.932667,
+          "PlaybackNoCandidates": 4.2e-05,
+          "PlaybackBuildOwned": 0.21225,
+          "PlaybackDocuments": 0.276125,
+          "WithPlayback": 41.213667,
+          "SnapshotBegin": 0.042084,
+          "preparation-wait": 0.0005,
+          "preparation-hold": 41.530208,
+          "CurrentnessJson": 3.682542
+        },
+        "phaseCounts": {
+          "service-wait": 1,
+          "service-hold": 1,
+          "Capture": 1,
+          "RefreshReuse": 1,
+          "Refresh": 1,
+          "PlaybackCandidates": 1,
+          "PlaybackNoCandidates": 1,
+          "PlaybackBuildOwned": 1,
+          "PlaybackDocuments": 1,
+          "WithPlayback": 1,
+          "SnapshotBegin": 1,
+          "preparation-wait": 1,
+          "preparation-hold": 1,
+          "CurrentnessJson": 1
+        },
+        "refreshReuse": true
+      }
+    ],
+    "durations": "same-process server steady-clock differences; client/server epochs not subtracted; nested Capture/Build inside Refresh, Refresh inside preparation are not added as disjoint costs",
+    "execution": {
+      "task": "R166 representative verification CWD correction",
+      "status": "FAIL",
+      "startedAt": "2026-10-18T07:53:37.462020+00:00",
+      "command": [
+        "bash",
+        "/private/tmp/media-server-r166-cwd-build/overlay/wrapper.sh",
+        "--state-diagnostic"
+      ],
+      "cwd": "/Users/dhseo/Workspace/mediaServer",
+      "instrumentedBinary": "/private/tmp/media-server-r166-cwd-build/media_server",
+      "instrumentedBinarySha256": "ea03c245a3db39f3c3b7b7e09e3af1dafc15257d7fd0718ddcd76514fed64a9f",
+      "source": {
+        "head": "f3cbb3b74948dcd354720bb0b72307c0bbb242f7",
+        "fixtureProfile": "continuous-r114",
+        "fixtureProfileSourceSha256": "b7635f864c34aabdf291dde989a7c106cf6513db7a7b2b7a94e30cb408c5192e",
+        "tree": "8df627ffa1d9e99923594e96598483c038ff8b08",
+        "sourceSha256": "75d26f6e3661612b6eed78785f6c385dacd8fc0e8c0cb31d0d9388639867653b",
+        "binarySha256": "8676366c9e5c93559555ced7be8c8a279e358cba92e763773e58a9e4a88eaf50"
+      },
+      "observationTargetSeconds": 1800,
+      "executionBudgetSeconds": 1870,
+      "totalSafetyBoundSeconds": 1900,
+      "retries": 0,
+      "processGroup": 60286,
+      "childExit": 1,
+      "exit": 1,
+      "executionElapsedSeconds": 1832.4369619169738,
+      "elapsedSeconds": 1832.4401774168946,
+      "timeoutSeconds": 1870,
+      "timedOut": false,
+      "interruptedSignals": [],
+      "residualGroupAfterCommand": false,
+      "cleanupSignals": [],
+      "processGroupAbsent": true,
+      "cleanupErrors": [],
+      "cleanupOnlySeconds": 2.5709159672260284e-05,
+      "registeredGroupsAbsent": true,
+      "residualRegisteredGroups": false,
+      "registeredGroupSignals": [],
+      "registeredGroupCleanupSeconds": 0.003054084023460746,
+      "finishedAt": "2026-10-18T08:24:10.181348+00:00"
+    },
+    "observation": {
+      "targetSeconds": 1800,
+      "actualBoundarySeconds": 1805.5250682499998,
+      "overrunMs": 5525.068249999778,
+      "withinObservationBound": false,
+      "note": "existing loop crosses boundary with final in-flight batch/A work. Actual484 searches and31A retained; no rerun or adjusted gate. Total safety time below1900."
+    },
+    "ACompleted": 31,
+    "evidenceCompleted": 120,
+    "phase": {
+      "elapsedMs": 1805525.0682499998,
+      "channels": {
+        "9101": {
+          "finalized": 901,
+          "deleted": 0,
+          "lastAt": 1813854.424375,
+          "order": "1803",
+          "store": "520932012e50a4db7b444f188b56bea674ed035945e4b942304844f77826d1ff",
+          "knownMappings": 623,
+          "unknownMappings": 34860
+        },
+        "9201": {
+          "finalized": 901,
+          "deleted": 0,
+          "lastAt": 1813854.424375,
+          "order": "1802",
+          "store": "520932012e50a4db7b444f188b56bea674ed035945e4b942304844f77826d1ff",
+          "knownMappings": 615,
+          "unknownMappings": 35506
+        }
+      },
+      "records": 1802,
+      "logicalBytes": 1075573
+    },
+    "retention": {
+      "gate": "UNMET",
+      "deleted": [
+        0,
+        0
+      ],
+      "maxAgeMs": 10800000,
+      "maxBytes": 113246208,
+      "allMediaLogicalBytesAtPostStop": 62117933,
+      "interpretation": "final total media bytes across both channels below a single channel byte quota; duration below3h age threshold; deletion0 alone does not establish retention defect. Existing deletion gate remains failed. Nonatomic file-byte observation, not independent exact per-channel retention accounting."
+    },
+    "collection": {
+      "status": "INCOMPLETE",
+      "code": "completion-receipt-missing"
+    },
+    "resource": {
+      "sampleCount": 361,
+      "rssMaxBytes": 3207512064,
+      "footprintMaxBytes": 3158789384,
+      "observedFdMax": 90,
+      "logicalPeakWitnessBytes": 366562743,
+      "logicalLimitBytes": 671088640,
+      "minHeadroomFromLogicalPeakBytes": 304525897,
+      "ramRejected": 0,
+      "sampledResidencyMaxBytes": 313513779,
+      "diagnosticCurrentCountMax": 2,
+      "diagnosticCurrentCountLast": 0,
+      "memoryTraceLoss": 0,
+      "storageDestruction": {
+        "pid": 60376,
+        "seq": 362,
+        "phase": "after-storage-destruction",
+        "elapsedMs": 1813812,
+        "ram": 0,
+        "ramPeak": 366562743,
+        "ramLimit": 671088640,
+        "ramRejected": 0,
+        "scratchDisk": 0,
+        "scratchDiskPeak": 312020992,
+        "scratchDiskLimit": 160276619264,
+        "scratchFd": 0,
+        "scratchFdPeak": 19,
+        "scratchFdLimit": 1048572,
+        "scratchRam": 0,
+        "preservedDisk": 0,
+        "preservedFd": 0,
+        "readerCleanupHealthy": true
+      },
+      "readerCleanupHealthyAll": true,
+      "wholeHeapLeakProof": false,
+      "sourceEviction": "NOT_MEASURED; no explicit eviction record"
+    },
+    "termination": {
+      "normalProductShutdown": true,
+      "udpClosed": true,
+      "overallCyclePass": false
+    },
+    "firstFailures": [
+      {
+        "line": 10839,
+        "text": "[R165-latency-gate] {\"count\":484,\"p95\":2333.640167000005,\"max\":3428.7866249999497,\"limitP95\":2000,\"limitMax\":5000,\"pass\":false}"
+      },
+      {
+        "line": 10846,
+        "text": "[R165-first-failure] {\"code\":\"functional-failure\",\"atMs\":1814019.711125}"
+      },
+      {
+        "line": 10849,
+        "text": "[fail] current observation: LP26-O05 both channels retained and progressed"
+      },
+      {
+        "line": 10855,
+        "text": "[completion-collection-summary] {\"status\":\"incomplete\",\"code\":\"completion-receipt-missing\",\"rows\":0,\"bytes\":0,\"receipt\":null}"
+      },
+      {
+        "line": 10856,
+        "text": "[fail] completion-evidence-collection"
+      },
+      {
+        "line": 10864,
+        "text": "[wrapper-exit] 1"
+      }
+    ],
+    "generalLatencyMs": [
+      73.41233400000056,
+      39.08670799999891,
+      2.6361249999990832,
+      3.562958999998955,
+      326.39320900000166,
+      350.6720419999983,
+      44.88787500000035,
+      39.76074999999764,
+      382.4792499999967,
+      366.7974170000016,
+      98.4407499999943,
+      106.29783300000418,
+      462.09420800000225,
+      445.5109580000062,
+      130.31970900000306,
+      141.7532080000019,
+      569.2277500000055,
+      547.5681670000049,
+      195.7657920000056,
+      201.88037499999336,
+      480.3902079999971,
+      463.8861670000042,
+      175.24575000000186,
+      176.25220800000534,
+      482.12508300000627,
+      464.9455420000013,
+      190.541790999996,
+      190.0332919999928,
+      571.6872919999878,
+      581.4292499999865,
+      221.36650000000373,
+      222.5398750000022,
+      639.2862500000047,
+      619.5610829999932,
+      213.12137500000244,
+      202.10391700000037,
+      764.962750000006,
+      781.4875830000092,
+      244.25545900000725,
+      239.86670799998683,
+      689.5720410000067,
+      681.7809169999964,
+      236.3087499999965,
+      240.74962499999674,
+      526.269208999991,
+      540.4504579999775,
+      203.92008299997542,
+      214.04245900001843,
+      692.9389999999839,
+      684.450084000011,
+      244.64279199999874,
+      254.07233399999677,
+      777.9156669999938,
+      751.6437920000171,
+      257.08312500000466,
+      266.590750000003,
+      738.1306670000195,
+      715.7448330000043,
+      280.1480000000156,
+      278.6310840000224,
+      862.9895840000245,
+      870.1343340000021,
+      328.73520799999824,
+      322.5990419999871,
+      701.2879580000008,
+      663.493541999982,
+      261.36933399998816,
+      252.9619160000002,
+      819.2955829999992,
+      783.3327500000014,
+      303.75587499997346,
+      281.0189169999794,
+      694.3306670000311,
+      724.9959169999929,
+      287.3732500000042,
+      303.92404200002784,
+      626.858917000005,
+      588.1124169999966,
+      270.9168329999666,
+      266.37416599999415,
+      639.9137499999488,
+      669.1064999999944,
+      351.83004199998686,
+      345.2099589999998,
+      738.783208000008,
+      705.8383749999921,
+      312.0682080000406,
+      309.20350000000326,
+      865.8330410000053,
+      842.0506250000326,
+      292.5651669999934,
+      287.05783400003565,
+      578.3837079999503,
+      611.0858749999898,
+      292.33283400000073,
+      294.06541699997615,
+      686.0280000000494,
+      725.0114170000306,
+      362.4197919999715,
+      368.8183340000105,
+      726.4787080000388,
+      684.3262500000419,
+      363.2603339999914,
+      352.99575000000186,
+      733.5822090000147,
+      718.9231249999721,
+      359.0034169999999,
+      370.65862499998184,
+      589.7294999999576,
+      556.149207999988,
+      321.0527080000029,
+      340.2717499999562,
+      783.9315840000054,
+      776.6262500000303,
+      409.959291999985,
+      402.16641600005096,
+      763.0852919999743,
+      722.4858339999919,
+      390.3900840000133,
+      404.30825000000186,
+      752.6309580000234,
+      736.5705000000307,
+      398.72758299997076,
+      397.0008749999688,
+      740.8433339999756,
+      770.1910410000128,
+      419.98587500001304,
+      426.29375000001164,
+      946.6776250000112,
+      917.5482079999638,
+      505.9700839999714,
+      483.0518329999759,
+      545.8379159999895,
+      582.6341249999823,
+      373.55462499998976,
+      382.18016599997645,
+      743.6741660000407,
+      706.500624999986,
+      409.46220800001174,
+      427.9569999999949,
+      729.0776250000345,
+      692.5847909998847,
+      419.74220799992327,
+      421.60591599997133,
+      756.3994579999708,
+      721.3108340000035,
+      435.6022499999963,
+      441.89770800003316,
+      738.2752500000643,
+      707.3516249998938,
+      455.52370899997186,
+      471.8521250000922,
+      656.0938750000205,
+      685.4157500000438,
+      447.50204100005794,
+      467.32995899999514,
+      570.8866670000134,
+      598.3404159999918,
+      429.5189170000376,
+      437.2463329999009,
+      1099.8769999999786,
+      1090.7981669999426,
+      609.5150830000639,
+      587.3734160000458,
+      740.7248749999562,
+      711.9266249999637,
+      464.75366600009147,
+      480.53941600001417,
+      740.858082999941,
+      699.7299579998944,
+      477.549958000076,
+      486.204458000022,
+      1172.644083000021,
+      1176.0636249999516,
+      600.4739579999587,
+      617.8073749999749,
+      749.9766250000102,
+      739.7762499999953,
+      527.0994590000482,
+      522.237208000035,
+      1023.656416999991,
+      1055.1172919999808,
+      622.1984579999698,
+      650.168791999924,
+      744.7210419999901,
+      747.9315829999978,
+      537.3332500000251,
+      531.593082999927,
+      1041.5713750000577,
+      963.6283749999711,
+      680.2156250000698,
+      644.0720410000067,
+      619.9189159999369,
+      615.7741659999592,
+      507.1520830000518,
+      508.56541700009257,
+      778.6025000000373,
+      760.0116250000428,
+      555.8972920000087,
+      573.1273329999531,
+      1108.5081670000218,
+      1132.7647919999436,
+      656.3699170000618,
+      683.2609579999698,
+      1309.2226249999367,
+      1333.859332999913,
+      914.4012499999953,
+      641.2960830000229,
+      1726.9744579999242,
+      1695.8718749999534,
+      1179.170832999982,
+      1140.6187909999862,
+      932.5109170000069,
+      909.5122500000289,
+      1252.99679200002,
+      1276.87354099995,
+      1190.5741250000428,
+      1226.4532500000205,
+      1100.3204169999808,
+      1078.9089170000516,
+      1073.277541999938,
+      1052.5695840000408,
+      1117.954207999981,
+      1127.9941250000848,
+      1161.4716669999762,
+      994.6311670000432,
+      1266.5464999999385,
+      1275.4302080000052,
+      834.1765410000226,
+      824.6168749999488,
+      715.4756660000421,
+      703.3399160000263,
+      1408.762999999919,
+      1489.8431669999845,
+      1200.6570839999476,
+      1205.5298750000075,
+      876.8915830000769,
+      881.4735409999266,
+      1159.840916999965,
+      1169.7704999999842,
+      938.1195420000004,
+      943.0646249999991,
+      1175.2262500000652,
+      1180.5968749999302,
+      915.4380420000525,
+      927.4812920000404,
+      1469.5370419999817,
+      1482.6347920000553,
+      1292.4532079999335,
+      1263.4621249999618,
+      1088.6596249999711,
+      1087.6625419999473,
+      972.2417499999283,
+      972.8644579999382,
+      1206.1354589998955,
+      1210.3941669999622,
+      999.876750000054,
+      1006.1671670000069,
+      1235.6603749999776,
+      1248.2010419999715,
+      1131.837458999944,
+      1118.813790999935,
+      1627.5211659999331,
+      1628.292333999998,
+      1019.4082920000656,
+      1007.6722089999821,
+      1290.7950420000125,
+      1291.0882920000004,
+      1616.99679200002,
+      1641.252749999985,
+      1543.954625000013,
+      1600.7541670000646,
+      1658.3652909999946,
+      1699.762875000015,
+      1516.7143340000184,
+      1493.3846669999184,
+      1680.6793750000652,
+      1710.8166249999776,
+      1624.440583000076,
+      1631.231334000011,
+      1251.9608330000192,
+      1286.8974170000292,
+      1524.423333000159,
+      1514.1563329999335,
+      1029.1512909999583,
+      1035.187249999959,
+      1359.8357500000857,
+      1355.6147500001825,
+      800.6054170001298,
+      797.6780829997733,
+      1404.9713329998776,
+      1413.252416000003,
+      1705.6269169999287,
+      1740.4944160000887,
+      1654.122250000015,
+      1636.5570420001168,
+      1665.5829159999266,
+      1716.7223749998957,
+      2159.964249999961,
+      2173.7235410001595,
+      1221.1742080000695,
+      1169.2848330000415,
+      1675.764459000202,
+      1677.4638340000529,
+      1215.9463329999708,
+      960.0013329999056,
+      1306.1093340001535,
+      1793.1043750001118,
+      1022.4477909998968,
+      947.051917000208,
+      1553.1291249999776,
+      1541.0989999999292,
+      1688.2014999999665,
+      1618.718457999872,
+      2077.673208999913,
+      2072.019166999962,
+      1188.8735409998335,
+      1294.1987920000684,
+      1829.010374999838,
+      1837.6615410000086,
+      1628.5735419997945,
+      1588.7889999998733,
+      1449.7561670001596,
+      1467.858790999977,
+      1314.3977500000037,
+      1278.7074579999316,
+      1825.4957909998484,
+      1821.841083999956,
+      860.2581249999348,
+      854.2274169998709,
+      1388.6756249999162,
+      2477.9899579999037,
+      1123.3838750000577,
+      1132.8435830001254,
+      1547.4429999999702,
+      1560.1866669999436,
+      731.5361659999471,
+      738.2549169999547,
+      1259.6077910000458,
+      1255.1194170000963,
+      1079.8085000000428,
+      1081.0977499999572,
+      1552.3384579999838,
+      1557.2486660000868,
+      1731.7650839998387,
+      1672.4692910001613,
+      2175.562707999954,
+      2184.011167000048,
+      1048.985374999931,
+      1344.5154999999795,
+      1891.7615840001963,
+      1952.9396250001155,
+      774.6344580000732,
+      781.2472500000149,
+      2090.516375000123,
+      2084.091999999946,
+      1191.4763329999987,
+      1124.139833000023,
+      1670.6658750001807,
+      1687.1707500000484,
+      1036.317916000029,
+      1115.0202089999802,
+      2054.908584000077,
+      2058.4782499999274,
+      1402.3676249999553,
+      1355.5648749999236,
+      1959.5860419999808,
+      1967.5237499999348,
+      810.8664580001496,
+      802.1543330000713,
+      2247.0201660001185,
+      2249.3438329999335,
+      983.934583999915,
+      1121.389790999936,
+      1730.694208000088,
+      1740.202624999918,
+      1468.7955420000944,
+      1524.7192090000026,
+      2099.7052500001155,
+      2072.279957999941,
+      1044.61429100018,
+      1046.0780420000665,
+      1800.0959169999696,
+      1799.2092919999268,
+      823.7925420000684,
+      826.1413339998107,
+      2214.3735830001533,
+      2247.577125000069,
+      1092.1898749999236,
+      1144.1362499999814,
+      3240.853708000155,
+      3250.3841670001857,
+      802.218292000005,
+      816.2637499999255,
+      1823.9680409999564,
+      1813.0715830000117,
+      686.4986250000075,
+      681.12254199991,
+      1785.8610419998877,
+      1799.5882500000298,
+      914.0933329998516,
+      945.1327919999603,
+      2939.666332999943,
+      2959.1842090000864,
+      970.34466599999,
+      971.894375000149,
+      1830.3054579999298,
+      1819.7945420001633,
+      1087.2982499999925,
+      1055.1343749999069,
+      2166.295374999987,
+      2156.7265830000397,
+      1008.0050840000622,
+      1015.5986669999547,
+      2062.646833000006,
+      2075.0119999998715,
+      1007.0811249997932,
+      1025.5457500000484,
+      2289.8840000000782,
+      2291.0487079999875,
+      1041.8067920000758,
+      1087.2690840000287,
+      3422.599292000057,
+      3428.7866249999497,
+      1039.7721249999013,
+      1061.7612499999814,
+      1975.8030409999192,
+      1988.090041999938,
+      1061.3178749999497,
+      1018.5690419999883,
+      2730.8289580000564,
+      2761.1059159999713,
+      1115.8230830000248,
+      1110.4562089999672,
+      2120.596250000177,
+      2105.3481670001056,
+      1582.2482089998666,
+      1255.658000000054,
+      2810.5394579998683,
+      2825.028333999915,
+      1444.2113749999553,
+      1448.526707999874,
+      2067.147375000175,
+      2074.5126660000533,
+      1057.6172500001267,
+      1120.1150420000777,
+      2896.8071250000503,
+      2903.220834000036,
+      935.8902500001714,
+      935.0625829999335,
+      2150.7288339999504,
+      2168.58287500008,
+      1257.1589170000516,
+      1293.4544999999925,
+      2995.8826670001727,
+      3006.019375000149,
+      1098.6795000000857,
+      1088.4908749999013,
+      2134.426375000039,
+      2125.3872919999994,
+      1062.2165000000969,
+      1013.3251249999739,
+      3013.129500000039,
+      3033.6310829999857,
+      1154.155916000018,
+      1149.1583330000285,
+      2212.045832999982,
+      2246.334583000047,
+      1081.9199579998385,
+      1087.8867079999764,
+      3144.6003750001546,
+      3146.025707999943,
+      1192.7860830000136,
+      1238.3811250000726,
+      3093.5715419999324,
+      3087.5896660001017,
+      1044.6303749999497,
+      1038.188749999972,
+      2333.640167000005,
+      2330.030292000156,
+      2326.843708000146,
+      2359.782499999972,
+      3103.8379170000553,
+      3116.070916000055
+    ],
+    "visualCompletionAtMs": [
+      1792310042086,
+      1792310042086,
+      1792310056960,
+      1792310056960,
+      1792310072024,
+      1792310072025,
+      1792310087114,
+      1792310087114,
+      1792310102264,
+      1792310102264,
+      1792310117215,
+      1792310117215,
+      1792310132212,
+      1792310132212,
+      1792310147273,
+      1792310147273,
+      1792310162351,
+      1792310162351,
+      1792310177528,
+      1792310177528,
+      1792310192466,
+      1792310192466,
+      1792310207352,
+      1792310207352,
+      1792310222556,
+      1792310222556,
+      1792310237660,
+      1792310237660,
+      1792310252598,
+      1792310252598,
+      1792310267740,
+      1792310267740,
+      1792310282601,
+      1792310282601,
+      1792310297765,
+      1792310297765,
+      1792310312672,
+      1792310312672,
+      1792310327625,
+      1792310327625,
+      1792310342637,
+      1792310342637,
+      1792310357703,
+      1792310357703,
+      1792310372888,
+      1792310372888,
+      1792310387661,
+      1792310387661,
+      1792310402778,
+      1792310402778,
+      1792310417798,
+      1792310417799,
+      1792310432837,
+      1792310432837,
+      1792310447620,
+      1792310447620,
+      1792310462879,
+      1792310462879,
+      1792310477843,
+      1792310477843,
+      1792310492900,
+      1792310492900,
+      1792310507903,
+      1792310507903,
+      1792310523147,
+      1792310523147,
+      1792310537699,
+      1792310537699,
+      1792310553035,
+      1792310553035,
+      1792310567891,
+      1792310567891,
+      1792310582952,
+      1792310582952,
+      1792310597955,
+      1792310597955,
+      1792310612960,
+      1792310612960,
+      1792310627874,
+      1792310627874,
+      1792310643346,
+      1792310643346,
+      1792310658081,
+      1792310658081,
+      1792310673125,
+      1792310673125,
+      1792310688620,
+      1792310688620,
+      1792310703178,
+      1792310703178,
+      1792310718542,
+      1792310718542,
+      1792310733197,
+      1792310733197,
+      1792310748482,
+      1792310748482,
+      1792310763100,
+      1792310763100,
+      1792310778270,
+      1792310778270,
+      1792310793715,
+      1792310793715,
+      1792310809405,
+      1792310809405,
+      1792310824778,
+      1792310824778,
+      1792310839239,
+      1792310839239,
+      1792310854387,
+      1792310854387,
+      1792310869195,
+      1792310869196,
+      1792310884448,
+      1792310884448,
+      1792310898639,
+      1792310898639,
+      1792310914755,
+      1792310914755,
+      1792310929419,
+      1792310929419,
+      1792310944373,
+      1792310944373,
+      1792310959715,
+      1792310959715,
+      1792310974707,
+      1792310974708,
+      1792310989586,
+      1792310989586,
+      1792311004609,
+      1792311004609,
+      1792311019944,
+      1792311019944,
+      1792311034676,
+      1792311034676,
+      1792311050127,
+      1792311050127,
+      1792311065277,
+      1792311065277,
+      1792311080310,
+      1792311080310,
+      1792311094742,
+      1792311094742,
+      1792311110022,
+      1792311110022,
+      1792311124946,
+      1792311124946,
+      1792311140880,
+      1792311140880,
+      1792311156227,
+      1792311156227,
+      1792311170895,
+      1792311170895,
+      1792311185829,
+      1792311185829,
+      1792311200925,
+      1792311200925,
+      1792311216338,
+      1792311216338,
+      1792311231125,
+      1792311231125,
+      1792311245718,
+      1792311245718,
+      1792311261186,
+      1792311261186,
+      1792311276608,
+      1792311276608,
+      1792311290920,
+      1792311290920,
+      1792311305494,
+      1792311305494,
+      1792311320978,
+      1792311320978,
+      1792311336644,
+      1792311336644,
+      1792311351433,
+      1792311351433,
+      1792311366467,
+      1792311366467,
+      1792311381226,
+      1792311381226,
+      1792311396625,
+      1792311396625,
+      1792311413155,
+      1792311413155,
+      1792311426839,
+      1792311426839,
+      1792311441283,
+      1792311441283,
+      1792311456792,
+      1792311456792,
+      1792311471479,
+      1792311471479,
+      1792311486929,
+      1792311486929,
+      1792311503109,
+      1792311503109,
+      1792311516565,
+      1792311516565,
+      1792311531541,
+      1792311531541,
+      1792311547403,
+      1792311547403,
+      1792311561709,
+      1792311561709,
+      1792311577213,
+      1792311577213,
+      1792311592022,
+      1792311592022,
+      1792311608799,
+      1792311608799,
+      1792311623590,
+      1792311623590,
+      1792311637440,
+      1792311637440,
+      1792311653289,
+      1792311653290,
+      1792311667658,
+      1792311667658,
+      1792311683436,
+      1792311683437,
+      1792311697689,
+      1792311697689,
+      1792311713419,
+      1792311713419,
+      1792311727463,
+      1792311727463,
+      1792311743805,
+      1792311743805,
+      1792311757778,
+      1792311757778,
+      1792311773657,
+      1792311773657,
+      1792311788152,
+      1792311788152,
+      1792311806081,
+      1792311806081,
+      1792311815581,
+      1792311815581,
+      1792311829898,
+      1792311829898,
+      1792311845916,
+      1792311845916
+    ]
+  },
+  "comparison": {
+    "baseline": "docs/release-artifacts/v4.5.0/165-authorized-continuation.json",
+    "baselineSha256": "2b50e7c88b87a93ee0b86fa90e52b2e77d8502e0582a77c69203e53c4abb9749",
+    "profile": {
+      "name": "continuous-r114",
+      "continuousMaxBytes": 113246208,
+      "eventMaxBytes": 134217728,
+      "continuousMaxAgeMs": 10800000,
+      "eventMaxAgeMs": 10800000,
+      "segmentBytes": 71237,
+      "protectedFiles": 643,
+      "E": 67108864,
+      "H": 45805391,
+      "P": 71237,
+      "M": 260716,
+      "inputNormalizedSha256": "baebad5cad233243c4748f6bfec06fa5d2da7f06ae9b1475c9b20bfbfb04e2e7"
+    },
+    "baselineGeneral": {
+      "count": 480,
+      "p50Ms": "NOT_MEASURED_IN_PRESERVED_COMPARISON",
+      "p95Ms": 2172.728208000073,
+      "maxMs": 3145.1451249998063,
+      "structuredP95": "NOT_MEASURED_IN_PRESERVED_COMPARISON",
+      "visualP95": "NOT_MEASURED_IN_PRESERVED_COMPARISON"
+    },
+    "newGeneral": {
+      "count": 484,
+      "p50Ms": 1008.0050840000622,
+      "p95Ms": 2333.640167000005,
+      "maxMs": 3428.7866249999497
+    },
+    "selected": [
+      {
+        "id": 13,
+        "baselineHttpMs": 2344,
+        "newHttpMs": 2940,
+        "baselineAttemptCount": 3,
+        "newAttemptCount": 2,
+        "baselinePhaseMs": {
+          "Refresh": 2060.664708,
+          "Capture": 1395.574874,
+          "BuildOwned": 661.770583,
+          "preparation-wait": 4.2e-05,
+          "CurrentnessJson": 232.879458
+        },
+        "newPhaseMs": {
+          "Refresh": 2555.38325,
+          "Capture": 1493.52375,
+          "BuildOwned": 1058.585542,
+          "preparation-wait": 0.0,
+          "CurrentnessJson": 316.097208
+        },
+        "newRefreshReuse": false
+      },
+      {
+        "id": 14,
+        "baselineHttpMs": 2344,
+        "newHttpMs": 2959,
+        "baselineAttemptCount": 1,
+        "newAttemptCount": 1,
+        "baselinePhaseMs": {
+          "Refresh": 4.156542,
+          "Capture": 4.010292,
+          "BuildOwned": 0,
+          "preparation-wait": 2109.339958,
+          "CurrentnessJson": 183.793834
+        },
+        "newPhaseMs": {
+          "Refresh": 3.014209,
+          "Capture": 2.85125,
+          "BuildOwned": 0,
+          "preparation-wait": 2621.827084,
+          "CurrentnessJson": 274.839708
+        },
+        "newRefreshReuse": true
+      },
+      {
+        "id": 15,
+        "baselineHttpMs": 4081,
+        "newHttpMs": 47,
+        "baselineAttemptCount": 1,
+        "newAttemptCount": 1,
+        "baselinePhaseMs": {
+          "Refresh": 4029.479333,
+          "Capture": 132.189584,
+          "BuildOwned": 10.64275,
+          "preparation-wait": 4.2e-05,
+          "CurrentnessJson": 6.248792
+        },
+        "newPhaseMs": {
+          "Refresh": 0.271958,
+          "Capture": 0.197584,
+          "BuildOwned": 0,
+          "preparation-wait": 0.0005,
+          "CurrentnessJson": 3.682542
+        },
+        "newRefreshReuse": true
+      }
+    ],
+    "limits": [
+      "Different single runs, not exact controlled paired request A/B.",
+      "New observed boundary1805.525s vs prior1800.116s,484/31A vs480/30A,901/901 finalized vs898/898. No trimming to force equivalence.",
+      "Observed A reuse improvement does not prove every elapsed difference is caused by R166.",
+      "General Structured mutation/retry work remains; no R149 timeout causal claim."
+    ],
+    "profileInputBinding": "continuous-r114와 inputNormalizedSha256 baebad5cad233243c4748f6bfec06fa5d2da7f06ae9b1475c9b20bfbfb04e2e7 동일. 기존 generator/mixed/profile/timeout/gate 무변경. 실제 실행량 차이는 별도 기재."
+  },
+  "finding": "A scope reuse is observed at all four selected later A requests (6/9/12/15). General Structured late Capture+BuildOwned retry costs and the parallel preparation wait remain. Overall p95 fails and is higher than the preserved R165 value; no product optimization added.",
+  "safetyScope": "No new currentness/snapshot/auth/ownership failure observed in this workload; this is not a rerun of all negative safety tests. No clear R166 memory/function regression established.",
+  "preservation": {
+    "rawFiles": {
+      "build.json (build)": {
+        "bytes": 13148,
+        "sha256": "2c6ed525ad7ff31b76d0e95aebd88db71a6fa3cf6f450924e81e3e26aa95ac6e"
+      },
+      "focused-build.json (build)": {
+        "bytes": 5377,
+        "sha256": "6803e6cb260f91ccd488243a57d29994ad41a08d3aa00d3e7db62974c8f8e9d3"
+      },
+      "focused.log (build)": {
+        "bytes": 3361,
+        "sha256": "d0102d9dc6f95dc464b9c99de661ca4e8ebe7aa22bf7a0abd8921e6295443666"
+      },
+      "focused-result.json (build)": {
+        "bytes": 3596,
+        "sha256": "fec28dd40e82d8b8efd062d4f4b590d414d3b5b337acf64b7f0360d6ac481369"
+      },
+      "link.map (build)": {
+        "bytes": 23728561,
+        "sha256": "d1deb1fa4806608491dde07ed0d92899057ab2a2d38c75b434cf5f88bb258c39"
+      },
+      "focused.map (build)": {
+        "bytes": 22623858,
+        "sha256": "db00d954083feabbd858de7d1de58018f4825dbbcc24a2ccee4a58dd9df0c422"
+      },
+      "execution.json (run)": {
+        "bytes": 1650,
+        "sha256": "8763c55baf2882797d105442d3cd9914f699b21983b57cd714155df1111b272c"
+      },
+      "run.log (run)": {
+        "bytes": 6360395,
+        "sha256": "19d3c4b42d43fbd878421bac234e2d96259d7844313619e661ca86d3fb3ad5dc"
+      },
+      "media-server-current-observer-7hv1z0/server-1.private.log (run)": {
+        "bytes": 1534683,
+        "sha256": "ba5b12f6b2e165aa05ab21924e711832c5ffd32bc0bd545e69a8f4625b2b0b39"
+      },
+      "artifacts/report.json (run)": {
+        "bytes": 145945,
+        "sha256": "12398a4e6dc857628c99034e1147286112f69bc4bfdc3145c718d1d4084b3e7a"
+      },
+      "owned-recovery-groups.jsonl (run)": {
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    "rawAndSanitizedAreDifferentBytes": true,
+    "largeMediaBinariesMapsNotCommitted": true,
+    "selectedRawRecords": {
+      "qualified": true,
+      "loss": null,
+      "records": {
+        "client": [
+          {
+            "method": "GET",
+            "routeClass": "other",
+            "status": 200,
+            "headerElapsedMs": 2,
+            "bodyElapsedMs": 0,
+            "totalElapsedMs": 2,
+            "bytes": 484,
+            "phase": "complete",
+            "outcome": "ok",
+            "id": 1,
+            "loss": false,
+            "observationMs": 708.8006249999999,
+            "channels": {
+              "9101": {
+                "finalized": 0,
+                "deleted": 0,
+                "lastAt": 8494.217541,
+                "order": "0",
+                "store": null,
+                "knownMappings": 0,
+                "unknownMappings": 0
+              },
+              "9201": {
+                "finalized": 0,
+                "deleted": 0,
+                "lastAt": 8494.217541,
+                "order": "0",
+                "store": null,
+                "knownMappings": 0,
+                "unknownMappings": 0
+              }
+            }
+          },
+          {
+            "method": "GET",
+            "routeClass": "other",
+            "status": 200,
+            "headerElapsedMs": 3,
+            "bodyElapsedMs": 0,
+            "totalElapsedMs": 3,
+            "bytes": 484,
+            "phase": "complete",
+            "outcome": "ok",
+            "id": 2,
+            "loss": false,
+            "observationMs": 709.8907500000005,
+            "channels": {
+              "9101": {
+                "finalized": 0,
+                "deleted": 0,
+                "lastAt": 8494.217541,
+                "order": "0",
+                "store": null,
+                "knownMappings": 0,
+                "unknownMappings": 0
+              },
+              "9201": {
+                "finalized": 0,
+                "deleted": 0,
+                "lastAt": 8494.217541,
+                "order": "0",
+                "store": null,
+                "knownMappings": 0,
+                "unknownMappings": 0
+              }
+            }
+          },
+          {
+            "method": "GET",
+            "routeClass": "other",
+            "status": 200,
+            "headerElapsedMs": 9,
+            "bodyElapsedMs": 0,
+            "totalElapsedMs": 9,
+            "bytes": 1650,
+            "phase": "complete",
+            "outcome": "ok",
+            "id": 3,
+            "loss": false,
+            "observationMs": 791.5731670000005,
+            "channels": {
+              "9101": {
+                "finalized": 0,
+                "deleted": 0,
+                "lastAt": 8494.217541,
+                "order": "0",
+                "store": null,
+                "knownMappings": 0,
+                "unknownMappings": 0
+              },
+              "9201": {
+                "finalized": 0,
+                "deleted": 0,
+                "lastAt": 8494.217541,
+                "order": "0",
+                "store": null,
+                "knownMappings": 0,
+                "unknownMappings": 0
+              }
+            }
+          },
+          {
+            "method": "GET",
+            "routeClass": "other",
+            "status": 200,
+            "headerElapsedMs": 587,
+            "bodyElapsedMs": 0,
+            "totalElapsedMs": 587,
+            "bytes": 11790,
+            "phase": "complete",
+            "outcome": "ok",
+            "id": 5,
+            "loss": false,
+            "observationMs": 601525.7905840001,
+            "channels": {
+              "9101": {
+                "finalized": 299,
+                "deleted": 0,
+                "lastAt": 609317.9085,
+                "order": "598",
+                "store": "520932012e50a4db7b444f188b56bea674ed035945e4b942304844f77826d1ff",
+                "knownMappings": 214,
+                "unknownMappings": 10284
+              },
+              "9201": {
+                "finalized": 299,
+                "deleted": 0,
+                "lastAt": 609317.9085,
+                "order": "599",
+                "store": "520932012e50a4db7b444f188b56bea674ed035945e4b942304844f77826d1ff",
+                "knownMappings": 223,
+                "unknownMappings": 10290
+              }
+            }
+          },
+          {
+            "method": "GET",
+            "routeClass": "other",
+            "status": 200,
+            "headerElapsedMs": 609,
+            "bodyElapsedMs": 0,
+            "totalElapsedMs": 609,
+            "bytes": 11790,
+            "phase": "complete",
+            "outcome": "ok",
+            "id": 4,
+            "loss": false,
+            "observationMs": 601547.777542,
+            "channels": {
+              "9101": {
+                "finalized": 299,
+                "deleted": 0,
+                "lastAt": 609317.9085,
+                "order": "598",
+                "store": "520932012e50a4db7b444f188b56bea674ed035945e4b942304844f77826d1ff",
+                "knownMappings": 214,
+                "unknownMappings": 10284
+              },
+              "9201": {
+                "finalized": 299,
+                "deleted": 0,
+                "lastAt": 609317.9085,
+                "order": "599",
+                "store": "520932012e50a4db7b444f188b56bea674ed035945e4b942304844f77826d1ff",
+                "knownMappings": 223,
+                "unknownMappings": 10290
+              }
+            }
+          },
+          {
+            "method": "GET",
+            "routeClass": "other",
+            "status": 200,
+            "headerElapsedMs": 20,
+            "bodyElapsedMs": 0,
+            "totalElapsedMs": 20,
+            "bytes": 1650,
+            "phase": "complete",
+            "outcome": "ok",
+            "id": 6,
+            "loss": false,
+            "observationMs": 602231.20275,
+            "channels": {
+              "9101": {
+                "finalized": 299,
+                "deleted": 0,
+                "lastAt": 609317.9085,
+                "order": "598",
+                "store": "520932012e50a4db7b444f188b56bea674ed035945e4b942304844f77826d1ff",
+                "knownMappings": 214,
+                "unknownMappings": 10284
+              },
+              "9201": {
+                "finalized": 299,
+                "deleted": 0,
+                "lastAt": 609317.9085,
+                "order": "599",
+                "store": "520932012e50a4db7b444f188b56bea674ed035945e4b942304844f77826d1ff",
+                "knownMappings": 223,
+                "unknownMappings": 10290
+              }
+            }
+          },
+          {
+            "method": "GET",
+            "routeClass": "other",
+            "status": 200,
+            "headerElapsedMs": 1450,
+            "bodyElapsedMs": 0,
+            "totalElapsedMs": 1450,
+            "bytes": 11790,
+            "phase": "complete",
+            "outcome": "ok",
+            "id": 7,
+            "loss": false,
+            "observationMs": 1204230.0196669998,
+            "channels": {
+              "9101": {
+                "finalized": 600,
+                "deleted": 0,
+                "lastAt": 1210558.122875,
+                "order": "1200",
+                "store": "520932012e50a4db7b444f188b56bea674ed035945e4b942304844f77826d1ff",
+                "knownMappings": 421,
+                "unknownMappings": 22258
+              },
+              "9201": {
+                "finalized": 600,
+                "deleted": 0,
+                "lastAt": 1210558.122875,
+                "order": "1201",
+                "store": "520932012e50a4db7b444f188b56bea674ed035945e4b942304844f77826d1ff",
+                "knownMappings": 423,
+                "unknownMappings": 22656
+              }
+            }
+          },
+          {
+            "method": "GET",
+            "routeClass": "other",
+            "status": 200,
+            "headerElapsedMs": 1468,
+            "bodyElapsedMs": 0,
+            "totalElapsedMs": 1468,
+            "bytes": 11790,
+            "phase": "complete",
+            "outcome": "ok",
+            "id": 8,
+            "loss": false,
+            "observationMs": 1204248.2718749999,
+            "channels": {
+              "9101": {
+                "finalized": 600,
+                "deleted": 0,
+                "lastAt": 1210558.122875,
+                "order": "1200",
+                "store": "520932012e50a4db7b444f188b56bea674ed035945e4b942304844f77826d1ff",
+                "knownMappings": 421,
+                "unknownMappings": 22258
+              },
+              "9201": {
+                "finalized": 600,
+                "deleted": 0,
+                "lastAt": 1210558.122875,
+                "order": "1201",
+                "store": "520932012e50a4db7b444f188b56bea674ed035945e4b942304844f77826d1ff",
+                "knownMappings": 423,
+                "unknownMappings": 22656
+              }
+            }
+          },
+          {
+            "method": "GET",
+            "routeClass": "other",
+            "status": 200,
+            "headerElapsedMs": 54,
+            "bodyElapsedMs": 0,
+            "totalElapsedMs": 54,
+            "bytes": 1650,
+            "phase": "complete",
+            "outcome": "ok",
+            "id": 9,
+            "loss": false,
+            "observationMs": 1204655.6034169998,
+            "channels": {
+              "9101": {
+                "finalized": 600,
+                "deleted": 0,
+                "lastAt": 1210558.122875,
+                "order": "1200",
+                "store": "520932012e50a4db7b444f188b56bea674ed035945e4b942304844f77826d1ff",
+                "knownMappings": 421,
+                "unknownMappings": 22258
+              },
+              "9201": {
+                "finalized": 600,
+                "deleted": 0,
+                "lastAt": 1210558.122875,
+                "order": "1201",
+                "store": "520932012e50a4db7b444f188b56bea674ed035945e4b942304844f77826d1ff",
+                "knownMappings": 423,
+                "unknownMappings": 22656
+              }
+            }
+          },
+          {
+            "method": "GET",
+            "routeClass": "other",
+            "status": 200,
+            "headerElapsedMs": 2247,
+            "bodyElapsedMs": 0,
+            "totalElapsedMs": 2247,
+            "bytes": 11790,
+            "phase": "complete",
+            "outcome": "ok",
+            "id": 10,
+            "loss": false,
+            "observationMs": 1385527.9174169998,
+            "channels": {
+              "9101": {
+                "finalized": 689,
+                "deleted": 0,
+                "lastAt": 1390689.050458,
+                "order": "1379",
+                "store": "520932012e50a4db7b444f188b56bea674ed035945e4b942304844f77826d1ff",
+                "knownMappings": 483,
+                "unknownMappings": 25824
+              },
+              "9201": {
+                "finalized": 689,
+                "deleted": 0,
+                "lastAt": 1390689.050458,
+                "order": "1378",
+                "store": "520932012e50a4db7b444f188b56bea674ed035945e4b942304844f77826d1ff",
+                "knownMappings": 476,
+                "unknownMappings": 26502
+              }
+            }
+          },
+          {
+            "method": "GET",
+            "routeClass": "other",
+            "status": 200,
+            "headerElapsedMs": 2249,
+            "bodyElapsedMs": 0,
+            "totalElapsedMs": 2249,
+            "bytes": 11790,
+            "phase": "complete",
+            "outcome": "ok",
+            "id": 11,
+            "loss": false,
+            "observationMs": 1385530.4372089999,
+            "channels": {
+              "9101": {
+                "finalized": 689,
+                "deleted": 0,
+                "lastAt": 1390689.050458,
+                "order": "1379",
+                "store": "520932012e50a4db7b444f188b56bea674ed035945e4b942304844f77826d1ff",
+                "knownMappings": 483,
+                "unknownMappings": 25824
+              },
+              "9201": {
+                "finalized": 689,
+                "deleted": 0,
+                "lastAt": 1390689.050458,
+                "order": "1378",
+                "store": "520932012e50a4db7b444f188b56bea674ed035945e4b942304844f77826d1ff",
+                "knownMappings": 476,
+                "unknownMappings": 26502
+              }
+            }
+          },
+          {
+            "method": "GET",
+            "routeClass": "other",
+            "status": 200,
+            "headerElapsedMs": 40,
+            "bodyElapsedMs": 0,
+            "totalElapsedMs": 40,
+            "bytes": 1650,
+            "phase": "complete",
+            "outcome": "ok",
+            "id": 12,
+            "loss": false,
+            "observationMs": 1385683.50925,
+            "channels": {
+              "9101": {
+                "finalized": 689,
+                "deleted": 0,
+                "lastAt": 1390689.050458,
+                "order": "1379",
+                "store": "520932012e50a4db7b444f188b56bea674ed035945e4b942304844f77826d1ff",
+                "knownMappings": 483,
+                "unknownMappings": 25824
+              },
+              "9201": {
+                "finalized": 689,
+                "deleted": 0,
+                "lastAt": 1390689.050458,
+                "order": "1378",
+                "store": "520932012e50a4db7b444f188b56bea674ed035945e4b942304844f77826d1ff",
+                "knownMappings": 476,
+                "unknownMappings": 26502
+              }
+            }
+          },
+          {
+            "method": "GET",
+            "routeClass": "other",
+            "status": 200,
+            "headerElapsedMs": 2939,
+            "bodyElapsedMs": 0,
+            "totalElapsedMs": 2940,
+            "bytes": 11790,
+            "phase": "complete",
+            "outcome": "ok",
+            "id": 13,
+            "loss": false,
+            "observationMs": 1506074.760417,
+            "channels": {
+              "9101": {
+                "finalized": 749,
+                "deleted": 0,
+                "lastAt": 1510805.839916,
+                "order": "1498",
+                "store": "520932012e50a4db7b444f188b56bea674ed035945e4b942304844f77826d1ff",
+                "knownMappings": 526,
+                "unknownMappings": 28370
+              },
+              "9201": {
+                "finalized": 749,
+                "deleted": 0,
+                "lastAt": 1510805.839916,
+                "order": "1499",
+                "store": "520932012e50a4db7b444f188b56bea674ed035945e4b942304844f77826d1ff",
+                "knownMappings": 517,
+                "unknownMappings": 28964
+              }
+            }
+          },
+          {
+            "method": "GET",
+            "routeClass": "other",
+            "status": 200,
+            "headerElapsedMs": 2959,
+            "bodyElapsedMs": 0,
+            "totalElapsedMs": 2959,
+            "bytes": 11790,
+            "phase": "complete",
+            "outcome": "ok",
+            "id": 14,
+            "loss": false,
+            "observationMs": 1506094.4584589999,
+            "channels": {
+              "9101": {
+                "finalized": 749,
+                "deleted": 0,
+                "lastAt": 1510805.839916,
+                "order": "1498",
+                "store": "520932012e50a4db7b444f188b56bea674ed035945e4b942304844f77826d1ff",
+                "knownMappings": 526,
+                "unknownMappings": 28370
+              },
+              "9201": {
+                "finalized": 749,
+                "deleted": 0,
+                "lastAt": 1510805.839916,
+                "order": "1499",
+                "store": "520932012e50a4db7b444f188b56bea674ed035945e4b942304844f77826d1ff",
+                "knownMappings": 517,
+                "unknownMappings": 28964
+              }
+            }
+          },
+          {
+            "method": "GET",
+            "routeClass": "other",
+            "status": 200,
+            "headerElapsedMs": 47,
+            "bodyElapsedMs": 0,
+            "totalElapsedMs": 47,
+            "bytes": 1650,
+            "phase": "complete",
+            "outcome": "ok",
+            "id": 15,
+            "loss": false,
+            "observationMs": 1506269.694375,
+            "channels": {
+              "9101": {
+                "finalized": 749,
+                "deleted": 0,
+                "lastAt": 1510805.839916,
+                "order": "1498",
+                "store": "520932012e50a4db7b444f188b56bea674ed035945e4b942304844f77826d1ff",
+                "knownMappings": 526,
+                "unknownMappings": 28370
+              },
+              "9201": {
+                "finalized": 749,
+                "deleted": 0,
+                "lastAt": 1510805.839916,
+                "order": "1499",
+                "store": "520932012e50a4db7b444f188b56bea674ed035945e4b942304844f77826d1ff",
+                "knownMappings": 517,
+                "unknownMappings": 28964
+              }
+            }
+          }
+        ],
+        "server": [
+          {
+            "id": 1,
+            "class": 1,
+            "accepted": 1617273103139875,
+            "parsed": 1617273103218458,
+            "handler": 1617273103220791,
+            "prepared": 1617273104448875,
+            "sendBegin": 1617273104461291,
+            "sendEnd": 1617273104473250,
+            "sent": true,
+            "end": 1617273104474458,
+            "loss": false,
+            "metrics": [
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ]
+            ],
+            "counts": [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ]
+          },
+          {
+            "id": 2,
+            "class": 1,
+            "accepted": 1617273103156416,
+            "parsed": 1617273103373208,
+            "handler": 1617273103375333,
+            "prepared": 1617273105598416,
+            "sendBegin": 1617273105611750,
+            "sendEnd": 1617273105620083,
+            "sent": true,
+            "end": 1617273105621708,
+            "loss": false,
+            "metrics": [
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ]
+            ],
+            "counts": [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ]
+          },
+          {
+            "id": 3,
+            "class": 3,
+            "accepted": 1617273179761333,
+            "parsed": 1617273179840291,
+            "handler": 1617273179842666,
+            "prepared": 1617273187690291,
+            "sendBegin": 1617273187700458,
+            "sendEnd": 1617273187705416,
+            "sent": true,
+            "end": 1617273187706625,
+            "loss": false,
+            "metrics": [
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ]
+            ],
+            "counts": [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ]
+          },
+          {
+            "id": 5,
+            "class": 1,
+            "accepted": 1617873335304708,
+            "parsed": 1617873335427625,
+            "handler": 1617873335429208,
+            "prepared": 1617873921430833,
+            "sendBegin": 1617873921448833,
+            "sendEnd": 1617873921466500,
+            "sent": true,
+            "end": 1617873921468916,
+            "loss": false,
+            "metrics": [
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ]
+            ],
+            "counts": [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ]
+          },
+          {
+            "id": 4,
+            "class": 1,
+            "accepted": 1617873335273416,
+            "parsed": 1617873335409083,
+            "handler": 1617873335412375,
+            "prepared": 1617873943694500,
+            "sendBegin": 1617873943711333,
+            "sendEnd": 1617873943728583,
+            "sent": true,
+            "end": 1617873943730416,
+            "loss": false,
+            "metrics": [
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ]
+            ],
+            "counts": [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ]
+          },
+          {
+            "id": 6,
+            "class": 3,
+            "accepted": 1617874607689791,
+            "parsed": 1617874607770458,
+            "handler": 1617874607772083,
+            "prepared": 1617874627275708,
+            "sendBegin": 1617874627291083,
+            "sendEnd": 1617874627304875,
+            "sent": true,
+            "end": 1617874627306416,
+            "loss": false,
+            "metrics": [
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ]
+            ],
+            "counts": [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ]
+          },
+          {
+            "id": 7,
+            "class": 1,
+            "accepted": 1618475177247666,
+            "parsed": 1618475177328250,
+            "handler": 1618475177331458,
+            "prepared": 1618476625740500,
+            "sendBegin": 1618476625755416,
+            "sendEnd": 1618476625771583,
+            "sent": true,
+            "end": 1618476625773541,
+            "loss": false,
+            "metrics": [
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ]
+            ],
+            "counts": [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ]
+          },
+          {
+            "id": 8,
+            "class": 1,
+            "accepted": 1618475177269291,
+            "parsed": 1618475177373708,
+            "handler": 1618475177375000,
+            "prepared": 1618476644043000,
+            "sendBegin": 1618476644057916,
+            "sendEnd": 1618476644075458,
+            "sent": true,
+            "end": 1618476644077583,
+            "loss": false,
+            "metrics": [
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ]
+            ],
+            "counts": [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ]
+          },
+          {
+            "id": 9,
+            "class": 3,
+            "accepted": 1618476998252708,
+            "parsed": 1618476998339500,
+            "handler": 1618476998341791,
+            "prepared": 1618477051437250,
+            "sendBegin": 1618477051451333,
+            "sendEnd": 1618477051468083,
+            "sent": true,
+            "end": 1618477051470083,
+            "loss": false,
+            "metrics": [
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ]
+            ],
+            "counts": [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ]
+          },
+          {
+            "id": 10,
+            "class": 1,
+            "accepted": 1618655677828541,
+            "parsed": 1618655677932458,
+            "handler": 1618655677936500,
+            "prepared": 1618657923780041,
+            "sendBegin": 1618657923795875,
+            "sendEnd": 1618657923814208,
+            "sent": true,
+            "end": 1618657923816083,
+            "loss": false,
+            "metrics": [
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ]
+            ],
+            "counts": [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ]
+          },
+          {
+            "id": 11,
+            "class": 1,
+            "accepted": 1618655677855083,
+            "parsed": 1618655677957958,
+            "handler": 1618655677962083,
+            "prepared": 1618657926646541,
+            "sendBegin": 1618657926657916,
+            "sendEnd": 1618657926666541,
+            "sent": true,
+            "end": 1618657926667875,
+            "loss": false,
+            "metrics": [
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ]
+            ],
+            "counts": [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ]
+          },
+          {
+            "id": 12,
+            "class": 3,
+            "accepted": 1618658040258000,
+            "parsed": 1618658040339833,
+            "handler": 1618658040342083,
+            "prepared": 1618658079437625,
+            "sendBegin": 1618658079451208,
+            "sendEnd": 1618658079466791,
+            "sent": true,
+            "end": 1618658079468833,
+            "loss": false,
+            "metrics": [
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ]
+            ],
+            "counts": [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ]
+          },
+          {
+            "id": 13,
+            "class": 1,
+            "accepted": 1618775532000875,
+            "parsed": 1618775532130291,
+            "handler": 1618775532134041,
+            "prepared": 1618778470480750,
+            "sendBegin": 1618778470501041,
+            "sendEnd": 1618778470522916,
+            "sent": true,
+            "end": 1618778470529625,
+            "loss": false,
+            "metrics": [
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ]
+            ],
+            "counts": [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ]
+          },
+          {
+            "id": 14,
+            "class": 1,
+            "accepted": 1618775532023458,
+            "parsed": 1618775532130041,
+            "handler": 1618775532132875,
+            "prepared": 1618778490411541,
+            "sendBegin": 1618778490433125,
+            "sendEnd": 1618778490452500,
+            "sent": true,
+            "end": 1618778490459333,
+            "loss": false,
+            "metrics": [
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ]
+            ],
+            "counts": [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ]
+          },
+          {
+            "id": 15,
+            "class": 3,
+            "accepted": 1618778619574291,
+            "parsed": 1618778619744750,
+            "handler": 1618778619748333,
+            "prepared": 1618778665598666,
+            "sendBegin": 1618778665618625,
+            "sendEnd": 1618778665636333,
+            "sent": true,
+            "end": 1618778665638250,
+            "loss": false,
+            "metrics": [
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                0
+              ]
+            ],
+            "counts": [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ]
+          }
+        ],
+        "search": [
+          {
+            "id": 1,
+            "diagnosticId": 1,
+            "begin": 1617273103562875,
+            "end": 1617273104431125,
+            "status": 200,
+            "attempt": 0,
+            "loss": false,
+            "phases": [
+              [
+                "service-wait",
+                1617273103574125,
+                1617273103574208
+              ],
+              [
+                "service-hold",
+                1617273103574208,
+                1617273103610833
+              ],
+              [
+                "Capture",
+                1617273103626958,
+                1617273103818916
+              ],
+              [
+                "BuildOwned",
+                1617273103902708,
+                1617273103983458
+              ],
+              [
+                "Refresh",
+                1617273103614416,
+                1617273103986125
+              ],
+              [
+                "PlaybackCandidates",
+                1617273104001166,
+                1617273104305916
+              ],
+              [
+                "PlaybackNoCandidates",
+                1617273104305916,
+                1617273104305958
+              ],
+              [
+                "PlaybackReuse",
+                1617273104384291,
+                1617273104384333
+              ],
+              [
+                "WithPlayback",
+                1617273103987500,
+                1617273104384791
+              ],
+              [
+                "SnapshotBegin",
+                1617273104384833,
+                1617273104417000
+              ],
+              [
+                "preparation-wait",
+                1617273103611708,
+                1617273103611750
+              ],
+              [
+                "preparation-hold",
+                1617273103611750,
+                1617273104417125
+              ],
+              [
+                "CurrentnessJson",
+                1617273104419750,
+                1617273104430583
+              ]
+            ],
+            "sources": [
+              [
+                1,
+                2,
+                0,
+                0,
+                false,
+                true
+              ]
+            ]
+          },
+          {
+            "id": 2,
+            "diagnosticId": 2,
+            "begin": 1617273104069500,
+            "end": 1617273105562708,
+            "status": 200,
+            "attempt": 0,
+            "loss": false,
+            "phases": [
+              [
+                "service-wait",
+                1617273104079208,
+                1617273104079291
+              ],
+              [
+                "service-hold",
+                1617273104079291,
+                1617273104079541
+              ],
+              [
+                "Capture",
+                1617273104427583,
+                1617273104687750
+              ],
+              [
+                "RefreshReuse",
+                1617273104838375,
+                1617273104838416
+              ],
+              [
+                "Refresh",
+                1617273104426625,
+                1617273104840000
+              ],
+              [
+                "PlaybackCandidates",
+                1617273104841125,
+                1617273105349166
+              ],
+              [
+                "PlaybackNoCandidates",
+                1617273105349333,
+                1617273105349375
+              ],
+              [
+                "PlaybackReuse",
+                1617273105492833,
+                1617273105492875
+              ],
+              [
+                "WithPlayback",
+                1617273104840500,
+                1617273105494125
+              ],
+              [
+                "SnapshotBegin",
+                1617273105494208,
+                1617273105541708
+              ],
+              [
+                "preparation-wait",
+                1617273104080291,
+                1617273104424458
+              ],
+              [
+                "preparation-hold",
+                1617273104424458,
+                1617273105542041
+              ],
+              [
+                "CurrentnessJson",
+                1617273105542416,
+                1617273105561916
+              ]
+            ],
+            "sources": [
+              [
+                1,
+                2,
+                0,
+                0,
+                false,
+                true
+              ]
+            ]
+          },
+          {
+            "id": 3,
+            "diagnosticId": 3,
+            "begin": 1617273180171291,
+            "end": 1617273187674375,
+            "status": 200,
+            "attempt": 0,
+            "loss": false,
+            "phases": [
+              [
+                "service-wait",
+                1617273180178250,
+                1617273180178291
+              ],
+              [
+                "service-hold",
+                1617273180178291,
+                1617273180178416
+              ],
+              [
+                "Capture",
+                1617273180180833,
+                1617273181193125
+              ],
+              [
+                "BuildOwned",
+                1617273184774625,
+                1617273184865250
+              ],
+              [
+                "Refresh",
+                1617273180180500,
+                1617273184866791
+              ],
+              [
+                "PlaybackCandidates",
+                1617273184868083,
+                1617273185086708
+              ],
+              [
+                "PlaybackNoCandidates",
+                1617273185086708,
+                1617273185086750
+              ],
+              [
+                "PlaybackBuildOwned",
+                1617273185115416,
+                1617273185184916
+              ],
+              [
+                "PlaybackDocuments",
+                1617273185087208,
+                1617273185185250
+              ],
+              [
+                "WithPlayback",
+                1617273184867375,
+                1617273185185708
+              ],
+              [
+                "SnapshotBegin",
+                1617273185185750,
+                1617273185215000
+              ],
+              [
+                "preparation-wait",
+                1617273180179000,
+                1617273180179000
+              ],
+              [
+                "preparation-hold",
+                1617273180179000,
+                1617273185215166
+              ],
+              [
+                "CurrentnessJson",
+                1617273185215291,
+                1617273187673500
+              ]
+            ],
+            "sources": [
+              [
+                1,
+                2,
+                0,
+                0,
+                false,
+                true
+              ]
+            ]
+          },
+          {
+            "id": 5,
+            "diagnosticId": 5,
+            "begin": 1617873336069500,
+            "end": 1617873921403375,
+            "status": 200,
+            "attempt": 0,
+            "loss": false,
+            "phases": [
+              [
+                "service-wait",
+                1617873336079458,
+                1617873336079583
+              ],
+              [
+                "service-hold",
+                1617873336079583,
+                1617873336079791
+              ],
+              [
+                "Capture",
+                1617873336081916,
+                1617873492650333
+              ],
+              [
+                "BuildOwned",
+                1617873492913083,
+                1617873601083791
+              ],
+              [
+                "Refresh",
+                1617873336081625,
+                1617873601113625
+              ],
+              [
+                "PlaybackCandidates",
+                1617873601116208,
+                1617873618471500
+              ],
+              [
+                "PlaybackNoCandidates",
+                1617873618471708,
+                1617873618471750
+              ],
+              [
+                "PlaybackReuse",
+                1617873620603416,
+                1617873620603458
+              ],
+              [
+                "WithPlayback",
+                1617873601114750,
+                1617873620606541
+              ],
+              [
+                "SnapshotBegin",
+                1617873620606708,
+                1617873622841916
+              ],
+              [
+                "preparation-wait",
+                1617873336080416,
+                1617873336080458
+              ],
+              [
+                "preparation-hold",
+                1617873336080458,
+                1617873622842458
+              ],
+              [
+                "CurrentnessJson",
+                1617873622846333,
+                1617873921402125
+              ]
+            ],
+            "sources": [
+              [
+                1,
+                1202,
+                0,
+                0,
+                false,
+                true
+              ]
+            ]
+          },
+          {
+            "id": 4,
+            "diagnosticId": 4,
+            "begin": 1617873336077208,
+            "end": 1617873943670000,
+            "status": 200,
+            "attempt": 0,
+            "loss": false,
+            "phases": [
+              [
+                "service-wait",
+                1617873336085875,
+                1617873336085958
+              ],
+              [
+                "service-hold",
+                1617873336085958,
+                1617873336086083
+              ],
+              [
+                "Capture",
+                1617873622860708,
+                1617873625871250
+              ],
+              [
+                "RefreshReuse",
+                1617873625970041,
+                1617873625970041
+              ],
+              [
+                "Refresh",
+                1617873622860000,
+                1617873625971000
+              ],
+              [
+                "PlaybackCandidates",
+                1617873625971958,
+                1617873645277625
+              ],
+              [
+                "PlaybackNoCandidates",
+                1617873645277750,
+                1617873645277750
+              ],
+              [
+                "PlaybackReuse",
+                1617873647207375,
+                1617873647207458
+              ],
+              [
+                "WithPlayback",
+                1617873625971250,
+                1617873647209958
+              ],
+              [
+                "SnapshotBegin",
+                1617873647210166,
+                1617873648315291
+              ],
+              [
+                "preparation-wait",
+                1617873336086666,
+                1617873622853916
+              ],
+              [
+                "preparation-hold",
+                1617873622853916,
+                1617873648315625
+              ],
+              [
+                "CurrentnessJson",
+                1617873648315833,
+                1617873943668625
+              ]
+            ],
+            "sources": [
+              [
+                1,
+                1202,
+                0,
+                0,
+                false,
+                true
+              ]
+            ]
+          },
+          {
+            "id": 6,
+            "diagnosticId": 6,
+            "begin": 1617874608107791,
+            "end": 1617874627256291,
+            "status": 200,
+            "attempt": 0,
+            "loss": false,
+            "phases": [
+              [
+                "service-wait",
+                1617874608114541,
+                1617874608114583
+              ],
+              [
+                "service-hold",
+                1617874608114583,
+                1617874608114833
+              ],
+              [
+                "Capture",
+                1617874608116833,
+                1617874608244875
+              ],
+              [
+                "RefreshReuse",
+                1617874608322708,
+                1617874608322750
+              ],
+              [
+                "Refresh",
+                1617874608116500,
+                1617874608324000
+              ],
+              [
+                "PlaybackCandidates",
+                1617874608324958,
+                1617874624023666
+              ],
+              [
+                "PlaybackNoCandidates",
+                1617874624023958,
+                1617874624024000
+              ],
+              [
+                "PlaybackBuildOwned",
+                1617874624064000,
+                1617874624157416
+              ],
+              [
+                "PlaybackDocuments",
+                1617874624025166,
+                1617874624157833
+              ],
+              [
+                "WithPlayback",
+                1617874608324166,
+                1617874624158583
+              ],
+              [
+                "SnapshotBegin",
+                1617874624158625,
+                1617874624194583
+              ],
+              [
+                "preparation-wait",
+                1617874608115500,
+                1617874608115541
+              ],
+              [
+                "preparation-hold",
+                1617874608115541,
+                1617874624194791
+              ],
+              [
+                "CurrentnessJson",
+                1617874624195083,
+                1617874627255541
+              ]
+            ],
+            "sources": [
+              [
+                1,
+                1202,
+                0,
+                0,
+                false,
+                true
+              ]
+            ]
+          },
+          {
+            "id": 7,
+            "diagnosticId": 7,
+            "begin": 1618475177712916,
+            "end": 1618476625717583,
+            "status": 200,
+            "attempt": 0,
+            "loss": false,
+            "phases": [
+              [
+                "service-wait",
+                1618475177719791,
+                1618475177719791
+              ],
+              [
+                "service-hold",
+                1618475177719791,
+                1618475177719916
+              ],
+              [
+                "Capture",
+                1618475177721875,
+                1618475907992125
+              ],
+              [
+                "BuildOwned",
+                1618475908291041,
+                1618476196184833
+              ],
+              [
+                "Refresh",
+                1618475177721625,
+                1618476196241000
+              ],
+              [
+                "PlaybackCandidates",
+                1618476196243125,
+                1618476226763000
+              ],
+              [
+                "PlaybackNoCandidates",
+                1618476226763208,
+                1618476226763250
+              ],
+              [
+                "PlaybackReuse",
+                1618476228384541,
+                1618476228384541
+              ],
+              [
+                "WithPlayback",
+                1618476196242000,
+                1618476228385916
+              ],
+              [
+                "SnapshotBegin",
+                1618476228386041,
+                1618476233451583
+              ],
+              [
+                "preparation-wait",
+                1618475177720583,
+                1618475177720625
+              ],
+              [
+                "preparation-hold",
+                1618475177720625,
+                1618476233452041
+              ],
+              [
+                "CurrentnessJson",
+                1618476233453958,
+                1618476625716500
+              ]
+            ],
+            "sources": [
+              [
+                1,
+                2402,
+                0,
+                0,
+                false,
+                true
+              ]
+            ]
+          },
+          {
+            "id": 8,
+            "diagnosticId": 8,
+            "begin": 1618475177741916,
+            "end": 1618476644020000,
+            "status": 200,
+            "attempt": 0,
+            "loss": false,
+            "phases": [
+              [
+                "service-wait",
+                1618475177747333,
+                1618475177747416
+              ],
+              [
+                "service-hold",
+                1618475177747416,
+                1618475177747500
+              ],
+              [
+                "Capture",
+                1618476233464250,
+                1618476238130666
+              ],
+              [
+                "RefreshReuse",
+                1618476238196458,
+                1618476238196500
+              ],
+              [
+                "Refresh",
+                1618476233463583,
+                1618476238197458
+              ],
+              [
+                "PlaybackCandidates",
+                1618476238198916,
+                1618476278067791
+              ],
+              [
+                "PlaybackNoCandidates",
+                1618476278068000,
+                1618476278068000
+              ],
+              [
+                "PlaybackReuse",
+                1618476283274541,
+                1618476283274583
+              ],
+              [
+                "WithPlayback",
+                1618476238197833,
+                1618476283277625
+              ],
+              [
+                "SnapshotBegin",
+                1618476283277791,
+                1618476285739166
+              ],
+              [
+                "preparation-wait",
+                1618475177747875,
+                1618476233461166
+              ],
+              [
+                "preparation-hold",
+                1618476233461166,
+                1618476285739833
+              ],
+              [
+                "CurrentnessJson",
+                1618476285740083,
+                1618476644018708
+              ]
+            ],
+            "sources": [
+              [
+                1,
+                2402,
+                0,
+                0,
+                false,
+                true
+              ]
+            ]
+          },
+          {
+            "id": 9,
+            "diagnosticId": 9,
+            "begin": 1618476998740708,
+            "end": 1618477051414833,
+            "status": 200,
+            "attempt": 0,
+            "loss": false,
+            "phases": [
+              [
+                "service-wait",
+                1618476998748500,
+                1618476998748541
+              ],
+              [
+                "service-hold",
+                1618476998748541,
+                1618476998748833
+              ],
+              [
+                "Capture",
+                1618476998751291,
+                1618476998879916
+              ],
+              [
+                "RefreshReuse",
+                1618476998956375,
+                1618476998956416
+              ],
+              [
+                "Refresh",
+                1618476998750916,
+                1618476998957500
+              ],
+              [
+                "PlaybackCandidates",
+                1618476998958625,
+                1618477046529833
+              ],
+              [
+                "PlaybackNoCandidates",
+                1618477046530000,
+                1618477046530041
+              ],
+              [
+                "PlaybackBuildOwned",
+                1618477046574291,
+                1618477046682250
+              ],
+              [
+                "PlaybackDocuments",
+                1618477046531333,
+                1618477046682791
+              ],
+              [
+                "WithPlayback",
+                1618476998957750,
+                1618477046683541
+              ],
+              [
+                "SnapshotBegin",
+                1618477046683583,
+                1618477046723958
+              ],
+              [
+                "preparation-wait",
+                1618476998749583,
+                1618476998749625
+              ],
+              [
+                "preparation-hold",
+                1618476998749625,
+                1618477046724208
+              ],
+              [
+                "CurrentnessJson",
+                1618477046724458,
+                1618477051413750
+              ]
+            ],
+            "sources": [
+              [
+                1,
+                2406,
+                0,
+                0,
+                false,
+                true
+              ]
+            ]
+          },
+          {
+            "id": 10,
+            "diagnosticId": 10,
+            "begin": 1618655678330750,
+            "end": 1618657923760000,
+            "status": 200,
+            "attempt": 0,
+            "loss": false,
+            "phases": [
+              [
+                "service-wait",
+                1618655678336666,
+                1618655678337875
+              ],
+              [
+                "service-hold",
+                1618655678337875,
+                1618655678337958
+              ],
+              [
+                "Capture",
+                1618657629531708,
+                1618657636342583
+              ],
+              [
+                "RefreshReuse",
+                1618657636428041,
+                1618657636428083
+              ],
+              [
+                "Refresh",
+                1618657629531166,
+                1618657636429416
+              ],
+              [
+                "PlaybackCandidates",
+                1618657636430833,
+                1618657674898291
+              ],
+              [
+                "PlaybackNoCandidates",
+                1618657674898458,
+                1618657674898458
+              ],
+              [
+                "PlaybackReuse",
+                1618657677567833,
+                1618657677567875
+              ],
+              [
+                "WithPlayback",
+                1618657636429833,
+                1618657677569875
+              ],
+              [
+                "SnapshotBegin",
+                1618657677569916,
+                1618657680344208
+              ],
+              [
+                "preparation-wait",
+                1618655678338375,
+                1618657629529125
+              ],
+              [
+                "preparation-hold",
+                1618657629529125,
+                1618657680344625
+              ],
+              [
+                "CurrentnessJson",
+                1618657680344875,
+                1618657923758666
+              ]
+            ],
+            "sources": [
+              [
+                1,
+                2766,
+                0,
+                0,
+                false,
+                true
+              ]
+            ]
+          },
+          {
+            "id": 11,
+            "diagnosticId": 11,
+            "begin": 1618655678329500,
+            "end": 1618657926631375,
+            "status": 200,
+            "attempt": 1,
+            "loss": false,
+            "phases": [
+              [
+                "service-wait",
+                1618655678336625,
+                1618655678336708
+              ],
+              [
+                "service-hold",
+                1618655678336708,
+                1618655678337000
+              ],
+              [
+                "Capture",
+                1618655678339458,
+                1618656579017750
+              ],
+              [
+                "BuildOwned",
+                1618656579112541,
+                1618657028979375
+              ],
+              [
+                "Refresh",
+                1618655678339000,
+                1618657030117708
+              ],
+              [
+                "Capture",
+                1618657030118916,
+                1618657304204458
+              ],
+              [
+                "BuildOwned",
+                1618657304525083,
+                1618657586173875
+              ],
+              [
+                "Refresh",
+                1618657030118625,
+                1618657586208208
+              ],
+              [
+                "PlaybackCandidates",
+                1618657586210166,
+                1618657622347291
+              ],
+              [
+                "PlaybackNoCandidates",
+                1618657622347541,
+                1618657622347583
+              ],
+              [
+                "PlaybackReuse",
+                1618657623501416,
+                1618657623501458
+              ],
+              [
+                "WithPlayback",
+                1618657586209166,
+                1618657623502750
+              ],
+              [
+                "SnapshotBegin",
+                1618657623502875,
+                1618657629520875
+              ],
+              [
+                "preparation-wait",
+                1618655678338125,
+                1618655678338166
+              ],
+              [
+                "preparation-hold",
+                1618655678338166,
+                1618657629521708
+              ],
+              [
+                "CurrentnessJson",
+                1618657629523333,
+                1618657926630125
+              ]
+            ],
+            "sources": [
+              [
+                1,
+                2762,
+                0,
+                0,
+                true,
+                true
+              ],
+              [
+                1,
+                2766,
+                0,
+                0,
+                false,
+                true
+              ]
+            ]
+          },
+          {
+            "id": 12,
+            "diagnosticId": 12,
+            "begin": 1618658040717958,
+            "end": 1618658079417291,
+            "status": 200,
+            "attempt": 0,
+            "loss": false,
+            "phases": [
+              [
+                "service-wait",
+                1618658040725125,
+                1618658040725166
+              ],
+              [
+                "service-hold",
+                1618658040725166,
+                1618658040725375
+              ],
+              [
+                "Capture",
+                1618658040727125,
+                1618658041228208
+              ],
+              [
+                "RefreshReuse",
+                1618658041299291,
+                1618658041299333
+              ],
+              [
+                "Refresh",
+                1618658040727000,
+                1618658041300291
+              ],
+              [
+                "PlaybackCandidates",
+                1618658041301291,
+                1618658075877000
+              ],
+              [
+                "PlaybackNoCandidates",
+                1618658075877166,
+                1618658075877208
+              ],
+              [
+                "PlaybackBuildOwned",
+                1618658075915666,
+                1618658076060000
+              ],
+              [
+                "PlaybackDocuments",
+                1618658075878458,
+                1618658076060416
+              ],
+              [
+                "WithPlayback",
+                1618658041300500,
+                1618658076061125
+              ],
+              [
+                "SnapshotBegin",
+                1618658076061208,
+                1618658076094000
+              ],
+              [
+                "preparation-wait",
+                1618658040725833,
+                1618658040725875
+              ],
+              [
+                "preparation-hold",
+                1618658040725875,
+                1618658076094125
+              ],
+              [
+                "CurrentnessJson",
+                1618658076094541,
+                1618658079416375
+              ]
+            ],
+            "sources": [
+              [
+                1,
+                2766,
+                0,
+                0,
+                false,
+                true
+              ]
+            ]
+          },
+          {
+            "id": 13,
+            "diagnosticId": 13,
+            "begin": 1618775532538541,
+            "end": 1618778470456666,
+            "status": 200,
+            "attempt": 1,
+            "loss": false,
+            "phases": [
+              [
+                "service-wait",
+                1618775532545666,
+                1618775532545750
+              ],
+              [
+                "service-hold",
+                1618775532545750,
+                1618775532545916
+              ],
+              [
+                "Capture",
+                1618775532547833,
+                1618776676191416
+              ],
+              [
+                "BuildOwned",
+                1618776676360083,
+                1618777321315083
+              ],
+              [
+                "Refresh",
+                1618775532547583,
+                1618777324115750
+              ],
+              [
+                "Capture",
+                1618777324118083,
+                1618777673998250
+              ],
+              [
+                "BuildOwned",
+                1618777674247458,
+                1618778087878000
+              ],
+              [
+                "Refresh",
+                1618777324117250,
+                1618778087932333
+              ],
+              [
+                "PlaybackCandidates",
+                1618778087934291,
+                1618778149805416
+              ],
+              [
+                "PlaybackNoCandidates",
+                1618778149805541,
+                1618778149805583
+              ],
+              [
+                "PlaybackReuse",
+                1618778151465250,
+                1618778151465250
+              ],
+              [
+                "WithPlayback",
+                1618778087933333,
+                1618778151467666
+              ],
+              [
+                "SnapshotBegin",
+                1618778151467750,
+                1618778154355666
+              ],
+              [
+                "preparation-wait",
+                1618775532546708,
+                1618775532546708
+              ],
+              [
+                "preparation-hold",
+                1618775532546708,
+                1618778154356166
+              ],
+              [
+                "CurrentnessJson",
+                1618778154357958,
+                1618778470455166
+              ]
+            ],
+            "sources": [
+              [
+                1,
+                3002,
+                0,
+                0,
+                true,
+                true
+              ],
+              [
+                1,
+                3006,
+                0,
+                0,
+                false,
+                true
+              ]
+            ]
+          },
+          {
+            "id": 14,
+            "diagnosticId": 14,
+            "begin": 1618775532541375,
+            "end": 1618778490387333,
+            "status": 200,
+            "attempt": 0,
+            "loss": false,
+            "phases": [
+              [
+                "service-wait",
+                1618775532547083,
+                1618775532547166
+              ],
+              [
+                "service-hold",
+                1618775532547166,
+                1618775532547250
+              ],
+              [
+                "Capture",
+                1618778154378125,
+                1618778157229375
+              ],
+              [
+                "RefreshReuse",
+                1618778157390333,
+                1618778157390375
+              ],
+              [
+                "Refresh",
+                1618778154377791,
+                1618778157392000
+              ],
+              [
+                "PlaybackCandidates",
+                1618778157393625,
+                1618778205095833
+              ],
+              [
+                "PlaybackNoCandidates",
+                1618778205096000,
+                1618778205096041
+              ],
+              [
+                "PlaybackReuse",
+                1618778207827625,
+                1618778207827666
+              ],
+              [
+                "WithPlayback",
+                1618778157392708,
+                1618778207829416
+              ],
+              [
+                "SnapshotBegin",
+                1618778207829500,
+                1618778215545250
+              ],
+              [
+                "preparation-wait",
+                1618775532547666,
+                1618778154374750
+              ],
+              [
+                "preparation-hold",
+                1618778154374750,
+                1618778215545958
+              ],
+              [
+                "CurrentnessJson",
+                1618778215546208,
+                1618778490385916
+              ]
+            ],
+            "sources": [
+              [
+                1,
+                3006,
+                0,
+                0,
+                false,
+                true
+              ]
+            ]
+          },
+          {
+            "id": 15,
+            "diagnosticId": 15,
+            "begin": 1618778620336416,
+            "end": 1618778665578875,
+            "status": 200,
+            "attempt": 0,
+            "loss": false,
+            "phases": [
+              [
+                "service-wait",
+                1618778620356375,
+                1618778620356625
+              ],
+              [
+                "service-hold",
+                1618778620356625,
+                1618778620356791
+              ],
+              [
+                "Capture",
+                1618778620367166,
+                1618778620564750
+              ],
+              [
+                "RefreshReuse",
+                1618778620637708,
+                1618778620637750
+              ],
+              [
+                "Refresh",
+                1618778620366750,
+                1618778620638708
+              ],
+              [
+                "PlaybackCandidates",
+                1618778620639708,
+                1618778661572375
+              ],
+              [
+                "PlaybackNoCandidates",
+                1618778661572583,
+                1618778661572625
+              ],
+              [
+                "PlaybackBuildOwned",
+                1618778661637625,
+                1618778661849875
+              ],
+              [
+                "PlaybackDocuments",
+                1618778661574791,
+                1618778661850916
+              ],
+              [
+                "WithPlayback",
+                1618778620639041,
+                1618778661852708
+              ],
+              [
+                "SnapshotBegin",
+                1618778661852791,
+                1618778661894875
+              ],
+              [
+                "preparation-wait",
+                1618778620364375,
+                1618778620364875
+              ],
+              [
+                "preparation-hold",
+                1618778620364875,
+                1618778661895083
+              ],
+              [
+                "CurrentnessJson",
+                1618778661895333,
+                1618778665577875
+              ]
+            ],
+            "sources": [
+              [
+                1,
+                3006,
+                0,
+                0,
+                false,
+                true
+              ]
+            ]
+          }
+        ]
+      }
+    },
+    "terminalOutput": [
+      {
+        "line": 3,
+        "text": "[fixture-profile] {\"name\":\"continuous-r114\",\"continuousMaxBytes\":113246208,\"eventMaxBytes\":134217728,\"continuousMaxAgeMs\":10800000,\"eventMaxAgeMs\":10800000,\"segmentBytes\":71237,\"protectedFiles\":643,\"E\":67108864,\"H\":45805391,\"P\":71237,\"M\":260716,\"inputNormalizedSha256\":\"baebad5cad233243c4748f6bfec06fa5d2da7f06ae9b1475c9b20bfbfb04e2e7\"}"
+      },
+      {
+        "line": 10837,
+        "text": "[R165-qualified] {\"requests\":15,\"goalMet\":true}"
+      },
+      {
+        "line": 10839,
+        "text": "[R165-latency-gate] {\"count\":484,\"p95\":2333.640167000005,\"max\":3428.7866249999497,\"limitP95\":2000,\"limitMax\":5000,\"pass\":false}"
+      },
+      {
+        "line": 10846,
+        "text": "[R165-first-failure] {\"code\":\"functional-failure\",\"atMs\":1814019.711125}"
+      },
+      {
+        "line": 10849,
+        "text": "[fail] current observation: LP26-O05 both channels retained and progressed"
+      },
+      {
+        "line": 10851,
+        "text": "[process-cleanup] {\"schema\":\"recording-process-cleanup-v1\",\"attemptCount\":1,\"pid\":60376,\"exitCode\":0,\"signalCode\":null,\"exitedObserved\":true,\"stopCode\":\"complete\",\"forcedTermination\":\"not-used\",\"normalExitPass\":true,\"normalShutdownPass\":true,\"archiveSafe\":true,\"ports\":[{\"kind\":\"http\",\"port\":49693,\"status\":\"pass\",\"code\":\"closed\",\"closed\":true},{\"kind\":\"rtsp\",\"port\":49694,\"status\":\"pass\",\"code\":\"closed\",\"closed\":true}]}"
+      },
+      {
+        "line": 10855,
+        "text": "[completion-collection-summary] {\"status\":\"incomplete\",\"code\":\"completion-receipt-missing\",\"rows\":0,\"bytes\":0,\"receipt\":null}"
+      },
+      {
+        "line": 10856,
+        "text": "[fail] completion-evidence-collection"
+      },
+      {
+        "line": 10864,
+        "text": "[wrapper-exit] 1"
+      }
+    ],
+    "outputCapsUnchanged": true,
+    "serverLogBytes": 1534683,
+    "serverLogCapBytes": 4194304,
+    "globalLatencyTraceRecords": 0,
+    "focusedSelectedOutput": "[R154-search] {\"id\":1,\"diagnosticId\":1,\"begin\":1617201612954416,\"end\":1617201627017666,\"status\":200,\"attempt\":0,\"loss\":false,\"phases\":[[\"service-wait\",1617201612978666,1617201612978708],[\"service-hold\",1617201612978708,1617201613001375],[\"Capture\",1617201613012250,1617201615736375],[\"BuildOwned\",1617201615823333,1617201616253791],[\"Refresh\",1617201613003458,1617201616254416],[\"PlaybackCandidates\",1617201616255500,1617201618514750],[\"PlaybackNoCandidates\",1617201618514750,1617201618514791],[\"PlaybackReuse\",1617201618574458,1617201618574500],[\"WithPlayback\",1617201616255041,1617201618575000],[\"SnapshotBegin\",1617201618575041,1617201618634500],[\"preparation-wait\",1617201613002041,1617201613002125],[\"preparation-hold\",1617201613002125,1617201618634708],[\"CurrentnessJson\",1617201618634833,1617201627016958]],\"sources\":[[1,4,0,0,false,true]]}\n[R154-server] {\"id\":1,\"class\":1,\"accepted\":1617201612881750,\"parsed\":1617201612918791,\"handler\":1617201612919416,\"prepared\":1617201627032833,\"sendBegin\":1617201627039791,\"sendEnd\":1617201627045541,\"sent\":true,\"end\":1617201627046791,\"loss\":false,\"metrics\":[[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0]],\"counts\":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]}\n[R165-client] {\"id\":1,\"loss\":false,\"status\":200,\"outcome\":\"ok\",\"phase\":\"complete\",\"bytes\":11122,\"totalElapsedMs\":14}\n[R165-native-focused] actual parser/Search/send; auth401; portClosed true\n[R165-focused-finish] PASS\n",
+    "focusedSelection": "원본 전체와 다른 정제 선택본: HTTP correlation/성공종료 prefix만 유지. 원본 bytes/SHA는 rawFiles에 기록."
+  },
+  "independentReview": {
+    "status": "PASS_READ_ONLY_REVIEW",
+    "decision": "REPRESENTATIVE_LATENCY_STILL_FAIL + observation bound FAIL",
+    "reviewer": "/root/r166_review",
+    "readOnly": true,
+    "noImplementationExecutionRedelegation": true,
+    "actualRuntimeModel": "UNKNOWN",
+    "actualRuntimeEffort": "UNKNOWN",
+    "findings": "원본으로484 latency 분포,242/242 분할,15x3 ID결속,515 HTTP200, A reuse와 Structured retry/wait,5.525초초과,retention/collection 별도실패,logicalpeak/release를 확인. 집계 오류·실패 은폐 없음. 제품 회귀 원인 확정 아님."
+  },
+  "cleanup": {
+    "status": "PENDING_REMOTE_PRESERVATION",
+    "ownedRoots": [
+      "/private/tmp/media-server-r166-cwd-build",
+      "/private/tmp/media-server-r166-cwd-run"
+    ],
+    "preflight": {
+      "processes": [],
+      "openFiles": [
+        {
+          "root": "/private/tmp/media-server-r166-cwd-build",
+          "exit": 1,
+          "stdout": "",
+          "stderr": ""
+        },
+        {
+          "root": "/private/tmp/media-server-r166-cwd-run",
+          "exit": 1,
+          "stdout": "",
+          "stderr": ""
+        }
+      ]
+    },
+    "listenersAbsent": [
+      49693,
+      49694
+    ],
+    "listenerCheck": "lsof -nP -iTCP:49693 -iTCP:49694 -sTCP:LISTEN exit1, no output"
+  },
+  "historicalStatus": {
+    "R149Functional45": "FAIL",
+    "R149Collection45": "INCOMPLETE",
+    "R165": "FAIL_REPRESENTATIVE_RUN",
+    "R166Focused": "ALGORITHMIC_WORK_REDUCED",
+    "MemoryP0": "HOLD",
+    "Readiness120": "HOLD",
+    "Release": "HOLD"
+  },
+  "next": "General Structured Refresh의 source-change 재시도에서 반복 Capture/BuildOwned를 줄일 수 있는지 별도 최소 제품 검토가 필요. 이번 작업에서는 구현/새 계측/추가 누적 실행 없음."
+}
