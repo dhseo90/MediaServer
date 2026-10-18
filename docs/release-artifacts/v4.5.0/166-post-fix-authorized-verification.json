@@ -5632,7 +5632,7 @@
     "findings": "원본으로484 latency 분포,242/242 분할,15x3 ID결속,515 HTTP200, A reuse와 Structured retry/wait,5.525초초과,retention/collection 별도실패,logicalpeak/release를 확인. 집계 오류·실패 은폐 없음. 제품 회귀 원인 확정 아님."
   },
   "cleanup": {
-    "status": "PENDING_REMOTE_PRESERVATION",
+    "status": "COMPLETE",
     "ownedRoots": [
       "/private/tmp/media-server-r166-cwd-build",
       "/private/tmp/media-server-r166-cwd-run"
@@ -5658,7 +5658,36 @@
       49693,
       49694
     ],
-    "listenerCheck": "lsof -nP -iTCP:49693 -iTCP:49694 -sTCP:LISTEN exit1, no output"
+    "listenerCheck": "lsof -nP -iTCP:49693 -iTCP:49694 -sTCP:LISTEN exit1, no output",
+    "remotePreservationBeforeDeletion": {
+      "commit": "fd8af1ff18260a98004b42b2db9aca27a8275e75",
+      "remoteHead": "fd8af1ff18260a98004b42b2db9aca27a8275e75",
+      "path": "docs/release-artifacts/v4.5.0/166-post-fix-authorized-verification.json",
+      "gitBlob": "28b99160b1ee7de696bc3b9f3d5ce098667bd531",
+      "bytes": 150883,
+      "sha256": "cfe419a1d5b7a0669d788528fe972c25e8025cbbccc04ca51092d27fd72f0b03",
+      "remoteBytesMatch": true,
+      "checkedUtc": "2026-10-18T08:31:35.015084+00:00"
+    },
+    "completedUtc": "2026-10-18T08:32:04.692417+00:00",
+    "rootResults": [
+      {
+        "root": "/private/tmp/media-server-r166-cwd-build",
+        "removedEntries": 337,
+        "absent": true
+      },
+      {
+        "root": "/private/tmp/media-server-r166-cwd-run",
+        "removedEntries": 2526,
+        "absent": true
+      }
+    ],
+    "externalSymlinkTargetsChecked": 276,
+    "externalTargetsUnchanged": true,
+    "symlinksFollowedForDeletion": false,
+    "processGroup60286Absent": true,
+    "openFilesBeforeDeletion": 0,
+    "cleanupErrors": []
   },
   "historicalStatus": {
     "R149Functional45": "FAIL",
