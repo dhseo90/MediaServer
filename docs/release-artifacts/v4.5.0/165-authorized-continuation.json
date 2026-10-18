@@ -1413,7 +1413,48 @@
       "scratchFd": 0,
       "notWholeHeapLeakProof": true
     },
-    "ownedRoots": "PENDING remote preservation then cleanup"
+    "ownedRoots": "REMOVED after remote byte verification",
+    "remotePreservation": {
+      "commit": "e595c5242e5160f9adec751ca3d582dbe69f080e",
+      "remoteHead": "e595c5242e5160f9adec751ca3d582dbe69f080e",
+      "files": [
+        {
+          "path": "docs/release-artifacts/v4.5.0/165-authorized-continuation.json",
+          "bytes": 42612,
+          "sha256": "be6bd0d9b0790e5427014b179ca2c4e2ef15097d404faf8f15db3ecd8251f03a"
+        },
+        {
+          "path": "docs/release-artifacts/v4.5.0/165-authorized-evidence.json",
+          "bytes": 42501,
+          "sha256": "a577668c6c9f23c599e24c70ace385d72137c1f41c5949aea432dfc03b4d3f63"
+        }
+      ]
+    },
+    "removed": [
+      {
+        "root": "/private/tmp/media-server-r165-authorized",
+        "inode": 175921701,
+        "removedFiles": 42,
+        "removedLinksOnly": 0,
+        "removedDirectories": 11,
+        "absent": true
+      },
+      {
+        "root": "/private/tmp/media-server-r165-accumulated",
+        "inode": 175922166,
+        "removedFiles": 2211,
+        "removedLinksOnly": 277,
+        "removedDirectories": 26,
+        "absent": true
+      }
+    ],
+    "externalSymlinkTargetsUnchanged": true,
+    "externalTargetsCount": 276,
+    "ownedProcessesAndOpenFilesAbsent": true,
+    "listenersAbsent": [
+      62091,
+      62092
+    ]
   },
   "historicalStatus": {
     "R149Functional45": "FAIL",
