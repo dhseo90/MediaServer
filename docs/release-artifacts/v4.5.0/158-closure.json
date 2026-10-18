@@ -1,0 +1,308 @@
+{
+  "schema": "media-server.v450.r158.closure.v1",
+  "decision": "QUALIFIED_APPROXIMATE_LOCK_WINDOWS",
+  "remotePreservation": {
+    "result": "PASS",
+    "head": "8bb330c5b54ecac569920eac7b95f673c5fa459b",
+    "remoteHead": "8bb330c5b54ecac569920eac7b95f673c5fa459b",
+    "method": "GitHub Git blob API actual base64 bytes decoded; exact comparison against local committed files",
+    "files": [
+      {
+        "path": "docs/project-feature-test-inventory.md",
+        "bytes": 1093985,
+        "sha256": "12273ab4a99eba04496a04e3c56a86b08ebe10d14cff8c323614df6773118850",
+        "gitBlob": "61c56f22872d035106e1569a701adc32f9868d09"
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/158-aggregate.stderr",
+        "bytes": 125,
+        "sha256": "0cc8966df9077b0e5fb06762c89a3512ea201a880bbea108d7afe741e0dac193",
+        "gitBlob": "00e1eb04b4646e618fd3cd5512d5461960a6b7a6"
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/158-aggregate.stdout",
+        "bytes": 145,
+        "sha256": "df4bf21e22f268c2e6287241adaf7ff6c2f14b81f11e83c9869456a53723fc59",
+        "gitBlob": "c77bd8b3a7df779f3a414483b919665256ec7602"
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/158-build.log",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/158-byte-cap.stderr",
+        "bytes": 112,
+        "sha256": "793546d4199ef35e64e5b24ee4311ed339f6872d0fbb4da5c5deeb1b89040b1f",
+        "gitBlob": "3cb5d59ba6281c4ea8df5f613c2162ee71744ec8"
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/158-byte-cap.stdout",
+        "bytes": 1410,
+        "sha256": "88cffd9cb5cfbfdbf40a28c26760a3b556574837b5eae100b3d11d61111db082",
+        "gitBlob": "1e0ab577ca5517ba08477bef4a1950252a3b58b8"
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/158-cap.stderr",
+        "bytes": 112,
+        "sha256": "793546d4199ef35e64e5b24ee4311ed339f6872d0fbb4da5c5deeb1b89040b1f",
+        "gitBlob": "3cb5d59ba6281c4ea8df5f613c2162ee71744ec8"
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/158-cap.stdout",
+        "bytes": 1413,
+        "sha256": "66ce3665df307a59f8733d79fec2e79db074bdee30a8dcced44222c910ff9569",
+        "gitBlob": "e72807ad258c24d94609928f05ae2e1c35729f62"
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/158-command-error.json",
+        "bytes": 528,
+        "sha256": "2b9f6b72964b1f6a2f889eeb32360040e48eb0b6ba0aefd32eee158aef6d07b8",
+        "gitBlob": "b967c6d0436aa85ba66f1e9fa5e36b65a0367663"
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/158-compiler.txt",
+        "bytes": 158,
+        "sha256": "a856ec74c559401131ad608625ef252fb2db6c78bc0c480c1c4c782ee4896db1",
+        "gitBlob": "dd25663c575ef37d4ef12c2e39d2c55298e20956"
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/158-coverage.log",
+        "bytes": 604,
+        "sha256": "f3dd9d2ec3cd35ce7a806a391b6918dddd2c2377ca3039afa624f484985f9bce",
+        "gitBlob": "5b68f8366d7bc18014c071e7513e9c80dafb8cfc"
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/158-disabled.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/158-disabled.stdout",
+        "bytes": 1410,
+        "sha256": "06272e4e8a8e9f8e8e59d401c92f8a3a67f4c7d7f535be0af865369c5aaa79a1",
+        "gitBlob": "d20593adeeb1cc71de5b792d5fa299e13b25693d"
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/158-driver-first.py",
+        "bytes": 3264,
+        "sha256": "94f33114c80396edd7ec8658cade1dea13e625ecafbdd7f5f847b305808e0e3b",
+        "gitBlob": "84c17098f3ff3add99a0fe85ef91798759534ca4"
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/158-entry.json",
+        "bytes": 428,
+        "sha256": "86ce18b6b1db74f8825a6fb591678ce64922384c30db700ef6e971ff702819eb",
+        "gitBlob": "3befcaf9cebe9307403eb7dda31abbbc01bcef04"
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/158-focused.d",
+        "bytes": 196,
+        "sha256": "4839cfb7c611e97034c9cdf5fc7d501c45b7ccaede8d837e9f6dde3a16f80c52",
+        "gitBlob": "bcba9c9107bb8f6f611b7700ec89deeba06be466"
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/158-focused.map",
+        "bytes": 24149,
+        "sha256": "1ba0a68e20e6fe36a5345439bc1a12f149129b93223ffa5baebec27e1a280ba2",
+        "gitBlob": "f986a7c571963256f1f96341ec96f7d0201bffe9"
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/158-holder.stderr",
+        "bytes": 1342,
+        "sha256": "e1da72dcade4c425b38f175c8e306a850a73188aabb8af44f28f318d9ab423c4",
+        "gitBlob": "6e23476221a03b6c0127812d130c17addb105b97"
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/158-holder.stdout",
+        "bytes": 1462,
+        "sha256": "f44699cbcb741f421710ccdd1e2ec8589eafacb4d71d7206122d1a8e0a0ba453",
+        "gitBlob": "abce5df92c826c0b4ece530649f2535b5bf207df"
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/158-independent-review.json",
+        "bytes": 1537,
+        "sha256": "eaf185508068521720f0f963d0c6eb30143a9268ae8141f3ccdeac824393e701",
+        "gitBlob": "0c8249e42a09da915ba41b4bf557d436de29daf5"
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/158-lost-output.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/158-lost-output.stdout",
+        "bytes": 1414,
+        "sha256": "c23f776e7f67ecad1d92a6175bbe1bfa3f5c265242ef20ca9571a54eb9e7f779",
+        "gitBlob": "17b73217ca4728bda1104b1bcd16b35c95fa7163"
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/158-native-negatives.json",
+        "bytes": 868,
+        "sha256": "2ae6a263367b7d41a650c355d41fab27bfefcd23660feade5b0ad3e60af4a0e9",
+        "gitBlob": "16849bffb0b51ff60bed284196507d85a54fd917"
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/158-normal.stderr",
+        "bytes": 1188,
+        "sha256": "c599f90d88a4dcae854d7f8b57df44a5b2e9f32149e7e5e5fce36335cb431324",
+        "gitBlob": "4e58166ba7a5864301088b6fc7ba8ec4e54f1e77"
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/158-normal.stdout",
+        "bytes": 1428,
+        "sha256": "44a8ea7fdbbc866f9478ada5907867e6ad9f8d4d597f8380b7ba876f6b7ba58f",
+        "gitBlob": "c4faa55d9213c245be37e17859229def489ef03a"
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/158-preservation.json",
+        "bytes": 13107,
+        "sha256": "14594291adc1956b808cf593e3e62304ef52671391da14c45d6dc7830aebaabc",
+        "gitBlob": "5ada592f5aa055d1962bb9fc66b5e22f8dfffe7e"
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/158-producer.log",
+        "bytes": 12812,
+        "sha256": "d044f8ac77f4e3e0a7ee0672c9d63381151b9f522393a0aa536f910913ef258f",
+        "gitBlob": "f64b18be08c71f24698fe7cfc589c488254cf151"
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/158-python-final.log",
+        "bytes": 102,
+        "sha256": "feabb4add9e2ca3374e538560634d1ec97dc4f4ce89aab12f3d726e36ea9b2f6",
+        "gitBlob": "d7bbf85c7e963ad2d076b5f23250057e36dddf5e"
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/158-python.log",
+        "bytes": 101,
+        "sha256": "33060fd73862c5e1af97335504d5b45211fce6d229657f556d8deceeadc52ce4",
+        "gitBlob": "f207dee3297bc7c151fae1b4ef3443925350ba42"
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/158-readback.log",
+        "bytes": 1141,
+        "sha256": "f004e8a145e0b287322992e5f2f9c356c12a495834505e9ea79a414fd1f6b6f7",
+        "gitBlob": "b4a5d89f075d1ed245bcb2d4a761fd44a69e2ce9"
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/158-requalification.json",
+        "bytes": 19018,
+        "sha256": "b7f21c37a860d2f20c9d9d6cd2b554717175c18863fdb375ad4e2e7ca240bf1d",
+        "gitBlob": "3e9851ec5b696349d50f7097384b2343950a7274"
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/158-results.json",
+        "bytes": 21124,
+        "sha256": "c990358124e8e6fa302b6490ebf47e7836cdc09752ac1c52b70be5430b7a7ced",
+        "gitBlob": "3a0c8f756d7e4f3fd2183bb135a01b3f3a7e7508"
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/158-run.log",
+        "bytes": 211,
+        "sha256": "1e84bc66e38a8d11e5bf1707e3dfe356e1b7a3f962c4e22a3c1a4baf3a3490c7",
+        "gitBlob": "33b1de526e3a510b3f255ce5bd821d8ff0db1d9f"
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/158-run.py",
+        "bytes": 3295,
+        "sha256": "b0f5ae9aa5c4f6c5087c93910594c6c45fade8851cc8e68503c419c32b2c7a3a",
+        "gitBlob": "0fbb622bfb358aab9891908ee66b7a1d8f5d012f"
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/158-slow.stderr",
+        "bytes": 199,
+        "sha256": "b38a7b1dac6bcec51eaa57a29dc4899c2a9aa8efdf152dd19f2dbb7da923e091",
+        "gitBlob": "55b1cd04b4a678f6e76b09aba1c6a986bb97798c"
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/158-slow.stdout",
+        "bytes": 144,
+        "sha256": "4e1a115857aa57782b597d9836369e72f69420b13d285769ffe1a68ecba26561",
+        "gitBlob": "c6f9967c827da1f08370e0036bb1af78290ce7f3"
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/158-symbols.txt",
+        "bytes": 14568,
+        "sha256": "0c786a7c93968e306ab91743f0d3b4e86c8a40d85762c946d55bf2cf0dc43139",
+        "gitBlob": "ba705b6c452525dcf44a372e16ec68ab6e432a22"
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/158-validation.json",
+        "bytes": 7753,
+        "sha256": "7055a46e4327b1b61795549b6b3437ad6863a6b8d6dfdd2d5385279052efea8f",
+        "gitBlob": "dcb35ce201749cd5ecc501cb89dcd233ea540f11"
+      },
+      {
+        "path": "scripts/internal/recording_lock_timing.py",
+        "bytes": 5085,
+        "sha256": "e9aba0789687df1952418bd3020fd12a0d52f43d25bb379655543f9651dae696",
+        "gitBlob": "392e2a8d845f95f9433214759213ae53bc10e5ac"
+      },
+      {
+        "path": "scripts/internal/recording_lock_timing.test.py",
+        "bytes": 1366,
+        "sha256": "fd127d7cc03f093cb6e1c54e669857c042cc4eef136e24b2fd1df5679c775330",
+        "gitBlob": "22710894309cca8682e9820da8cf79e26c1809eb"
+      },
+      {
+        "path": "scripts/internal/recording_lock_timing_smoke.cpp",
+        "bytes": 5294,
+        "sha256": "6c0382f859ee6baffd7da3f5276636de2883b846585e3310f11662378600fad7",
+        "gitBlob": "f770889427444d6d05bcc3947123971a099754ce"
+      },
+      {
+        "path": "test/fixtures/project_feature_implementation_evidence.json",
+        "bytes": 26350232,
+        "sha256": "9480c749e999f10f3b4fcfa8dab11e73754533ef76f792882906d365a793678a",
+        "gitBlob": "301e91484c970f4d8e297abd1a3ee1e11a2ef6f6"
+      }
+    ],
+    "count": 42,
+    "bytes": 27592830
+  },
+  "cleanup": {
+    "ownedRoot": "<OWNED_ROOT>",
+    "filesRemoved": 38,
+    "directoriesRemoved": 1,
+    "bytesRemoved": 1009852,
+    "rootAbsent": true,
+    "ownedPycRemoved": "scripts/internal/__pycache__/recording_lock_timing.cpython-314.pyc",
+    "groupsAbsent": {
+      "36624": true,
+      "36625": true,
+      "36626": true,
+      "36627": true,
+      "36628": true,
+      "36629": true,
+      "36630": true,
+      "36631": true
+    },
+    "ownedProcessMatches": [],
+    "portsOpened": 0,
+    "containersCreated": 0,
+    "ownership": "current UID; all entries validated before deletion; regular nlink1 files; no symlinks",
+    "errors": []
+  },
+  "productsAfterCleanup": {
+    "media_server": "33f516d35d56cb2f6cafc75647b6c37d2ced67115302d1205cca23bf51ab7f79",
+    "libmedia_server_runtime.a": "2d91cf35fe7e805e0c06e00d16779c86849b35db635e087582277e1b676d198c"
+  },
+  "nativeChildren": 8,
+  "nativeReruns": 0,
+  "httpAttribution": "NOT_RUN",
+  "integratedCycles": 0,
+  "productStarts": 0,
+  "history": {
+    "R157": "CATALOG_HOLD_COST_BOUNDARY_IDENTIFIED",
+    "R149Functional45": "FAIL",
+    "R149Collection45": "INCOMPLETE",
+    "MemoryP0": "HOLD",
+    "Readiness120": "HOLD",
+    "Release": "HOLD",
+    "new45": "NOT_RUN"
+  },
+  "closureCommit": "separate closure commit then normal push and actual remote blob verification; final local/remote HEAD in response"
+}
