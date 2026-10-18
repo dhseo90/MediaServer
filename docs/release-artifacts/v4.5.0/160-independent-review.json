@@ -1,0 +1,41 @@
+{
+  "schema": "media-server.v450.r160.independent-review.v1",
+  "reviewer": "separate existing read-only independent_r155",
+  "requested": {
+    "model": "gpt-6-astra",
+    "effort": "high"
+  },
+  "toolAccepted": null,
+  "actualRuntimeModel": null,
+  "actualRuntimeEffort": null,
+  "unknownReason": "Current creation acceptance unavailable and actual runtime not exposed; prior acceptance not reused",
+  "participation": {
+    "implementation": false,
+    "testWriting": false,
+    "testOrProductExecution": false,
+    "delegation": false
+  },
+  "decision": "AGREE_FAIL_TRACE_BUDGET_CONTRACT",
+  "wholeCycleBudget": "UNVERIFIED",
+  "checks": [
+    "27 original/sanitized evidence byte/hash pairs match",
+    "22 analysis source hashes and3 focused source hashes match",
+    "single-TU binary/map hash and system-only linkage verified",
+    "original fwrite failure: stderr0B, emitted1/113 attempted bytes, streamError=true/localLoss=false/lossMarker=false",
+    "10native children +1 synthetic original112B k3 replay;8initial+1additional tests; signal initiated0.1071659ms after detection;groupsAbsent andcleanupErrors[]",
+    "A–Q UNKNOWN, conditional Visual interval bound, Unlocked reacquire, seed1MiB and shared4MiB preserved",
+    "sidecar byte bounds explicitly conditional; no observed whole-cycle cap exceed claimed",
+    "product/runtime/header unchanged; integrated/product/actualseed0"
+  ],
+  "correctionsApplied": [
+    "AlternativeC distinguishes R157 disabled from R159 enabled; neither retroactive attribution",
+    "Other-thread Release output distinguished from untested pending fast-buffer TLS destructor flush",
+    "Emit OR short-circuit byte-counter behavior clarified"
+  ],
+  "scope": "Supports scoped failure evidence preservation; no new integrated execution or optimization",
+  "remainingClosure": [
+    "binding completion",
+    "remote byte verification",
+    "owned root cleanup"
+  ]
+}

@@ -1,0 +1,236 @@
+{
+  "schema": "media-server.v450.r160.focused.v1",
+  "raw": [
+    {
+      "name": "aggregate.stderr",
+      "originalBytes": 112,
+      "originalSHA256": "86b5b3f4dc8a2e4aca4b8887192f9c39e4a7d72685ba40967375b0447a107b0f",
+      "sanitizedBytes": 112,
+      "sanitizedSHA256": "86b5b3f4dc8a2e4aca4b8887192f9c39e4a7d72685ba40967375b0447a107b0f",
+      "text": "[recording-latency] {\"k\":2,\"o\":1,\"s\":0,\"l\":0,\"m\":1,\"t\":1,\"r\":0,\"b\":1,\"a\":2,\"e\":3,\"n\":3,\"w\":3,\"h\":3,\"x\":1,\"y\":1}\n"
+    },
+    {
+      "name": "aggregate.stdout",
+      "originalBytes": 179,
+      "originalSHA256": "94d900dcd9d0381b1048e290c45e1313038a845fcd626906a10a1c5963480d58",
+      "sanitizedBytes": 179,
+      "sanitizedSHA256": "94d900dcd9d0381b1048e290c45e1313038a845fcd626906a10a1c5963480d58",
+      "text": "[R160-end] {\"mode\":\"aggregate\",\"calls\":3,\"emittedCounter\":1,\"byteCounter\":112,\"localLoss\":false,\"lossMarker\":false,\"streamError\":false,\"enabled\":true,\"slow\":false,\"cleanup\":true}\n"
+    },
+    {
+      "name": "build.log",
+      "originalBytes": 0,
+      "originalSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "sanitizedBytes": 0,
+      "sanitizedSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "text": ""
+    },
+    {
+      "name": "byte-before.stderr",
+      "originalBytes": 113,
+      "originalSHA256": "059d0d8824bccc7a9f2eef9a3d90ff399844fc03c414ee23d99cba9a44066646",
+      "sanitizedBytes": 113,
+      "sanitizedSHA256": "059d0d8824bccc7a9f2eef9a3d90ff399844fc03c414ee23d99cba9a44066646",
+      "text": "[recording-latency] {\"k\":0,\"o\":1,\"s\":1,\"l\":1,\"m\":1,\"t\":1,\"r\":10,\"b\":1,\"a\":2,\"e\":3,\"n\":1,\"w\":1,\"h\":1,\"x\":1,\"y\":1}\n"
+    },
+    {
+      "name": "byte-before.stdout",
+      "originalBytes": 185,
+      "originalSHA256": "0779b0307218c71278b241fdf63e68b460530ad1f64a5dc063ce842b320079df",
+      "sanitizedBytes": 185,
+      "sanitizedSHA256": "0779b0307218c71278b241fdf63e68b460530ad1f64a5dc063ce842b320079df",
+      "text": "[R160-end] {\"mode\":\"byte-before\",\"calls\":1,\"emittedCounter\":1,\"byteCounter\":2096640,\"localLoss\":false,\"lossMarker\":false,\"streamError\":false,\"enabled\":true,\"slow\":false,\"cleanup\":true}\n"
+    },
+    {
+      "name": "byte-over.stderr",
+      "originalBytes": 112,
+      "originalSHA256": "793546d4199ef35e64e5b24ee4311ed339f6872d0fbb4da5c5deeb1b89040b1f",
+      "sanitizedBytes": 112,
+      "sanitizedSHA256": "793546d4199ef35e64e5b24ee4311ed339f6872d0fbb4da5c5deeb1b89040b1f",
+      "text": "[recording-latency] {\"k\":3,\"o\":0,\"s\":0,\"l\":0,\"m\":0,\"t\":0,\"r\":0,\"b\":0,\"a\":0,\"e\":0,\"n\":1,\"w\":0,\"h\":0,\"x\":0,\"y\":0}\n"
+    },
+    {
+      "name": "byte-over.stdout",
+      "originalBytes": 181,
+      "originalSHA256": "01f7db779508b4db2cdfaf1749e4c0b45710be3ee473aca88f83478050409821",
+      "sanitizedBytes": 181,
+      "sanitizedSHA256": "01f7db779508b4db2cdfaf1749e4c0b45710be3ee473aca88f83478050409821",
+      "text": "[R160-end] {\"mode\":\"byte-over\",\"calls\":1,\"emittedCounter\":1,\"byteCounter\":2096641,\"localLoss\":true,\"lossMarker\":true,\"streamError\":false,\"enabled\":true,\"slow\":false,\"cleanup\":true}\n"
+    },
+    {
+      "name": "entry.json",
+      "originalBytes": 378,
+      "originalSHA256": "087e9e55026b1c4ecde189652f28303c2ecd7db99ebccbde6f0fd96583c12d86",
+      "sanitizedBytes": 378,
+      "sanitizedSHA256": "087e9e55026b1c4ecde189652f28303c2ecd7db99ebccbde6f0fd96583c12d86",
+      "text": "{\n  \"baseline\": \"83328bc3ac7b74898c1830478ddab3887ad1e5e3\",\n  \"branch\": \"v4.5.0\",\n  \"clean\": true,\n  \"localTrackingRemoteEqual\": true,\n  \"product\": \"33f516d35d56cb2f6cafc75647b6c37d2ced67115302d1205cca23bf51ab7f79\",\n  \"runtime\": \"2d91cf35fe7e805e0c06e00d16779c86849b35db635e087582277e1b676d198c\",\n  \"header\": \"2747d96d1c1a156692f8d77e05ddc5f89142291dfc60caf5c784d3a550001d1d\"\n}\n"
+    },
+    {
+      "name": "focused.log",
+      "originalBytes": 106,
+      "originalSHA256": "cd6d4dd09051cebea78df020a7143adeacf76bda955bcb5bd2bf993eb5112873",
+      "sanitizedBytes": 106,
+      "sanitizedSHA256": "cd6d4dd09051cebea78df020a7143adeacf76bda955bcb5bd2bf993eb5112873",
+      "text": "........\n----------------------------------------------------------------------\nRan 8 tests in 0.337s\n\nOK\n"
+    },
+    {
+      "name": "format.stderr",
+      "originalBytes": 0,
+      "originalSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "sanitizedBytes": 0,
+      "sanitizedSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "text": ""
+    },
+    {
+      "name": "format.stdout",
+      "originalBytes": 230,
+      "originalSHA256": "ff54c371181c2df59e74c275819ea8c6b1c7f62eca460fc3547acdafee026995",
+      "sanitizedBytes": 230,
+      "sanitizedSHA256": "ff54c371181c2df59e74c275819ea8c6b1c7f62eca460fc3547acdafee026995",
+      "text": "[R160-format] {\"ordinaryBytes\":113,\"u64UpperBytes\":397}\n[R160-end] {\"mode\":\"format\",\"calls\":0,\"emittedCounter\":0,\"byteCounter\":0,\"localLoss\":false,\"lossMarker\":false,\"streamError\":false,\"enabled\":true,\"slow\":false,\"cleanup\":true}\n"
+    },
+    {
+      "name": "native-results.json",
+      "originalBytes": 4675,
+      "originalSHA256": "343020cf4364bd00d2967b52763d15ac7272ce31d628bcae4896a64f65b87242",
+      "sanitizedBytes": 4675,
+      "sanitizedSHA256": "343020cf4364bd00d2967b52763d15ac7272ce31d628bcae4896a64f65b87242",
+      "text": "[\n  {\n    \"mode\": \"format\",\n    \"pid\": 43041,\n    \"exit\": 0,\n    \"seconds\": 0.30474570905789733,\n    \"stdoutBytes\": 230,\n    \"stderrBytes\": 0,\n    \"actualRows\": 0,\n    \"terminal\": {\n      \"mode\": \"format\",\n      \"calls\": 0,\n      \"emittedCounter\": 0,\n      \"byteCounter\": 0,\n      \"localLoss\": false,\n      \"lossMarker\": false,\n      \"streamError\": false,\n      \"enabled\": true,\n      \"slow\": false,\n      \"cleanup\": true\n    },\n    \"groupAbsent\": true\n  },\n  {\n    \"mode\": \"single\",\n    \"pid\": 43043,\n    \"exit\": 0,\n    \"seconds\": 0.004533041967079043,\n    \"stdoutBytes\": 176,\n    \"stderrBytes\": 246,\n    \"actualRows\": 2,\n    \"terminal\": {\n      \"mode\": \"single\",\n      \"calls\": 2,\n      \"emittedCounter\": 2,\n      \"byteCounter\": 246,\n      \"localLoss\": false,\n      \"lossMarker\": false,\n      \"streamError\": false,\n      \"enabled\": true,\n      \"slow\": false,\n      \"cleanup\": true\n    },\n    \"groupAbsent\": true\n  },\n  {\n    \"mode\": \"aggregate\",\n    \"pid\": 43044,\n    \"exit\": 0,\n    \"seconds\": 0.003299000207334757,\n    \"stdoutBytes\": 179,\n    \"stderrBytes\": 112,\n    \"actualRows\": 1,\n    \"terminal\": {\n      \"mode\": \"aggregate\",\n      \"calls\": 3,\n      \"emittedCounter\": 1,\n      \"byteCounter\": 112,\n      \"localLoss\": false,\n      \"lossMarker\": false,\n      \"streamError\": false,\n      \"enabled\": true,\n      \"slow\": false,\n      \"cleanup\": true\n    },\n    \"groupAbsent\": true\n  },\n  {\n    \"mode\": \"slow\",\n    \"pid\": 43045,\n    \"exit\": 0,\n    \"seconds\": 0.0036465830635279417,\n    \"stdoutBytes\": 171,\n    \"stderrBytes\": 335,\n    \"actualRows\": 1,\n    \"terminal\": {\n      \"mode\": \"slow\",\n      \"calls\": 4,\n      \"emittedCounter\": 0,\n      \"byteCounter\": 0,\n      \"localLoss\": false,\n      \"lossMarker\": false,\n      \"streamError\": false,\n      \"enabled\": true,\n      \"slow\": true,\n      \"cleanup\": true\n    },\n    \"groupAbsent\": true\n  },\n  {\n    \"mode\": \"thread\",\n    \"pid\": 43046,\n    \"exit\": 0,\n    \"seconds\": 0.0031933749560266733,\n    \"stdoutBytes\": 176,\n    \"stderrBytes\": 126,\n    \"actualRows\": 1,\n    \"terminal\": {\n      \"mode\": \"thread\",\n      \"calls\": 1,\n      \"emittedCounter\": 1,\n      \"byteCounter\": 126,\n      \"localLoss\": false,\n      \"lossMarker\": false,\n      \"streamError\": false,\n      \"enabled\": true,\n      \"slow\": false,\n      \"cleanup\": true\n    },\n    \"groupAbsent\": true\n  },\n  {\n    \"mode\": \"record-before\",\n    \"pid\": 43047,\n    \"exit\": 0,\n    \"seconds\": 0.0033347089774906635,\n    \"stdoutBytes\": 187,\n    \"stderrBytes\": 113,\n    \"actualRows\": 1,\n    \"terminal\": {\n      \"mode\": \"record-before\",\n      \"calls\": 1,\n      \"emittedCounter\": 16384,\n      \"byteCounter\": 113,\n      \"localLoss\": false,\n      \"lossMarker\": false,\n      \"streamError\": false,\n      \"enabled\": true,\n      \"slow\": false,\n      \"cleanup\": true\n    },\n    \"groupAbsent\": true\n  },\n  {\n    \"mode\": \"record-over\",\n    \"pid\": 43048,\n    \"exit\": 0,\n    \"seconds\": 0.0029831670690327883,\n    \"stdoutBytes\": 181,\n    \"stderrBytes\": 112,\n    \"actualRows\": 1,\n    \"terminal\": {\n      \"mode\": \"record-over\",\n      \"calls\": 1,\n      \"emittedCounter\": 16385,\n      \"byteCounter\": 0,\n      \"localLoss\": true,\n      \"lossMarker\": true,\n      \"streamError\": false,\n      \"enabled\": true,\n      \"slow\": false,\n      \"cleanup\": true\n    },\n    \"groupAbsent\": true\n  },\n  {\n    \"mode\": \"byte-before\",\n    \"pid\": 43049,\n    \"exit\": 0,\n    \"seconds\": 0.003059790935367346,\n    \"stdoutBytes\": 185,\n    \"stderrBytes\": 113,\n    \"actualRows\": 1,\n    \"terminal\": {\n      \"mode\": \"byte-before\",\n      \"calls\": 1,\n      \"emittedCounter\": 1,\n      \"byteCounter\": 2096640,\n      \"localLoss\": false,\n      \"lossMarker\": false,\n      \"streamError\": false,\n      \"enabled\": true,\n      \"slow\": false,\n      \"cleanup\": true\n    },\n    \"groupAbsent\": true\n  },\n  {\n    \"mode\": \"byte-over\",\n    \"pid\": 43050,\n    \"exit\": 0,\n    \"seconds\": 0.0034083749633282423,\n    \"stdoutBytes\": 181,\n    \"stderrBytes\": 112,\n    \"actualRows\": 1,\n    \"terminal\": {\n      \"mode\": \"byte-over\",\n      \"calls\": 1,\n      \"emittedCounter\": 1,\n      \"byteCounter\": 2096641,\n      \"localLoss\": true,\n      \"lossMarker\": true,\n      \"streamError\": false,\n      \"enabled\": true,\n      \"slow\": false,\n      \"cleanup\": true\n    },\n    \"groupAbsent\": true\n  },\n  {\n    \"mode\": \"output-failure\",\n    \"pid\": 43051,\n    \"exit\": 0,\n    \"seconds\": 0.003803833154961467,\n    \"stdoutBytes\": 183,\n    \"stderrBytes\": 0,\n    \"actualRows\": 0,\n    \"terminal\": {\n      \"mode\": \"output-failure\",\n      \"calls\": 1,\n      \"emittedCounter\": 1,\n      \"byteCounter\": 113,\n      \"localLoss\": false,\n      \"lossMarker\": false,\n      \"streamError\": true,\n      \"enabled\": true,\n      \"slow\": false,\n      \"cleanup\": true\n    },\n    \"groupAbsent\": true\n  }\n]\n"
+    },
+    {
+      "name": "output-failure.stderr",
+      "originalBytes": 0,
+      "originalSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "sanitizedBytes": 0,
+      "sanitizedSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "text": ""
+    },
+    {
+      "name": "output-failure.stdout",
+      "originalBytes": 183,
+      "originalSHA256": "b4c020dadcbd29197a3d79f25cc1f7c8f6378f9ed5930f9bf688fc8a6da43f89",
+      "sanitizedBytes": 183,
+      "sanitizedSHA256": "b4c020dadcbd29197a3d79f25cc1f7c8f6378f9ed5930f9bf688fc8a6da43f89",
+      "text": "[R160-end] {\"mode\":\"output-failure\",\"calls\":1,\"emittedCounter\":1,\"byteCounter\":113,\"localLoss\":false,\"lossMarker\":false,\"streamError\":true,\"enabled\":true,\"slow\":false,\"cleanup\":true}\n"
+    },
+    {
+      "name": "record-before.stderr",
+      "originalBytes": 113,
+      "originalSHA256": "059d0d8824bccc7a9f2eef9a3d90ff399844fc03c414ee23d99cba9a44066646",
+      "sanitizedBytes": 113,
+      "sanitizedSHA256": "059d0d8824bccc7a9f2eef9a3d90ff399844fc03c414ee23d99cba9a44066646",
+      "text": "[recording-latency] {\"k\":0,\"o\":1,\"s\":1,\"l\":1,\"m\":1,\"t\":1,\"r\":10,\"b\":1,\"a\":2,\"e\":3,\"n\":1,\"w\":1,\"h\":1,\"x\":1,\"y\":1}\n"
+    },
+    {
+      "name": "record-before.stdout",
+      "originalBytes": 187,
+      "originalSHA256": "18167cabeee357a24f75f49c046542ee842d65e73dc112419158bba539c40ae8",
+      "sanitizedBytes": 187,
+      "sanitizedSHA256": "18167cabeee357a24f75f49c046542ee842d65e73dc112419158bba539c40ae8",
+      "text": "[R160-end] {\"mode\":\"record-before\",\"calls\":1,\"emittedCounter\":16384,\"byteCounter\":113,\"localLoss\":false,\"lossMarker\":false,\"streamError\":false,\"enabled\":true,\"slow\":false,\"cleanup\":true}\n"
+    },
+    {
+      "name": "record-over.stderr",
+      "originalBytes": 112,
+      "originalSHA256": "793546d4199ef35e64e5b24ee4311ed339f6872d0fbb4da5c5deeb1b89040b1f",
+      "sanitizedBytes": 112,
+      "sanitizedSHA256": "793546d4199ef35e64e5b24ee4311ed339f6872d0fbb4da5c5deeb1b89040b1f",
+      "text": "[recording-latency] {\"k\":3,\"o\":0,\"s\":0,\"l\":0,\"m\":0,\"t\":0,\"r\":0,\"b\":0,\"a\":0,\"e\":0,\"n\":1,\"w\":0,\"h\":0,\"x\":0,\"y\":0}\n"
+    },
+    {
+      "name": "record-over.stdout",
+      "originalBytes": 181,
+      "originalSHA256": "cbaadecf4303fb44e52398302d0799f31ed3448db8f18a825520e1b47508d87c",
+      "sanitizedBytes": 181,
+      "sanitizedSHA256": "cbaadecf4303fb44e52398302d0799f31ed3448db8f18a825520e1b47508d87c",
+      "text": "[R160-end] {\"mode\":\"record-over\",\"calls\":1,\"emittedCounter\":16385,\"byteCounter\":0,\"localLoss\":true,\"lossMarker\":true,\"streamError\":false,\"enabled\":true,\"slow\":false,\"cleanup\":true}\n"
+    },
+    {
+      "name": "single.stderr",
+      "originalBytes": 246,
+      "originalSHA256": "b5ef68efca83c95c0b02c6dbe3b357f1fb2bdc668478b97de6b8a01a608d7b10",
+      "sanitizedBytes": 246,
+      "sanitizedSHA256": "b5ef68efca83c95c0b02c6dbe3b357f1fb2bdc668478b97de6b8a01a608d7b10",
+      "text": "[recording-latency] {\"k\":0,\"o\":1,\"s\":1,\"l\":1,\"m\":1,\"t\":1,\"r\":0,\"b\":43,\"a\":126,\"e\":335,\"n\":1,\"w\":83,\"h\":209,\"x\":83,\"y\":209}\n[recording-latency] {\"k\":1,\"o\":3,\"s\":5,\"l\":2,\"m\":0,\"t\":1,\"r\":0,\"b\":5335,\"a\":5335,\"e\":5376,\"n\":1,\"w\":0,\"h\":41,\"x\":0,\"y\":41}\n"
+    },
+    {
+      "name": "single.stdout",
+      "originalBytes": 176,
+      "originalSHA256": "5eb1ef8a5a6359498d4480eebbd1f8e73593723f1d46a6538725df2a4828dff5",
+      "sanitizedBytes": 176,
+      "sanitizedSHA256": "5eb1ef8a5a6359498d4480eebbd1f8e73593723f1d46a6538725df2a4828dff5",
+      "text": "[R160-end] {\"mode\":\"single\",\"calls\":2,\"emittedCounter\":2,\"byteCounter\":246,\"localLoss\":false,\"lossMarker\":false,\"streamError\":false,\"enabled\":true,\"slow\":false,\"cleanup\":true}\n"
+    },
+    {
+      "name": "slow.stderr",
+      "originalBytes": 335,
+      "originalSHA256": "7f72f5567b549d1799baca8ca6f3ee98696254499e4eece2e06dc435a7aad199",
+      "sanitizedBytes": 335,
+      "sanitizedSHA256": "7f72f5567b549d1799baca8ca6f3ee98696254499e4eece2e06dc435a7aad199",
+      "text": "[recording-latency] {\"k\":0,\"o\":1,\"s\":1,\"l\":1,\"m\":1,\"t\":1,\"r\":0,\"b\":1,\"a\":2,\"e\":20000002,\"n\":1,\"w\":1,\"h\":20000000,\"x\":1,\"y\":20000000}\n[recording-slow-summary] {\"seen\":1,\"retained\":1,\"thresholdNs\":10000000}\n[recording-complete-summary] {\"lockCount\":4,\"spanCount\":0,\"maxWaitNs\":1,\"maxHoldNs\":20000000,\"maxSpanNs\":0,\"countOverflow\":false}\n"
+    },
+    {
+      "name": "slow.stdout",
+      "originalBytes": 171,
+      "originalSHA256": "3a1adbb4dfa1ad9bffb1f52555eb529c3d24c0465ca7106acb68a7791afabf29",
+      "sanitizedBytes": 171,
+      "sanitizedSHA256": "3a1adbb4dfa1ad9bffb1f52555eb529c3d24c0465ca7106acb68a7791afabf29",
+      "text": "[R160-end] {\"mode\":\"slow\",\"calls\":4,\"emittedCounter\":0,\"byteCounter\":0,\"localLoss\":false,\"lossMarker\":false,\"streamError\":false,\"enabled\":true,\"slow\":true,\"cleanup\":true}\n"
+    },
+    {
+      "name": "stream-focused.log",
+      "originalBytes": 1266,
+      "originalSHA256": "05e1df3c0e072fcecf8c1a990616f2906b35b094145e6138f0ed1571de695c03",
+      "sanitizedBytes": 1266,
+      "sanitizedSHA256": "05e1df3c0e072fcecf8c1a990616f2906b35b094145e6138f0ed1571de695c03",
+      "text": ".\n----------------------------------------------------------------------\nRan 1 test in 0.332s\n\nOK\n{\n  \"schema\": \"media-server.r153.execution.v1\",\n  \"products\": {},\n  \"seedStarts\": 1,\n  \"fixtureStarts\": 0,\n  \"productStarts\": 0,\n  \"limitSeconds\": 180,\n  \"logCapBytes\": 4194304,\n  \"firstFailure\": \"diagnostic global latency loss\",\n  \"cleanupErrors\": [],\n  \"firstDiagnosticFailure\": {\n    \"stream\": \"child\",\n    \"line\": 1,\n    \"pid\": 43129,\n    \"detectionElapsedSeconds\": 0.3057675000745803,\n    \"failurePhase\": \"confirmed-seed\",\n    \"source\": \"original-lock\",\n    \"code\": \"global latency loss\"\n  },\n  \"termination\": [\n    {\n      \"pid\": 43129,\n      \"signal\": \"SIGTERM\",\n      \"elapsedSeconds\": 0.30587466596625745\n    }\n  ],\n  \"pids\": [\n    43129\n  ],\n  \"collectorStarts\": 0,\n  \"processes\": [\n    {\n      \"role\": \"confirmed-seed\",\n      \"limitSeconds\": 10,\n      \"startElapsedSeconds\": 1.0708114132285118e-05,\n      \"elapsedSeconds\": 0.30720045790076256,\n      \"finalExit\": -15\n    }\n  ],\n  \"runnerFailure\": \"diagnostic global latency loss\",\n  \"diagnosticErrors\": [],\n  \"cleanupEvents\": [],\n  \"qualification\": {\n    \"decision\": \"FAIL_FIXTURE_CONTRACT\"\n  },\n  \"productsAfter\": {},\n  \"elapsedSeconds\": 0.30730154109187424,\n  \"outputBytes\": 112,\n  \"groupsAbsent\": true\n}\n"
+    },
+    {
+      "name": "thread.stderr",
+      "originalBytes": 126,
+      "originalSHA256": "e82323e449a56c35c670db5f934f666daa991c32d00f79ede5abfd9f8b7dfad5",
+      "sanitizedBytes": 126,
+      "sanitizedSHA256": "e82323e449a56c35c670db5f934f666daa991c32d00f79ede5abfd9f8b7dfad5",
+      "text": "[recording-latency] {\"k\":0,\"o\":1,\"s\":1,\"l\":3,\"m\":1,\"t\":2,\"r\":0,\"b\":43,\"a\":126,\"e\":1876,\"n\":1,\"w\":83,\"h\":1750,\"x\":83,\"y\":1750}\n"
+    },
+    {
+      "name": "thread.stdout",
+      "originalBytes": 176,
+      "originalSHA256": "7b59345589555e191df63a16d1219b21fcf4462162fc98ebeee7af3914637adc",
+      "sanitizedBytes": 176,
+      "sanitizedSHA256": "7b59345589555e191df63a16d1219b21fcf4462162fc98ebeee7af3914637adc",
+      "text": "[R160-end] {\"mode\":\"thread\",\"calls\":1,\"emittedCounter\":1,\"byteCounter\":126,\"localLoss\":false,\"lossMarker\":false,\"streamError\":false,\"enabled\":true,\"slow\":false,\"cleanup\":true}\n"
+    },
+    {
+      "name": "stream/execution.json",
+      "originalBytes": 1275,
+      "originalSHA256": "e6fcfdfecee0d629464f7896bf9cc4beb41f8adedd4d7c969723746a46b49296",
+      "sanitizedBytes": 1275,
+      "sanitizedSHA256": "e6fcfdfecee0d629464f7896bf9cc4beb41f8adedd4d7c969723746a46b49296",
+      "text": "{\n  \"schema\": \"media-server.r153.execution.v1\",\n  \"products\": {},\n  \"buildBinding\": {\n    \"products\": {},\n    \"sources\": {},\n    \"dependencies\": {},\n    \"binaries\": {}\n  },\n  \"seedStarts\": 1,\n  \"fixtureStarts\": 0,\n  \"productStarts\": 0,\n  \"limitSeconds\": 180,\n  \"logCapBytes\": 4194304,\n  \"firstFailure\": \"diagnostic global latency loss\",\n  \"cleanupErrors\": [],\n  \"firstDiagnosticFailure\": {\n    \"stream\": \"child\",\n    \"line\": 1,\n    \"pid\": 43129,\n    \"detectionElapsedSeconds\": 0.3057675000745803,\n    \"failurePhase\": \"confirmed-seed\",\n    \"source\": \"original-lock\",\n    \"code\": \"global latency loss\"\n  },\n  \"termination\": [\n    {\n      \"pid\": 43129,\n      \"signal\": \"SIGTERM\",\n      \"elapsedSeconds\": 0.30587466596625745\n    }\n  ],\n  \"pids\": [\n    43129\n  ],\n  \"collectorStarts\": 0,\n  \"processes\": [\n    {\n      \"role\": \"confirmed-seed\",\n      \"limitSeconds\": 10,\n      \"startElapsedSeconds\": 1.0708114132285118e-05,\n      \"elapsedSeconds\": 0.30720045790076256,\n      \"finalExit\": -15\n    }\n  ],\n  \"runnerFailure\": \"diagnostic global latency loss\",\n  \"diagnosticErrors\": [],\n  \"cleanupEvents\": [],\n  \"qualification\": {\n    \"decision\": \"FAIL_FIXTURE_CONTRACT\"\n  },\n  \"productsAfter\": {},\n  \"elapsedSeconds\": 0.30730154109187424,\n  \"outputBytes\": 112,\n  \"groupsAbsent\": true\n}\n"
+    },
+    {
+      "name": "stream/output.log",
+      "originalBytes": 112,
+      "originalSHA256": "793546d4199ef35e64e5b24ee4311ed339f6872d0fbb4da5c5deeb1b89040b1f",
+      "sanitizedBytes": 112,
+      "sanitizedSHA256": "793546d4199ef35e64e5b24ee4311ed339f6872d0fbb4da5c5deeb1b89040b1f",
+      "text": "[recording-latency] {\"k\":3,\"o\":0,\"s\":0,\"l\":0,\"m\":0,\"t\":0,\"r\":0,\"b\":0,\"a\":0,\"e\":0,\"n\":1,\"w\":0,\"h\":0,\"x\":0,\"y\":0}\n"
+    }
+  ],
+  "streamReplay": "synthetic Python child named seed to exercise unchanged base collector, NOT real ConfirmedSeed; original producer k3 bytes replayed exactly; fixtureStarts0",
+  "build": {
+    "command": "c++ -std=c++17 -pthread -O2 -Iinclude scripts/internal/recording_trace_budget_smoke.cpp -Wl,-map,<OWNED>/focused.map -MMD -MF <OWNED>/focused.d -o <OWNED>/focused",
+    "exit": 0,
+    "binaryBytes": 871560,
+    "binarySHA256": "99f389192198c589d81a0c94b8246cbf87961d3e3bf7be602d74fd30513c80ac",
+    "mapSHA256": "5d79e5574183a1812b26c8a1c8a8da797475dbf28e3ce6553ba565a67b8a6bbd",
+    "dependencies": "<R160_OWNED>/focused: \\\n  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/SDKSettings.json \\\n  scripts/internal/recording_trace_budget_smoke.cpp \\\n  include/recording/recording_latency_trace.h\n",
+    "linkage": "single-TU original unchanged header; no runtime archive, shadow header or RECORDING_LATENCY_TRACE_TEST definition"
+  },
+  "sourceSHA256": {
+    "scripts/internal/recording_trace_budget.py": "3c61fc483f07d8130936307614e1efeea605e0eece0d8f46c1ef554fb6c961dc",
+    "scripts/internal/recording_trace_budget.test.py": "437c4ee6dfcbc708a04b1fff91047ea877b87d8979e66962e677b32c37d9d312",
+    "scripts/internal/recording_trace_budget_smoke.cpp": "295488657188b138f86cb8583feb78c9261efb2dcbfdcc70c74530f36c879a39"
+  }
+}

@@ -1,0 +1,98 @@
+{
+  "schema": "media-server.v450.r160.validation.v1",
+  "decision": "FAIL_TRACE_BUDGET_CONTRACT",
+  "reason": "Actual original fwrite error not propagated to producer loss state; complete cycle bounds independently UNVERIFIED. No product/function failure or measured integrated cap overflow asserted.",
+  "entry": {
+    "baseline": "83328bc3ac7b74898c1830478ddab3887ad1e5e3",
+    "branch": "v4.5.0",
+    "clean": true,
+    "localTrackingRemoteEqual": true,
+    "product": "33f516d35d56cb2f6cafc75647b6c37d2ced67115302d1205cca23bf51ab7f79",
+    "runtime": "2d91cf35fe7e805e0c06e00d16779c86849b35db635e087582277e1b676d198c",
+    "header": "2747d96d1c1a156692f8d77e05ddc5f89142291dfc60caf5c784d3a550001d1d"
+  },
+  "model": {
+    "main": {
+      "requestedModel": "gpt-6-astra",
+      "requestedEffort": "high",
+      "toolAccepted": null,
+      "actualRuntimeModel": null,
+      "actualRuntimeEffort": null
+    },
+    "reviewer": {
+      "requestedModel": "gpt-6-astra",
+      "requestedEffort": "high",
+      "toolAccepted": null,
+      "actualRuntimeModel": null,
+      "actualRuntimeEffort": null
+    },
+    "unknown": "Actual runtime not exposed; existing reviewer creation acceptance unavailable; historical acceptance not reused"
+  },
+  "execution": {
+    "nativeFocusedChildren": 10,
+    "syntheticStreamingChildren": 1,
+    "compilerDriverInvocations": 1,
+    "actualConfirmedSeedStarts": 0,
+    "integratedCycles": 0,
+    "productStarts": 0,
+    "HTTPAttribution": "NOT_RUN",
+    "new45": "NOT_RUN",
+    "portsOpened": 0,
+    "bindingNodeDriverInvocations": 3,
+    "compilerSubprocessInternals": "not separately counted; one compiler driver invocation, no product compilation/archive rebuild"
+  },
+  "focused": {
+    "initialCommand": "R160_FOCUSED_ROOT=<OWNED> python3 scripts/internal/recording_trace_budget.test.py",
+    "initialTests": 8,
+    "initialExit": 0,
+    "additionalCommand": "R160_FOCUSED_ROOT=<OWNED> python3 scripts/internal/recording_trace_budget.test.py Native.test_stream_original_loss",
+    "additionalTests": 1,
+    "additionalExit": 0,
+    "result": "PASS_NEGATIVE_DETECTION_AND_DEFECT_REPRODUCTION",
+    "red": "Predefined cap/loss/partial rejection and unchecked-write reproduction; no compiler/environment failure classified as TDD RED",
+    "coverage": "native cap-before/over, exact formatter, forced Lock/Scope, aggregate/slow, thread flush, fwrite failure; deterministic qualifier partial/terminal/cap/selected missing/duplicate; actual streaming k3 triggers signal/group cleanup",
+    "collectorCapLimit": "4MiB validator negative is deterministic in-memory; real streaming tested with original k3. No new4MiB full-output child run.",
+    "lossSignalDelaySeconds": 0.00010716589167714119,
+    "threadFlushLimit": "Other-thread always=true Lock releases and emits before thread exit. Pending fast-buffer TLS-destructor flush is source-inspected, NOT directly exercised by this child."
+  },
+  "binding": {
+    "status": "PASS",
+    "order": [
+      "producer",
+      "readback",
+      "coverage"
+    ],
+    "commands": [
+      "node scripts/internal/verify_v390_review4_feature_semantic_source_audit.mjs --apply-approved-manifest",
+      "node scripts/internal/verify_feature_implementation_evidence.mjs",
+      "node scripts/internal/verify_feature_inventory_coverage.mjs"
+    ],
+    "evidence": "160-binding.json",
+    "semanticManifestDiff": [
+      "inventorySha256"
+    ]
+  },
+  "preservation": "160-focused-evidence.json contains small original/sanitized byte/hash pairs; no media generated",
+  "historical": {
+    "R159": "BLOCKED_LOCK_CALLSITE_INSTRUMENTATION",
+    "R149Functional45": "FAIL",
+    "R149Collection45": "INCOMPLETE",
+    "MemoryP0": "HOLD",
+    "Readiness120": "HOLD",
+    "Release": "HOLD"
+  },
+  "independentReview": "160-independent-review.json",
+  "cleanup": "160-closure.json",
+  "binaryAfter": {
+    "baseline": "83328bc3ac7b74898c1830478ddab3887ad1e5e3",
+    "branch": "v4.5.0",
+    "clean": true,
+    "localTrackingRemoteEqual": true,
+    "product": "33f516d35d56cb2f6cafc75647b6c37d2ced67115302d1205cca23bf51ab7f79",
+    "runtime": "2d91cf35fe7e805e0c06e00d16779c86849b35db635e087582277e1b676d198c",
+    "header": "2747d96d1c1a156692f8d77e05ddc5f89142291dfc60caf5c784d3a550001d1d"
+  },
+  "sourceChangeBoundary": "Only3 test files and inventory/binding/evidence; product src/include and existing runner/overlays unchanged.",
+  "independentResult": "AGREE_FAIL_TRACE_BUDGET_CONTRACT",
+  "testCommit": "2a8054952eda85a243b01777c69e2d4a2c49cd03"
+}

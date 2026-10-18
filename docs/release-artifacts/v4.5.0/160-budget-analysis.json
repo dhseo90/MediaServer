@@ -1,0 +1,1044 @@
+{
+  "schema": "media-server.v450.r160.budget.v1",
+  "decision": "FAIL_TRACE_BUDGET_CONTRACT",
+  "wholeCycleBudget": "UNVERIFIED",
+  "observedWholeCycleCapExceed": false,
+  "producer": {
+    "source": "include/recording/recording_latency_trace.h:216-289",
+    "records": 16384,
+    "byteCap": 2097152,
+    "reserve": 512,
+    "normalAdmittedBytes": 2096640,
+    "rowFields": 15,
+    "rowAllUint64MaximumBytes": 397,
+    "ordinaryFocusedBytes": 113,
+    "guaranteedWorstFormatRows": 5281,
+    "formatOnlyHeadroomBytes": 83,
+    "warning": "5281 is a sufficient formatter-only normal-row capacity, NOT a proven cycle bound; no average-size extrapolation",
+    "counters": "Attempt record counter increases before record-cap rejection; byte counter increases only if record-cap OR branch did not short-circuit. Byte-cap rejection consumes attempted bytes. k3 bypasses both caps, once globally at Flush after local loss.",
+    "writeFailure": "SinkLine discards fwrite result; focused ferror=true with local.loss=false and loss_emitted=false; failed bytes are not delivered evidence",
+    "aggregation": "k2 combines fast (<1ms acquisition AND hold), same operation/mutex,32 TLS slots; k0/k1 may remain individual; no reduction assumed in conservative cycle budget",
+    "always": "selected always=true preserves k0/n1 only in normal mode; slow-only takes precedence and may drop fast rows",
+    "buffers": "128 TLS rows,32 fast keys,128 mutex registry; overflow loses data; registry does not reclaim identity slots",
+    "flush": "Release/Scope depth0 flush; FinishThread/TLS destructor FlushFast; request scope boundaries flush; request0 fast-events256 flush; abrupt termination not normal flush proof",
+    "slowOnly": "64 slow tail retained >=10ms, all completed counts, exit emission outside normal Emit cap; not R159 configuration"
+  },
+  "processes": [
+    {
+      "name": "confirmed-seed",
+      "count": 1,
+      "trace": true,
+      "capScope": "own process counters",
+      "additionalOutputCap": 1048576,
+      "deadlineSeconds": 10
+    },
+    {
+      "name": "native-fixture",
+      "count": 1,
+      "trace": true,
+      "threads": [
+        "HTTP",
+        "Visual",
+        "source/writer",
+        "evidence/review"
+      ],
+      "capScope": "shared within this process, not with seed"
+    },
+    {
+      "name": "Python runner",
+      "count": 1,
+      "trace": false
+    },
+    {
+      "name": "Node resource observer",
+      "count": 1,
+      "trace": false,
+      "outputUpper": null
+    },
+    {
+      "name": "process-metrics helper",
+      "count": null,
+      "trace": false,
+      "reason": "observer repeats collectProcess, PATH-only env, no original header producer; exact subprocess count not measured; each child maxBuffer16384 and timeout3s"
+    },
+    {
+      "name": "external plugin helpers",
+      "count": null,
+      "trace": false,
+      "reason": "no known linkage to original header; startup diagnostics/output size UNKNOWN"
+    }
+  ],
+  "environment": "R159 runner sets LATENCY_TRACE=1 SLOW_ONLY=0 HOLDER_TRACE=0; R154 wrapper SEARCH_TRACE=1; base isolation forwards environment to seed/fixture/Node. Metrics helper receives PATH-only. Independent process-static caps.",
+  "phases": [
+    {
+      "phase": "A",
+      "name": "process startup",
+      "process": "seed+fixture",
+      "tracePath": "gst_init, static/TLS diagnostic initialization; no standalone startup Row bound",
+      "source": "scripts/internal/recording_accumulated_seed.cpp; scripts/internal/recording_accumulated_http_smoke.cpp",
+      "iterationEvidence": "2 native process launches in proposed cycle; plugin subprocess/output cardinality UNKNOWN",
+      "k0Upper": null,
+      "k1Upper": null,
+      "k2Upper": null,
+      "serializedBytesUpper": null,
+      "status": "UNKNOWN",
+      "reason": "Complete conditional nested call multiplicity not proven; UNKNOWN is not zero, an assertion of infinity, or observed overflow. Phases overlap; do not sum path inventories."
+    },
+    {
+      "phase": "B",
+      "name": "RuntimeStorage Open",
+      "process": "seed+fixture",
+      "tracePath": "Open/RecoverOpen/PublishPreparedCutover and Catalog Open/Checkpoint scopes",
+      "source": "src/recording/recording_runtime_composition.cpp:24; src/recording/recording_catalog.cpp:902",
+      "iterationEvidence": "one explicit Open per native process; conditional recovery/cutover nested calls UNKNOWN",
+      "k0Upper": null,
+      "k1Upper": null,
+      "k2Upper": null,
+      "serializedBytesUpper": null,
+      "status": "UNKNOWN",
+      "reason": "Complete conditional nested call multiplicity not proven; UNKNOWN is not zero, an assertion of infinity, or observed overflow. Phases overlap; do not sum path inventories."
+    },
+    {
+      "phase": "C",
+      "name": "A seed",
+      "process": "seed",
+      "tracePath": "writer commit, source binding, Refresh, metadata projector, evidence and checkpoint Catalog calls",
+      "source": "scripts/internal/va_review_confirmed_checks.h:10",
+      "iterationEvidence": "30 input samples; finalized1 before accumulation; 2 evidence packages; these are not complete Lock counts",
+      "k0Upper": null,
+      "k1Upper": null,
+      "k2Upper": null,
+      "serializedBytesUpper": null,
+      "status": "UNKNOWN",
+      "reason": "Complete conditional nested call multiplicity not proven; UNKNOWN is not zero, an assertion of infinity, or observed overflow. Phases overlap; do not sum path inventories."
+    },
+    {
+      "phase": "D",
+      "name": "general accumulation and manifest",
+      "process": "fixture",
+      "tracePath": "typed writer Start/Push/Stop, V2 ResolveMedia hold/validate/release, binding and manifest reads",
+      "source": "scripts/internal/recording_accumulated_http_smoke.cpp",
+      "iterationEvidence": "2 channels*4 generations*120 =960 pushes; 8 writer instances; initial total17 files/990samples;17 manifest media resolutions;2 representative decode checks",
+      "k0Upper": null,
+      "k1Upper": null,
+      "k2Upper": null,
+      "serializedBytesUpper": null,
+      "status": "UNKNOWN",
+      "reason": "Complete conditional nested call multiplicity not proven; UNKNOWN is not zero, an assertion of infinity, or observed overflow. Phases overlap; do not sum path inventories."
+    },
+    {
+      "phase": "E",
+      "name": "Catalog/Journal initialization",
+      "process": "seed+fixture",
+      "tracePath": "Catalog Open/validation/checkpoint; Journal callbacks invoke Catalog; Journal std::mutex is not itself latency::Lock",
+      "source": "src/recording/recording_runtime_composition.cpp; src/recording/recording_journal.cpp",
+      "iterationEvidence": "overlaps B/C/D; do not sum these phase inventories",
+      "k0Upper": null,
+      "k1Upper": null,
+      "k2Upper": null,
+      "serializedBytesUpper": null,
+      "status": "UNKNOWN",
+      "reason": "Complete conditional nested call multiplicity not proven; UNKNOWN is not zero, an assertion of infinity, or observed overflow. Phases overlap; do not sum path inventories."
+    },
+    {
+      "phase": "F",
+      "name": "Visual service construction",
+      "process": "fixture",
+      "tracePath": "worker Start/load; service objects share runtime/catalog; worker mutex std::mutex is not original Row producer",
+      "source": "src/recording/visual_index_worker.cpp:45; src/ingress/visual_search_application_service.cpp",
+      "iterationEvidence": "one worker; initial requested_=true; cache load is not a whole producer bound",
+      "k0Upper": null,
+      "k1Upper": null,
+      "k2Upper": null,
+      "serializedBytesUpper": null,
+      "status": "UNKNOWN",
+      "reason": "Complete conditional nested call multiplicity not proven; UNKNOWN is not zero, an assertion of infinity, or observed overflow. Phases overlap; do not sum path inventories."
+    },
+    {
+      "phase": "G",
+      "name": "Visual initial rebuild",
+      "process": "fixture worker",
+      "tracePath": "SnapshotStatusImpl, CaptureVisualSourceKeys/RetentionSnapshotPrepared, per-key ReadVisualSource, decode hold/validation",
+      "source": "src/recording/recording_visual_source.cpp:57; src/recording/recording_catalog.cpp:2786",
+      "iterationEvidence": "one initial attempt; key cardinality, conditional rebuild work and nested calls not reduced to complete row bound",
+      "k0Upper": null,
+      "k1Upper": null,
+      "k2Upper": null,
+      "serializedBytesUpper": null,
+      "status": "UNKNOWN",
+      "reason": "Complete conditional nested call multiplicity not proven; UNKNOWN is not zero, an assertion of infinity, or observed overflow. Phases overlap; do not sum path inventories."
+    },
+    {
+      "phase": "H",
+      "name": "Visual periodic refresh",
+      "process": "fixture worker",
+      "tracePath": "same source scan and possibly rebuild; no aggregation assumed",
+      "source": "src/recording/visual_index_worker.cpp:179; src/recording/recording_catalog.cpp:4514",
+      "iterationEvidence": "initial + at most180 one-second waits within180s (167 within166s work), conditional on current caller graph: no RequestRebuild call outside definition/declaration. Scheduler delays decrease repetitions; each scan row bound remains UNKNOWN",
+      "k0Upper": null,
+      "k1Upper": null,
+      "k2Upper": null,
+      "serializedBytesUpper": null,
+      "status": "UNKNOWN",
+      "reason": "Complete conditional nested call multiplicity not proven; UNKNOWN is not zero, an assertion of infinity, or observed overflow. Phases overlap; do not sum path inventories."
+    },
+    {
+      "phase": "I",
+      "name": "auth and HTTP readiness",
+      "process": "fixture",
+      "tracePath": "Auth/status polls and HTTP service readiness; indirect Catalog only where actual service calls it",
+      "source": "scripts/internal/recording_accumulated_http_smoke.cpp",
+      "iterationEvidence": "readiness loop60s/100ms bounded; no new auth bypass; status locks are not necessarily latency Rows",
+      "k0Upper": null,
+      "k1Upper": null,
+      "k2Upper": null,
+      "serializedBytesUpper": null,
+      "status": "UNKNOWN",
+      "reason": "Complete conditional nested call multiplicity not proven; UNKNOWN is not zero, an assertion of infinity, or observed overflow. Phases overlap; do not sum path inventories."
+    },
+    {
+      "phase": "J",
+      "name": "Structured2+Visual2",
+      "process": "fixture HTTP threads",
+      "tracePath": "Capture/Refresh/WithPlayback/Currentness; selected7 APIs plus unselected Catalog, SearchSource, ReadService Scope; visual RequestMedia",
+      "source": "src/ingress/recording_search_application_service.cpp; src/ingress/visual_search_application_service.cpp",
+      "iterationEvidence": "4 parallel requests; R159 selected maximum128 calls/request for3 structured requests is not all-cycle count; Search retry<=3 does not bound per-document calls alone",
+      "k0Upper": null,
+      "k1Upper": null,
+      "k2Upper": null,
+      "serializedBytesUpper": null,
+      "status": "UNKNOWN",
+      "reason": "Complete conditional nested call multiplicity not proven; UNKNOWN is not zero, an assertion of infinity, or observed overflow. Phases overlap; do not sum path inventories."
+    },
+    {
+      "phase": "K",
+      "name": "Evidence/readback",
+      "process": "fixture",
+      "tracePath": "actual create/status/assets, media acquire/inspection/release, evidence workers",
+      "source": "scripts/internal/recording_accumulated_http_smoke.cpp",
+      "iterationEvidence": "normal structured and visual evidence then asset loops; readback asset cardinality and nested trace multiplicity not fully bounded",
+      "k0Upper": null,
+      "k1Upper": null,
+      "k2Upper": null,
+      "serializedBytesUpper": null,
+      "status": "UNKNOWN",
+      "reason": "Complete conditional nested call multiplicity not proven; UNKNOWN is not zero, an assertion of infinity, or observed overflow. Phases overlap; do not sum path inventories."
+    },
+    {
+      "phase": "L",
+      "name": "A prepare/draft/confirm",
+      "process": "fixture",
+      "tracePath": "Search channel1, original reference resolution, evidence and review/durable state",
+      "source": "scripts/internal/recording_accumulated_http_smoke.cpp; scripts/internal/v450_recording_a_load.mjs",
+      "iterationEvidence": "fixed request class #60 and existing package/draft/confirm; total28 HTTP is historical fixed fixture expectation, not dynamic row upper bound",
+      "k0Upper": null,
+      "k1Upper": null,
+      "k2Upper": null,
+      "serializedBytesUpper": null,
+      "status": "UNKNOWN",
+      "reason": "Complete conditional nested call multiplicity not proven; UNKNOWN is not zero, an assertion of infinity, or observed overflow. Phases overlap; do not sum path inventories."
+    },
+    {
+      "phase": "M",
+      "name": "Background recording",
+      "process": "fixture source threads",
+      "tracePath": "writer Open/Push/Finalize, admission, ready ticket/commit, final binding checks",
+      "source": "scripts/internal/recording_source_http_fixture.h:13; src/recording/gstreamer_segment_writer.cpp:503",
+      "iterationEvidence": "target1200/channel is stop threshold, not upper bound; peer guard2048/channel bounds successful observed peer vector, not all writer callbacks; source55s; new file count UNKNOWN (not historical41)",
+      "k0Upper": null,
+      "k1Upper": null,
+      "k2Upper": null,
+      "serializedBytesUpper": null,
+      "status": "UNKNOWN",
+      "reason": "Complete conditional nested call multiplicity not proven; UNKNOWN is not zero, an assertion of infinity, or observed overflow. Phases overlap; do not sum path inventories."
+    },
+    {
+      "phase": "N",
+      "name": "Retention/maintenance",
+      "process": "fixture background",
+      "tracePath": "RunPeriodic -> prepared cut/rebase/Apply; Catalog holds and policy/protection validation",
+      "source": "scripts/internal/recording_source_http_fixture.h; src/recording/retention_coordinator.cpp",
+      "iterationEvidence": "1s predicate waits with early terminal wake; conservative57 loop opportunities conditional successful55s sequential wait bounds; per-plan candidate/Apply row count UNKNOWN",
+      "k0Upper": null,
+      "k1Upper": null,
+      "k2Upper": null,
+      "serializedBytesUpper": null,
+      "status": "UNKNOWN",
+      "reason": "Complete conditional nested call multiplicity not proven; UNKNOWN is not zero, an assertion of infinity, or observed overflow. Phases overlap; do not sum path inventories."
+    },
+    {
+      "phase": "O",
+      "name": "Visual/HTTP/service shutdown",
+      "process": "fixture",
+      "tracePath": "Stop/join, response and retired-reader destruction, hold return, TLS flush",
+      "source": "scripts/internal/recording_accumulated_http_smoke.cpp; src/recording/visual_index_worker.cpp:56",
+      "iterationEvidence": "one normal service Stop sequence; outstanding readers/calls and normal vs forced shutdown differ; exact Row bound UNKNOWN",
+      "k0Upper": null,
+      "k1Upper": null,
+      "k2Upper": null,
+      "serializedBytesUpper": null,
+      "status": "UNKNOWN",
+      "reason": "Complete conditional nested call multiplicity not proven; UNKNOWN is not zero, an assertion of infinity, or observed overflow. Phases overlap; do not sum path inventories."
+    },
+    {
+      "phase": "P",
+      "name": "RuntimeStorage Finish",
+      "process": "seed+fixture",
+      "tracePath": "journal Finish plus later Catalog/owner destruction and deferred hold release",
+      "source": "src/recording/recording_runtime_composition.cpp:24",
+      "iterationEvidence": "Finish call itself does not prove all later destructor/TLS outputs flushed; exact Row bound UNKNOWN",
+      "k0Upper": null,
+      "k1Upper": null,
+      "k2Upper": null,
+      "serializedBytesUpper": null,
+      "status": "UNKNOWN",
+      "reason": "Complete conditional nested call multiplicity not proven; UNKNOWN is not zero, an assertion of infinity, or observed overflow. Phases overlap; do not sum path inventories."
+    },
+    {
+      "phase": "Q",
+      "name": "final ownership/collector cleanup",
+      "process": "fixture+Python+Node",
+      "tracePath": "logical owner output, observer final checks, child/group and pipe cleanup",
+      "source": "scripts/internal/recording_accumulated_http_run.py:143",
+      "iterationEvidence": "Python/Node no original C++ Row producer; pending native threads/destructors belong to native process; forced signals cannot prove normal flush",
+      "k0Upper": null,
+      "k1Upper": null,
+      "k2Upper": null,
+      "serializedBytesUpper": null,
+      "status": "UNKNOWN",
+      "reason": "Complete conditional nested call multiplicity not proven; UNKNOWN is not zero, an assertion of infinity, or observed overflow. Phases overlap; do not sum path inventories."
+    }
+  ],
+  "staticSiteInventory": [
+    {
+      "file": "src/ingress/recording_application_service.cpp",
+      "line": 127,
+      "kind": "Scope"
+    },
+    {
+      "file": "src/ingress/recording_application_service.cpp",
+      "line": 131,
+      "kind": "Scope"
+    },
+    {
+      "file": "src/ingress/recording_application_service.cpp",
+      "line": 164,
+      "kind": "Scope"
+    },
+    {
+      "file": "src/ingress/recording_application_service.cpp",
+      "line": 181,
+      "kind": "Scope"
+    },
+    {
+      "file": "src/ingress/recording_application_service.cpp",
+      "line": 211,
+      "kind": "Scope"
+    },
+    {
+      "file": "src/recording/recording_catalog.cpp",
+      "line": 476,
+      "kind": "Lock"
+    },
+    {
+      "file": "src/recording/recording_catalog.cpp",
+      "line": 482,
+      "kind": "Lock"
+    },
+    {
+      "file": "src/recording/recording_catalog.cpp",
+      "line": 771,
+      "kind": "Lock"
+    },
+    {
+      "file": "src/recording/recording_catalog.cpp",
+      "line": 789,
+      "kind": "Lock"
+    },
+    {
+      "file": "src/recording/recording_catalog.cpp",
+      "line": 823,
+      "kind": "Lock"
+    },
+    {
+      "file": "src/recording/recording_catalog.cpp",
+      "line": 830,
+      "kind": "Lock"
+    },
+    {
+      "file": "src/recording/recording_catalog.cpp",
+      "line": 835,
+      "kind": "Lock"
+    },
+    {
+      "file": "src/recording/recording_catalog.cpp",
+      "line": 840,
+      "kind": "Lock"
+    },
+    {
+      "file": "src/recording/recording_catalog.cpp",
+      "line": 846,
+      "kind": "Lock"
+    },
+    {
+      "file": "src/recording/recording_catalog.cpp",
+      "line": 849,
+      "kind": "Lock"
+    },
+    {
+      "file": "src/recording/recording_catalog.cpp",
+      "line": 887,
+      "kind": "Lock"
+    },
+    {
+      "file": "src/recording/recording_catalog.cpp",
+      "line": 897,
+      "kind": "Lock"
+    },
+    {
+      "file": "src/recording/recording_catalog.cpp",
+      "line": 902,
+      "kind": "Scope"
+    },
+    {
+      "file": "src/recording/recording_catalog.cpp",
+      "line": 907,
+      "kind": "Scope"
+    },
+    {
+      "file": "src/recording/recording_catalog.cpp",
+      "line": 911,
+      "kind": "Unlocked/reacquire"
+    },
+    {
+      "file": "src/recording/recording_catalog.cpp",
+      "line": 915,
+      "kind": "Scope"
+    },
+    {
+      "file": "src/recording/recording_catalog.cpp",
+      "line": 939,
+      "kind": "Scope"
+    },
+    {
+      "file": "src/recording/recording_catalog.cpp",
+      "line": 958,
+      "kind": "Lock"
+    },
+    {
+      "file": "src/recording/recording_catalog.cpp",
+      "line": 968,
+      "kind": "Lock"
+    },
+    {
+      "file": "src/recording/recording_catalog.cpp",
+      "line": 986,
+      "kind": "Lock"
+    },
+    {
+      "file": "src/recording/recording_catalog.cpp",
+      "line": 996,
+      "kind": "Lock"
+    },
+    {
+      "file": "src/recording/recording_catalog.cpp",
+      "line": 1018,
+      "kind": "Scope"
+    },
+    {
+      "file": "src/recording/recording_catalog.cpp",
+      "line": 1137,
+      "kind": "Scope"
+    },
+    {
+      "file": "src/recording/recording_catalog.cpp",
+      "line": 1232,
+      "kind": "Lock"
+    },
+    {
+      "file": "src/recording/recording_catalog.cpp",
+      "line": 1255,
+      "kind": "Lock"
+    },
+    {
+      "file": "src/recording/recording_catalog.cpp",
+      "line": 1330,
+      "kind": "Scope"
+    },
+    {
+      "file": "src/recording/recording_catalog.cpp",
+      "line": 1332,
+      "kind": "Scope"
+    },
+    {
+      "file": "src/recording/recording_catalog.cpp",
+      "line": 1355,
+      "kind": "Scope"
+    },
+    {
+      "file": "src/recording/recording_catalog.cpp",
+      "line": 1384,
+      "kind": "Scope"
+    },
+    {
+      "file": "src/recording/recording_catalog.cpp",
+      "line": 1404,
+      "kind": "Scope"
+    },
+    {
+      "file": "src/recording/recording_catalog.cpp",
+      "line": 1547,
+      "kind": "Lock"
+    },
+    {
+      "file": "src/recording/recording_catalog.cpp",
+      "line": 1552,
+      "kind": "Lock"
+    },
+    {
+      "file": "src/recording/recording_catalog.cpp",
+      "line": 1581,
+      "kind": "Lock"
+    },
+    {
+      "file": "src/recording/recording_catalog.cpp",
+      "line": 2257,
+      "kind": "Lock"
+    },
+    {
+      "file": "src/recording/recording_catalog.cpp",
+      "line": 2360,
+      "kind": "Scope"
+    },
+    {
+      "file": "src/recording/recording_catalog.cpp",
+      "line": 2496,
+      "kind": "Lock"
+    },
+    {
+      "file": "src/recording/recording_catalog.cpp",
+      "line": 2552,
+      "kind": "Lock"
+    },
+    {
+      "file": "src/recording/recording_catalog.cpp",
+      "line": 2556,
+      "kind": "Lock"
+    },
+    {
+      "file": "src/recording/recording_catalog.cpp",
+      "line": 2788,
+      "kind": "Lock"
+    },
+    {
+      "file": "src/recording/recording_catalog.cpp",
+      "line": 2798,
+      "kind": "Unlocked/reacquire"
+    },
+    {
+      "file": "src/recording/recording_catalog.cpp",
+      "line": 2825,
+      "kind": "Lock"
+    },
+    {
+      "file": "src/recording/recording_catalog.cpp",
+      "line": 2842,
+      "kind": "Lock"
+    },
+    {
+      "file": "src/recording/recording_catalog.cpp",
+      "line": 2848,
+      "kind": "Lock"
+    },
+    {
+      "file": "src/recording/recording_catalog.cpp",
+      "line": 2860,
+      "kind": "Lock"
+    },
+    {
+      "file": "src/recording/recording_catalog.cpp",
+      "line": 2907,
+      "kind": "Lock"
+    },
+    {
+      "file": "src/recording/recording_catalog.cpp",
+      "line": 2910,
+      "kind": "Unlocked/reacquire"
+    },
+    {
+      "file": "src/recording/recording_catalog.cpp",
+      "line": 2957,
+      "kind": "Lock"
+    },
+    {
+      "file": "src/recording/recording_catalog.cpp",
+      "line": 2966,
+      "kind": "Unlocked/reacquire"
+    },
+    {
+      "file": "src/recording/recording_catalog.cpp",
+      "line": 3045,
+      "kind": "Lock"
+    },
+    {
+      "file": "src/recording/recording_catalog.cpp",
+      "line": 3072,
+      "kind": "Lock"
+    },
+    {
+      "file": "src/recording/recording_catalog.cpp",
+      "line": 3087,
+      "kind": "Lock"
+    },
+    {
+      "file": "src/recording/recording_catalog.cpp",
+      "line": 3114,
+      "kind": "Lock"
+    },
+    {
+      "file": "src/recording/recording_catalog.cpp",
+      "line": 3160,
+      "kind": "Lock"
+    },
+    {
+      "file": "src/recording/recording_catalog.cpp",
+      "line": 3175,
+      "kind": "Lock"
+    },
+    {
+      "file": "src/recording/recording_catalog.cpp",
+      "line": 3188,
+      "kind": "Lock"
+    },
+    {
+      "file": "src/recording/recording_catalog.cpp",
+      "line": 3222,
+      "kind": "Lock"
+    },
+    {
+      "file": "src/recording/recording_catalog.cpp",
+      "line": 3253,
+      "kind": "Lock"
+    },
+    {
+      "file": "src/recording/recording_catalog.cpp",
+      "line": 3286,
+      "kind": "Lock"
+    },
+    {
+      "file": "src/recording/recording_catalog.cpp",
+      "line": 3293,
+      "kind": "Lock"
+    },
+    {
+      "file": "src/recording/recording_catalog.cpp",
+      "line": 3337,
+      "kind": "Lock"
+    },
+    {
+      "file": "src/recording/recording_catalog.cpp",
+      "line": 3343,
+      "kind": "Lock"
+    },
+    {
+      "file": "src/recording/recording_catalog.cpp",
+      "line": 3522,
+      "kind": "Lock"
+    },
+    {
+      "file": "src/recording/recording_catalog.cpp",
+      "line": 3543,
+      "kind": "Lock"
+    },
+    {
+      "file": "src/recording/recording_catalog.cpp",
+      "line": 3564,
+      "kind": "Lock"
+    },
+    {
+      "file": "src/recording/recording_catalog.cpp",
+      "line": 3617,
+      "kind": "Lock"
+    },
+    {
+      "file": "src/recording/recording_catalog.cpp",
+      "line": 3696,
+      "kind": "Lock"
+    },
+    {
+      "file": "src/recording/recording_catalog.cpp",
+      "line": 3717,
+      "kind": "Lock"
+    },
+    {
+      "file": "src/recording/recording_catalog.cpp",
+      "line": 3732,
+      "kind": "Lock"
+    },
+    {
+      "file": "src/recording/recording_catalog.cpp",
+      "line": 3742,
+      "kind": "Lock"
+    },
+    {
+      "file": "src/recording/recording_catalog.cpp",
+      "line": 3758,
+      "kind": "Lock"
+    },
+    {
+      "file": "src/recording/recording_catalog.cpp",
+      "line": 3782,
+      "kind": "Lock"
+    },
+    {
+      "file": "src/recording/recording_catalog.cpp",
+      "line": 3794,
+      "kind": "Lock"
+    },
+    {
+      "file": "src/recording/recording_catalog.cpp",
+      "line": 3803,
+      "kind": "Lock"
+    },
+    {
+      "file": "src/recording/recording_catalog.cpp",
+      "line": 3813,
+      "kind": "Lock"
+    },
+    {
+      "file": "src/recording/recording_catalog.cpp",
+      "line": 3866,
+      "kind": "Lock"
+    },
+    {
+      "file": "src/recording/recording_catalog.cpp",
+      "line": 3874,
+      "kind": "Lock"
+    },
+    {
+      "file": "src/recording/recording_catalog.cpp",
+      "line": 3953,
+      "kind": "Lock"
+    },
+    {
+      "file": "src/recording/recording_catalog.cpp",
+      "line": 3988,
+      "kind": "Lock"
+    },
+    {
+      "file": "src/recording/recording_catalog.cpp",
+      "line": 3997,
+      "kind": "Lock"
+    },
+    {
+      "file": "src/recording/recording_catalog.cpp",
+      "line": 4007,
+      "kind": "Lock"
+    },
+    {
+      "file": "src/recording/recording_catalog.cpp",
+      "line": 4025,
+      "kind": "Lock"
+    },
+    {
+      "file": "src/recording/recording_catalog.cpp",
+      "line": 4102,
+      "kind": "Lock"
+    },
+    {
+      "file": "src/recording/recording_catalog.cpp",
+      "line": 4141,
+      "kind": "Lock"
+    },
+    {
+      "file": "src/recording/recording_catalog.cpp",
+      "line": 4152,
+      "kind": "Lock"
+    },
+    {
+      "file": "src/recording/recording_catalog.cpp",
+      "line": 4218,
+      "kind": "Lock"
+    },
+    {
+      "file": "src/recording/recording_catalog.cpp",
+      "line": 4225,
+      "kind": "Lock"
+    },
+    {
+      "file": "src/recording/recording_catalog.cpp",
+      "line": 4245,
+      "kind": "Lock"
+    },
+    {
+      "file": "src/recording/recording_catalog.cpp",
+      "line": 4262,
+      "kind": "Lock"
+    },
+    {
+      "file": "src/recording/recording_catalog.cpp",
+      "line": 4273,
+      "kind": "Lock"
+    },
+    {
+      "file": "src/recording/recording_catalog.cpp",
+      "line": 4288,
+      "kind": "Lock"
+    },
+    {
+      "file": "src/recording/recording_catalog.cpp",
+      "line": 4301,
+      "kind": "Lock"
+    },
+    {
+      "file": "src/recording/recording_catalog.cpp",
+      "line": 4330,
+      "kind": "Lock"
+    },
+    {
+      "file": "src/recording/recording_catalog.cpp",
+      "line": 4532,
+      "kind": "Lock"
+    },
+    {
+      "file": "src/recording/recording_catalog.cpp",
+      "line": 4536,
+      "kind": "Unlocked/reacquire"
+    },
+    {
+      "file": "src/recording/recording_catalog.cpp",
+      "line": 4572,
+      "kind": "Lock"
+    },
+    {
+      "file": "src/recording/recording_catalog.cpp",
+      "line": 4657,
+      "kind": "Lock"
+    },
+    {
+      "file": "src/recording/recording_catalog.cpp",
+      "line": 4669,
+      "kind": "Lock"
+    },
+    {
+      "file": "src/recording/recording_catalog.cpp",
+      "line": 4686,
+      "kind": "Lock"
+    },
+    {
+      "file": "src/recording/recording_catalog.cpp",
+      "line": 4701,
+      "kind": "Lock"
+    },
+    {
+      "file": "src/recording/recording_catalog.cpp",
+      "line": 4712,
+      "kind": "Lock"
+    },
+    {
+      "file": "src/recording/recording_catalog.cpp",
+      "line": 4729,
+      "kind": "Lock"
+    },
+    {
+      "file": "src/recording/recording_catalog.cpp",
+      "line": 4737,
+      "kind": "Lock"
+    },
+    {
+      "file": "src/recording/recording_catalog.cpp",
+      "line": 4752,
+      "kind": "Lock"
+    },
+    {
+      "file": "src/recording/recording_catalog.cpp",
+      "line": 4777,
+      "kind": "Lock"
+    },
+    {
+      "file": "src/recording/recording_catalog.cpp",
+      "line": 4856,
+      "kind": "Lock"
+    },
+    {
+      "file": "src/recording/recording_catalog.cpp",
+      "line": 4911,
+      "kind": "Lock"
+    },
+    {
+      "file": "src/recording/recording_catalog.cpp",
+      "line": 4966,
+      "kind": "Lock"
+    },
+    {
+      "file": "src/recording/recording_catalog.cpp",
+      "line": 5122,
+      "kind": "Scope"
+    },
+    {
+      "file": "src/recording/recording_catalog_cutover_candidate.cpp",
+      "line": 24,
+      "kind": "Lock"
+    },
+    {
+      "file": "src/recording/recording_catalog_cutover_candidate.cpp",
+      "line": 31,
+      "kind": "Lock"
+    },
+    {
+      "file": "src/recording/recording_catalog_cutover_candidate.cpp",
+      "line": 71,
+      "kind": "Lock"
+    },
+    {
+      "file": "src/recording/recording_catalog_cutover_candidate.cpp",
+      "line": 234,
+      "kind": "Lock"
+    },
+    {
+      "file": "src/recording/recording_catalog_snapshot_export.cpp",
+      "line": 83,
+      "kind": "Lock"
+    },
+    {
+      "file": "src/recording/recording_read_service.cpp",
+      "line": 600,
+      "kind": "Scope"
+    },
+    {
+      "file": "src/recording/recording_read_service.cpp",
+      "line": 716,
+      "kind": "Scope"
+    },
+    {
+      "file": "src/recording/recording_search_source.cpp",
+      "line": 90,
+      "kind": "Lock"
+    },
+    {
+      "file": "src/recording/recording_search_source.cpp",
+      "line": 120,
+      "kind": "Lock"
+    },
+    {
+      "file": "src/recording/recording_search_source.cpp",
+      "line": 352,
+      "kind": "Unlocked/reacquire"
+    },
+    {
+      "file": "src/recording/recording_timeline_projection.cpp",
+      "line": 245,
+      "kind": "Lock"
+    }
+  ],
+  "staticSiteCount": 124,
+  "staticInventoryLimit": "Syntactic sites in product cpp, not proven dynamic reachability/count. Lock::Unlocked can produce release/reacquire pair at one lexical Lock. Conditional exception/cutover paths are included in UNKNOWN.",
+  "visualSpecific": "CaptureVisualSourceKeys(full_status_validation=true) outer Lock releases/reacquires around RetentionSnapshotPrepared:2 Rows plus prepared capture/current locks; per-key ReadVisualSource adds locks. SnapshotStatusImpl failed try attempts do not produce successful-held Rows. Prepared current rebases without whole-scan retry. Source/key/member lifetimes still affect total.",
+  "sidecars": [
+    {
+      "prefix": "R159-call",
+      "conditionalMaximumRecords": 384,
+      "maximumBytesEach": 639,
+      "conditionalBytes": 245376
+    },
+    {
+      "prefix": "R159-end",
+      "conditionalMaximumRecords": 3,
+      "maximumBytesEach": 511,
+      "conditionalBytes": 1533
+    },
+    {
+      "prefix": "R154-client",
+      "conditionalMaximumRecords": 28,
+      "maximumBytesEach": 767,
+      "conditionalBytes": 21476
+    },
+    {
+      "prefix": "R154-server",
+      "conditionalMaximumRecords": 28,
+      "maximumBytesEach": 4095,
+      "conditionalBytes": 114660
+    },
+    {
+      "prefix": "R154-search",
+      "conditionalMaximumRecords": 3,
+      "maximumBytesEach": 8191,
+      "conditionalBytes": 24573
+    },
+    {
+      "prefix": "R156-currentness",
+      "conditionalMaximumRecords": 3,
+      "maximumBytesEach": 24575,
+      "conditionalBytes": 73725
+    },
+    {
+      "prefix": "R157-hold",
+      "conditionalMaximumRecords": 3,
+      "maximumBytesEach": 16383,
+      "conditionalBytes": 49149
+    }
+  ],
+  "conditionalSidecarBytes": 530492,
+  "otherOutput": {
+    "SearchDiagnostic": "cost buffer6144, capacity512, failure2048; first128 requests; actual all emission counts not a whole-cycle proof",
+    "visual": "VisualRequestSummary buffer3072 and1024-summary guard; actual all-path count UNKNOWN",
+    "fixture": "resource phases/progress/first failure/terminal variable output; no complete source upper derived",
+    "observer": "1s sleep after each sample; JSON record cardinality/size not fully bounded; metrics helper buffer bound is not outer storage JSON bound",
+    "warnings": "GStreamer/model/runtime stderr UNKNOWN",
+    "status": "UNKNOWN",
+    "flushAndTerminal": "R154 Write checks fwrite+fflush, sticky Lose emits one fixed marker with stdout fallback; R159 Window FinishThread then emits call/end; R156/R157 destructors produce bounded terminal records. All counts listed are conditional successful fixture contract counts; other-output errors/partial or missing terminals fail. This checked sidecar sink does not repair original SinkLine."
+  },
+  "totals": {
+    "seedRows": null,
+    "seedBytes": null,
+    "fixtureRows": null,
+    "fixtureBytes": null,
+    "collectorBytes": null,
+    "producerHeadroom": null,
+    "collectorHeadroom": null,
+    "collectorCap": 4194304,
+    "seedCollectorCap": 1048576,
+    "remark": "Producer caps are rejection ceilings, not proof of complete output. Two maximum normal producer streams already consume4193280 bytes, leaving1024 before non-Row output, but seed1MiB also applies. This is a capacity illustration, NOT an executable worst-case witness."
+  },
+  "selectedCompleteness": [
+    "Each selected sidecar exact request/call/source/line/mutex/thread matches one k0/n1 original Row",
+    "3 complete request terminals and normal process/thread flush; no partial record",
+    "All global producer/collector loss rejected even outside selected set",
+    "No k2 splitting or timing/order-based attribution",
+    "Ignored fwrite prevents loss=false from proving global delivery"
+  ],
+  "alternatives": {
+    "A": "NOT_QUALIFIED: full producer/collector upper UNKNOWN plus actual unchecked-write defect",
+    "B": "NOT_ESTABLISHED: post-filter cannot avoid producer exhaustion; original inline header cannot safely be replaced/mixed; global process-static Enabled is not TLS selective",
+    "C": {
+      "status": "DESIGN_ONLY_CANDIDATE",
+      "proposal": "Use unchanged original header with latency disabled globally in a separately approved future test binary. Whole-TU callsite overlay records bounded constructor-entry/exit and pre-destruction/post-destruction windows for selected7 APIs. Fixed128 calls/request10/11/60, exact request/call IDs, checked existing sink and immediate loss, independent complete terminal; no Row requirement.",
+      "limits": "No b/a/e or mutex acquisition/held claim. Constructor/destructor elapsed use original enabled=false behavior, not equivalent to R159 enabled trace. R157 was latency-trace-disabled; future focused observations cannot be retroactively attributed to either R157 or R159. No product header/layout/RAII/mutex/hold/Journal/SQLite changes; unique-TU link proof required; full collector other-output budget still required.",
+      "nextApproval": "Separate scoped design implementation/focused tests and remaining collector bound; no automatic integrated cycle"
+    }
+  },
+  "sourceSHA256": {
+    "include/recording/recording_latency_trace.h": "2747d96d1c1a156692f8d77e05ddc5f89142291dfc60caf5c784d3a550001d1d",
+    "scripts/internal/recording_accumulated_http_run.py": "2dedec46bc2277a767c1c8c64e771ee96bbed2a07259c928982c3e6b16dbbcbd",
+    "scripts/internal/recording_accumulated_http_smoke.cpp": "ecae596fe880552eeead576097a0bfd098fdf5bc8b9c990cdc4a28d01c170955",
+    "scripts/internal/recording_foundation_observer.mjs": "508c971558a73fa20fb4f6602abbbee754200e1421898d57b80321b0ca6c7d42",
+    "scripts/internal/recording_http_cost_probe.h": "d4ea13924253095be17ac90b6ab17f530887edd19b408da19ea59d76dcc54f8a",
+    "scripts/internal/recording_http_currentness_probe.h": "936809acc4c1385d5c24185bcad4cc7721cfc2ecbf49ae2b53fc023c77019d30",
+    "scripts/internal/recording_http_hold_probe.h": "0ae58a6ec394f7f19f1331877fb33b8423c58b86b2e9886153077a24664db21a",
+    "scripts/internal/recording_http_lock_probe.h": "ab3613e89275bbaaca3c1606ad62aad3b2a8f365451456dbf387739c11f77cc1",
+    "scripts/internal/recording_http_lock_run.py": "c1b86a932ebca20a14d9c1e07c26c1f16e9726cf80aa248daa7ea89294b1d3f2",
+    "scripts/internal/recording_native_isolation.py": "b7f2da41e56513efd5044267a4fe7e21fe048c4fd7795642fca767ae47c5d03c",
+    "scripts/internal/recording_source_http_fixture.h": "cc47474eb994b8caba9f5cc4c3a0c4c7c3d8f965565aa1eda4162dfa26c8e2da",
+    "scripts/internal/recording_visual_contention_observer.mjs": "9e2ec91489897e36fe1492b598b752157a620757a0d3fda0a239a58ce3926398",
+    "scripts/internal/va_review_confirmed_checks.h": "787409e75deec2f646ac7131c675bd58753f68cafb8c92082c9a2a6aaf7a8b7b",
+    "src/ingress/recording_application_service.cpp": "ff5e527fd3797458bde15254b007cb84031383a1f5f1455a86ed06bb9812e6d8",
+    "src/recording/recording_catalog.cpp": "beab1753eec82d074d7f8bbb519434c2fb1fe6b49304c8ec946fac50937a14ec",
+    "src/recording/recording_catalog_cutover_candidate.cpp": "82a446d3dcb0123631864447bf3f52d230a835570aa21265c0f555410680b98b",
+    "src/recording/recording_catalog_snapshot_export.cpp": "45513a883acf802db60f7a9e0c2325e591c0725b12944d29d13fea78ef7fe5aa",
+    "src/recording/recording_read_service.cpp": "93eecb3ddd4b0ecd46bbc8ffcdbc5da02e5aa1e546c3dd53f7b0dd36a401ab48",
+    "src/recording/recording_search_source.cpp": "675e2c9bb4e2343ac9153d8f02eb92480475e32aeee142db29f5b54c869b6c28",
+    "src/recording/recording_timeline_projection.cpp": "c4264514c29352a12ea8f8385a967f0f9c2510538595a54808707484579ac644",
+    "src/recording/recording_visual_source.cpp": "6066cd16f5eb61c4f41f7dc799248efdd602f365dde6e93684c0bbbe19c92fd0",
+    "src/recording/visual_index_worker.cpp": "e709f98e74ea27e39b2df2fa62256341ed027a82c493893d47db851b1e257869"
+  }
+}
