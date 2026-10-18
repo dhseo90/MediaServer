@@ -1,0 +1,111 @@
+{
+  "schema": "media-server.v450.r161.summary.v1",
+  "decision": "BLOCKED_PRODUCT_CONTRACT",
+  "baseline": "41e1e0659fa019d09fb4ed40d8335c3872acdc96",
+  "entry": {
+    "branch": "v4.5.0",
+    "localTrackingActualOriginEqual": true,
+    "worktreeIndexClean": true
+  },
+  "productModified": false,
+  "testModified": false,
+  "candidate": "Move channel/source/generation/order/track mismatch rejection before segment/lifecycle lookup in ResolveOriginalSample",
+  "adoption": "NOT_APPLIED",
+  "reason": "The skipped reads are authenticated retained-row/lifecycle reads with observable error and authority effects. Current entry health check does not subsume them.",
+  "evidence": [
+    {
+      "source": "src/recording/recording_catalog.cpp:3037-3072",
+      "finding": "Every nonnull iterated binding performs segment lookup and EffectiveLifecycleV2Locked before tuple rejection; CatalogHistoryError and RecordingResourceUnavailable propagate as false/error. Results start cleared but catch does not promise clearing partially accumulated results."
+    },
+    {
+      "source": "include/recording/recording_catalog.h:308-325",
+      "finding": "SourceBindingPool is an in-memory unordered_map; SourceBindingEntry bool checks nonempty id. Iteration does not authenticate segment/state/retired bytes."
+    },
+    {
+      "source": "include/recording/recording_retained_rows.h:261-265",
+      "finding": "Retained find calls GetOwned and Decode; skipping find removes current raw authentication and possible read/admission/parse failures."
+    },
+    {
+      "source": "src/recording/recording_catalog.cpp:370-378,3119-3125",
+      "finding": "Lifecycle invokes RetiredLocked before state checks. Retired GetOwned/parse failure sets derived_job_state_authoritative_=false and throws. Workspace refusal throws RecordingResourceUnavailable."
+    },
+    {
+      "source": "src/recording/recording_catalog.cpp:812-820; src/recording/recording_catalog_history.h:310-315; src/recording/recording_history_index.h:167-178,222-225,305-309,333-350,367-372",
+      "finding": "CanReadLocked -> Healthy checks file identity/size and root node. Get traverses target nodes and Value validates target value hash separately. Root health is not authentication of every descendant/value."
+    }
+  ],
+  "counterexample": {
+    "method": "Source-level control-flow counterexample, NOT a newly executed fault injection",
+    "preconditions": "A nonnull iterated binding has a different channel or other tuple field; query and matching bindings are valid; unrelated retained target node/value is corrupt while file size/identity and root remain valid.",
+    "baseline": "The existing target lookup can return false/error, poison retained history, and on RetiredLocked failures invalidate Catalog authority.",
+    "candidate": "Early mismatch skip can avoid that read and return success with empty/candidate results without the same authority transition.",
+    "additional": "Unrelated retained-row/retired workspace admission failure can also change from false/error to success after skipping its allocation."
+  },
+  "existingTestsReviewed": [
+    {
+      "file": "scripts/internal/recording_source_binding_smoke.cpp",
+      "cases": "C310-C314: tuple, ordinal/PTS, incomplete index, exact ordering, deletion/corrupt/pending, query error",
+      "limit": "Source review only; these tests do not establish removal of unrelated retained authentication is equivalent."
+    },
+    {
+      "file": "scripts/internal/recording_typed_lifetime_smoke.cpp",
+      "cases": "LP18-R05: only matching source-binding detail acquisition",
+      "limit": "The raw_reads count concerns binding-detail reacquisition, not absence or dispensability of segment/lifecycle authentication."
+    }
+  ],
+  "validation": {
+    "focused": "NOT_RUN: candidate rejected at mandatory pre-edit error-contract gate",
+    "incrementalBuild": "NOT_RUN",
+    "performanceAB": "NOT_RUN",
+    "performanceGain": "UNPROVEN",
+    "removedLookups": 0,
+    "integratedCycles": 0,
+    "productStarts": 0,
+    "new45": "NOT_RUN",
+    "new120": "NOT_RUN",
+    "diagnosticFrameworkChanges": 0,
+    "inventoryBinding": "NOT_APPLICABLE: no source/test/inventory change"
+  },
+  "review": {
+    "reviewer": "separate read-only independent_r155",
+    "decision": "AGREE_BLOCKED_PRODUCT_CONTRACT",
+    "scope": "Changed candidate control flow and core error/authority contract only",
+    "implementation": false,
+    "testWriting": false,
+    "execution": false,
+    "delegation": false,
+    "modelRequested": "gpt-6-astra",
+    "effortRequested": "high",
+    "toolAccepted": null,
+    "actualRuntimeModel": null,
+    "actualRuntimeEffort": null
+  },
+  "sourceSHA256": {
+    "src/recording/recording_catalog.cpp": "beab1753eec82d074d7f8bbb519434c2fb1fe6b49304c8ec946fac50937a14ec",
+    "include/recording/recording_catalog.h": "6be8d3318fb4fe070b9770d56780fb73a7bd4581dde56e240315bd5f888ebb47",
+    "src/recording/recording_catalog_history.h": "6ec9cce2f6d01d0bfcd2c6e9456d6f07386062d33c851cbfa326145cf8158b0e",
+    "src/recording/recording_history_index.h": "9582a0024f6f6a343f557b702085565456994ab86de9c3f278b0417f3ca5c71e",
+    "include/recording/recording_retained_rows.h": "3cfd0c805986e61c6d9a4184ddbbe3233ad0ef50315a7526ffcb65e338f7a3a3"
+  },
+  "binarySHA256": {
+    "build-gst-onnx/media_server": "33f516d35d56cb2f6cafc75647b6c37d2ced67115302d1205cca23bf51ab7f79",
+    "build-gst-onnx/libmedia_server_runtime.a": "2d91cf35fe7e805e0c06e00d16779c86849b35db635e087582277e1b676d198c"
+  },
+  "cleanup": {
+    "ownedTemporaryRoots": 0,
+    "ownedTestProcesses": 0,
+    "openedPorts": 0,
+    "containers": 0,
+    "userDataTouched": false
+  },
+  "git": "One scoped result-only commit; remote HEAD and actual result bytes verified after ordinary push in final report. No product optimization commit.",
+  "nextCandidate": "Separately assess eliminating duplicate segment DTO parse/materialization while retaining each required raw authentication, lifecycle check and failure propagation. Safety and benefit unproven; no implementation or extra instrumentation started.",
+  "historical": {
+    "R149Functional45": "FAIL",
+    "R149Collection45": "INCOMPLETE",
+    "R149Timeout": "UNRESOLVED",
+    "MemoryP0": "HOLD",
+    "Readiness120": "HOLD",
+    "Release": "HOLD"
+  }
+}
