@@ -1,0 +1,215 @@
+{
+  "task": "R165 continuation (not a new R number)",
+  "status": "BLOCKED_PRE_EXECUTION",
+  "baselineHead": "66d2599ce8e7d36683691508433541e4981648c7",
+  "branch": "v4.5.0",
+  "originalRecord": {
+    "path": "docs/release-artifacts/v4.5.0/165-validation.json",
+    "sha256": "dcfaaabe9273b049780e0253caf956c7caa24b1436063392f92bc53513044ba0",
+    "unchanged": true
+  },
+  "models": {
+    "main": {
+      "requested": "GPT-6 Astra / High",
+      "toolAccepted": "UNKNOWN",
+      "actualRuntimeModel": "UNKNOWN",
+      "actualRuntimeEffort": "UNKNOWN"
+    },
+    "independent": {
+      "requested": "GPT-6 Astra / High",
+      "toolAccepted": "spawn_agent gpt-6-astra/high accepted",
+      "actualRuntimeModel": "UNKNOWN",
+      "actualRuntimeEffort": "UNKNOWN"
+    }
+  },
+  "preflight": {
+    "headMatched": true,
+    "initialWorktreeIndexClean": true,
+    "originalProductRuntimeHashesMatched": true
+  },
+  "firstFailure": {
+    "record": "[R165-http-start-failure]",
+    "stage": "bind",
+    "error": "failed to bind HTTP socket: Operation not permitted",
+    "errnoAfterStart": 1,
+    "meaning": "OS permission denial at bind; exact enforcement source not established",
+    "excludedInferences": [
+      "port0 is invalid",
+      "GStreamer warning caused HTTP Start failure",
+      "R149 product search failure"
+    ],
+    "permissionBypass": false,
+    "retry": false
+  },
+  "changes": {
+    "testOnly": true,
+    "productSourceChanged": false,
+    "description": [
+      "Reuse prior preserved focused source as a small tracked test definition",
+      "Start return evaluated before inspecting bounded known error text; unknown text redacted",
+      "Generated Http152 copy only: helper request10 sends X-R154-ID:1 and records client1; unauthenticated helper request1 sends no correlation header",
+      "Port closure requires successful probe socket and ECONNREFUSED",
+      "Failure Finish remains distinct from normal Finish",
+      "run_owned started supplied as callable(pid); no new runner"
+    ],
+    "originalHttp152Changed": false
+  },
+  "execution": {
+    "focusedThisContinuation": 1,
+    "previousFocusedAttempts": 2,
+    "focusedResult": {
+      "status": "FAIL",
+      "childExit": 1,
+      "exit": 1,
+      "executionElapsedSeconds": 1.9980730831157416,
+      "elapsedSeconds": 1.9981083751190454,
+      "timeoutSeconds": 30,
+      "timedOut": false,
+      "interruptedSignals": [],
+      "residualGroupAfterCommand": false,
+      "cleanupSignals": [],
+      "processGroupAbsent": true,
+      "cleanupErrors": [],
+      "cleanupOnlySeconds": 7.4999406933784485e-06,
+      "registeredGroupsAbsent": true,
+      "residualRegisteredGroups": false,
+      "registeredGroupSignals": [],
+      "registeredGroupCleanupSeconds": 3.6659184843301773e-06,
+      "finishedAt": "2026-10-18T05:47:34.839464+00:00"
+    },
+    "accumulatedRunsTotalR165": 0,
+    "accumulatedSeconds": 0,
+    "requestsSent": 0,
+    "clientServerSearchRecords": [
+      0,
+      0,
+      0
+    ],
+    "auth401": "NOT_RUN",
+    "selected200": "NOT_RUN",
+    "phaseCorrelation": "NOT_RUN",
+    "normalStopPortCloseFinish": "NOT_RUN",
+    "failureFinish": true,
+    "typeErrorRecurred": false,
+    "tddRed": "NOT_CLAIMED",
+    "productOptimization": "NOT_RUN",
+    "attribution": "NOT_RUN"
+  },
+  "binary": {
+    "productSha256": "33f516d35d56cb2f6cafc75647b6c37d2ced67115302d1205cca23bf51ab7f79",
+    "runtimeSha256": "2d91cf35fe7e805e0c06e00d16779c86849b35db635e087582277e1b676d198c",
+    "measurementSha256": "6fb988680612c3ddd804d0199a2732b145c558612099d120210e4805f657f853",
+    "focusedSha256": "51c8939565c6752e872e795941c60597dde5bc56bb2b0a204f9b0ba9d7f699eb",
+    "linkMapSha256": "c6ab80dca883c3ee5ab2c0ed56a5781af2d8597208253a85146a597117712c1e",
+    "focusedMapSha256": "37e67483b3e17e2eed920eb07705f27abbd76ff1caf14cbc2d6389312fe10016",
+    "originalArchiveMembersExcluded": true,
+    "uniquePrincipalSymbols": [
+      "000000010012df30 T __ZN7ingress25webrtc_http_server_detail15ReadHttpRequestEiPNS0_12HttpResponseE",
+      "000000010006e5b0 T __ZNK7ingress27RecordingApplicationService6SearchERKNSt3__113unordered_mapINS1_12basic_stringIcNS1_11char_traitsIcEENS1_9allocatorIcEEEES8_NS1_4hashIS8_EENS1_8equal_toIS8_EENS6_INS1_4pairIKS8_S8_EEEEEERSE_SK_RKNS1_8functionIFbSK_EEE"
+    ],
+    "actualSearchInstrumentedPathExecuted": false
+  },
+  "launchPathReview": {
+    "mapping": "R165_BINARY -> generated values.BIN_PATH -> environment MEDIA_SERVER_BIN_PATH -> run_server_foreground.sh MEDIA_SERVER_BIN -> exec",
+    "actualAccumulatedLaunch": "NOT_RUN",
+    "globalLatencyTrace": false,
+    "workloadAndGates": "No changes in this continuation"
+  },
+  "sources": {
+    "scripts/internal/recording_accumulated_cost.py": {
+      "bytes": 15182,
+      "sha256": "7c67c6707ced22961801e69b335b43b6a607c1a6a68667dc68cc28f4ece03c35"
+    },
+    "scripts/internal/recording_accumulated_cost_smoke.cpp": {
+      "bytes": 4263,
+      "sha256": "97554423a516231cd4f7e50aab434ea08a773bf18a06d795975597fbae8f798e"
+    },
+    "docs/project-feature-test-inventory.md": {
+      "bytes": 1097594,
+      "sha256": "a1c9e19422d3adce1fef0d6bb83e61c6f854caf72421501c93fdc7225c3c0576"
+    }
+  },
+  "evidence": {
+    "focused.log": {
+      "bytes": 3067,
+      "sha256": "45254b28ee4ba820b0b8cc6f4bdc53ab0a199a91bdd127fe6d683cd08779ba11",
+      "text": "\n(gst-plugin-scanner:50212): GLib-GIRepository-WARNING **: 14:47:34.034: Failed to load shared library 'libgobject-2.0.0.dylib' referenced by the typelib: dlopen(libgobject-2.0.0.dylib, 0x0009): tried: 'libgobject-2.0.0.dylib' (no such file), '/System/Volumes/Preboot/Cryptexes/OSlibgobject-2.0.0.dylib' (no such file), '/usr/lib/libgobject-2.0.0.dylib' (no such file, not in dyld cache), 'libgobject-2.0.0.dylib' (no such file)\n\n(gst-plugin-scanner:50212): GLib-GIRepository-WARNING **: 14:47:34.034: Failed to load shared library 'libglib-2.0.0.dylib' referenced by the typelib: dlopen(libglib-2.0.0.dylib, 0x0009): tried: 'libglib-2.0.0.dylib' (no such file), '/System/Volumes/Preboot/Cryptexes/OSlibglib-2.0.0.dylib' (no such file), '/usr/lib/libglib-2.0.0.dylib' (no such file, not in dyld cache), 'libglib-2.0.0.dylib' (no such file)\n\n** (gst-plugin-scanner:50212): CRITICAL **: 14:47:34.035: can't find gi.repository.Gst\nobjc[50212]: Class ResultReceiver is implemented in both /opt/homebrew/Cellar/gtk+3/3.24.51/lib/libgtk-3.0.dylib (0x108abd748) and /opt/homebrew/Cellar/gtk4/4.22.1/lib/libgtk-4.1.dylib (0x11ddaeb70). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.\nobjc[50212]: Class GtkApplicationQuartzDelegate is implemented in both /opt/homebrew/Cellar/gtk+3/3.24.51/lib/libgtk-3.0.dylib (0x108abd770) and /opt/homebrew/Cellar/gtk4/4.22.1/lib/libgtk-4.1.dylib (0x11ddaeb98). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.\nobjc[50212]: Class GNSMenuItem is implemented in both /opt/homebrew/Cellar/gtk+3/3.24.51/lib/libgtk-3.0.dylib (0x108abd7c0) and /opt/homebrew/Cellar/gtk4/4.22.1/lib/libgtk-4.1.dylib (0x11ddaec38). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.\nobjc[50212]: Class GNSMenu is implemented in both /opt/homebrew/Cellar/gtk+3/3.24.51/lib/libgtk-3.0.dylib (0x108abd7e8) and /opt/homebrew/Cellar/gtk4/4.22.1/lib/libgtk-4.1.dylib (0x11ddaec60). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.\nobjc[50212]: Class FilterComboBox is implemented in both /opt/homebrew/Cellar/gtk+3/3.24.51/lib/libgtk-3.0.dylib (0x108abd860) and /opt/homebrew/Cellar/gtk4/4.22.1/lib/libgtk-4.1.dylib (0x11ddaecd8). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.\nobjc[50212]: Class gdkCoreCursor is implemented in both /opt/homebrew/Cellar/gtk+3/3.24.51/lib/libgdk-3.0.dylib (0x107f11258) and /opt/homebrew/Cellar/gtk4/4.22.1/lib/libgtk-4.1.dylib (0x11ddaed28). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.\n[R165-http-start-failure] {\"stage\":\"bind\",\"error\":\"failed to bind HTTP socket: Operation not permitted\",\"errnoAfterStart\":1}\n[R165-failure-cleanup] {\"finish\":true}\n[R165-native-focused-failure] focused HTTP Start failed; see bounded error record\n"
+    },
+    "focused-result.json": {
+      "bytes": 593,
+      "sha256": "0a7d08643d042604373712b160cf7fce11e73a1fab649b692cea68c076ea223f",
+      "text": "{\n  \"status\": \"FAIL\",\n  \"childExit\": 1,\n  \"exit\": 1,\n  \"executionElapsedSeconds\": 1.9980730831157416,\n  \"elapsedSeconds\": 1.9981083751190454,\n  \"timeoutSeconds\": 30,\n  \"timedOut\": false,\n  \"interruptedSignals\": [],\n  \"residualGroupAfterCommand\": false,\n  \"cleanupSignals\": [],\n  \"processGroupAbsent\": true,\n  \"cleanupErrors\": [],\n  \"cleanupOnlySeconds\": 7.4999406933784485e-06,\n  \"registeredGroupsAbsent\": true,\n  \"residualRegisteredGroups\": false,\n  \"registeredGroupSignals\": [],\n  \"registeredGroupCleanupSeconds\": 3.6659184843301773e-06,\n  \"finishedAt\": \"2026-10-18T05:47:34.839464+00:00\"\n}\n"
+    },
+    "focused-invocation.json": {
+      "bytes": 1332,
+      "sha256": "b67d1a10636a368dc4effe69508640afc2970011c96930a18dd3546a3c9c00f7",
+      "text": "{\n  \"command\": [\n    \"/private/tmp/media-server-r165-resume/selected-focused\",\n    \"/private/tmp/media-server-r165-resume/focused-root\"\n  ],\n  \"cwd\": \"/private/tmp/media-server-r165-resume/focused-root\",\n  \"budgetSeconds\": 30,\n  \"startedContract\": \"callable(pid): write owned child PID\",\n  \"environment\": {\n    \"MEDIA_SERVER_SKIP_LOCAL_ENV\": \"1\",\n    \"MEDIA_SERVER_VERIFY_RECORDING_STATE_TRACE\": \"1\",\n    \"MEDIA_SERVER_SOURCE_REGISTRY\": \"/private/tmp/media-server-r165-resume/focused-root/sources.json\",\n    \"MEDIA_SERVER_PUBLISHED_VIEWS\": \"/private/tmp/media-server-r165-resume/focused-root/views.json\",\n    \"MEDIA_SERVER_ANALYSIS_REGISTRY\": \"/private/tmp/media-server-r165-resume/focused-root/analysis.json\",\n    \"MEDIA_SERVER_AUTH_USERS_FILE\": \"/private/tmp/media-server-r165-resume/focused-root/users.json\",\n    \"MEDIA_SERVER_RECORDING_STORAGE_ROOT\": \"/private/tmp/media-server-r165-resume/focused-root/recording\",\n    \"MEDIA_SERVER_ANALYSIS_EVENT_STORAGE_PATH\": \"/private/tmp/media-server-r165-resume/focused-root/events\",\n    \"MEDIA_SERVER_FILE_ROOT\": \"/private/tmp/media-server-r165-resume/focused-root/input\",\n    \"MEDIA_SERVER_VERIFY_RECORDING_SEARCH_TRACE\": \"0\",\n    \"MEDIA_SERVER_VERIFY_RECORDING_LATENCY_TRACE\": \"0\",\n    \"MEDIA_SERVER_VERIFY_RECORDING_LATENCY_SLOW_ONLY\": \"0\"\n  },\n  \"executionCountThisContinuation\": 1\n}"
+    },
+    "focused-build.json": {
+      "bytes": 5808,
+      "sha256": "56e8ff33fa57bb953c37225ebf6353c5c09bdb64deab70443945602867571533",
+      "text": "{\n  \"command\": [\n    \"/usr/bin/c++\",\n    \"-DGST_USE_UNSTABLE_API=1\",\n    \"-DMEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND=1\",\n    \"-DMEDIA_SERVER_ENABLE_YOUTUBE_SOURCE=0\",\n    \"-DMEDIA_SERVER_USE_GSTREAMER=1\",\n    \"-DMEDIA_SERVER_USE_LIBSODIUM=1\",\n    \"-DMEDIA_SERVER_USE_ONNXRUNTIME=1\",\n    \"-DMEDIA_SERVER_USE_OPENSSL=1\",\n    \"-DMEDIA_SERVER_USE_PANGOCAIRO=1\",\n    \"-DMEDIA_SERVER_USE_SIGLIP2=1\",\n    \"-DMEDIA_SERVER_USE_SQLITE3=1\",\n    \"-I/Users/dhseo/Workspace/mediaServer/include\",\n    \"-I/opt/homebrew/include/onnxruntime\",\n    \"-I/Users/dhseo/Workspace/mediaServer/third_party/v430-embedding/sentencepiece/include\",\n    \"-isystem\",\n    \"/opt/homebrew/Cellar/gstreamer/1.28.1/include/gstreamer-1.0\",\n    \"-isystem\",\n    \"/opt/homebrew/Cellar/glib/2.86.4/include/gio-unix-2.0\",\n    \"-isystem\",\n    \"/opt/homebrew/Cellar/orc/0.4.42/include/orc-0.4\",\n    \"-isystem\",\n    \"/opt/homebrew/Cellar/glib/2.86.4/include\",\n    \"-isystem\",\n    \"/Library/Developer/CommandLineTools/SDKs/MacOSX26.sdk/usr/include/ffi\",\n    \"-isystem\",\n    \"/opt/homebrew/Cellar/glib/2.86.4/include/glib-2.0\",\n    \"-isystem\",\n    \"/opt/homebrew/Cellar/glib/2.86.4/lib/glib-2.0/include\",\n    \"-isystem\",\n    \"/opt/homebrew/opt/gettext/include\",\n    \"-isystem\",\n    \"/opt/homebrew/Cellar/pcre2/10.47_1/include\",\n    \"-isystem\",\n    \"/opt/homebrew/Cellar/pango/1.57.0_2/include/pango-1.0\",\n    \"-isystem\",\n    \"/opt/homebrew/Cellar/cairo/1.18.4/include/cairo\",\n    \"-isystem\",\n    \"/opt/homebrew/Cellar/libxext/1.3.7/include\",\n    \"-isystem\",\n    \"/opt/homebrew/Cellar/xorgproto/2025.1/include\",\n    \"-isystem\",\n    \"/opt/homebrew/Cellar/libxrender/0.9.12/include\",\n    \"-isystem\",\n    \"/opt/homebrew/Cellar/libx11/1.8.13/include\",\n    \"-isystem\",\n    \"/opt/homebrew/Cellar/libxcb/1.17.0/include\",\n    \"-isystem\",\n    \"/opt/homebrew/Cellar/libxau/1.0.12/include\",\n    \"-isystem\",\n    \"/opt/homebrew/Cellar/libxdmcp/1.1.5/include\",\n    \"-isystem\",\n    \"/opt/homebrew/Cellar/pixman/0.46.4/include/pixman-1\",\n    \"-isystem\",\n    \"/opt/homebrew/Cellar/fribidi/1.0.16/include/fribidi\",\n    \"-isystem\",\n    \"/opt/homebrew/Cellar/libthai/0.1.30/include\",\n    \"-isystem\",\n    \"/opt/homebrew/Cellar/libdatrie/0.2.14/include\",\n    \"-isystem\",\n    \"/opt/homebrew/Cellar/fontconfig/2.17.1/include\",\n    \"-isystem\",\n    \"/opt/homebrew/Cellar/harfbuzz/13.1.1/include/harfbuzz\",\n    \"-isystem\",\n    \"/opt/homebrew/opt/freetype/include/freetype2\",\n    \"-isystem\",\n    \"/opt/homebrew/opt/libpng/include/libpng16\",\n    \"-isystem\",\n    \"/opt/homebrew/opt/graphite2/include\",\n    \"-isystem\",\n    \"/opt/homebrew/Cellar/libsodium/1.0.21/include\",\n    \"-isystem\",\n    \"/opt/homebrew/Cellar/openssl@3/3.6.2/include\",\n    \"-std=c++17\",\n    \"-arch\",\n    \"arm64\",\n    \"-I/private/tmp/media-server-r165-resume/overlay\",\n    \"-I/Users/dhseo/Workspace/mediaServer/scripts/internal\",\n    \"-I/Users/dhseo/Workspace/mediaServer/src/ingress\",\n    \"/private/tmp/media-server-r165-resume/overlay/selected-focused.cpp\",\n    \"/private/tmp/media-server-r165-resume/overlay/recording_search_application_service.cpp.o\",\n    \"/private/tmp/media-server-r165-resume/overlay/webrtc_http_server_runtime.cpp.o\",\n    \"/private/tmp/media-server-r165-resume/overlay/webrtc_http_server.cpp.o\",\n    \"/Users/dhseo/Workspace/mediaServer/build-gst-onnx/libmedia_server_runtime.a\",\n    \"/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib/libz.tbd\",\n    \"/opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstrtspserver-1.0.dylib\",\n    \"/opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstapp-1.0.dylib\",\n    \"/opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstwebrtc-1.0.dylib\",\n    \"/opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstsdp-1.0.dylib\",\n    \"/opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstpbutils-1.0.dylib\",\n    \"/opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstaudio-1.0.dylib\",\n    \"/opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstvideo-1.0.dylib\",\n    \"/opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstbase-1.0.dylib\",\n    \"/opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstreamer-1.0.dylib\",\n    \"/opt/homebrew/Cellar/pango/1.57.0_2/lib/libpangocairo-1.0.dylib\",\n    \"/opt/homebrew/Cellar/pango/1.57.0_2/lib/libpango-1.0.dylib\",\n    \"/opt/homebrew/Cellar/cairo/1.18.4/lib/libcairo.dylib\",\n    \"/opt/homebrew/Cellar/harfbuzz/13.1.1/lib/libharfbuzz.dylib\",\n    \"/opt/homebrew/Cellar/glib/2.86.4/lib/libgobject-2.0.dylib\",\n    \"/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib/libsqlite3.tbd\",\n    \"/opt/homebrew/Cellar/libsodium/1.0.21/lib/libsodium.dylib\",\n    \"/opt/homebrew/Cellar/openssl@3/3.6.2/lib/libssl.dylib\",\n    \"/opt/homebrew/Cellar/openssl@3/3.6.2/lib/libcrypto.dylib\",\n    \"/opt/homebrew/lib/libonnxruntime.dylib\",\n    \"/Users/dhseo/Workspace/mediaServer/third_party/v430-embedding/sentencepiece/lib/libsentencepiece.a\",\n    \"/opt/homebrew/Cellar/glib/2.86.4/lib/libglib-2.0.dylib\",\n    \"/opt/homebrew/opt/gettext/lib/libintl.dylib\",\n    \"-Wl,-map,/private/tmp/media-server-r165-resume/focused.map\",\n    \"-o\",\n    \"/private/tmp/media-server-r165-resume/selected-focused\"\n  ],\n  \"binarySha\": \"51c8939565c6752e872e795941c60597dde5bc56bb2b0a204f9b0ba9d7f699eb\",\n  \"sourceSha\": \"97554423a516231cd4f7e50aab434ea08a773bf18a06d795975597fbae8f798e\",\n  \"helperSha\": \"4ab550259c2386372ce90a479502fb0d021f0f1129b062de38594ccb7602b062\",\n  \"mapSha\": \"37e67483b3e17e2eed920eb07705f27abbd76ff1caf14cbc2d6389312fe10016\",\n  \"originalMembersExcluded\": true,\n  \"uniquePrincipalSymbols\": true,\n  \"symbols\": [\n    \"000000010012df30 T __ZN7ingress25webrtc_http_server_detail15ReadHttpRequestEiPNS0_12HttpResponseE\",\n    \"000000010006e5b0 T __ZNK7ingress27RecordingApplicationService6SearchERKNSt3__113unordered_mapINS1_12basic_stringIcNS1_11char_traitsIcEENS1_9allocatorIcEEEES8_NS1_4hashIS8_EENS1_8equal_toIS8_EENS6_INS1_4pairIKS8_S8_EEEEEERSE_SK_RKNS1_8functionIFbSK_EEE\"\n  ]\n}\n"
+    },
+    "build.json": {
+      "bytes": 13106,
+      "sha256": "8a61485eb8ec977ef7639579699c7a1399412b6baf1d91902e782623115f33de",
+      "text": "{\n  \"sources\": {\n    \"src/ingress/recording_search_application_service.cpp\": {\n      \"original\": \"a618c7726e441ed3aeeb369d9ea9337672499138f73dc864508521f8dfcefef1\",\n      \"overlay\": \"f4f1070522941ea5d8392852d5a65221bd46c556b7aa3b45fc6af731c4748851\"\n    },\n    \"src/ingress/webrtc_http_server_runtime.cpp\": {\n      \"original\": \"4674fbd6b02a2c6f53a5d14a968d9eb06c5c3253aa02467d15581b84912b501e\",\n      \"overlay\": \"00ca6c0e3ce6caabc20ebb9423b86c9c52836430dbd157c5a3d094db5e4ba025\"\n    },\n    \"src/ingress/webrtc_http_server.cpp\": {\n      \"original\": \"4d5910a62693dab2d7a1cb9ab1e7296953ee74daea493ab293fe1fe1057195f1\",\n      \"overlay\": \"075b5a6fc43113f2a3b0fc6e432ee629a90b554f3e71c8e83874d71d9fa6eb27\"\n    }\n  },\n  \"commands\": [\n    [\n      \"/usr/bin/c++\",\n      \"-DGST_USE_UNSTABLE_API=1\",\n      \"-DMEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND=1\",\n      \"-DMEDIA_SERVER_ENABLE_YOUTUBE_SOURCE=0\",\n      \"-DMEDIA_SERVER_USE_GSTREAMER=1\",\n      \"-DMEDIA_SERVER_USE_LIBSODIUM=1\",\n      \"-DMEDIA_SERVER_USE_ONNXRUNTIME=1\",\n      \"-DMEDIA_SERVER_USE_OPENSSL=1\",\n      \"-DMEDIA_SERVER_USE_PANGOCAIRO=1\",\n      \"-DMEDIA_SERVER_USE_SIGLIP2=1\",\n      \"-DMEDIA_SERVER_USE_SQLITE3=1\",\n      \"-I/Users/dhseo/Workspace/mediaServer/include\",\n      \"-I/opt/homebrew/include/onnxruntime\",\n      \"-I/Users/dhseo/Workspace/mediaServer/third_party/v430-embedding/sentencepiece/include\",\n      \"-isystem\",\n      \"/opt/homebrew/Cellar/gstreamer/1.28.1/include/gstreamer-1.0\",\n      \"-isystem\",\n      \"/opt/homebrew/Cellar/glib/2.86.4/include/gio-unix-2.0\",\n      \"-isystem\",\n      \"/opt/homebrew/Cellar/orc/0.4.42/include/orc-0.4\",\n      \"-isystem\",\n      \"/opt/homebrew/Cellar/glib/2.86.4/include\",\n      \"-isystem\",\n      \"/Library/Developer/CommandLineTools/SDKs/MacOSX26.sdk/usr/include/ffi\",\n      \"-isystem\",\n      \"/opt/homebrew/Cellar/glib/2.86.4/include/glib-2.0\",\n      \"-isystem\",\n      \"/opt/homebrew/Cellar/glib/2.86.4/lib/glib-2.0/include\",\n      \"-isystem\",\n      \"/opt/homebrew/opt/gettext/include\",\n      \"-isystem\",\n      \"/opt/homebrew/Cellar/pcre2/10.47_1/include\",\n      \"-isystem\",\n      \"/opt/homebrew/Cellar/pango/1.57.0_2/include/pango-1.0\",\n      \"-isystem\",\n      \"/opt/homebrew/Cellar/cairo/1.18.4/include/cairo\",\n      \"-isystem\",\n      \"/opt/homebrew/Cellar/libxext/1.3.7/include\",\n      \"-isystem\",\n      \"/opt/homebrew/Cellar/xorgproto/2025.1/include\",\n      \"-isystem\",\n      \"/opt/homebrew/Cellar/libxrender/0.9.12/include\",\n      \"-isystem\",\n      \"/opt/homebrew/Cellar/libx11/1.8.13/include\",\n      \"-isystem\",\n      \"/opt/homebrew/Cellar/libxcb/1.17.0/include\",\n      \"-isystem\",\n      \"/opt/homebrew/Cellar/libxau/1.0.12/include\",\n      \"-isystem\",\n      \"/opt/homebrew/Cellar/libxdmcp/1.1.5/include\",\n      \"-isystem\",\n      \"/opt/homebrew/Cellar/pixman/0.46.4/include/pixman-1\",\n      \"-isystem\",\n      \"/opt/homebrew/Cellar/fribidi/1.0.16/include/fribidi\",\n      \"-isystem\",\n      \"/opt/homebrew/Cellar/libthai/0.1.30/include\",\n      \"-isystem\",\n      \"/opt/homebrew/Cellar/libdatrie/0.2.14/include\",\n      \"-isystem\",\n      \"/opt/homebrew/Cellar/fontconfig/2.17.1/include\",\n      \"-isystem\",\n      \"/opt/homebrew/Cellar/harfbuzz/13.1.1/include/harfbuzz\",\n      \"-isystem\",\n      \"/opt/homebrew/opt/freetype/include/freetype2\",\n      \"-isystem\",\n      \"/opt/homebrew/opt/libpng/include/libpng16\",\n      \"-isystem\",\n      \"/opt/homebrew/opt/graphite2/include\",\n      \"-isystem\",\n      \"/opt/homebrew/Cellar/libsodium/1.0.21/include\",\n      \"-isystem\",\n      \"/opt/homebrew/Cellar/openssl@3/3.6.2/include\",\n      \"-std=c++17\",\n      \"-arch\",\n      \"arm64\",\n      \"-I/private/tmp/media-server-r165-resume/overlay\",\n      \"-I/Users/dhseo/Workspace/mediaServer/scripts/internal\",\n      \"-I/Users/dhseo/Workspace/mediaServer/src/ingress\",\n      \"-c\",\n      \"/private/tmp/media-server-r165-resume/overlay/recording_search_application_service.cpp\",\n      \"-o\",\n      \"/private/tmp/media-server-r165-resume/overlay/recording_search_application_service.cpp.o\"\n    ],\n    [\n      \"/usr/bin/c++\",\n      \"-DGST_USE_UNSTABLE_API=1\",\n      \"-DMEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND=1\",\n      \"-DMEDIA_SERVER_ENABLE_YOUTUBE_SOURCE=0\",\n      \"-DMEDIA_SERVER_USE_GSTREAMER=1\",\n      \"-DMEDIA_SERVER_USE_LIBSODIUM=1\",\n      \"-DMEDIA_SERVER_USE_ONNXRUNTIME=1\",\n      \"-DMEDIA_SERVER_USE_OPENSSL=1\",\n      \"-DMEDIA_SERVER_USE_PANGOCAIRO=1\",\n      \"-DMEDIA_SERVER_USE_SIGLIP2=1\",\n      \"-DMEDIA_SERVER_USE_SQLITE3=1\",\n      \"-I/Users/dhseo/Workspace/mediaServer/include\",\n      \"-I/opt/homebrew/include/onnxruntime\",\n      \"-I/Users/dhseo/Workspace/mediaServer/third_party/v430-embedding/sentencepiece/include\",\n      \"-isystem\",\n      \"/opt/homebrew/Cellar/gstreamer/1.28.1/include/gstreamer-1.0\",\n      \"-isystem\",\n      \"/opt/homebrew/Cellar/glib/2.86.4/include/gio-unix-2.0\",\n      \"-isystem\",\n      \"/opt/homebrew/Cellar/orc/0.4.42/include/orc-0.4\",\n      \"-isystem\",\n      \"/opt/homebrew/Cellar/glib/2.86.4/include\",\n      \"-isystem\",\n      \"/Library/Developer/CommandLineTools/SDKs/MacOSX26.sdk/usr/include/ffi\",\n      \"-isystem\",\n      \"/opt/homebrew/Cellar/glib/2.86.4/include/glib-2.0\",\n      \"-isystem\",\n      \"/opt/homebrew/Cellar/glib/2.86.4/lib/glib-2.0/include\",\n      \"-isystem\",\n      \"/opt/homebrew/opt/gettext/include\",\n      \"-isystem\",\n      \"/opt/homebrew/Cellar/pcre2/10.47_1/include\",\n      \"-isystem\",\n      \"/opt/homebrew/Cellar/pango/1.57.0_2/include/pango-1.0\",\n      \"-isystem\",\n      \"/opt/homebrew/Cellar/cairo/1.18.4/include/cairo\",\n      \"-isystem\",\n      \"/opt/homebrew/Cellar/libxext/1.3.7/include\",\n      \"-isystem\",\n      \"/opt/homebrew/Cellar/xorgproto/2025.1/include\",\n      \"-isystem\",\n      \"/opt/homebrew/Cellar/libxrender/0.9.12/include\",\n      \"-isystem\",\n      \"/opt/homebrew/Cellar/libx11/1.8.13/include\",\n      \"-isystem\",\n      \"/opt/homebrew/Cellar/libxcb/1.17.0/include\",\n      \"-isystem\",\n      \"/opt/homebrew/Cellar/libxau/1.0.12/include\",\n      \"-isystem\",\n      \"/opt/homebrew/Cellar/libxdmcp/1.1.5/include\",\n      \"-isystem\",\n      \"/opt/homebrew/Cellar/pixman/0.46.4/include/pixman-1\",\n      \"-isystem\",\n      \"/opt/homebrew/Cellar/fribidi/1.0.16/include/fribidi\",\n      \"-isystem\",\n      \"/opt/homebrew/Cellar/libthai/0.1.30/include\",\n      \"-isystem\",\n      \"/opt/homebrew/Cellar/libdatrie/0.2.14/include\",\n      \"-isystem\",\n      \"/opt/homebrew/Cellar/fontconfig/2.17.1/include\",\n      \"-isystem\",\n      \"/opt/homebrew/Cellar/harfbuzz/13.1.1/include/harfbuzz\",\n      \"-isystem\",\n      \"/opt/homebrew/opt/freetype/include/freetype2\",\n      \"-isystem\",\n      \"/opt/homebrew/opt/libpng/include/libpng16\",\n      \"-isystem\",\n      \"/opt/homebrew/opt/graphite2/include\",\n      \"-isystem\",\n      \"/opt/homebrew/Cellar/libsodium/1.0.21/include\",\n      \"-isystem\",\n      \"/opt/homebrew/Cellar/openssl@3/3.6.2/include\",\n      \"-std=c++17\",\n      \"-arch\",\n      \"arm64\",\n      \"-I/private/tmp/media-server-r165-resume/overlay\",\n      \"-I/Users/dhseo/Workspace/mediaServer/scripts/internal\",\n      \"-I/Users/dhseo/Workspace/mediaServer/src/ingress\",\n      \"-c\",\n      \"/private/tmp/media-server-r165-resume/overlay/webrtc_http_server_runtime.cpp\",\n      \"-o\",\n      \"/private/tmp/media-server-r165-resume/overlay/webrtc_http_server_runtime.cpp.o\"\n    ],\n    [\n      \"/usr/bin/c++\",\n      \"-DGST_USE_UNSTABLE_API=1\",\n      \"-DMEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND=1\",\n      \"-DMEDIA_SERVER_ENABLE_YOUTUBE_SOURCE=0\",\n      \"-DMEDIA_SERVER_USE_GSTREAMER=1\",\n      \"-DMEDIA_SERVER_USE_LIBSODIUM=1\",\n      \"-DMEDIA_SERVER_USE_ONNXRUNTIME=1\",\n      \"-DMEDIA_SERVER_USE_OPENSSL=1\",\n      \"-DMEDIA_SERVER_USE_PANGOCAIRO=1\",\n      \"-DMEDIA_SERVER_USE_SIGLIP2=1\",\n      \"-DMEDIA_SERVER_USE_SQLITE3=1\",\n      \"-I/Users/dhseo/Workspace/mediaServer/include\",\n      \"-I/opt/homebrew/include/onnxruntime\",\n      \"-I/Users/dhseo/Workspace/mediaServer/third_party/v430-embedding/sentencepiece/include\",\n      \"-isystem\",\n      \"/opt/homebrew/Cellar/gstreamer/1.28.1/include/gstreamer-1.0\",\n      \"-isystem\",\n      \"/opt/homebrew/Cellar/glib/2.86.4/include/gio-unix-2.0\",\n      \"-isystem\",\n      \"/opt/homebrew/Cellar/orc/0.4.42/include/orc-0.4\",\n      \"-isystem\",\n      \"/opt/homebrew/Cellar/glib/2.86.4/include\",\n      \"-isystem\",\n      \"/Library/Developer/CommandLineTools/SDKs/MacOSX26.sdk/usr/include/ffi\",\n      \"-isystem\",\n      \"/opt/homebrew/Cellar/glib/2.86.4/include/glib-2.0\",\n      \"-isystem\",\n      \"/opt/homebrew/Cellar/glib/2.86.4/lib/glib-2.0/include\",\n      \"-isystem\",\n      \"/opt/homebrew/opt/gettext/include\",\n      \"-isystem\",\n      \"/opt/homebrew/Cellar/pcre2/10.47_1/include\",\n      \"-isystem\",\n      \"/opt/homebrew/Cellar/pango/1.57.0_2/include/pango-1.0\",\n      \"-isystem\",\n      \"/opt/homebrew/Cellar/cairo/1.18.4/include/cairo\",\n      \"-isystem\",\n      \"/opt/homebrew/Cellar/libxext/1.3.7/include\",\n      \"-isystem\",\n      \"/opt/homebrew/Cellar/xorgproto/2025.1/include\",\n      \"-isystem\",\n      \"/opt/homebrew/Cellar/libxrender/0.9.12/include\",\n      \"-isystem\",\n      \"/opt/homebrew/Cellar/libx11/1.8.13/include\",\n      \"-isystem\",\n      \"/opt/homebrew/Cellar/libxcb/1.17.0/include\",\n      \"-isystem\",\n      \"/opt/homebrew/Cellar/libxau/1.0.12/include\",\n      \"-isystem\",\n      \"/opt/homebrew/Cellar/libxdmcp/1.1.5/include\",\n      \"-isystem\",\n      \"/opt/homebrew/Cellar/pixman/0.46.4/include/pixman-1\",\n      \"-isystem\",\n      \"/opt/homebrew/Cellar/fribidi/1.0.16/include/fribidi\",\n      \"-isystem\",\n      \"/opt/homebrew/Cellar/libthai/0.1.30/include\",\n      \"-isystem\",\n      \"/opt/homebrew/Cellar/libdatrie/0.2.14/include\",\n      \"-isystem\",\n      \"/opt/homebrew/Cellar/fontconfig/2.17.1/include\",\n      \"-isystem\",\n      \"/opt/homebrew/Cellar/harfbuzz/13.1.1/include/harfbuzz\",\n      \"-isystem\",\n      \"/opt/homebrew/opt/freetype/include/freetype2\",\n      \"-isystem\",\n      \"/opt/homebrew/opt/libpng/include/libpng16\",\n      \"-isystem\",\n      \"/opt/homebrew/opt/graphite2/include\",\n      \"-isystem\",\n      \"/opt/homebrew/Cellar/libsodium/1.0.21/include\",\n      \"-isystem\",\n      \"/opt/homebrew/Cellar/openssl@3/3.6.2/include\",\n      \"-std=c++17\",\n      \"-arch\",\n      \"arm64\",\n      \"-I/private/tmp/media-server-r165-resume/overlay\",\n      \"-I/Users/dhseo/Workspace/mediaServer/scripts/internal\",\n      \"-I/Users/dhseo/Workspace/mediaServer/src/ingress\",\n      \"-c\",\n      \"/private/tmp/media-server-r165-resume/overlay/webrtc_http_server.cpp\",\n      \"-o\",\n      \"/private/tmp/media-server-r165-resume/overlay/webrtc_http_server.cpp.o\"\n    ],\n    [\n      \"/usr/bin/c++\",\n      \"-arch\",\n      \"arm64\",\n      \"-Wl,-search_paths_first\",\n      \"-Wl,-headerpad_max_install_names\",\n      \"-Wl,-rpath,/opt/homebrew/Cellar/gstreamer/1.28.1/lib\",\n      \"CMakeFiles/media_server.dir/src/application/media_server_application.cpp.o\",\n      \"CMakeFiles/media_server.dir/src/main.cpp.o\",\n      \"-o\",\n      \"/private/tmp/media-server-r165-resume/media_server\",\n      \"/private/tmp/media-server-r165-resume/overlay/recording_search_application_service.cpp.o\",\n      \"/private/tmp/media-server-r165-resume/overlay/webrtc_http_server_runtime.cpp.o\",\n      \"/private/tmp/media-server-r165-resume/overlay/webrtc_http_server.cpp.o\",\n      \"libmedia_server_runtime.a\",\n      \"/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib/libz.tbd\",\n      \"/opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstrtspserver-1.0.dylib\",\n      \"/opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstapp-1.0.dylib\",\n      \"/opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstwebrtc-1.0.dylib\",\n      \"/opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstsdp-1.0.dylib\",\n      \"/opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstpbutils-1.0.dylib\",\n      \"/opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstaudio-1.0.dylib\",\n      \"/opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstvideo-1.0.dylib\",\n      \"/opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstbase-1.0.dylib\",\n      \"/opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstreamer-1.0.dylib\",\n      \"/opt/homebrew/Cellar/pango/1.57.0_2/lib/libpangocairo-1.0.dylib\",\n      \"/opt/homebrew/Cellar/pango/1.57.0_2/lib/libpango-1.0.dylib\",\n      \"/opt/homebrew/Cellar/cairo/1.18.4/lib/libcairo.dylib\",\n      \"/opt/homebrew/Cellar/harfbuzz/13.1.1/lib/libharfbuzz.dylib\",\n      \"/opt/homebrew/Cellar/glib/2.86.4/lib/libgobject-2.0.dylib\",\n      \"/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib/libsqlite3.tbd\",\n      \"/opt/homebrew/Cellar/libsodium/1.0.21/lib/libsodium.dylib\",\n      \"/opt/homebrew/Cellar/openssl@3/3.6.2/lib/libssl.dylib\",\n      \"/opt/homebrew/Cellar/openssl@3/3.6.2/lib/libcrypto.dylib\",\n      \"/opt/homebrew/lib/libonnxruntime.dylib\",\n      \"/Users/dhseo/Workspace/mediaServer/third_party/v430-embedding/sentencepiece/lib/libsentencepiece.a\",\n      \"/opt/homebrew/Cellar/glib/2.86.4/lib/libglib-2.0.dylib\",\n      \"/opt/homebrew/opt/gettext/lib/libintl.dylib\",\n      \"-Wl,-map,/private/tmp/media-server-r165-resume/link.map\"\n    ]\n  ],\n  \"probeSha\": \"85eb32bfe76a0275d46daf15deed85875088efc433859eabc7258012e9571b88\",\n  \"binarySha\": \"6fb988680612c3ddd804d0199a2732b145c558612099d120210e4805f657f853\",\n  \"mapSha\": \"c6ab80dca883c3ee5ab2c0ed56a5781af2d8597208253a85146a597117712c1e\",\n  \"uniqueSymbols\": true\n}\n"
+    },
+    "focused-link.log": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "text": ""
+    },
+    "focused-port-check-build.log": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "text": ""
+    },
+    "link.log": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "text": ""
+    },
+    "recording_search_application_service.cpp.log": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "text": ""
+    },
+    "webrtc_http_server_runtime.cpp.log": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "text": ""
+    },
+    "webrtc_http_server.cpp.log": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "text": ""
+    }
+  },
+  "preservation": {
+    "rawLogs": "full original text; byte/hash checked",
+    "largeBinariesMapsMedia": "not included; hashes do not preserve full bytes",
+    "sensitiveScan": "No actual auth token/password/private URL in selected output. Paths are owned fixture/build and local library paths."
+  },
+  "independentReview": {
+    "reviewer": "/root/r165_resume_review",
+    "mode": "read-only; no implementation/tests/execution/redelegation",
+    "preReview": "port-close false-positive corrected before single run",
+    "postReview": "Confirmed BLOCKED_PRE_EXECUTION; bind permission denial, failure Finish only, source/binary/helper/map byte hashes and original member exclusion verified; original R165 record unchanged; no further code finding. Root cleanup pending."
+  },
+  "cleanup": {
+    "ownedRoot": "/private/tmp/media-server-r165-resume",
+    "processGroupAbsent": true,
+    "cleanupErrors": [],
+    "remoteBytes": "PENDING",
+    "rootRemoval": "PENDING"
+  },
+  "historical": {
+    "R149Functional45": "FAIL",
+    "R149Collection45": "INCOMPLETE",
+    "MemoryP0": "HOLD",
+    "Readiness120": "HOLD",
+    "Release": "HOLD",
+    "new45": "NOT_RUN"
+  }
+}

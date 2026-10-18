@@ -107,6 +107,16 @@ def build(parent):
     for key in ['RecordingApplicationService6Search','ReadHttpRequest']:
         assert len([l for l in symbols.splitlines() if key in l and ' T ' in l])==1
     (parent/'build.json').write_text(json.dumps({'sources':binding,'commands':commands,'probeSha':sha(out/'recording_http_cost_probe.h'),'binarySha':sha(parent/'media_server'),'mapSha':sha(parent/'link.map'),'uniqueSymbols':True},indent=2)+'\n')
+    # Preserve the common Http152 source; the selected header is confined to this owned copy.
+    native=(SCRIPTS/'recording_accumulated_http_smoke.cpp').read_text()
+    native=replace(native,'+"Connection: close\\r\\n"','+(id==10?"X-R154-ID: 1\\r\\n":"")+"Connection: close\\r\\n"')
+    native=replace(native,'return {wire.substr(end+4),ms};','''if(id==10)std::cout<<"[R165-client] {\\\"id\\\":1,\\\"loss\\\":false,\\\"status\\\":"<<status<<",\\\"outcome\\\":\\\"ok\\\",\\\"phase\\\":\\\"complete\\\",\\\"bytes\\\":"<<wire.size()<<",\\\"totalElapsedMs\\\":"<<static_cast<long long>(ms+0.5)<<"}\\n";return {wire.substr(end+4),ms};''')
+    (out/'recording_accumulated_http_smoke.cpp').write_text(native)
+    (out/'selected-focused.cpp').write_text((SCRIPTS/'recording_accumulated_cost_smoke.cpp').read_text())
+    focused_cmd=[*common,'-I'+str(REPO/'src/ingress'),str(out/'selected-focused.cpp'),*objects,str(b/'libmedia_server_runtime.a'),*link[link.index('libmedia_server_runtime.a')+1:],'-Wl,-map,'+str(parent/'focused.map'),'-o',str(parent/'selected-focused')]
+    run(focused_cmd,'focused-link')
+    (parent/'focused-build.json').write_text(json.dumps({'command':focused_cmd,'binarySha':sha(parent/'selected-focused'),'sourceSha':sha(out/'selected-focused.cpp'),'helperSha':sha(out/'recording_accumulated_http_smoke.cpp'),'mapSha':sha(parent/'focused.map')},indent=2)+'\n')
+    if '--parser' not in sys.argv:return
     parser=(SCRIPTS/'recording_http_cost_parser_smoke.cpp').read_text()
     parser=replace(parser,'d.id=1;d.status=200;','d.id=id;d.status=200;')
     parser=replace(parser,'} else if(mode=="reuse") {','''} else if(mode=="unselected") {
