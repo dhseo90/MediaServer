@@ -618,7 +618,7 @@
   },
   "cleanup": {
     "ownedRoot": "/private/tmp/media-server-r166-representative-build",
-    "status": "PENDING_REMOTE_BYTE_VERIFICATION",
+    "status": "COMPLETE",
     "preflight": {
       "matchingOwnedProcesses": [],
       "lsofExit": 1,
@@ -626,7 +626,20 @@
       "stderr": ""
     },
     "accumulatedRootCreated": false,
-    "ports": "native isolation 전 종료; HTTP listener 미기동"
+    "ports": "native isolation 전 종료; HTTP listener 미기동",
+    "remotePreservationBeforeDeletion": {
+      "head": "95d4f9b95ce318ab74ee089c2de464583cad16de",
+      "remoteHead": "95d4f9b95ce318ab74ee089c2de464583cad16de",
+      "path": "docs/release-artifacts/v4.5.0/166-post-fix-verification.json",
+      "bytes": 28278,
+      "sha256": "d5414446e8e2c5f536881979380a6d3f2824ff24833d1564bdd65d02943af3fc",
+      "remoteBytesMatch": true
+    },
+    "rootAbsent": true,
+    "removedRegularFiles": 29,
+    "unlinkedSymlinks": 277,
+    "externalSymlinkTargetsUnchanged": 276,
+    "productRuntimeStillFixed": true
   },
   "limits": {
     "noProductOptimization": true,
