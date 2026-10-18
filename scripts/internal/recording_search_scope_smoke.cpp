@@ -18,6 +18,58 @@ int main(int argc,char** argv) {
         std::string error;
         auto observation=[](const std::string& id){recording::AnalysisObservationV2 o;o.observation_id=id;o.source_id="probe-channel";o.channel_id="probe-channel";o.analysis_namespace="scope";o.track_id="track";o.class_label="person";o.confidence=.8;o.bbox={0,0,.5,.5};o.selection_reasons={"track-start"};return o;};
         check(store.catalog.PutObservationV2(observation("selected"),&error),"selected observation fixture");
+        // R166: 기존 capture hook으로 실제 application의 범위 교대 재구축을 센다.
+        // 별도 캐시/계측 모형을 테스트 oracle로 사용하지 않는다.
+        const auto model_category=unsigned(recording::SearchModelResidency::Category::Model);
+        const auto model_bytes_before=store.catalog.SearchResidency()->DiagnosticSnapshot().bytes[model_category];
+        const auto currents=[] {
+            auto& state=recording::memory_diagnostic::Data();std::lock_guard lock(state.mutex);
+            std::size_t count=0;for(const auto& model:state.models)if(model.id&&model.current)++count;return count;
+        };
+        {
+            ingress::RecordingApplicationService scoped(reader,store.catalog,true,{});
+            std::vector<bool> rebuilds;
+            recording::search_after_capture_test=[&]{
+                const auto* d=recording::SearchDiagnostic::active;
+                if(!d||!d->attempts[d->attempt].authority)throw std::runtime_error("scope capture authority");
+                rebuilds.push_back(d->attempts[d->attempt].rebuild);
+            };
+            const auto invoke=[&](const Query& q){return scoped.Search(q,"owner","scope",[](const auto&){return true;});};
+            Query other=query;other["channelIds"]="other-channel";other.erase("object");
+            const auto a=invoke(query),b=invoke(other),again=invoke(query);
+            check(a.status==200&&b.status==200&&again.status==200&&
+                Field(Json(a.body),"items")==Field(Json(again.body),"items"),"R166 A-B-A identical membership and public fields");
+            std::cout<<"[scope-rebuilds]";for(bool value:rebuilds)std::cout<<' '<<value;std::cout<<std::endl;
+            check(rebuilds==std::vector<bool>({true,true,false}),"R166 A-B-A rebuilds only first two scopes");
+            if(recording::memory_diagnostic::Enabled())check(currents()==2,"R166 both retained source models are diagnostic current");
+            rebuilds.clear();
+            auto normalized=query;normalized["channelIds"]="probe-channel,probe-channel";
+            check(invoke(normalized).status==200&&rebuilds==std::vector<bool>({false}),"R166 normalized same scope reuses after fresh capture");
+            rebuilds.clear();
+            auto recordings=query;recordings.erase("object");recordings["limit"]="1";
+            const auto saved=invoke(recordings);const auto saved_json=Json(saved.body);
+            check(saved.status==200&&rebuilds==std::vector<bool>({true}),"R166 observation inclusion is a distinct scope");
+            rebuilds.clear();
+            check(invoke(query).status==200&&rebuilds==std::vector<bool>({false}),"R166 most recent observation scope survives third key eviction");
+            rebuilds.clear();
+            check(invoke(other).status==200&&rebuilds==std::vector<bool>({true}),"R166 least recent scope evicted at two entries");
+            if(recording::memory_diagnostic::Enabled())check(currents()==2,"R166 eviction retires only the displaced source");
+            rebuilds.clear();
+            recordings["cursor"]=Field(saved_json,"nextCursor");
+            check(recordings["cursor"]!="null"&&invoke(recordings).status==200&&rebuilds.empty(),"R166 evicted source snapshot cursor remains usable without preparation");
+            check(scoped.Search(query,"owner","scope",[](const auto&){return false;}).status==403&&rebuilds.empty(),"R166 warm scope still requires authorization before capture");
+            const auto owner=store.catalog.SearchResidency();
+            auto full=owner->ReserveOwned(owner->limit()-owner->used());
+            auto third=query;third["channelIds"]="capacity-channel";
+            check(full&&invoke(third).status==503&&rebuilds.empty(),"R166 new scope refuses saturated shared admission without completed capture");
+            full.reset();rebuilds.clear();
+            check(invoke(other).status==200&&rebuilds==std::vector<bool>({false}),"R166 admission failure preserves most recent scope and permits recovery");
+            recording::search_after_capture_test={};
+        }
+        if(recording::memory_diagnostic::Enabled())check(currents()==0&&
+            store.catalog.SearchResidency()->DiagnosticSnapshot().bytes[model_category]==model_bytes_before,
+            "R166 service destruction returns model and key ownership");
+        if(fail)return 1; // 예상 RED 이후 기존 영향 회귀를 실행하지 않는다.
         const auto before=app.Search(query,"owner","scope",auth);check(before.status==200,"baseline actual search");
         Query paging=query;paging.erase("object");paging["limit"]="1";
         const auto page=app.Search(paging,"page-owner","page-scope",auth);

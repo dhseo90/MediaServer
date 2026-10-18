@@ -5,6 +5,7 @@
 #include "recording/recording_search_reader.h"
 #include "recording/recording_search_snapshots.h"
 #include <algorithm>
+#include <array>
 #include <charconv>
 #include <iomanip>
 #include <limits>
@@ -16,10 +17,37 @@ namespace ingress {
 struct RecordingApplicationService::SearchState {
     // 기존 단일 준비 실행 한도를 유지한다. cursor/seek/evidence는 준비 완료를
     // 기다리지 않고 불변 snapshot을 읽도록 서비스 상태 접근 잠금과 분리한다.
-    ~SearchState(){if(source)recording::memory_diagnostic::Current(source->diagnostic_identity(),0);}
+    struct Source {
+        // 키 복사 전에 예약한다. 모델의 별도 Model 예약과 snapshot 공유 수명은 그대로다.
+        recording::SearchModelResidency::Reservation memory;
+        std::vector<std::string> channels;
+        bool observations;
+        std::shared_ptr<const recording::RecordingSearchModel> model;
+        Source(recording::SearchModelResidency::Reservation charge,const std::vector<std::string>& key,bool include)
+            :memory(std::move(charge)),channels(key),observations(include){}
+        ~Source(){if(model)recording::memory_diagnostic::Current(model->diagnostic_identity(),0);}
+    };
     std::mutex preparation_mutex;
-    std::shared_ptr<const recording::RecordingSearchModel> source;
+    std::array<std::unique_ptr<Source>,2> sources; // [0] 최근 사용, [1] 퇴출 대상
     recording::RecordingSearchSnapshots snapshots{{},true};
+    Source* Select(const std::vector<std::string>& channels,bool observations,
+                   const std::shared_ptr<recording::SearchModelResidency>& residency) {
+        for(std::size_t i=0;i<sources.size();++i) {
+            if(sources[i]&&sources[i]->channels==channels&&sources[i]->observations==observations) {
+                if(i)std::swap(sources[0],sources[1]);
+                return sources[0].get();
+            }
+        }
+        // 최대 두 source만 보유한다. 퇴출은 snapshot의 공유 모델을 수정하지 않는다.
+        sources[1].reset();
+        std::size_t bytes=sizeof(Source)+channels.size()*sizeof(std::string);
+        for(const auto& channel:channels)bytes+=2*(channel.size()+1);
+        auto charge=residency->ReserveOwned(bytes,recording::SearchModelResidency::Category::Model);
+        if(!charge)return nullptr;
+        auto next=std::make_unique<Source>(std::move(*charge),channels,observations);
+        sources[1]=std::move(sources[0]);sources[0]=std::move(next);
+        return sources[0].get();
+    }
 };
 namespace {
 // Record only fixed timestamps under the service mutex; emit at request exit after unlock.
@@ -125,18 +153,21 @@ ApplicationServiceResult RecordingApplicationService::Search(const Query& raw,co
             // 각 시도의 동일한 revision/재생 검증을 통과한 모델만 한 번 게시한다.
             const bool observations=!query.objects.empty()||!query.tracks.empty()||!query.events.empty()||
                 !query.zones.empty()||!query.rules.empty()||!query.behaviours.empty();
+            auto* selected=state->Select(query.channels,observations,catalog_.SearchResidency());
+            if(!selected)return Failure("search-capacity-exceeded");
+            auto& source=selected->model;
             recording::SearchSourceBatch retry_capture;
             bool prepared=false;
             for(unsigned attempt=0;attempt<3;++attempt){
                 diagnostic.attempt=attempt;recording::SearchDiagnostic::Stage("refresh");
-                const auto prior_model=state->source?state->source->diagnostic_identity():0;
-                bool refreshed=false;{recording::SearchDiagnostic::Phase cost("Refresh");refreshed=search.Refresh(query.channels,state->source,&state->source,&error,{},observations,&retry_capture);}
-                recording::memory_diagnostic::Current(prior_model,state->source?state->source->diagnostic_identity():0);
+                const auto prior_model=source?source->diagnostic_identity():0;
+                bool refreshed=false;{recording::SearchDiagnostic::Phase cost("Refresh");refreshed=search.Refresh(query.channels,source,&source,&error,{},observations,&retry_capture);}
+                recording::memory_diagnostic::Current(prior_model,source?source->diagnostic_identity():0);
                 if(!refreshed){
                     if(error=="search-source-changed"){recording::SearchDiagnostic::Reason(error);recording::latency::VisualPhase phase("structured-source-changed");continue;}
                     return Failure(error);
                 }
-                auto model=state->source;
+                auto model=source;
                 recording::SearchDiagnostic::Stage("event-facts");
                 if(!query.behaviours.empty()&&!recording::RecordingSearchReader::WithEventFacts(*model,&model,&error,{},&query))return Failure(error);
                 recording::SearchDiagnostic::Stage("with-playback");
