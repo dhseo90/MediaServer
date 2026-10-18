@@ -201,8 +201,39 @@
     "ownedRoot": "/private/tmp/media-server-r165-resume",
     "processGroupAbsent": true,
     "cleanupErrors": [],
-    "remoteBytes": "PENDING",
-    "rootRemoval": "PENDING"
+    "remoteBytes": {
+      "remoteHead": "af1c5b8b92b3dcd9843b96b6cda4ff5bd2678b9c",
+      "allBytesEqual": true,
+      "files": [
+        {
+          "path": "docs/project-feature-test-inventory.md",
+          "bytes": 1097594,
+          "sha256": "a1c9e19422d3adce1fef0d6bb83e61c6f854caf72421501c93fdc7225c3c0576"
+        },
+        {
+          "path": "docs/release-artifacts/v4.5.0/165-continuation.json",
+          "bytes": 33485,
+          "sha256": "38375708a67456ce45dbc92acfda4b46d430294cbad426da90d4cbbceda3c5e8"
+        },
+        {
+          "path": "scripts/internal/recording_accumulated_cost.py",
+          "bytes": 15182,
+          "sha256": "7c67c6707ced22961801e69b335b43b6a607c1a6a68667dc68cc28f4ece03c35"
+        },
+        {
+          "path": "scripts/internal/recording_accumulated_cost_smoke.cpp",
+          "bytes": 4263,
+          "sha256": "97554423a516231cd4f7e50aab434ea08a773bf18a06d795975597fbae8f798e"
+        }
+      ]
+    },
+    "rootRemoval": "COMPLETE",
+    "ownedProcessesAbsent": true,
+    "openFilesAbsent": true,
+    "listener": "bind denied before listen; no owned process survives; portClosed assertion NOT_RUN",
+    "deletedFiles": 42,
+    "deletedBytes": 127775445,
+    "rootAbsent": true
   },
   "historical": {
     "R149Functional45": "FAIL",
