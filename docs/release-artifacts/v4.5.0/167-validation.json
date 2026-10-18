@@ -1640,8 +1640,15 @@
   "cleanup": {
     "ownedRoot": "/private/tmp/media-server-r167-focused",
     "allNativeProcessGroupsAbsent": true,
-    "rootRemoval": "PENDING_REMOTE_PRESERVATION",
-    "serverOrListeningPortCreated": false
+    "rootRemoval": "COMPLETE_AFTER_REMOTE_BYTE_VERIFICATION",
+    "serverOrListeningPortCreated": false,
+    "ownedRootAbsent": true,
+    "openFileCheck": "lsof +D: no open files before removal",
+    "removedRegularFiles": 298,
+    "removedRegularBytes": 168534555,
+    "removedOwnedSymlinks": 2216,
+    "symlinkTargetsFollowed": false,
+    "externalUserFilesChanged": false
   },
   "binding": {
     "initialInventoryCheck": "FAIL: changed inventory hash, before producer; preserved inventory.log",
@@ -1686,7 +1693,14 @@
   "git": {
     "productCommit": "e618dd06283ac9e851d7093af30a7ec23402497d",
     "remoteBefore": "78ec46d5603ff85daf7f3c7072129b8b2b6ba252",
-    "preservation": "this evidence commit; remote verification pending"
+    "preservation": {
+      "head": "ec4109c552ff2ce39ce0e91c5c836852eb904776",
+      "remoteHead": "ec4109c552ff2ce39ce0e91c5c836852eb904776",
+      "path": "docs/release-artifacts/v4.5.0/167-validation.json",
+      "bytes": 112780,
+      "sha256": "4cd8e65ca7db09d85b7f18748dd34446072ba5e630346027afbbedf80e4eaa32",
+      "actualRemoteBytesEqual": true
+    }
   },
   "limitations": [
     "No quantitative latency A/B measurement",
