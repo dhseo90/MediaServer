@@ -146,6 +146,19 @@ bool RecordingCatalog::CaptureSearchSourceImpl(const std::vector<std::string>& c
         batch.rebuild = !previous || previous->source_instance() != batch.delta.source_instance ||
             previous->revision() < search_rebuild_revision_ ||
             SearchChangedLocked(channels,previous->revision(),true);
+        if(batch.rebuild&&!include_observations&&previous&&
+           previous->source_instance()==batch.delta.source_instance&&
+           previous->revision()>=search_rebuild_revision_&&
+           previous->revision()>=search_invalidations_->floor&&previous->revision()<batch.resolution_revision) {
+            bool additions=false,covered=true;
+            for(const auto& entry:search_invalidations_->entries) {
+                if(entry.revision<=previous->revision()||!entry.structural)continue;
+                if(entry.channel[0]&&std::find(channels.begin(),channels.end(),entry.channel)==channels.end())continue;
+                if(!entry.channel[0]||!entry.new_bound_segment){covered=false;break;}
+                additions=true;
+            }
+            batch.append_order_hint=covered&&additions;
+        }
         const auto selected = [&](const std::string& channel) {
             return std::find(channels.begin(), channels.end(), channel) != channels.end();
         };

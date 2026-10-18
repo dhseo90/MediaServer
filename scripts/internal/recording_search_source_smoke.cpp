@@ -1,6 +1,8 @@
 // 파일 용도: V420-L01/L02 원장과 검색 스냅샷 연결의 단기 통합 검사.
 #include "recording/recording_search_reader.h"
 #include "recording/recording_search_snapshots.h"
+#include "recording/recording_search_diagnostic.h"
+#include <algorithm>
 #include <filesystem>
 #include <fstream>
 #include <iostream>
@@ -129,9 +131,72 @@ static void ReaderBudget() {
     }
     Check(owner->used()==0&&owner->peak()==3*charge,"MEM84 final page/model release; finite high water");
 }
+#ifdef RECORDING_SEARCH_TESTING
+static void AppendOrder() {
+    std::vector<SearchDocument> documents;
+    for(int i=0;i<1024;++i) {
+        SearchDocument d;d.id="s-"+std::to_string(i);d.segment_id=d.id;d.channel_id="channel";
+        d.start_ns=2*i;d.end_ns=2*i+1;documents.push_back(d);
+    }
+    std::shared_ptr<const RecordingSearchModel> base,oracle,candidate;std::string error;
+    auto initial=documents;
+    Check(RecordingSearchModel::BuildOwned(std::move(initial),"recordings:scope",1,&base,&error),"R167 base immutable ordering");
+    auto extra=documents.front();extra.id="new-a";extra.segment_id=extra.id;extra.start_ns=1;extra.end_ns=2;documents.push_back(extra);
+    extra.id="new-b";extra.segment_id=extra.id;extra.start_ns.reset();extra.end_ns.reset();documents.push_back(extra);
+    std::reverse(documents.begin(),documents.end());
+    const auto compare=[&](const std::vector<SearchDocument>& input,const std::string& source,std::uint64_t revision,bool append,const char* label) {
+        auto strict=input,fast=input;
+        const auto strict_ok=RecordingSearchModel::BuildOwned(std::move(strict),source,revision,&oracle,&error);
+        const auto strict_error=error;
+        const auto fast_ok=RecordingSearchModel::BuildOwnedAppend(std::move(fast),*base,source,revision,&candidate,&error);
+        bool same=strict_ok==fast_ok&&strict_error==error;
+        if(same&&fast_ok) {
+            same=oracle->documents().size()==candidate->documents().size()&&oracle->accounted_bytes()==candidate->accounted_bytes();
+            for(std::size_t i=0;same&&i<oracle->documents().size();++i) {
+                const auto& a=oracle->documents()[i];const auto& b=candidate->documents()[i];
+                same=a.id==b.id&&a.start_ns==b.start_ns&&a.source_id==b.source_id&&a.unavailable_reason==b.unavailable_reason&&a.event_ids==b.event_ids;
+            }
+        }
+        Check(same,label);
+        if(fast_ok)Check(append?search_order_work_test==std::array<std::size_t,3>{0,2,1026}:
+            search_order_work_test==std::array<std::size_t,3>{input.size(),0,0},"R167 actual full-sort versus added-sort work");
+    };
+    compare(documents,"recordings:scope",2,true,"R167 append equals independent full build");
+    auto changed=documents;changed.back().source_id="changed";
+    compare(changed,"recordings:scope",2,false,"R167 changed non-order field strict fallback");
+    changed=documents;changed.back().unavailable_reason="deleted";
+    compare(changed,"recordings:scope",2,false,"R167 lifecycle projection strict fallback");
+    changed=documents;changed.pop_back();
+    compare(changed,"recordings:scope",2,false,"R167 missing prior document strict fallback");
+    changed=documents;changed.push_back(changed.back());
+    compare(changed,"recordings:scope",2,false,"R167 duplicate ID same full-build failure");
+    compare(documents,"recordings:other",2,false,"R167 different source strict fallback");
+    compare(documents,"recordings:scope",1,false,"R167 non-advancing revision strict fallback");
+    auto strict=documents;
+    Check(RecordingSearchModel::BuildOwned(std::move(strict),"recordings:scope",2,&oracle,&error),"R167 exact model admission oracle");
+    auto owner=std::make_shared<SearchModelResidency>(oracle->accounted_bytes());
+    auto constrained=documents;
+    Check(RecordingSearchModel::BuildOwnedAppend(std::move(constrained),*base,"recordings:scope",2,&candidate,&error,
+          {100000,64*1024*1024,owner})&&search_order_work_test[0]==documents.size()&&owner->rejected()==0,
+          "R167 no scratch headroom falls back without changing model admission");
+    const auto held_candidate=candidate;constrained=documents;
+    Check(!RecordingSearchModel::BuildOwnedAppend(std::move(constrained),*base,"recordings:scope",2,&candidate,&error,
+          {100000,64*1024*1024,owner})&&error=="search-capacity-exceeded"&&candidate==held_candidate,
+          "R167 model reservation rejection preserves prior owner");
+    RecordingSearchSnapshots pool;RecordingSearchQuery q;q.channels={"channel"};q.start_time_ms=0;q.end_time_ms=100;
+    q.limit=2;RecordingSearchPage page,resumed;
+    Check(pool.Begin(base,q,"owner","scope",&page,&error)&&!page.next_cursor.empty()&&
+          pool.Resume(page.next_cursor,q,"owner","scope",&resumed,&error)&&resumed.model==base,
+          "R167 prior model snapshot cursor remains bound after append build");
+    Check(base->documents().size()==1024&&base->revision()==1,"R167 prior snapshot model unchanged");
+}
+#endif
 int main(int argc,char**argv) {
     if(argc!=2)return 2;
     ReaderBudget();
+#ifdef RECORDING_SEARCH_TESTING
+    AppendOrder();
+#endif
     // macOS 임시 디렉터리 별칭(/var)을 실제 경로로 정규화한다. 원본 삭제의 no-follow 검사는 유지한다.
     const auto root=std::filesystem::weakly_canonical(argv[1]);
     std::filesystem::create_directories(root/"media");
@@ -227,7 +292,7 @@ int main(int argc,char**argv) {
         held=model;
         bool inserted=true;
         for(int i=0;i<1025&&inserted;++i){observation.observation_id="history-"+std::to_string(i);inserted=catalog.PutObservationV2(observation,&error);}
-        Check(inserted&&catalog.CaptureSearchSource({"channel-one"},held.get(),&batch,&error)&&batch.rebuild&&
+        Check(inserted&&catalog.CaptureSearchSource({"channel-one"},held.get(),&batch,&error)&&batch.rebuild&&!batch.append_order_hint&&
             batch.delta.upserts.size()==1028,"history-gap-rebuild");
         Check(catalog.MarkSegmentCorrupt("segment-one","container-invalid",&error)&&
             !catalog.ValidateSearchSource(batch,&error),"structural-change-invalidates-captured-batch");

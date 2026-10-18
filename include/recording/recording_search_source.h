@@ -13,6 +13,7 @@ struct SearchPendingReference {
 struct SearchSourceBatch {
     SearchModelResidency::Reservation memory;
     bool rebuild{true};
+    bool append_order_hint{false};
     std::uint64_t catalog_instance{0}, resolution_revision{0};
     std::vector<std::string> channels;
     SearchModelDelta delta;
@@ -35,6 +36,7 @@ public:
     SearchSourceBatch(const SearchSourceBatch&)=default;
     SearchSourceBatch(SearchSourceBatch&&) noexcept=default;
     SearchSourceBatch& operator=(SearchSourceBatch other) noexcept {
+        std::swap(append_order_hint,other.append_order_hint);
         memory.swap(other.memory);std::swap(rebuild,other.rebuild);std::swap(catalog_instance,other.catalog_instance);std::swap(resolution_revision,other.resolution_revision);std::swap(channels,other.channels);std::swap(delta,other.delta);std::swap(pending,other.pending);segment_spans_.swap(other.segment_spans_);std::swap(residency_,other.residency_);std::swap(max_documents_,other.max_documents_);std::swap(max_bytes_,other.max_bytes_);std::swap(reused_segments_,other.reused_segments_);return *this;
     }
 };

@@ -8,6 +8,7 @@
 #include <stdexcept>
 #include <tuple>
 #include <unordered_set>
+#include <type_traits>
 
 namespace recording {
 namespace {
@@ -293,6 +294,16 @@ bool RecordingSearchModel::Build(const std::vector<SearchDocument>& documents,
 bool RecordingSearchModel::BuildOwned(std::vector<SearchDocument>&& documents,
     const std::string& source_instance, std::uint64_t revision,
     std::shared_ptr<const RecordingSearchModel>* output, std::string* error, SearchModelLimits limits) {
+    return BuildOwnedImpl(std::move(documents),source_instance,revision,output,error,limits,nullptr);
+}
+
+bool RecordingSearchModel::BuildOwnedImpl(std::vector<SearchDocument>&& documents,
+    const std::string& source_instance, std::uint64_t revision,
+    std::shared_ptr<const RecordingSearchModel>* output, std::string* error, SearchModelLimits limits,
+    const RecordingSearchModel* base) {
+#ifdef RECORDING_SEARCH_TESTING
+    search_order_work_test={};
+#endif
     if (!output || !Text(source_instance, true)) return Fail(error, "search-invalid-source");
     SearchCapacityBegin("model-build-owned",limits.max_documents,limits.max_bytes,documents.size(),documents.capacity());
     if (documents.size() > limits.max_documents) {
@@ -341,7 +352,81 @@ bool RecordingSearchModel::BuildOwned(std::vector<SearchDocument>&& documents,
                 return a.event_id < b.event_id;
             });
         }
-        std::sort(model->documents_.begin(), model->documents_.end(), Earlier);
+        // No authority or document work is skipped: only reuse the order of
+        // fully equal prior documents in this newly authenticated capture.
+        const auto append_order=[&]() -> bool {
+            if(!base||base->source_instance_!=source_instance||base->revision_>=revision||
+               base->documents_.empty()||base->documents_.size()>=model->documents_.size())return false;
+            auto& current=model->documents_;
+            const auto n=current.size(),old=base->documents_.size();
+            if(n>SIZE_MAX/(2*sizeof(std::size_t)))return false;
+            const auto scratch_bytes=2*n*sizeof(std::size_t);
+            if(scratch_bytes>limits.max_bytes)return false;
+            try {
+                std::shared_ptr<void> scratch;
+                if(limits.residency) {
+                    const auto used=limits.residency->used();
+                    if(used>limits.residency->limit()||scratch_bytes>limits.residency->limit()-used)return false;
+                    scratch=limits.residency->Reserve(scratch_bytes,SearchModelResidency::Category::Preparation);
+                    if(!scratch)return false;
+                }
+                std::vector<std::size_t> positions(old,SIZE_MAX),added,target(n);
+                added.reserve(n-old);
+                if(positions.capacity()>old||added.capacity()>n-old||target.capacity()>n)return false;
+                const auto same=[](const SearchDocument& a,const SearchDocument& b) {
+                    const auto fields=[](const SearchDocument& d) {return std::tie(
+                        d.id,d.channel_id,d.kind,d.segment_id,d.source_id,d.store_id,d.media_epoch_id,
+                        d.playback_segment_id,d.playback_event_id,d.playback_job_id,d.observation_id,d.reference_id,
+                        d.analysis_namespace,d.stream_epoch_id,d.track_id,d.object,d.start_ns,d.end_ns,
+                        d.time_provenance,d.uncertainty_ns,d.media_pts,d.media_end_pts,d.time_base_num,d.time_base_den,
+                        d.event_ids,d.zone_ids,d.rule_ids,d.unavailable_reason);};
+                    if(fields(a)!=fields(b)||a.event_facts.size()!=b.event_facts.size())return false;
+                    for(std::size_t i=0;i<a.event_facts.size();++i) {
+                        const auto& x=a.event_facts[i];const auto& y=b.event_facts[i];
+                        if(std::tie(x.event_id,x.event_type,x.scenario_name)!=std::tie(y.event_id,y.event_type,y.scenario_name))return false;
+                    }
+                    return true;
+                };
+                for(std::size_t i=0;i<n;++i) {
+                    const auto& d=current[i];if(d.kind!=SearchDocumentKind::Recording)return false;
+                    const auto found=base->ids_.find(d.id);
+                    if(found==base->ids_.end()) {
+                        if(added.size()==n-old)return false;
+                        added.push_back(i);
+                    } else {
+                        const auto at=found->second;
+                        if(at>=old||positions[at]!=SIZE_MAX||!same(d,base->documents_[at]))return false;
+                        positions[at]=i;
+                    }
+                }
+                if(added.size()!=n-old||std::find(positions.begin(),positions.end(),SIZE_MAX)!=positions.end())return false;
+                std::sort(added.begin(),added.end(),[&](auto a,auto b){return Earlier(current[a],current[b]);});
+                std::size_t a=0,b=0;
+                for(std::size_t to=0;to<n;++to) {
+                    const auto from=(a<old&&(b==added.size()||!Earlier(current[added[b]],current[positions[a]])))
+                        ?positions[a++]:added[b++];
+                    target[from]=to;
+                }
+                // target is a complete permutation of the current vector. All
+                // allocations/proofs precede this nonthrowing commit; base and
+                // snapshots remain untouched. Scratch dies before index build.
+                static_assert(std::is_nothrow_swappable_v<SearchDocument>);
+                for(std::size_t i=0;i<n;++i)while(target[i]!=i) {
+                    const auto to=target[i];std::swap(current[i],current[to]);std::swap(target[i],target[to]);
+                }
+#ifdef RECORDING_SEARCH_TESTING
+                search_order_work_test={0,n-old,n};
+#endif
+                return true;
+            } catch(const std::bad_alloc&) {return false;}
+              catch(const std::length_error&) {return false;}
+        };
+        if(!append_order()) {
+#ifdef RECORDING_SEARCH_TESTING
+            search_order_work_test={model->documents_.size(),0,0};
+#endif
+            std::sort(model->documents_.begin(), model->documents_.end(), Earlier);
+        }
         for (std::size_t i = 0; i < model->documents_.size(); ++i) {
             const auto& d = model->documents_[i];
             if (!model->ids_.emplace(d.id, i).second) return Fail(error, "search-duplicate-id");
@@ -364,6 +449,12 @@ const std::vector<std::size_t>& RecordingSearchModel::Channel(const std::string&
     static const std::vector<std::size_t> empty;
     const auto found = channels_.find(channel_id);
     return found == channels_.end() ? empty : found->second;
+}
+
+bool RecordingSearchModel::BuildOwnedAppend(std::vector<SearchDocument>&& documents,
+    const RecordingSearchModel& base, const std::string& source_instance, std::uint64_t revision,
+    std::shared_ptr<const RecordingSearchModel>* output, std::string* error, SearchModelLimits limits) {
+    return BuildOwnedImpl(std::move(documents),source_instance,revision,output,error,limits,&base);
 }
 
 bool RecordingSearchModel::ApplyDelta(const RecordingSearchModel& base, const SearchModelDelta& delta,

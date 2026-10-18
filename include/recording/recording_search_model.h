@@ -109,6 +109,13 @@ public:
                       const std::string& source_instance, std::uint64_t revision,
                       std::shared_ptr<const RecordingSearchModel>* output,
                       std::string* error, SearchModelLimits limits = {});
+    // Full authenticated capture remains mandatory. The prior immutable model
+    // supplies only an optional ordering hint; any incomplete proof uses full sort.
+    static bool BuildOwnedAppend(std::vector<SearchDocument>&& documents,
+                      const RecordingSearchModel& base,
+                      const std::string& source_instance, std::uint64_t revision,
+                      std::shared_ptr<const RecordingSearchModel>* output,
+                      std::string* error, SearchModelLimits limits = {});
     // base와 caller output은 실패 시 불변이다. 보관 중인 검색 페이지의 base도 변경하지 않는다.
     static bool ApplyDelta(const RecordingSearchModel& base, const SearchModelDelta& delta,
                            std::shared_ptr<const RecordingSearchModel>* output,
@@ -128,6 +135,9 @@ public:
     const std::shared_ptr<SearchModelResidency>& residency()const{return residency_;}
 
 private:
+    static bool BuildOwnedImpl(std::vector<SearchDocument>&&, const std::string&, std::uint64_t,
+        std::shared_ptr<const RecordingSearchModel>*, std::string*, SearchModelLimits,
+        const RecordingSearchModel*);
     std::shared_ptr<SearchModelResidency> residency_;
     std::shared_ptr<void> residency_lease_;
     bool QueryImpl(const RecordingSearchQuery&, RecordingSearchMatches*, std::string*, bool skip_behaviour) const;

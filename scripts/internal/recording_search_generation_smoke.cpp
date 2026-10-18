@@ -1,10 +1,20 @@
 // 파일 용도: 기존 generation 값 fixture로 실제 원장/카탈로그를 열고 검색 원본 참조를 검증한다.
-// fixture의 기존 main은 호출하지 않으며 private probe를 사용하지 않는다.
+// fixture의 기존 main은 호출하지 않는다. 손상 반례는 기존 generation probe를 재사용한다.
+#define MEDIA_SERVER_RECORDING_GENERATION_TESTING 1
 #define main SearchProjectionFixtureMain
 #include "recording_catalog_generation_projection_smoke.cpp"
 #undef main
 #include "recording/recording_search_reader.h"
 #include "recording/recording_identity_shard.h"
+#include <unistd.h>
+namespace recording {
+struct RecordingGenerationRequestProofProbe {
+    static bool DamageCurrentRaw(RecordingCatalog& catalog) {
+        std::lock_guard lock(catalog.mu_);
+        return ::ftruncate(catalog.completed_history_->ProbeIndexFd(),0)==0;
+    }
+};
+}
 namespace {
 int search_passed=0,search_failed=0;
 void SearchCheck(bool ok,const char* name){std::cout<<(ok?"[pass] ":"[fail] ")<<name<<'\n';if(ok)++search_passed;else{++search_failed;std::cerr<<error<<'\n';}}
@@ -81,6 +91,17 @@ int main(int argc,char** argv) {
             SearchCheck(catalog.ValidateSearchSource(captured,&error)&&catalog.CaptureSearchSource({"channel"},model.get(),&after,&error)&&
                 !after.rebuild&&after.delta.upserts.empty()&&after.delta.removed_ids.empty(),"V430-R04 reservation preserves source resolution and empty delta");
             SearchCheck(search.Refresh({"channel"},model,&model,&error)&&model==prior,"V430-R04 no search change reuses identical immutable model");
+            if(phase==2) {
+                // Capture authenticates the current owned row store. The
+                // sealed archive was projected at Open and is not that store.
+                Need(RecordingGenerationRequestProofProbe::DamageCurrentRaw(catalog));
+                SearchSourceBatch rejected;rejected.catalog_instance=987;
+                SearchCheck(!catalog.CaptureSearchSource({"channel"},nullptr,&rejected,&error,{},false)&&
+                    !error.empty()&&rejected.catalog_instance==987,
+                    "R167 full current raw authentication rejects damaged owned row store atomically");
+                SearchCheck(!search.Refresh({"channel"},prior,&model,&error,{},false)&&model==prior,
+                    "R167 lost authority rejects prior model reuse with output unchanged");
+            }
         }
     }catch(const std::exception& ex){std::cerr<<ex.what()<<'\n';return 1;}
     std::cout<<"[search-generation] pass="<<search_passed<<" fail="<<search_failed<<'\n';return search_failed?1:0;

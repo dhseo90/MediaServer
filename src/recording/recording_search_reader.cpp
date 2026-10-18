@@ -127,8 +127,11 @@ bool RecordingSearchReader::Refresh(const std::vector<std::string>& channels,
     std::shared_ptr<const RecordingSearchModel> next;
     SearchDiagnostic::Stage(batch.rebuild?"model-build":"model-delta");
     SearchDiagnostic::Phase build_cost(batch.rebuild?"BuildOwned":"ApplyDelta");
-    const bool built = batch.rebuild ? RecordingSearchModel::BuildOwned(std::move(batch.delta.upserts),
-        batch.delta.source_instance, batch.delta.revision, &next, error, limits) :
+    const bool built = batch.rebuild ? (batch.append_order_hint&&previous ?
+        RecordingSearchModel::BuildOwnedAppend(std::move(batch.delta.upserts),*previous,
+            batch.delta.source_instance,batch.delta.revision,&next,error,limits) :
+        RecordingSearchModel::BuildOwned(std::move(batch.delta.upserts),
+            batch.delta.source_instance, batch.delta.revision, &next, error, limits)) :
         RecordingSearchModel::ApplyDelta(*previous, batch.delta, &next, error, limits);
     // 정렬/복사 동안 발생한 원본 상태 변경도 완료 직전에 거부한다.
     if(!built)return false;

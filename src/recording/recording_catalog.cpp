@@ -1725,6 +1725,9 @@ void RecordingCatalog::NoteSearchMutationLocked(const RecordingMutationV1& mutat
         auto& entry=log.entries[log.next];
         if(log.count==log.entries.size())log.floor=entry.revision;else ++log.count;
         entry={};entry.revision=source_snapshot_revision_;entry.structural=!observation;
+        // Only successful bound finalization proves a previously absent V2 ID.
+        // This is an ordering hint, never permission to omit current raw reads.
+        entry.new_bound_segment=mutation.mutation_type==RecordingMutationType::SegmentV2BoundFinalized;
         if(channel.size()<=128)std::memcpy(entry.channel,channel.data(),channel.size());
         log.next=(log.next+1)%log.entries.size();
     }

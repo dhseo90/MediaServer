@@ -18,8 +18,8 @@ int main(int argc,char** argv){
  try{
   std::string error;RecordingRuntimeStorage runtime(std::filesystem::path(argv[1])/"recording");need(runtime.Open(&error),"generation runtime open");
   auto& catalog=runtime.catalog();auto input=Encode(true,30);
-  const auto write=[&](const std::string& generation){
-   GStreamerSegmentWriter writer(runtime.WriterOptions(1000));need(writer.Start("channel-1","unused",input.descriptor,[](auto,auto,auto*){return false;},&error),"actual writer start");
+  const auto write=[&](const std::string& generation,const std::string& channel="channel-1"){
+   GStreamerSegmentWriter writer(runtime.WriterOptions(1000));need(writer.Start(channel,"unused",input.descriptor,[](auto,auto,auto*){return false;},&error),"actual writer start");
    for(auto packet:input.packets){packet.observation->source_generation=generation;writer.Push(packet,0);}writer.Stop();
   };
   write("first");need(catalog.Checkpoint(&error),"actual cold checkpoint");
@@ -103,6 +103,33 @@ int main(int argc,char** argv){
   SearchSourceBatch fallback_oracle;
   need(catalog.CaptureSearchSource({"channel-1"},nullptr,&fallback_oracle,&error,{},false)&&same(fallback.delta.upserts,fallback_oracle.delta.upserts),
     "R132 optional cut failure preserves exact full source result");
+  // R167 retains the full authenticated capture, including old rows. Only the
+  // final ordering work can use the previous immutable model.
+  std::shared_ptr<const RecordingSearchModel> append_base,appended,full_oracle;
+  need(reader.Refresh({"channel-1"},{},&append_base,&error,{},false),"R167 actual immutable base");
+  write("r167-add");SearchSourceBatch append_capture;
+  need(catalog.CaptureSearchSource({"channel-1"},append_base.get(),&append_capture,&error,{},false)&&
+       append_capture.rebuild&&append_capture.append_order_hint,"R167 actual bound finalize enables ordering hint with full capture");
+  need(reader.Refresh({"channel-1"},append_base,&appended,&error,{},false)&&search_order_work_test[0]==0&&
+       search_order_work_test[1]==appended->documents().size()-append_base->documents().size()&&
+       search_order_work_test[2]==appended->documents().size(),"R167 real reader sorts additions only");
+  std::cout<<"[append-order-work] fullSort="<<search_order_work_test[0]<<" addedSort="<<search_order_work_test[1]<<" merged="<<search_order_work_test[2]<<'\n';
+  need(reader.Refresh({"channel-1"},{},&full_oracle,&error,{},false)&&same(appended->documents(),full_oracle->documents()),
+       "R167 actual append ordering equals strict full source");
+  const auto saved_append=appended;
+  const auto saved_documents=saved_append->documents();
+  need(reader.Refresh({"channel-1"},appended,&appended,&error,{},false)&&appended==saved_append,"R167 unchanged scope reuses model");
+  write("r167-other","channel-2");
+  need(reader.Refresh({"channel-1"},appended,&appended,&error,{},false)&&appended==saved_append,"R167 other channel mutation preserves scope");
+  const auto added_id=std::find_if(appended->documents().begin(),appended->documents().end(),[&](const auto& d){return !append_base->Find(d.id);})->segment_id;
+  need(catalog.MarkSegmentCorrupt(added_id,"container-invalid",&error),"R167 changed lifecycle fixture");
+  need(catalog.CaptureSearchSource({"channel-1"},appended.get(),&append_capture,&error,{},false)&&
+       append_capture.rebuild&&!append_capture.append_order_hint,"R167 lifecycle change refuses append ordering");
+  need(reader.Refresh({"channel-1"},appended,&appended,&error,{},false)&&
+       reader.Refresh({"channel-1"},{},&full_oracle,&error,{},false)&&same(appended->documents(),full_oracle->documents()),
+       "R167 lifecycle fallback equals strict full source");
+  need(same(saved_documents,saved_append->documents()),
+       "R167 held prior model retains pre-mutation lifecycle");
 #endif
   need(runtime.Finish(&error),"explicit generation Finish");
   std::cout<<"[search-retry] pass="<<passed<<" fail=0"<<std::endl;return 0;

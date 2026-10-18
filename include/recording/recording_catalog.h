@@ -667,7 +667,7 @@ private:
     // Empty channel is a conservative global dependency; a lost prefix requires rebuild/rejection.
     struct SearchInvalidations {
         SearchModelResidency::Reservation memory;
-        struct Entry { std::uint64_t revision=0; char channel[129]{}; bool structural=false; };
+        struct Entry { std::uint64_t revision=0; char channel[129]{}; bool structural=false, new_bound_segment=false; };
         std::array<Entry,1024> entries{};
         std::size_t next=0, count=0;
         std::uint64_t floor=0;
