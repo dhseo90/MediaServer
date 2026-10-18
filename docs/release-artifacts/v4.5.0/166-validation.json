@@ -1035,9 +1035,60 @@
   "preservation": "원본 stdout/stderr의 bytes/SHA와 필요한 선택 정제본을 구분. 실제 결과 한 곳에 기록. 과거 R165/R149 기록 불변.",
   "cleanup": {
     "ownedRoot": "/private/tmp/media-server-r166",
-    "status": "PENDING_REMOTE_PRESERVATION",
-    "nativeProcessGroups": "회귀 runner 기록상 absent",
-    "ports": "새 HTTP listener 사용 없음"
+    "status": "COMPLETE",
+    "rootAbsent": true,
+    "removedRegularFiles": 152,
+    "unlinkedSymlinks": 2493,
+    "externalSymlinkTargetsUnchanged": 276,
+    "preflight": {
+      "matchingOwnedProcesses": [],
+      "lsofExit": 1,
+      "openFilesStdout": "",
+      "openFilesStderr": ""
+    },
+    "nativeProcessGroups": "회귀 runner processGroupAbsent/registeredGroupsAbsent true; 최종 ps match0",
+    "ports": "HTTP listener 미기동; 소유 process/open FD 없음",
+    "remotePreservationBeforeDeletion": {
+      "head": "4190d6b5d7e61c16ae1ddd9433ac6e82df57c1c1",
+      "remoteHead": "4190d6b5d7e61c16ae1ddd9433ac6e82df57c1c1",
+      "files": [
+        {
+          "path": "docs/project-feature-test-inventory.md",
+          "bytes": 1098287,
+          "sha256": "875e760b7a2a1e749b60f9a24f6e67bc5a4487555b91823865db943787d77afa",
+          "gitBlob": "4fb928f020e097a115584cb099c4435eb2b6c67b",
+          "remoteBytesMatch": true
+        },
+        {
+          "path": "docs/release-artifacts/v4.5.0/166-validation.json",
+          "bytes": 70964,
+          "sha256": "b4cb7c0ebe3744f309102c3a9a26e50e4906ef9ee7277785504d788ee67d0196",
+          "gitBlob": "c82bb508bec895662cd506efc0d2f7ef3048feb6",
+          "remoteBytesMatch": true
+        },
+        {
+          "path": "scripts/internal/recording_search_scope_smoke.cpp",
+          "bytes": 17357,
+          "sha256": "9b68877e9926d0c1415cd485853fc53b4b15e72a39035e950d478b83600844fb",
+          "gitBlob": "6c212964f32a9a99ab9b58f543848c552c34a7e6",
+          "remoteBytesMatch": true
+        },
+        {
+          "path": "scripts/internal/verify_recording_search_scope.py",
+          "bytes": 4516,
+          "sha256": "31eee183ffbec0ad35cd5b34892e9d41db652a940510938fb2fdd661690a2c9c",
+          "gitBlob": "51804f218c470268652e37a63737fae31d0c89c1",
+          "remoteBytesMatch": true
+        },
+        {
+          "path": "src/ingress/recording_search_application_service.cpp",
+          "bytes": 22374,
+          "sha256": "61f0482fe8735afab055891cb46c14670332f3c12392293f875f0b1a565cc46e",
+          "gitBlob": "9cbb04f79efa70cc877adb86d58d91897d4a609b",
+          "remoteBytesMatch": true
+        }
+      ]
+    }
   },
   "historicalStatus": {
     "R149Functional45": "FAIL",
