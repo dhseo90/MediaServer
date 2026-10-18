@@ -1,0 +1,25 @@
+...........................E...E
+======================================================================
+ERROR: test_fixture_log_cap (__main__.Streaming.test_fixture_log_cap)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<REPO>/scripts/internal/recording_http_cost_run.test.py", line 134, in test_fixture_log_cap
+    root=Path(os.environ['R155_FOCUSED_ROOT'])/'stream-fixture-cap';root.mkdir(mode=0o700)
+              ~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen os>", line 709, in __getitem__
+KeyError: 'R155_FOCUSED_ROOT'
+
+======================================================================
+ERROR: test_real_streaming_children (__main__.Streaming.test_real_streaming_children)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<REPO>/scripts/internal/recording_http_cost_run.test.py", line 96, in test_real_streaming_children
+    parent=Path(os.environ['R155_FOCUSED_ROOT']);summaries=[]
+                ~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen os>", line 709, in __getitem__
+KeyError: 'R155_FOCUSED_ROOT'
+
+----------------------------------------------------------------------
+Ran 32 tests in 0.110s
+
+FAILED (errors=2)

@@ -1,0 +1,433 @@
+[
+  {
+    "case": "hold-loss",
+    "first": {
+      "stream": "child",
+      "line": 1,
+      "pid": 40216,
+      "detectionElapsedSeconds": 0.24363920814357698,
+      "failurePhase": "confirmed-seed",
+      "code": "hold loss/incomplete",
+      "source": "hold",
+      "requestId": 10
+    },
+    "termination": [
+      {
+        "pid": 40216,
+        "signal": "SIGTERM",
+        "elapsedSeconds": 0.24379845801740885
+      }
+    ],
+    "groupsAbsent": true,
+    "elapsed": 0.2455326251219958,
+    "outputBytes": 68,
+    "cleanupErrors": [],
+    "firstFailure": "diagnostic hold loss/incomplete"
+  },
+  {
+    "case": "hold-malformed",
+    "first": {
+      "stream": "child",
+      "line": 1,
+      "pid": 40217,
+      "detectionElapsedSeconds": 0.25335462507791817,
+      "failurePhase": "confirmed-seed",
+      "code": "malformed-record",
+      "source": "hold"
+    },
+    "termination": [
+      {
+        "pid": 40217,
+        "signal": "SIGTERM",
+        "elapsedSeconds": 0.25360754202120006
+      }
+    ],
+    "groupsAbsent": true,
+    "elapsed": 0.25534833408892155,
+    "outputBytes": 19,
+    "cleanupErrors": [],
+    "firstFailure": "diagnostic malformed-record"
+  },
+  {
+    "case": "currentness-loss",
+    "first": {
+      "stream": "child",
+      "line": 1,
+      "pid": 40218,
+      "detectionElapsedSeconds": 0.2507170410826802,
+      "failurePhase": "confirmed-seed",
+      "code": "currentness incomplete/loss",
+      "source": "currentness",
+      "requestId": 10
+    },
+    "termination": [
+      {
+        "pid": 40218,
+        "signal": "SIGTERM",
+        "elapsedSeconds": 0.25091087515465915
+      }
+    ],
+    "groupsAbsent": true,
+    "elapsed": 0.2526289999950677,
+    "outputBytes": 127,
+    "cleanupErrors": [],
+    "firstFailure": "diagnostic currentness incomplete/loss"
+  },
+  {
+    "case": "currentness-malformed",
+    "first": {
+      "stream": "child",
+      "line": 1,
+      "pid": 40219,
+      "detectionElapsedSeconds": 0.25127729191444814,
+      "failurePhase": "confirmed-seed",
+      "code": "malformed-record",
+      "source": "currentness"
+    },
+    "termination": [
+      {
+        "pid": 40219,
+        "signal": "SIGTERM",
+        "elapsedSeconds": 0.25148500013165176
+      }
+    ],
+    "groupsAbsent": true,
+    "elapsed": 0.2532162501011044,
+    "outputBytes": 26,
+    "cleanupErrors": [],
+    "firstFailure": "diagnostic malformed-record"
+  },
+  {
+    "case": "id0",
+    "first": {
+      "stream": "child",
+      "line": 1,
+      "pid": 40220,
+      "detectionElapsedSeconds": 0.25888325017876923,
+      "failurePhase": "confirmed-seed",
+      "code": "request-identity",
+      "source": "server"
+    },
+    "termination": [
+      {
+        "pid": 40220,
+        "signal": "SIGTERM",
+        "elapsedSeconds": 0.2590818330645561
+      }
+    ],
+    "groupsAbsent": true,
+    "elapsed": 0.26081995805725455,
+    "outputBytes": 367,
+    "cleanupErrors": [],
+    "firstFailure": "diagnostic request-identity"
+  },
+  {
+    "case": "loss",
+    "first": {
+      "stream": "child",
+      "line": 1,
+      "pid": 40221,
+      "detectionElapsedSeconds": 0.2583955000154674,
+      "failurePhase": "confirmed-seed",
+      "code": "trace-loss",
+      "source": "server",
+      "requestId": 10
+    },
+    "termination": [
+      {
+        "pid": 40221,
+        "signal": "SIGTERM",
+        "elapsedSeconds": 0.25861408305354416
+      }
+    ],
+    "groupsAbsent": true,
+    "elapsed": 0.2605690830387175,
+    "outputBytes": 367,
+    "cleanupErrors": [],
+    "firstFailure": "diagnostic trace-loss"
+  },
+  {
+    "case": "explicit",
+    "first": {
+      "stream": "child",
+      "line": 1,
+      "pid": 40222,
+      "detectionElapsedSeconds": 0.24373916699551046,
+      "failurePhase": "confirmed-seed",
+      "code": "trace-loss-marker",
+      "source": "marker"
+    },
+    "termination": [
+      {
+        "pid": 40222,
+        "signal": "SIGTERM",
+        "elapsedSeconds": 0.24380587483756244
+      }
+    ],
+    "groupsAbsent": true,
+    "elapsed": 0.24551908392459154,
+    "outputBytes": 12,
+    "cleanupErrors": [],
+    "firstFailure": "diagnostic trace-loss-marker"
+  },
+  {
+    "case": "overflow",
+    "first": {
+      "stream": "child",
+      "line": 1,
+      "pid": 40223,
+      "detectionElapsedSeconds": 0.24918758287094533,
+      "failurePhase": "confirmed-seed",
+      "code": "trace-loss-marker",
+      "source": "marker"
+    },
+    "termination": [
+      {
+        "pid": 40223,
+        "signal": "SIGTERM",
+        "elapsedSeconds": 0.24940233305096626
+      }
+    ],
+    "groupsAbsent": true,
+    "elapsed": 0.2514634169638157,
+    "outputBytes": 19,
+    "cleanupErrors": [],
+    "firstFailure": "diagnostic trace-loss-marker"
+  },
+  {
+    "case": "split",
+    "first": {
+      "stream": "child",
+      "line": 1,
+      "pid": 40224,
+      "detectionElapsedSeconds": 0.3029562921728939,
+      "failurePhase": "confirmed-seed",
+      "code": "trace-loss-marker",
+      "source": "marker"
+    },
+    "termination": [
+      {
+        "pid": 40224,
+        "signal": "SIGTERM",
+        "elapsedSeconds": 0.3030816251412034
+      }
+    ],
+    "groupsAbsent": true,
+    "elapsed": 0.3049378751311451,
+    "outputBytes": 12,
+    "cleanupErrors": [],
+    "firstFailure": "diagnostic trace-loss-marker"
+  },
+  {
+    "case": "valid-invalid",
+    "first": {
+      "stream": "child",
+      "line": 2,
+      "pid": 40225,
+      "detectionElapsedSeconds": 0.30216933391056955,
+      "failurePhase": "confirmed-seed",
+      "code": "trace-loss-marker",
+      "source": "marker"
+    },
+    "termination": [
+      {
+        "pid": 40225,
+        "signal": "SIGTERM",
+        "elapsedSeconds": 0.30222058412618935
+      }
+    ],
+    "groupsAbsent": true,
+    "elapsed": 0.3039560839533806,
+    "outputBytes": 380,
+    "cleanupErrors": [],
+    "firstFailure": "diagnostic trace-loss-marker"
+  },
+  {
+    "case": "invalid-valid",
+    "first": {
+      "stream": "child",
+      "line": 1,
+      "pid": 40228,
+      "detectionElapsedSeconds": 0.24654704215936363,
+      "failurePhase": "confirmed-seed",
+      "code": "trace-loss-marker",
+      "source": "marker"
+    },
+    "termination": [
+      {
+        "pid": 40228,
+        "signal": "SIGTERM",
+        "elapsedSeconds": 0.24662254215218127
+      }
+    ],
+    "groupsAbsent": true,
+    "elapsed": 0.2484659580513835,
+    "outputBytes": 12,
+    "cleanupErrors": [],
+    "firstFailure": "diagnostic trace-loss-marker"
+  },
+  {
+    "case": "duplicate",
+    "first": {
+      "stream": "child",
+      "line": 2,
+      "pid": 40229,
+      "detectionElapsedSeconds": 0.30918170791119337,
+      "failurePhase": "confirmed-seed",
+      "code": "duplicate-identity",
+      "source": "server",
+      "requestId": 10
+    },
+    "termination": [
+      {
+        "pid": 40229,
+        "signal": "SIGTERM",
+        "elapsedSeconds": 0.3093837078195065
+      }
+    ],
+    "groupsAbsent": true,
+    "elapsed": 0.3112729578278959,
+    "outputBytes": 736,
+    "cleanupErrors": [],
+    "firstFailure": "diagnostic duplicate-identity"
+  },
+  {
+    "case": "malformed",
+    "first": {
+      "stream": "child",
+      "line": 1,
+      "pid": 40230,
+      "detectionElapsedSeconds": 0.24736879207193851,
+      "failurePhase": "confirmed-seed",
+      "code": "malformed-record",
+      "source": "server"
+    },
+    "termination": [
+      {
+        "pid": 40230,
+        "signal": "SIGTERM",
+        "elapsedSeconds": 0.24750483315438032
+      }
+    ],
+    "groupsAbsent": true,
+    "elapsed": 0.24921795795671642,
+    "outputBytes": 21,
+    "cleanupErrors": [],
+    "firstFailure": "diagnostic malformed-record"
+  },
+  {
+    "case": "cap",
+    "first": {
+      "code": "process output cap",
+      "source": "collector",
+      "failurePhase": "confirmed-seed",
+      "detectionElapsedSeconds": 0.3094724591355771
+    },
+    "termination": [
+      {
+        "pid": 40231,
+        "signal": "SIGTERM",
+        "elapsedSeconds": 0.3094897090923041
+      }
+    ],
+    "groupsAbsent": true,
+    "elapsed": 0.3112605840433389,
+    "outputBytes": 1048576,
+    "cleanupErrors": [],
+    "firstFailure": "process output cap"
+  },
+  {
+    "case": "partial",
+    "first": {
+      "code": "partial output record",
+      "source": "collector",
+      "failurePhase": "confirmed-seed",
+      "detectionElapsedSeconds": 0.3646614169701934
+    },
+    "termination": [],
+    "groupsAbsent": true,
+    "elapsed": 0.36488370900042355,
+    "outputBytes": 15,
+    "cleanupErrors": [],
+    "firstFailure": "partial output record"
+  },
+  {
+    "case": "output",
+    "first": {
+      "stream": "child",
+      "line": 1,
+      "pid": 40233,
+      "detectionElapsedSeconds": 0.2589424999896437,
+      "failurePhase": "confirmed-seed",
+      "code": "trace-loss-marker",
+      "source": "marker"
+    },
+    "termination": [
+      {
+        "pid": 40233,
+        "signal": "SIGTERM",
+        "elapsedSeconds": 0.2590041668154299
+      }
+    ],
+    "groupsAbsent": true,
+    "elapsed": 0.2608944589737803,
+    "outputBytes": 22,
+    "cleanupErrors": [],
+    "firstFailure": "diagnostic trace-loss-marker"
+  },
+  {
+    "case": "cleanup-error",
+    "first": {
+      "stream": "child",
+      "line": 1,
+      "pid": 40234,
+      "detectionElapsedSeconds": 0.0776477090548724,
+      "failurePhase": "confirmed-seed",
+      "code": "trace-loss-marker",
+      "source": "marker"
+    },
+    "termination": [
+      {
+        "pid": 40234,
+        "signal": "SIGTERM",
+        "elapsedSeconds": 0.07776229199953377
+      },
+      {
+        "pid": 40234,
+        "signal": "SIGTERM",
+        "elapsedSeconds": 0.07811445905826986
+      }
+    ],
+    "groupsAbsent": true,
+    "elapsed": 0.07973141712136567,
+    "outputBytes": 12,
+    "cleanupErrors": [
+      "injected cleanup signal failure"
+    ],
+    "firstFailure": "diagnostic trace-loss-marker"
+  },
+  {
+    "case": "parallel-order",
+    "first": {
+      "stream": "child",
+      "line": 14,
+      "pid": 40235,
+      "detectionElapsedSeconds": 0.8489667498506606,
+      "failurePhase": "confirmed-seed",
+      "code": "trace-loss-marker",
+      "source": "marker"
+    },
+    "termination": [
+      {
+        "pid": 40235,
+        "signal": "SIGTERM",
+        "elapsedSeconds": 0.8490716249216348
+      }
+    ],
+    "groupsAbsent": true,
+    "elapsed": 0.851005416829139,
+    "outputBytes": 4074,
+    "cleanupErrors": [],
+    "firstFailure": "diagnostic trace-loss-marker"
+  }
+]

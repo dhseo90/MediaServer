@@ -1,0 +1,55 @@
+.......
+----------------------------------------------------------------------
+Ran 7 tests in 0.351s
+
+OK
+{
+  "schema": "media-server.r153.execution.v1",
+  "products": {},
+  "seedStarts": 1,
+  "fixtureStarts": 0,
+  "productStarts": 0,
+  "limitSeconds": 180,
+  "logCapBytes": 4194304,
+  "firstFailure": "diagnostic global latency loss",
+  "cleanupErrors": [],
+  "firstDiagnosticFailure": {
+    "stream": "child",
+    "line": 1,
+    "pid": 40516,
+    "detectionElapsedSeconds": 0.32351641613058746,
+    "failurePhase": "confirmed-seed",
+    "source": "original-lock",
+    "code": "global latency loss"
+  },
+  "termination": [
+    {
+      "pid": 40516,
+      "signal": "SIGTERM",
+      "elapsedSeconds": 0.3236649159807712
+    }
+  ],
+  "pids": [
+    40516
+  ],
+  "collectorStarts": 0,
+  "processes": [
+    {
+      "role": "confirmed-seed",
+      "limitSeconds": 10,
+      "startElapsedSeconds": 1.60830095410347e-05,
+      "elapsedSeconds": 0.32523987512104213,
+      "finalExit": -15
+    }
+  ],
+  "runnerFailure": "diagnostic global latency loss",
+  "diagnosticErrors": [],
+  "cleanupEvents": [],
+  "qualification": {
+    "decision": "FAIL_FIXTURE_CONTRACT"
+  },
+  "productsAfter": {},
+  "elapsedSeconds": 0.32538116606883705,
+  "outputBytes": 141,
+  "groupsAbsent": true
+}

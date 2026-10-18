@@ -1,0 +1,130 @@
+[
+  {
+    "case": "callsite",
+    "pid": 40258,
+    "exit": 0,
+    "seconds": 0.3077320419251919,
+    "groupAbsent": true,
+    "bytes": 1091
+  },
+  {
+    "case": "ordinal-cap",
+    "pid": 40259,
+    "exit": 0,
+    "seconds": 0.007094667060300708,
+    "groupAbsent": true,
+    "bytes": 19046
+  },
+  {
+    "case": "catalog-native",
+    "pid": 40260,
+    "exit": 0,
+    "seconds": 3.4819593329448253,
+    "groupAbsent": true,
+    "bytes": 21243
+  },
+  {
+    "case": "media-native",
+    "pid": 40275,
+    "exit": 0,
+    "seconds": 1.953522332943976,
+    "groupAbsent": true,
+    "bytes": 7454
+  },
+  {
+    "case": "parser-upper",
+    "pid": 40277,
+    "exit": 0,
+    "seconds": 0.5738887498155236,
+    "groupAbsent": true,
+    "bytes": 687
+  },
+  {
+    "case": "parser-lower",
+    "pid": 40278,
+    "exit": 0,
+    "seconds": 0.11613395810127258,
+    "groupAbsent": true,
+    "bytes": 687
+  },
+  {
+    "case": "parser-mixed",
+    "pid": 40279,
+    "exit": 0,
+    "seconds": 0.11803670809604228,
+    "groupAbsent": true,
+    "bytes": 687
+  },
+  {
+    "case": "parser-missing",
+    "pid": 40280,
+    "exit": 0,
+    "seconds": 0.11994483298622072,
+    "groupAbsent": true,
+    "bytes": 77
+  },
+  {
+    "case": "parser-empty",
+    "pid": 40281,
+    "exit": 0,
+    "seconds": 0.11778700002469122,
+    "groupAbsent": true,
+    "bytes": 75
+  },
+  {
+    "case": "parser-text",
+    "pid": 40282,
+    "exit": 0,
+    "seconds": 0.11769854184240103,
+    "groupAbsent": true,
+    "bytes": 74
+  },
+  {
+    "case": "parser-zero",
+    "pid": 40283,
+    "exit": 0,
+    "seconds": 0.11804787488654256,
+    "groupAbsent": true,
+    "bytes": 74
+  },
+  {
+    "case": "parser-range",
+    "pid": 40284,
+    "exit": 0,
+    "seconds": 0.11837370786815882,
+    "groupAbsent": true,
+    "bytes": 75
+  },
+  {
+    "case": "parser-duplicate",
+    "pid": 40285,
+    "exit": 0,
+    "seconds": 0.11713279108516872,
+    "groupAbsent": true,
+    "bytes": 79
+  },
+  {
+    "case": "parser-variant",
+    "pid": 40286,
+    "exit": 0,
+    "seconds": 0.11977970809675753,
+    "groupAbsent": true,
+    "bytes": 77
+  },
+  {
+    "case": "parser-conflict",
+    "pid": 40287,
+    "exit": 0,
+    "seconds": 0.11811783304437995,
+    "groupAbsent": true,
+    "bytes": 78
+  },
+  {
+    "case": "parser-reuse",
+    "pid": 40288,
+    "exit": 0,
+    "seconds": 0.11924112495034933,
+    "groupAbsent": true,
+    "bytes": 442
+  }
+]

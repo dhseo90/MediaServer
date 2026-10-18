@@ -1,0 +1,10 @@
+{
+  "schema": "media-server.v450.r159.closure.v1",
+  "decision": "BLOCKED_LOCK_CALLSITE_INSTRUMENTATION",
+  "remotePreservation": "PENDING",
+  "cleanup": "PENDING until remote bytes verified",
+  "integratedCycles": 0,
+  "productStarts": 0,
+  "actualHTTPAttribution": "NOT_RUN",
+  "new45": "NOT_RUN"
+}

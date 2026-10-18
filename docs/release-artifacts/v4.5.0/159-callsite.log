@@ -1,0 +1,8 @@
+[recording-latency] {"k":0,"o":1,"s":1,"l":5,"m":2,"t":1,"r":1001282,"b":2376,"a":2418,"e":2460,"n":1,"w":42,"h":42,"x":42,"y":42}
+[recording-latency] {"k":0,"o":1,"s":1,"l":6,"m":1,"t":1,"r":1001281,"b":2001,"a":2210,"e":3376,"n":1,"w":209,"h":1166,"x":209,"y":1166}
+[recording-latency] {"k":0,"o":1,"s":1,"l":7,"m":1,"t":1,"r":1001283,"b":13626,"a":13668,"e":40293,"n":1,"w":42,"h":26625,"x":42,"y":26625}
+[R159-call] {"schema":1,"id":10,"ordinal":1,"api":0,"line":6,"thread":1,"mutex":1,"identity":1001281,"delta":0,"cb":1793,"ce":2293,"rb":3376,"re":13543,"owned":true}
+[R159-call] {"schema":1,"id":10,"ordinal":2,"api":1,"line":5,"thread":1,"mutex":2,"identity":1001282,"delta":0,"cb":2335,"ce":2418,"rb":2460,"re":3293,"owned":true}
+[R159-call] {"schema":1,"id":10,"ordinal":3,"api":2,"line":7,"thread":1,"mutex":1,"identity":1001283,"delta":0,"cb":13585,"ce":13710,"rb":40251,"re":41918,"owned":true}
+[R159-end] {"schema":1,"id":10,"count":3,"begin":43,"end":45710,"complete":true,"enabled":true,"slow":false,"holder":false,"loss":false}
+[R159-focused] TLS/nested/unwind/release PASS

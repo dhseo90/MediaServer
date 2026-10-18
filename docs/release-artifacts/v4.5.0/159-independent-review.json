@@ -1,0 +1,39 @@
+{
+  "schema": "media-server.v450.r159.independent-review.v1",
+  "reviewer": "separate existing read-only agent independent_r155",
+  "requested": {
+    "model": "gpt-6-astra",
+    "effort": "high"
+  },
+  "toolAccepted": null,
+  "actualRuntimeModel": null,
+  "actualRuntimeEffort": null,
+  "unknownReason": "Current creation tool acceptance not available; actual model/effort not exposed. Prior acceptance not substituted.",
+  "participation": {
+    "implementation": false,
+    "testWriting": false,
+    "testOrProductExecution": false,
+    "delegation": false
+  },
+  "decision": "AGREE_BLOCKED_LOCK_CALLSITE_INSTRUMENTATION",
+  "executedFocusedSubset": "PASS",
+  "instrumentationContract": "INCOMPLETE",
+  "actualHTTPAttribution": "NOT_RUN",
+  "checks": [
+    "21 selected/34 unselected original Rows and21 sidecars independently compared to parsed details; no mismatch",
+    "owner begin153048918, releaseBeforeUnlock183154793; contended Row b153117501/a183197626 overlaps actual ownership",
+    "separate nested/unwind3Rows, TLS restoration and subsequent mutex acquisition checked against source/raw",
+    "synthetic k3 real child termination after0.14849985ms; groupAbsent true; cleanupErrors empty; not actual producer-cap exhaustion",
+    "7/32/30/5/6/4 focused Python results and initial missing-env failure preserved",
+    "37 original/sanitized evidence sizes/hashes matched",
+    "original header/fixture/map and7source-overlay SHA matched;6overlay objects and0 corresponding original archive members",
+    "no owned/user paths or authentication literal left in inspected sanitized artifacts",
+    "all-cycle startup/Visual per-key/background/Finish16384/2MiB feasibility remains UNVERIFIED;4MiB collector and55focusedRows cannot substitute"
+  ],
+  "remainingClosure": [
+    "final producer/readback/coverage",
+    "remote byte verification",
+    "owned cleanup"
+  ],
+  "scope": "supports scoped preservation; no new integrated cycle authorization or performance attribution"
+}

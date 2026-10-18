@@ -1,0 +1,114 @@
+
+(gst-plugin-scanner:40261): GLib-GIRepository-WARNING **: 11:13:14.751: Failed to load shared library 'libgobject-2.0.0.dylib' referenced by the typelib: dlopen(libgobject-2.0.0.dylib, 0x0009): tried: 'libgobject-2.0.0.dylib' (no such file), '/System/Volumes/Preboot/Cryptexes/OSlibgobject-2.0.0.dylib' (no such file), '/usr/lib/libgobject-2.0.0.dylib' (no such file, not in dyld cache), 'libgobject-2.0.0.dylib' (no such file)
+
+(gst-plugin-scanner:40261): GLib-GIRepository-WARNING **: 11:13:14.752: Failed to load shared library 'libglib-2.0.0.dylib' referenced by the typelib: dlopen(libglib-2.0.0.dylib, 0x0009): tried: 'libglib-2.0.0.dylib' (no such file), '/System/Volumes/Preboot/Cryptexes/OSlibglib-2.0.0.dylib' (no such file), '/usr/lib/libglib-2.0.0.dylib' (no such file, not in dyld cache), 'libglib-2.0.0.dylib' (no such file)
+
+** (gst-plugin-scanner:40261): CRITICAL **: 11:13:14.753: can't find gi.repository.Gst
+objc[40261]: Class ResultReceiver is implemented in both /opt/homebrew/Cellar/gtk+3/3.24.51/lib/libgtk-3.0.dylib (0x10ad11748) and /opt/homebrew/Cellar/gtk4/4.22.1/lib/libgtk-4.1.dylib (0x11ff66b70). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[40261]: Class GtkApplicationQuartzDelegate is implemented in both /opt/homebrew/Cellar/gtk+3/3.24.51/lib/libgtk-3.0.dylib (0x10ad11770) and /opt/homebrew/Cellar/gtk4/4.22.1/lib/libgtk-4.1.dylib (0x11ff66b98). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[40261]: Class GNSMenuItem is implemented in both /opt/homebrew/Cellar/gtk+3/3.24.51/lib/libgtk-3.0.dylib (0x10ad117c0) and /opt/homebrew/Cellar/gtk4/4.22.1/lib/libgtk-4.1.dylib (0x11ff66c38). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[40261]: Class GNSMenu is implemented in both /opt/homebrew/Cellar/gtk+3/3.24.51/lib/libgtk-3.0.dylib (0x10ad117e8) and /opt/homebrew/Cellar/gtk4/4.22.1/lib/libgtk-4.1.dylib (0x11ff66c60). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[40261]: Class FilterComboBox is implemented in both /opt/homebrew/Cellar/gtk+3/3.24.51/lib/libgtk-3.0.dylib (0x10ad11860) and /opt/homebrew/Cellar/gtk4/4.22.1/lib/libgtk-4.1.dylib (0x11ff66cd8). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[40261]: Class gdkCoreCursor is implemented in both /opt/homebrew/Cellar/gtk+3/3.24.51/lib/libgdk-3.0.dylib (0x109d6d258) and /opt/homebrew/Cellar/gtk4/4.22.1/lib/libgtk-4.1.dylib (0x11ff66d28). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+[recording-latency] {"k":0,"o":1,"s":1,"l":234,"m":1,"t":1,"r":0,"b":1354835,"a":1354876,"e":4294751,"n":1,"w":41,"h":2939875,"x":41,"y":2939875}
+[recording-latency] {"k":0,"o":1,"s":1,"l":31,"m":1,"t":1,"r":0,"b":4299751,"a":4299793,"e":8540251,"n":1,"w":42,"h":4240458,"x":42,"y":4240458}
+[recording-latency] {"k":0,"o":1,"s":1,"l":773,"m":3,"t":1,"r":0,"b":10984085,"a":10984126,"e":13207418,"n":1,"w":41,"h":2223292,"x":41,"y":2223292}
+[recording-latency] {"k":0,"o":1,"s":1,"l":2259,"m":3,"t":1,"r":0,"b":43606210,"a":43606293,"e":44927168,"n":1,"w":83,"h":1320875,"x":83,"y":1320875}
+[recording-latency] {"k":0,"o":1,"s":1,"l":2498,"m":3,"t":1,"r":0,"b":54461710,"a":54461876,"e":55533710,"n":1,"w":166,"h":1071834,"x":166,"y":1071834}
+[recording-latency] {"k":1,"o":7,"s":1,"l":2362,"m":3,"t":1,"r":0,"b":59458001,"a":59458001,"e":73295460,"n":1,"w":0,"h":13837459,"x":0,"y":13837459}
+[recording-latency] {"k":0,"o":1,"s":1,"l":2558,"m":3,"t":1,"r":0,"b":57901210,"a":57901293,"e":73296501,"n":1,"w":83,"h":15395208,"x":83,"y":15395208}
+[recording-latency] {"k":0,"o":1,"s":1,"l":2259,"m":3,"t":1,"r":0,"b":78328085,"a":78328126,"e":79757501,"n":1,"w":41,"h":1429375,"x":41,"y":1429375}
+[recording-latency] {"k":0,"o":1,"s":1,"l":2498,"m":3,"t":1,"r":0,"b":89289585,"a":89290126,"e":90469335,"n":1,"w":541,"h":1179209,"x":541,"y":1179209}
+[recording-latency] {"k":1,"o":7,"s":1,"l":2362,"m":3,"t":1,"r":0,"b":94561293,"a":94561293,"e":108631668,"n":1,"w":0,"h":14070375,"x":0,"y":14070375}
+[recording-latency] {"k":0,"o":1,"s":1,"l":2558,"m":3,"t":1,"r":0,"b":92758376,"a":92758460,"e":108633210,"n":1,"w":84,"h":15874750,"x":84,"y":15874750}
+[recording-latency] {"k":0,"o":1,"s":1,"l":4309,"m":3,"t":1,"r":0,"b":113510543,"a":113510626,"e":115795543,"n":1,"w":83,"h":2284917,"x":83,"y":2284917}
+[recording-latency] {"k":0,"o":1,"s":1,"l":3120,"m":3,"t":1,"r":0,"b":115801710,"a":115801751,"e":116927585,"n":1,"w":41,"h":1125834,"x":41,"y":1125834}
+[recording-latency] {"k":0,"o":1,"s":1,"l":2844,"m":3,"t":1,"r":0,"b":116933251,"a":116933293,"e":118332543,"n":1,"w":42,"h":1399250,"x":42,"y":1399250}
+[recording-latency] {"k":0,"o":1,"s":1,"l":2844,"m":3,"t":1,"r":0,"b":121678918,"a":121678960,"e":123018751,"n":1,"w":42,"h":1339791,"x":42,"y":1339791}
+[recording-latency] {"k":0,"o":1,"s":1,"l":3120,"m":3,"t":1,"r":0,"b":123273585,"a":123273626,"e":124391168,"n":1,"w":41,"h":1117542,"x":41,"y":1117542}
+[recording-latency] {"k":0,"o":1,"s":1,"l":3167,"m":3,"t":1,"r":0,"b":124704876,"a":124704876,"e":128620043,"n":1,"w":0,"h":3915167,"x":0,"y":3915167}
+[recording-latency] {"k":0,"o":1,"s":1,"l":3182,"m":3,"t":1,"r":0,"b":129031876,"a":129032001,"e":130138001,"n":1,"w":125,"h":1106000,"x":125,"y":1106000}
+[recording-latency] {"k":0,"o":1,"s":1,"l":4919,"m":3,"t":1,"r":0,"b":130146043,"a":130146085,"e":131664501,"n":1,"w":42,"h":1518416,"x":42,"y":1518416}
+[recording-latency] {"k":0,"o":1,"s":1,"l":3120,"m":3,"t":1,"r":0,"b":131771710,"a":131771751,"e":132837668,"n":1,"w":41,"h":1065917,"x":41,"y":1065917}
+[search-failure-probe] {"version":1,"attempts":3}
+[recording-latency] {"k":0,"o":1,"s":2,"l":245,"m":3,"t":1,"r":0,"b":138365835,"a":138365876,"e":140469960,"n":1,"w":41,"h":2104084,"x":41,"y":2104084}
+[recording-completion] {"v":1,"event":10,"begin":"140484085","end":"140484168","thread":1,"request":0,"reference":null,"job":null,"n":0,"x":0,"y":0}
+[recording-completion] {"v":1,"event":11,"begin":"140484168","end":"140486293","thread":1,"request":0,"reference":null,"job":null,"n":0,"x":0,"y":0}
+[recording-completion] {"v":1,"event":12,"begin":"140486293","end":"140487376","thread":1,"request":0,"reference":null,"job":null,"n":0,"x":0,"y":0}
+[recording-completion] {"v":1,"event":13,"begin":"140487376","end":"140488043","thread":1,"request":0,"reference":null,"job":null,"n":0,"x":0,"y":100000}
+[recording-latency] {"k":1,"o":4,"s":2,"l":719,"m":0,"t":1,"r":0,"b":140473210,"a":140473210,"e":140488751,"n":1,"w":0,"h":15541,"x":0,"y":15541}
+[recording-latency] {"k":1,"o":3,"s":3,"l":603,"m":0,"t":1,"r":0,"b":138348335,"a":138348335,"e":140490585,"n":1,"w":0,"h":2142250,"x":0,"y":2142250}
+[recording-latency] {"k":0,"o":1,"s":1,"l":4737,"m":3,"t":1,"r":1001281,"b":140677085,"a":140677126,"e":140704793,"n":1,"w":41,"h":27667,"x":41,"y":27667}
+[recording-latency] {"k":0,"o":1,"s":1,"l":4709,"m":3,"t":1,"r":1001282,"b":140706960,"a":140707001,"e":140774043,"n":1,"w":41,"h":67042,"x":41,"y":67042}
+[recording-latency] {"k":0,"o":1,"s":1,"l":3120,"m":3,"t":1,"r":1001283,"b":140775960,"a":140776001,"e":141903585,"n":1,"w":41,"h":1127584,"x":41,"y":1127584}
+[recording-latency] {"k":0,"o":1,"s":1,"l":4760,"m":3,"t":1,"r":1001284,"b":141906126,"a":141906210,"e":141974376,"n":1,"w":84,"h":68166,"x":84,"y":68166}
+[recording-latency] {"k":0,"o":1,"s":1,"l":4760,"m":3,"t":1,"r":1001285,"b":141976335,"a":141976376,"e":142043835,"n":1,"w":41,"h":67459,"x":41,"y":67459}
+[recording-latency] {"k":0,"o":1,"s":1,"l":4760,"m":3,"t":1,"r":1001286,"b":142045835,"a":142045876,"e":142112001,"n":1,"w":41,"h":66125,"x":41,"y":66125}
+[recording-latency] {"k":0,"o":1,"s":1,"l":4760,"m":3,"t":1,"r":1001287,"b":142113793,"a":142113835,"e":142186126,"n":1,"w":42,"h":72291,"x":42,"y":72291}
+[recording-latency] {"k":0,"o":1,"s":1,"l":3167,"m":3,"t":1,"r":1001288,"b":142189543,"a":142189585,"e":146161835,"n":1,"w":42,"h":3972250,"x":42,"y":3972250}
+[recording-latency] {"k":0,"o":1,"s":1,"l":3182,"m":3,"t":1,"r":1001289,"b":146520001,"a":146520251,"e":147652460,"n":1,"w":250,"h":1132209,"x":250,"y":1132209}
+[recording-latency] {"k":0,"o":1,"s":1,"l":4919,"m":3,"t":1,"r":1001290,"b":147660960,"a":147661001,"e":149238960,"n":1,"w":41,"h":1577959,"x":41,"y":1577959}
+[recording-latency] {"k":2,"o":1,"s":0,"l":0,"m":1,"t":1,"r":0,"b":43,"a":168,"e":8556126,"n":2,"w":166,"h":70000,"x":125,"y":69750}
+[recording-latency] {"k":2,"o":1,"s":0,"l":0,"m":2,"t":1,"r":0,"b":4266251,"a":4266460,"e":4267085,"n":1,"w":209,"h":625,"x":209,"y":625}
+[recording-latency] {"k":2,"o":1,"s":0,"l":0,"m":3,"t":1,"r":0,"b":10979251,"a":10979376,"e":140614001,"n":47,"w":2334,"h":3079459,"x":208,"y":198292}
+[recording-latency] {"k":2,"o":1,"s":0,"l":0,"m":4,"t":1,"r":0,"b":13203710,"a":13203751,"e":13203960,"n":1,"w":41,"h":209,"x":41,"y":209}
+[R159-call] {"schema":1,"id":10,"ordinal":1,"api":0,"line":4737,"thread":1,"mutex":3,"identity":1001281,"delta":0,"cb":140677001,"ce":140677210,"rb":140704751,"re":140706460,"owned":true}
+[R159-call] {"schema":1,"id":10,"ordinal":2,"api":1,"line":4709,"thread":1,"mutex":3,"identity":1001282,"delta":0,"cb":140706876,"ce":140707085,"rb":140774001,"re":140775376,"owned":true}
+[R159-call] {"schema":1,"id":10,"ordinal":3,"api":2,"line":3120,"thread":1,"mutex":3,"identity":1001283,"delta":0,"cb":140775876,"ce":140776043,"rb":141903543,"re":141905293,"owned":true}
+[R159-call] {"schema":1,"id":10,"ordinal":4,"api":3,"line":4760,"thread":1,"mutex":3,"identity":1001284,"delta":0,"cb":141906001,"ce":141906251,"rb":141974335,"re":141975918,"owned":true}
+[R159-call] {"schema":1,"id":10,"ordinal":5,"api":3,"line":4760,"thread":1,"mutex":3,"identity":1001285,"delta":0,"cb":141976251,"ce":141976418,"rb":142043793,"re":142045501,"owned":true}
+[R159-call] {"schema":1,"id":10,"ordinal":6,"api":3,"line":4760,"thread":1,"mutex":3,"identity":1001286,"delta":0,"cb":142045751,"ce":142045918,"rb":142111960,"re":142113460,"owned":true}
+[R159-call] {"schema":1,"id":10,"ordinal":7,"api":3,"line":4760,"thread":1,"mutex":3,"identity":1001287,"delta":0,"cb":142113710,"ce":142113876,"rb":142186085,"re":142188085,"owned":true}
+[R159-call] {"schema":1,"id":10,"ordinal":8,"api":4,"line":3167,"thread":1,"mutex":3,"identity":1001288,"delta":1,"cb":142189460,"ce":142189626,"rb":146161793,"re":146164001,"owned":true}
+[R159-call] {"schema":1,"id":10,"ordinal":9,"api":5,"line":3182,"thread":1,"mutex":3,"identity":1001289,"delta":0,"cb":146519751,"ce":146520335,"rb":147652418,"re":147654501,"owned":true}
+[R159-call] {"schema":1,"id":10,"ordinal":10,"api":6,"line":4919,"thread":1,"mutex":3,"identity":1001290,"delta":-1,"cb":147660876,"ce":147661085,"rb":149238918,"re":149240835,"owned":true}
+[R159-end] {"schema":1,"id":10,"count":10,"begin":140670543,"end":149334501,"complete":true,"enabled":true,"slow":false,"holder":false,"loss":false}
+[R156-currentness] {"schema":1,"id":10,"method":"GET","routeClass":"structured-search","begin":1596827237560000,"end":1596827246237541,"complete":true,"loss":false,"metrics":[[1,208,208],[1,3041,3041],[20,11123,11123],[21,3875,3875],[1,8565625,7959],[0,0,0],[0,0,0],[20,70707,70707],[1,1500,1500],[1,625,625],[1,41,41],[1,30083,30083],[2,1198791,1198791],[1,282625,282625],[1,3975250,3975250],[1,55750,55750],[1,298500,298500],[1,1135167,1135167],[1,1581500,1581500]],"counts":[20,20,20,0,19,1,1,1,1,0,20,0,0,0,0,10956,0,1],"inspections":[[1596827243110916,1596827243409541,5000,0,0]]}
+[R157-hold] {"schema":1,"id":10,"begin":1596827237560166,"end":1596827246237500,"complete":true,"loss":false,"mutexTiming":"UNKNOWN","journalMutexTiming":"UNKNOWN","metrics":[[1,29917,2334],[1,68750,1750],[1,1129791,2207],[4,282084,7959],[1,3975084,2834],[1,1135042,2460],[1,1580167,2168],[10,3206,3206],[10,8175917,1496084],[1,2042,2042],[2,1276458,1093583],[2,121584,121584],[2,46249,46249],[2,15042,15042],[2,37501,37501],[1,1155583,1155583],[1,1131833,1006457],[1,4875,4875],[1,1619375,1007334],[1,80958,80958],[1,24041,24041],[1,833,833],[1,84,84],[1,505042,1793],[1,107875,107875],[1,20125,20125],[1,16416,16416],[1,98333,98333],[1,260500,96333],[1,164167,164167],[0,0,0],[0,0,0],[1,1083,1083],[1,1577542,1047210],[1,59166,59166],[1,23625,23625],[1,417,417],[1,83,83],[1,446208,1750],[1,96292,96292],[1,7250,7250],[1,9791,9791],[1,64750,64750],[1,266375,99625],[1,166750,166750],[0,0,0],[0,0,0],[1,833,833],[1,917,917],[1,166,166]],"counts":[2,0,0,1,1,0,1,1,0,1,0,1,0,1,1,1,1,0,0,1,0],"outcomes":[[0,1],[0,1],[1,0],[4,0],[1,0],[1,0],[1,0]]}
+[R154-search] {"id":10,"diagnosticId":1,"begin":1596827231480166,"end":1596827246250541,"status":200,"attempt":0,"loss":false,"phases":[["service-wait",1596827231532583,1596827231532750],["service-hold",1596827231532750,1596827231561041],["Capture",1596827231562833,1596827234596875],["BuildOwned",1596827234694791,1596827235159958],["Refresh",1596827231562375,1596827235160875],["PlaybackCandidates",1596827235170875,1596827237445041],["PlaybackNoCandidates",1596827237445083,1596827237445125],["PlaybackReuse",1596827237504541,1596827237504583],["WithPlayback",1596827235161375,1596827237505000],["SnapshotBegin",1596827237505041,1596827237558416],["preparation-wait",1596827231561833,1596827231561916],["preparation-hold",1596827231561916,1596827237558625],["CurrentnessJson",1596827237558875,1596827246249541]],"sources":[[1,4,0,0,false,true]]}
+[search-request-cost] {"id":1,"thread":1,"startNs":1596827231478583,"endNs":1596827246253041,"status":200,"loss":false,"phases":[["service-wait",1596827231532583,1596827231532750],["service-hold",1596827231532750,1596827231561041],["Capture",1596827231562833,1596827234596875],["BuildOwned",1596827234694791,1596827235159958],["Refresh",1596827231562375,1596827235160875],["PlaybackCandidates",1596827235170875,1596827237445041],["PlaybackNoCandidates",1596827237445083,1596827237445125],["PlaybackReuse",1596827237504541,1596827237504583],["WithPlayback",1596827235161375,1596827237505000],["SnapshotBegin",1596827237505041,1596827237558416],["preparation-wait",1596827231561833,1596827231561916],["preparation-hold",1596827231561916,1596827237558625],["CurrentnessJson",1596827237558875,1596827246249541]]}
+[R154-search] {"id":10,"diagnosticId":2,"begin":1596827246258416,"end":1596827246265875,"status":403,"attempt":0,"loss":false,"phases":[],"sources":[[0,0,0,0,false,false]]}
+[search-request-cost] {"id":2,"thread":1,"startNs":1596827246258208,"endNs":1596827246267416,"status":403,"loss":false,"phases":[]}
+[R154-search] {"id":10,"diagnosticId":3,"begin":1596827246269291,"end":1596827246273791,"status":503,"attempt":0,"loss":false,"phases":[],"sources":[[0,0,0,0,false,false]]}
+[search-request-cost] {"id":3,"thread":1,"startNs":1596827246269125,"endNs":1596827246274583,"status":503,"loss":false,"phases":[]}
+[search-failure] {"version":1,"status":503,"channels":0,"exception":"none","resourceRejectionsBefore":0,"resourceRejectionsAfter":0,"attempts":[{"stage":"parse","reason":"none","instance":0,"currentInstance":0,"captured":0,"current":0,"documents":0,"references":0,"rebuild":false,"authority":false}]}
+[recording-latency] {"k":0,"o":1,"s":1,"l":4677,"m":3,"t":1,"r":0,"b":149438876,"a":149438918,"e":150540418,"n":1,"w":42,"h":1101500,"x":42,"y":1101500}
+[recording-latency] {"k":0,"o":1,"s":1,"l":4737,"m":3,"t":1,"r":1001409,"b":150549918,"a":150549960,"e":150580668,"n":1,"w":42,"h":30708,"x":42,"y":30708}
+[recording-latency] {"k":0,"o":1,"s":1,"l":4709,"m":3,"t":1,"r":1001410,"b":150582585,"a":150582626,"e":150653668,"n":1,"w":41,"h":71042,"x":41,"y":71042}
+[recording-latency] {"k":0,"o":1,"s":1,"l":3120,"m":3,"t":1,"r":1001411,"b":150655460,"a":150655501,"e":150790585,"n":1,"w":41,"h":135084,"x":41,"y":135084}
+[recording-latency] {"k":0,"o":1,"s":1,"l":4760,"m":3,"t":1,"r":1001412,"b":150792418,"a":150792460,"e":150853585,"n":1,"w":42,"h":61125,"x":42,"y":61125}
+[recording-latency] {"k":0,"o":1,"s":1,"l":4760,"m":3,"t":1,"r":1001413,"b":150855001,"a":150855043,"e":150914876,"n":1,"w":42,"h":59833,"x":42,"y":59833}
+[recording-latency] {"k":0,"o":1,"s":1,"l":4760,"m":3,"t":1,"r":1001414,"b":150916501,"a":150916543,"e":150979876,"n":1,"w":42,"h":63333,"x":42,"y":63333}
+[recording-latency] {"k":0,"o":1,"s":1,"l":4760,"m":3,"t":1,"r":1001415,"b":150981460,"a":150981501,"e":151046668,"n":1,"w":41,"h":65167,"x":41,"y":65167}
+[recording-latency] {"k":0,"o":1,"s":1,"l":3167,"m":3,"t":1,"r":1001416,"b":151048960,"a":151049001,"e":151822293,"n":1,"w":41,"h":773292,"x":41,"y":773292}
+[recording-latency] {"k":0,"o":1,"s":1,"l":3182,"m":3,"t":1,"r":1001417,"b":152135793,"a":152135793,"e":152332293,"n":1,"w":0,"h":196500,"x":0,"y":196500}
+[recording-latency] {"k":0,"o":1,"s":1,"l":4919,"m":3,"t":1,"r":1001418,"b":152339668,"a":152339751,"e":152887085,"n":1,"w":83,"h":547334,"x":83,"y":547334}
+[recording-latency] {"k":2,"o":1,"s":0,"l":0,"m":3,"t":1,"r":0,"b":152889376,"a":152889418,"e":153034585,"n":1,"w":42,"h":145167,"x":42,"y":145167}
+[R159-call] {"schema":1,"id":11,"ordinal":1,"api":0,"line":4737,"thread":1,"mutex":3,"identity":1001409,"delta":0,"cb":150549793,"ce":150550043,"rb":150580585,"re":150582126,"owned":true}
+[R159-call] {"schema":1,"id":11,"ordinal":2,"api":1,"line":4709,"thread":1,"mutex":3,"identity":1001410,"delta":0,"cb":150582501,"ce":150582668,"rb":150653626,"re":150655085,"owned":true}
+[R159-call] {"schema":1,"id":11,"ordinal":3,"api":2,"line":3120,"thread":1,"mutex":3,"identity":1001411,"delta":0,"cb":150655376,"ce":150655543,"rb":150790543,"re":150791960,"owned":true}
+[R159-call] {"schema":1,"id":11,"ordinal":4,"api":3,"line":4760,"thread":1,"mutex":3,"identity":1001412,"delta":0,"cb":150792376,"ce":150792501,"rb":150853543,"re":150854835,"owned":true}
+[R159-call] {"schema":1,"id":11,"ordinal":5,"api":3,"line":4760,"thread":1,"mutex":3,"identity":1001413,"delta":0,"cb":150854960,"ce":150855126,"rb":150914835,"re":150916293,"owned":true}
+[R159-call] {"schema":1,"id":11,"ordinal":6,"api":3,"line":4760,"thread":1,"mutex":3,"identity":1001414,"delta":0,"cb":150916418,"ce":150916585,"rb":150979876,"re":150981251,"owned":true}
+[R159-call] {"schema":1,"id":11,"ordinal":7,"api":3,"line":4760,"thread":1,"mutex":3,"identity":1001415,"delta":0,"cb":150981376,"ce":150981543,"rb":151046626,"re":151047960,"owned":true}
+[R159-call] {"schema":1,"id":11,"ordinal":8,"api":4,"line":3167,"thread":1,"mutex":3,"identity":1001416,"delta":1,"cb":151048876,"ce":151049085,"rb":151822251,"re":151823918,"owned":true}
+[R159-call] {"schema":1,"id":11,"ordinal":9,"api":5,"line":3182,"thread":1,"mutex":3,"identity":1001417,"delta":0,"cb":152135543,"ce":152135876,"rb":152332210,"re":152334293,"owned":true}
+[R159-call] {"schema":1,"id":11,"ordinal":10,"api":6,"line":4919,"thread":1,"mutex":3,"identity":1001418,"delta":-1,"cb":152339543,"ce":152339835,"rb":152887043,"re":152888876,"owned":true}
+[R159-end] {"schema":1,"id":11,"count":10,"begin":150548751,"end":153036626,"complete":true,"enabled":true,"slow":false,"holder":false,"loss":false}
+[recording-latency] {"k":0,"o":1,"s":1,"l":3120,"m":3,"t":2,"r":1007681,"b":153117501,"a":183197626,"e":183556251,"n":1,"w":30080125,"h":358625,"x":30080125,"y":358625}
+[R159-call] {"schema":1,"id":60,"ordinal":1,"api":2,"line":3120,"thread":2,"mutex":3,"identity":1007681,"delta":0,"cb":153117335,"ce":183202085,"rb":183556210,"re":183560126,"owned":true}
+[R159-end] {"schema":1,"id":60,"count":1,"begin":153115293,"end":183562918,"complete":true,"enabled":true,"slow":false,"holder":false,"loss":false}
+[R159-owner] 153048918 183154793
+[R157-focused] actual generation hold +1/-1 SQL step/COMMIT faults rollback currentness event/link FD PASS
+[R153] {"phase":"media-decode","monoNs":1596827322830291,"channel":"9101","segment":"159b5874-de7b-4e07-863c-aef4585d3913","targetNs":0}
+[recording-latency] {"k":1,"o":7,"s":1,"l":2362,"m":3,"t":1,"r":0,"b":251194418,"a":251194418,"e":253264960,"n":1,"w":0,"h":2070542,"x":0,"y":2070542}
+[recording-latency] {"k":0,"o":1,"s":1,"l":3572,"m":3,"t":1,"r":0,"b":250975835,"a":250975876,"e":253265585,"n":1,"w":41,"h":2289709,"x":41,"y":2289709}
+[recording-latency] {"k":1,"o":7,"s":1,"l":2362,"m":3,"t":1,"r":0,"b":254230668,"a":254230668,"e":266343001,"n":1,"w":0,"h":12112333,"x":0,"y":12112333}
+[recording-latency] {"k":0,"o":1,"s":1,"l":3230,"m":3,"t":1,"r":0,"b":253298918,"a":253299001,"e":266345793,"n":1,"w":83,"h":13046792,"x":83,"y":13046792}
+[R156-focused] actual availability/JSON/Search/ReadService/nesting/negative ownership PASS
+[R153] {"phase":"first-failure","monoNs":1596827363488250,"error":"injected manifest"}
+[R153] {"phase":"cleanup-error","monoNs":1596827363506583,"stage":"injected-stop"}
+[R153] {"phase":"failure-cleanup-finish","monoNs":1596827363508541,"ok":true}
+[R153] {"phase":"terminal","monoNs":1596827363509375,"exit":1,"outputFailed":false}
+[recording-latency] {"k":2,"o":1,"s":0,"l":0,"m":3,"t":1,"r":0,"b":183590418,"a":183590501,"e":266791085,"n":121,"w":5136,"h":24230659,"x":208,"y":939000}
+[R153-focused] actual V2 FD/inspection/decode and negative ownership PASS

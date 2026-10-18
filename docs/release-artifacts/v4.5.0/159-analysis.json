@@ -1,0 +1,106 @@
+{
+  "decision": "BLOCKED_LOCK_CALLSITE_INSTRUMENTATION",
+  "scope": "focused-only; HTTP attribution NOT_RUN",
+  "capPreflight": {
+    "result": "UNVERIFIED",
+    "producerRecordLimit": 16384,
+    "producerByteLimit": 2097152,
+    "producerReserveBytes": 512,
+    "consumerLogLimit": 4194304,
+    "source": [
+      "include/recording/recording_latency_trace.h:256 (Emit)",
+      "include/recording/recording_latency_trace.h:268 (Append)",
+      "src/recording/recording_visual_source.cpp:57 (Collect)",
+      "src/ingress/visual_search_application_service.cpp:265 (worker source callback)"
+    ],
+    "finding": "LATENCY is process-static and global. always=true forces only selected seven callsites to individual Rows; startup, Visual per-key scans, writer, retention and shutdown still generate original global Rows. Fast aggregation is conditional on both observed windows below1ms, so it is not a guaranteed all-cycle output reduction. Focused 55 Rows do not establish full-cycle rows/bytes headroom. No complete conservative all-phase emitted-output upper bound was established.",
+    "actualCapExceeded": false,
+    "integratedNotRunReason": "User section10 requires producer-cap feasibility before cycle; four-MiB collector cap and sticky loss detection cannot substitute for producer completeness.",
+    "noChanges": "No cap increase, trace filtering/header change, workload reduction or empirical integrated attempt used to bypass preflight."
+  },
+  "nativeFocused": {
+    "selectedRows": 21,
+    "unselectedRows": 34,
+    "requests": {
+      "10": {
+        "calls": 10,
+        "sumsNs": {
+          "constructorNs": 2294,
+          "acquisitionNs": 664,
+          "heldNs": 8178752,
+          "constructorBoundaryResidualNs": 1630,
+          "releaseBoundaryResidualNs": 17416
+        },
+        "apiCounts": {
+          "IsDeletedSegmentId": 1,
+          "FindSegmentById": 1,
+          "FindSegmentV2ById": 1,
+          "ListEventLinks": 4,
+          "AcquireMediaWithContext": 1,
+          "ValidateMediaWithContext": 1,
+          "AdjustHoldCount": 1
+        }
+      },
+      "11": {
+        "calls": 10,
+        "sumsNs": {
+          "constructorNs": 2043,
+          "acquisitionNs": 415,
+          "heldNs": 2003418,
+          "constructorBoundaryResidualNs": 1628,
+          "releaseBoundaryResidualNs": 15000
+        },
+        "apiCounts": {
+          "IsDeletedSegmentId": 1,
+          "FindSegmentById": 1,
+          "FindSegmentV2ById": 1,
+          "ListEventLinks": 4,
+          "AcquireMediaWithContext": 1,
+          "ValidateMediaWithContext": 1,
+          "AdjustHoldCount": 1
+        }
+      },
+      "60": {
+        "calls": 1,
+        "sumsNs": {
+          "constructorNs": 30084750,
+          "acquisitionNs": 30080125,
+          "heldNs": 358625,
+          "constructorBoundaryResidualNs": 4625,
+          "releaseBoundaryResidualNs": 3875
+        },
+        "apiCounts": {
+          "IsDeletedSegmentId": 0,
+          "FindSegmentById": 0,
+          "FindSegmentV2ById": 1,
+          "ListEventLinks": 0,
+          "AcquireMediaWithContext": 0,
+          "ValidateMediaWithContext": 0,
+          "AdjustHoldCount": 0
+        }
+      }
+    },
+    "warning": "IDs10/11/60 in this native harness are focused scopes, not three HTTP requests; these values cannot be assigned to R157 or R159 HTTP.",
+    "contention": "owned real Catalog mutex; synchronized waiter; row.b before owner release and row.a afterwards; sleep stretches interval only",
+    "nestedTLS": "separate single-TU callsite exercise:3Rows; nested and exception restoration, subsequently acquired mutexes"
+  },
+  "windowSemantics": {
+    "constructor": "ce-cb; same latency::Now clock",
+    "acquisition": "row.a-row.b, observed acquisition window; not pure OS wait",
+    "held": "row.e-row.a; ends before unlock",
+    "constructorBoundaryResidual": "constructor-acquisition; not pure diagnostic overhead",
+    "releaseBoundaryResidual": "sidecar.re-row.e; unlock and post-release diagnostics may be included",
+    "holdSQL": "R157 parent/child metrics unchanged. No new HTTP Hold/SQL attribution; native negative suite exercised.",
+    "epochs": "No subtraction of r154::Tick absolute values and latency::Now timestamps"
+  },
+  "HTTP": {
+    "integratedCycles": 0,
+    "Client28": "NOT_RUN",
+    "Server28": "NOT_RUN",
+    "Search3": "NOT_RUN",
+    "Currentness3": "NOT_RUN",
+    "Hold3": "NOT_RUN"
+  },
+  "R149TimeoutCause": "UNCONFIRMED",
+  "nextMinimalWork": "Separately authorize a bounded source/output-budget qualification covering startup/background/cleanup, or a reviewed diagnostic collection design within existing caps; do not start another integrated cycle now."
+}

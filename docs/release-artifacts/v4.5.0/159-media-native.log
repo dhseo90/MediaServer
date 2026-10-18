@@ -1,0 +1,46 @@
+
+(gst-plugin-scanner:40276): GLib-GIRepository-WARNING **: 11:13:17.311: Failed to load shared library 'libgobject-2.0.0.dylib' referenced by the typelib: dlopen(libgobject-2.0.0.dylib, 0x0009): tried: 'libgobject-2.0.0.dylib' (no such file), '/System/Volumes/Preboot/Cryptexes/OSlibgobject-2.0.0.dylib' (no such file), '/usr/lib/libgobject-2.0.0.dylib' (no such file, not in dyld cache), 'libgobject-2.0.0.dylib' (no such file)
+
+(gst-plugin-scanner:40276): GLib-GIRepository-WARNING **: 11:13:17.312: Failed to load shared library 'libglib-2.0.0.dylib' referenced by the typelib: dlopen(libglib-2.0.0.dylib, 0x0009): tried: 'libglib-2.0.0.dylib' (no such file), '/System/Volumes/Preboot/Cryptexes/OSlibglib-2.0.0.dylib' (no such file), '/usr/lib/libglib-2.0.0.dylib' (no such file, not in dyld cache), 'libglib-2.0.0.dylib' (no such file)
+
+** (gst-plugin-scanner:40276): CRITICAL **: 11:13:17.312: can't find gi.repository.Gst
+objc[40276]: Class ResultReceiver is implemented in both /opt/homebrew/Cellar/gtk+3/3.24.51/lib/libgtk-3.0.dylib (0x10a135748) and /opt/homebrew/Cellar/gtk4/4.22.1/lib/libgtk-4.1.dylib (0x11f3beb70). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[40276]: Class GtkApplicationQuartzDelegate is implemented in both /opt/homebrew/Cellar/gtk+3/3.24.51/lib/libgtk-3.0.dylib (0x10a135770) and /opt/homebrew/Cellar/gtk4/4.22.1/lib/libgtk-4.1.dylib (0x11f3beb98). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[40276]: Class GNSMenuItem is implemented in both /opt/homebrew/Cellar/gtk+3/3.24.51/lib/libgtk-3.0.dylib (0x10a1357c0) and /opt/homebrew/Cellar/gtk4/4.22.1/lib/libgtk-4.1.dylib (0x11f3bec38). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[40276]: Class GNSMenu is implemented in both /opt/homebrew/Cellar/gtk+3/3.24.51/lib/libgtk-3.0.dylib (0x10a1357e8) and /opt/homebrew/Cellar/gtk4/4.22.1/lib/libgtk-4.1.dylib (0x11f3bec60). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[40276]: Class FilterComboBox is implemented in both /opt/homebrew/Cellar/gtk+3/3.24.51/lib/libgtk-3.0.dylib (0x10a135860) and /opt/homebrew/Cellar/gtk4/4.22.1/lib/libgtk-4.1.dylib (0x11f3becd8). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+objc[40276]: Class gdkCoreCursor is implemented in both /opt/homebrew/Cellar/gtk+3/3.24.51/lib/libgdk-3.0.dylib (0x109589258) and /opt/homebrew/Cellar/gtk4/4.22.1/lib/libgtk-4.1.dylib (0x11f3bed28). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+[recording-latency] {"k":0,"o":1,"s":1,"l":234,"m":1,"t":1,"r":0,"b":1011667,"a":1011751,"e":3486001,"n":1,"w":84,"h":2474250,"x":84,"y":2474250}
+[recording-latency] {"k":0,"o":1,"s":1,"l":31,"m":1,"t":1,"r":0,"b":3491001,"a":3491042,"e":7665584,"n":1,"w":41,"h":4174542,"x":41,"y":4174542}
+[recording-latency] {"k":0,"o":1,"s":1,"l":773,"m":3,"t":1,"r":0,"b":10123876,"a":10123917,"e":12452542,"n":1,"w":41,"h":2328625,"x":41,"y":2328625}
+[recording-latency] {"k":0,"o":1,"s":1,"l":2259,"m":3,"t":1,"r":0,"b":37747751,"a":37747792,"e":39272209,"n":1,"w":41,"h":1524417,"x":41,"y":1524417}
+[recording-latency] {"k":0,"o":1,"s":1,"l":2498,"m":3,"t":1,"r":0,"b":48712001,"a":48712084,"e":49798376,"n":1,"w":83,"h":1086292,"x":83,"y":1086292}
+[recording-latency] {"k":1,"o":7,"s":1,"l":2362,"m":3,"t":1,"r":0,"b":54081501,"a":54081501,"e":67887751,"n":1,"w":0,"h":13806250,"x":0,"y":13806250}
+[recording-latency] {"k":0,"o":1,"s":1,"l":2558,"m":3,"t":1,"r":0,"b":52146584,"a":52146626,"e":67888792,"n":1,"w":42,"h":15742166,"x":42,"y":15742166}
+[recording-latency] {"k":0,"o":1,"s":1,"l":2259,"m":3,"t":1,"r":0,"b":72568417,"a":72568417,"e":73842084,"n":1,"w":0,"h":1273667,"x":0,"y":1273667}
+[recording-latency] {"k":0,"o":1,"s":1,"l":2498,"m":3,"t":1,"r":0,"b":82745751,"a":82745834,"e":83839251,"n":1,"w":83,"h":1093417,"x":83,"y":1093417}
+[recording-latency] {"k":1,"o":7,"s":1,"l":2362,"m":3,"t":1,"r":0,"b":87650042,"a":87650042,"e":101509292,"n":1,"w":0,"h":13859250,"x":0,"y":13859250}
+[recording-latency] {"k":0,"o":1,"s":1,"l":2558,"m":3,"t":1,"r":0,"b":86016917,"a":86017001,"e":101510417,"n":1,"w":84,"h":15493416,"x":84,"y":15493416}
+[recording-latency] {"k":0,"o":1,"s":1,"l":4309,"m":3,"t":1,"r":0,"b":106104292,"a":106104459,"e":108325751,"n":1,"w":167,"h":2221292,"x":167,"y":2221292}
+[recording-latency] {"k":0,"o":1,"s":1,"l":3120,"m":3,"t":1,"r":0,"b":108332167,"a":108332209,"e":109475792,"n":1,"w":42,"h":1143583,"x":42,"y":1143583}
+[recording-latency] {"k":0,"o":1,"s":1,"l":2844,"m":3,"t":1,"r":0,"b":109520751,"a":109520876,"e":110875584,"n":1,"w":125,"h":1354708,"x":125,"y":1354708}
+[recording-latency] {"k":0,"o":1,"s":1,"l":2844,"m":3,"t":1,"r":0,"b":114289792,"a":114289876,"e":115662792,"n":1,"w":84,"h":1372916,"x":84,"y":1372916}
+[recording-latency] {"k":0,"o":1,"s":1,"l":3049,"m":3,"t":1,"r":0,"b":115821417,"a":115821417,"e":120147792,"n":1,"w":0,"h":4326375,"x":0,"y":4326375}
+[recording-latency] {"k":0,"o":1,"s":1,"l":3049,"m":3,"t":1,"r":0,"b":120154417,"a":120154459,"e":133068042,"n":1,"w":42,"h":12913583,"x":42,"y":12913583}
+[R154-loss] {"code":4,"at":1596829244895125}
+[recording-latency] {"k":0,"o":1,"s":1,"l":4677,"m":3,"t":1,"r":0,"b":133077501,"a":133077542,"e":134257334,"n":1,"w":41,"h":1179792,"x":41,"y":1179792}
+[recording-latency] {"k":0,"o":1,"s":1,"l":3167,"m":3,"t":1,"r":0,"b":135137084,"a":135137084,"e":136155584,"n":1,"w":0,"h":1018500,"x":0,"y":1018500}
+[R153] {"phase":"media-decode","monoNs":1596829278073250,"channel":"9101","segment":"0797ee8e-fcbd-4449-928e-5d775ec5c8b7","targetNs":0}
+[recording-latency] {"k":1,"o":7,"s":1,"l":2362,"m":3,"t":1,"r":0,"b":191424459,"a":191424459,"e":193423584,"n":1,"w":0,"h":1999125,"x":0,"y":1999125}
+[recording-latency] {"k":0,"o":1,"s":1,"l":3572,"m":3,"t":1,"r":0,"b":191209126,"a":191209167,"e":193424001,"n":1,"w":41,"h":2214834,"x":41,"y":2214834}
+[recording-latency] {"k":1,"o":7,"s":1,"l":2362,"m":3,"t":1,"r":0,"b":194387001,"a":194387001,"e":206445959,"n":1,"w":0,"h":12058958,"x":0,"y":12058958}
+[recording-latency] {"k":0,"o":1,"s":1,"l":3230,"m":3,"t":1,"r":0,"b":193454376,"a":193454417,"e":206448751,"n":1,"w":41,"h":12994334,"x":41,"y":12994334}
+[R153] {"phase":"first-failure","monoNs":1596829318514791,"error":"injected manifest"}
+[R153] {"phase":"cleanup-error","monoNs":1596829318529500,"stage":"injected-stop"}
+[R153] {"phase":"failure-cleanup-finish","monoNs":1596829318531625,"ok":true}
+[R153] {"phase":"terminal","monoNs":1596829318532416,"exit":1,"outputFailed":false}
+[recording-latency] {"k":2,"o":1,"s":0,"l":0,"m":1,"t":1,"r":0,"b":42,"a":167,"e":7678792,"n":2,"w":166,"h":68959,"x":125,"y":68834}
+[recording-latency] {"k":2,"o":1,"s":0,"l":0,"m":2,"t":1,"r":0,"b":3463292,"a":3463376,"e":3463626,"n":1,"w":84,"h":250,"x":84,"y":250}
+[recording-latency] {"k":2,"o":1,"s":0,"l":0,"m":3,"t":1,"r":0,"b":10119001,"a":10119167,"e":206873167,"n":107,"w":4628,"h":18863830,"x":166,"y":833875}
+[recording-latency] {"k":2,"o":1,"s":0,"l":0,"m":4,"t":1,"r":0,"b":12446542,"a":12446667,"e":12446917,"n":1,"w":125,"h":250,"x":125,"y":250}
+[R153-focused] actual V2 FD/inspection/decode and negative ownership PASS

@@ -1,0 +1,365 @@
+{
+  "files": [
+    {
+      "source": "entry.json",
+      "preserved": "159-entry.json",
+      "originalBytes": 429,
+      "originalSha256": "3f7b19b6c4bc1c402e1cc929ee6c183c04ecd8df39950d11c0205f853007efce",
+      "sanitizedBytes": 429,
+      "sanitizedSha256": "3f7b19b6c4bc1c402e1cc929ee6c183c04ecd8df39950d11c0205f853007efce",
+      "sanitization": "owned/repository/user/OS temp paths only; numerical trace unchanged"
+    },
+    {
+      "source": "focused-executions.json",
+      "preserved": "159-focused-executions.json",
+      "originalBytes": 2371,
+      "originalSha256": "b6dfb74f9074547eee3f6337ea37f42ce42b39a015270e4bc7a4b5569faafba4",
+      "sanitizedBytes": 2371,
+      "sanitizedSha256": "b6dfb74f9074547eee3f6337ea37f42ce42b39a015270e4bc7a4b5569faafba4",
+      "sanitization": "owned/repository/user/OS temp paths only; numerical trace unchanged"
+    },
+    {
+      "source": "native-qualified.json",
+      "preserved": "159-native-qualified.json",
+      "originalBytes": 21988,
+      "originalSha256": "f15a83d959afcdd8b8e7121a65b5c404364560e61071d8b80197933575d656f1",
+      "sanitizedBytes": 21988,
+      "sanitizedSha256": "f15a83d959afcdd8b8e7121a65b5c404364560e61071d8b80197933575d656f1",
+      "sanitization": "owned/repository/user/OS temp paths only; numerical trace unchanged"
+    },
+    {
+      "source": "callsite-qualified.json",
+      "preserved": "159-callsite-qualified.json",
+      "originalBytes": 3533,
+      "originalSha256": "11ba7c652d896608064ca2a67c1ef9ef9a0fd9bc20f3279c9705b1af75bb9f39",
+      "sanitizedBytes": 3533,
+      "sanitizedSha256": "11ba7c652d896608064ca2a67c1ef9ef9a0fd9bc20f3279c9705b1af75bb9f39",
+      "sanitization": "owned/repository/user/OS temp paths only; numerical trace unchanged"
+    },
+    {
+      "source": "callsite.log",
+      "preserved": "159-callsite.log",
+      "originalBytes": 1091,
+      "originalSha256": "8e0d5a12622c472fdf39d2ca67214600444bc27bb5d7e35d5cf164c7594ab186",
+      "sanitizedBytes": 1091,
+      "sanitizedSha256": "8e0d5a12622c472fdf39d2ca67214600444bc27bb5d7e35d5cf164c7594ab186",
+      "sanitization": "owned/repository/user/OS temp paths only; numerical trace unchanged"
+    },
+    {
+      "source": "ordinal-cap.log",
+      "preserved": "159-ordinal-cap.log",
+      "originalBytes": 19046,
+      "originalSha256": "455e4d094b72dab2bbacd19538d219ad3676b7bed87cf007a564115773d5ba75",
+      "sanitizedBytes": 19046,
+      "sanitizedSha256": "455e4d094b72dab2bbacd19538d219ad3676b7bed87cf007a564115773d5ba75",
+      "sanitization": "owned/repository/user/OS temp paths only; numerical trace unchanged"
+    },
+    {
+      "source": "catalog-native.log",
+      "preserved": "159-catalog-native.log",
+      "originalBytes": 21243,
+      "originalSha256": "e10898d4ec525b17bf0d13f2fcc9d6d0d1bc2c770d4457621cfa04d0a1fc54dd",
+      "sanitizedBytes": 21243,
+      "sanitizedSha256": "e10898d4ec525b17bf0d13f2fcc9d6d0d1bc2c770d4457621cfa04d0a1fc54dd",
+      "sanitization": "owned/repository/user/OS temp paths only; numerical trace unchanged"
+    },
+    {
+      "source": "media-native.log",
+      "preserved": "159-media-native.log",
+      "originalBytes": 7454,
+      "originalSha256": "4846711a00e6b4f1b1e3c45697924b501e74ce0408e0b1c80e9c065fc6c118a2",
+      "sanitizedBytes": 7454,
+      "sanitizedSha256": "4846711a00e6b4f1b1e3c45697924b501e74ce0408e0b1c80e9c065fc6c118a2",
+      "sanitization": "owned/repository/user/OS temp paths only; numerical trace unchanged"
+    },
+    {
+      "source": "lock-python-final.log",
+      "preserved": "159-lock-python-final.log",
+      "originalBytes": 1271,
+      "originalSha256": "2805b11d70d574d79242ec32b8a2347478de4eb2a1cb07bc4e1852186fd43ae2",
+      "sanitizedBytes": 1271,
+      "sanitizedSha256": "2805b11d70d574d79242ec32b8a2347478de4eb2a1cb07bc4e1852186fd43ae2",
+      "sanitization": "owned/repository/user/OS temp paths only; numerical trace unchanged"
+    },
+    {
+      "source": "r155-python.log",
+      "preserved": "159-r155-python.log",
+      "originalBytes": 1322,
+      "originalSha256": "8012ed0dbd3e52a5c6276350976d953152df7924aec80a86cdb3781a69b13633",
+      "sanitizedBytes": 1266,
+      "sanitizedSha256": "69e327a39ac88f86d2e18bfc4c3ec9fe8523bd070613acf88c95ee980670874f",
+      "sanitization": "owned/repository/user/OS temp paths only; numerical trace unchanged"
+    },
+    {
+      "source": "r155-python-corrected.log",
+      "preserved": "159-r155-python-corrected.log",
+      "originalBytes": 22369,
+      "originalSha256": "6db5d41fdd6e1d2bff6a8a399bb9ec5458416faf147ed23fda8527a61a8bfcd2",
+      "sanitizedBytes": 22369,
+      "sanitizedSha256": "6db5d41fdd6e1d2bff6a8a399bb9ec5458416faf147ed23fda8527a61a8bfcd2",
+      "sanitization": "owned/repository/user/OS temp paths only; numerical trace unchanged"
+    },
+    {
+      "source": "recording_http_currentness.test.py.log",
+      "preserved": "159-recording_http_currentness.test.py.log",
+      "originalBytes": 103,
+      "originalSha256": "6273232de4d3ef7acd4ecafa5c86beeeb974f56586b21089a2990b3f72facbe6",
+      "sanitizedBytes": 103,
+      "sanitizedSha256": "6273232de4d3ef7acd4ecafa5c86beeeb974f56586b21089a2990b3f72facbe6",
+      "sanitization": "owned/repository/user/OS temp paths only; numerical trace unchanged"
+    },
+    {
+      "source": "recording_http_hold.test.py.log",
+      "preserved": "159-recording_http_hold.test.py.log",
+      "originalBytes": 104,
+      "originalSha256": "c6b9b1f09add0403cc07e90bfdf272129b1ddfa2f8f7675ea8218862f2516371",
+      "sanitizedBytes": 104,
+      "sanitizedSha256": "c6b9b1f09add0403cc07e90bfdf272129b1ddfa2f8f7675ea8218862f2516371",
+      "sanitization": "owned/repository/user/OS temp paths only; numerical trace unchanged"
+    },
+    {
+      "source": "recording_lock_timing.test.py.log",
+      "preserved": "159-recording_lock_timing.test.py.log",
+      "originalBytes": 102,
+      "originalSha256": "e6ec182765cd965f2837d8eeaef5a64af48a104f245cd1a0b7281559194c57c1",
+      "sanitizedBytes": 102,
+      "sanitizedSha256": "e6ec182765cd965f2837d8eeaef5a64af48a104f245cd1a0b7281559194c57c1",
+      "sanitization": "owned/repository/user/OS temp paths only; numerical trace unchanged"
+    },
+    {
+      "source": "recording_accumulated_http_run.test.py.log",
+      "preserved": "159-recording_accumulated_http_run.test.py.log",
+      "originalBytes": 129,
+      "originalSha256": "9e6ab18ec395d55fc7df079f87c6b6c1f9788fba627887914f057e3f76f0e1c4",
+      "sanitizedBytes": 129,
+      "sanitizedSha256": "9e6ab18ec395d55fc7df079f87c6b6c1f9788fba627887914f057e3f76f0e1c4",
+      "sanitization": "owned/repository/user/OS temp paths only; numerical trace unchanged"
+    },
+    {
+      "source": "procedural-errors.json",
+      "preserved": "159-procedural-errors.json",
+      "originalBytes": 819,
+      "originalSha256": "19780ba68223f3dc56fcab625f1addf20e68249d94c2e4662d40b5284f5d587b",
+      "sanitizedBytes": 819,
+      "sanitizedSha256": "19780ba68223f3dc56fcab625f1addf20e68249d94c2e4662d40b5284f5d587b",
+      "sanitization": "owned/repository/user/OS temp paths only; numerical trace unchanged"
+    },
+    {
+      "source": "readback-premature.log",
+      "preserved": "159-readback-premature.log",
+      "originalBytes": 0,
+      "originalSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "sanitizedBytes": 0,
+      "sanitizedSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "sanitization": "owned/repository/user/OS temp paths only; numerical trace unchanged"
+    },
+    {
+      "source": "build-first.log",
+      "preserved": "159-build-first.log",
+      "originalBytes": 0,
+      "originalSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "sanitizedBytes": 0,
+      "sanitizedSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "sanitization": "owned/repository/user/OS temp paths only; numerical trace unchanged"
+    },
+    {
+      "source": "callsite-build.log",
+      "preserved": "159-callsite-build.log",
+      "originalBytes": 0,
+      "originalSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "sanitizedBytes": 0,
+      "sanitizedSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "sanitization": "owned/repository/user/OS temp paths only; numerical trace unchanged"
+    },
+    {
+      "source": "link-proof.json",
+      "preserved": "159-link-proof.json",
+      "originalBytes": 76255,
+      "originalSha256": "fd03a8ef957665fd89545aa4ea3f528c3a955edc6e844ea8c76df4aee455288e",
+      "sanitizedBytes": 67907,
+      "sanitizedSha256": "991d7de9071b9c34810d8a470dd13246365415e4e7130de58102c051d12b080e",
+      "sanitization": "owned/repository/user/OS temp paths only; numerical trace unchanged"
+    },
+    {
+      "source": "overlay.diff",
+      "preserved": "159-overlay.json",
+      "originalBytes": 50923,
+      "originalSha256": "b95ce3f7d926e03edbc8959590b5dccdad23b525c74b5950cc41fb121db1f375",
+      "sanitizedBytes": 52137,
+      "sanitizedSha256": "dda4b581e37365ddef1b1fbae9e64bf8d11a7f49aeaf31b9f8469b168166cb5f",
+      "sanitization": "owned/repository/user paths and fixed test auth literals; lossless JSON string packaging of sanitized unified diff to preserve blank context lines"
+    },
+    {
+      "source": "focused_run.py",
+      "preserved": "159-focused_run.py",
+      "originalBytes": 1547,
+      "originalSha256": "7e3aee3611691e3d7e8ebd24924c550b16fefbbfe552f9a3d6a2b157c24cdcde",
+      "sanitizedBytes": 1547,
+      "sanitizedSha256": "7e3aee3611691e3d7e8ebd24924c550b16fefbbfe552f9a3d6a2b157c24cdcde",
+      "sanitization": "owned/repository/user/OS temp paths only; numerical trace unchanged"
+    },
+    {
+      "source": "streaming/stream-results.json",
+      "preserved": "159-streaming-stream-results.json",
+      "originalBytes": 10349,
+      "originalSha256": "d0163ef48e6a744aad7c6552ae4455a2c60bbac2f55e0909535c8cebfc88156b",
+      "sanitizedBytes": 10349,
+      "sanitizedSha256": "d0163ef48e6a744aad7c6552ae4455a2c60bbac2f55e0909535c8cebfc88156b",
+      "sanitization": "owned/repository/user/OS temp paths only; numerical trace unchanged"
+    },
+    {
+      "source": "global-loss/run/execution.json",
+      "preserved": "159-global-loss-run-execution.json",
+      "originalBytes": 1273,
+      "originalSha256": "3220843e279f8dcff0ba71f51ecf9b0e414ba326abff65be8cb2c0fedf190424",
+      "sanitizedBytes": 1273,
+      "sanitizedSha256": "3220843e279f8dcff0ba71f51ecf9b0e414ba326abff65be8cb2c0fedf190424",
+      "sanitization": "owned/repository/user/OS temp paths only; numerical trace unchanged"
+    },
+    {
+      "source": "global-loss/run/output.log",
+      "preserved": "159-global-loss-run-output.log",
+      "originalBytes": 141,
+      "originalSha256": "07a037b7718a4cca625ffda7e0704a6638720606084ea024d9fc441777622113",
+      "sanitizedBytes": 141,
+      "sanitizedSha256": "07a037b7718a4cca625ffda7e0704a6638720606084ea024d9fc441777622113",
+      "sanitization": "owned/repository/user/OS temp paths only; numerical trace unchanged"
+    },
+    {
+      "source": "parser-upper.log",
+      "preserved": "159-parser-upper.log",
+      "originalBytes": 687,
+      "originalSha256": "94bc0a8e535080676feb58b640f5705feec43522ad43845743b68927e99d6435",
+      "sanitizedBytes": 687,
+      "sanitizedSha256": "94bc0a8e535080676feb58b640f5705feec43522ad43845743b68927e99d6435",
+      "sanitization": "owned/repository/user/OS temp paths only; numerical trace unchanged"
+    },
+    {
+      "source": "parser-lower.log",
+      "preserved": "159-parser-lower.log",
+      "originalBytes": 687,
+      "originalSha256": "83728dc938307aaed622dc33744b066d6566c9f82a7c366676970fdb643d5aab",
+      "sanitizedBytes": 687,
+      "sanitizedSha256": "83728dc938307aaed622dc33744b066d6566c9f82a7c366676970fdb643d5aab",
+      "sanitization": "owned/repository/user/OS temp paths only; numerical trace unchanged"
+    },
+    {
+      "source": "parser-mixed.log",
+      "preserved": "159-parser-mixed.log",
+      "originalBytes": 687,
+      "originalSha256": "237b479b79d59cf70d9e80d8bbd61ab432971fce8390a97fd08a5cc9f730839c",
+      "sanitizedBytes": 687,
+      "sanitizedSha256": "237b479b79d59cf70d9e80d8bbd61ab432971fce8390a97fd08a5cc9f730839c",
+      "sanitization": "owned/repository/user/OS temp paths only; numerical trace unchanged"
+    },
+    {
+      "source": "parser-missing.log",
+      "preserved": "159-parser-missing.log",
+      "originalBytes": 77,
+      "originalSha256": "866aa42a19f35ff2b3e72e938ebd3afe871c1d5cc936fed4d3853aa17d05023d",
+      "sanitizedBytes": 77,
+      "sanitizedSha256": "866aa42a19f35ff2b3e72e938ebd3afe871c1d5cc936fed4d3853aa17d05023d",
+      "sanitization": "owned/repository/user/OS temp paths only; numerical trace unchanged"
+    },
+    {
+      "source": "parser-empty.log",
+      "preserved": "159-parser-empty.log",
+      "originalBytes": 75,
+      "originalSha256": "2b4d7b3ca7b18cea4a899c369e5b8de5fa76b9c8a81b132e0b8665ea7355ecc2",
+      "sanitizedBytes": 75,
+      "sanitizedSha256": "2b4d7b3ca7b18cea4a899c369e5b8de5fa76b9c8a81b132e0b8665ea7355ecc2",
+      "sanitization": "owned/repository/user/OS temp paths only; numerical trace unchanged"
+    },
+    {
+      "source": "parser-text.log",
+      "preserved": "159-parser-text.log",
+      "originalBytes": 74,
+      "originalSha256": "6077c4463d8d7ffe895dc80cf2bfd9dda3f8a7798ad94bdcd6655ccd77363384",
+      "sanitizedBytes": 74,
+      "sanitizedSha256": "6077c4463d8d7ffe895dc80cf2bfd9dda3f8a7798ad94bdcd6655ccd77363384",
+      "sanitization": "owned/repository/user/OS temp paths only; numerical trace unchanged"
+    },
+    {
+      "source": "parser-zero.log",
+      "preserved": "159-parser-zero.log",
+      "originalBytes": 74,
+      "originalSha256": "339c34b375b52502ae48d7622fa186498f7ca644954a606ae818c169f540ab55",
+      "sanitizedBytes": 74,
+      "sanitizedSha256": "339c34b375b52502ae48d7622fa186498f7ca644954a606ae818c169f540ab55",
+      "sanitization": "owned/repository/user/OS temp paths only; numerical trace unchanged"
+    },
+    {
+      "source": "parser-range.log",
+      "preserved": "159-parser-range.log",
+      "originalBytes": 75,
+      "originalSha256": "ec36dfd83b175455fa44e8d755c87dff61aa04d0921f63d8e23b4f4d63425d4b",
+      "sanitizedBytes": 75,
+      "sanitizedSha256": "ec36dfd83b175455fa44e8d755c87dff61aa04d0921f63d8e23b4f4d63425d4b",
+      "sanitization": "owned/repository/user/OS temp paths only; numerical trace unchanged"
+    },
+    {
+      "source": "parser-duplicate.log",
+      "preserved": "159-parser-duplicate.log",
+      "originalBytes": 79,
+      "originalSha256": "60865089230db898387ad6bd749adc53ab23fd4084bc296280409118a1c66c13",
+      "sanitizedBytes": 79,
+      "sanitizedSha256": "60865089230db898387ad6bd749adc53ab23fd4084bc296280409118a1c66c13",
+      "sanitization": "owned/repository/user/OS temp paths only; numerical trace unchanged"
+    },
+    {
+      "source": "parser-variant.log",
+      "preserved": "159-parser-variant.log",
+      "originalBytes": 77,
+      "originalSha256": "17cb507fba2a44a67c9af77cc78b8f421ee980b7423ebb0cfa56075946b3da70",
+      "sanitizedBytes": 77,
+      "sanitizedSha256": "17cb507fba2a44a67c9af77cc78b8f421ee980b7423ebb0cfa56075946b3da70",
+      "sanitization": "owned/repository/user/OS temp paths only; numerical trace unchanged"
+    },
+    {
+      "source": "parser-conflict.log",
+      "preserved": "159-parser-conflict.log",
+      "originalBytes": 78,
+      "originalSha256": "8fb8492b314ffdc873cbd0eccaf75d4a1262c331b2d3aa53e75572f128c7f70d",
+      "sanitizedBytes": 78,
+      "sanitizedSha256": "8fb8492b314ffdc873cbd0eccaf75d4a1262c331b2d3aa53e75572f128c7f70d",
+      "sanitization": "owned/repository/user/OS temp paths only; numerical trace unchanged"
+    },
+    {
+      "source": "parser-reuse.log",
+      "preserved": "159-parser-reuse.log",
+      "originalBytes": 442,
+      "originalSha256": "57d554eb05a764a5ac89010e4d4b01477d4d81d4d9350d485055e828fee1c479",
+      "sanitizedBytes": 442,
+      "sanitizedSha256": "57d554eb05a764a5ac89010e4d4b01477d4d81d4d9350d485055e828fee1c479",
+      "sanitization": "owned/repository/user/OS temp paths only; numerical trace unchanged"
+    },
+    {
+      "source": "producer.log",
+      "preserved": "159-producer.log",
+      "originalBytes": 12812,
+      "originalSha256": "d044f8ac77f4e3e0a7ee0672c9d63381151b9f522393a0aa536f910913ef258f",
+      "sanitizedBytes": 12812,
+      "sanitizedSha256": "d044f8ac77f4e3e0a7ee0672c9d63381151b9f522393a0aa536f910913ef258f",
+      "sanitization": "owned/repository/user paths only"
+    },
+    {
+      "source": "readback-final.log",
+      "preserved": "159-readback-final.log",
+      "originalBytes": 1141,
+      "originalSha256": "f004e8a145e0b287322992e5f2f9c356c12a495834505e9ea79a414fd1f6b6f7",
+      "sanitizedBytes": 1141,
+      "sanitizedSha256": "f004e8a145e0b287322992e5f2f9c356c12a495834505e9ea79a414fd1f6b6f7",
+      "sanitization": "owned/repository/user paths only"
+    },
+    {
+      "source": "coverage.log",
+      "preserved": "159-coverage.log",
+      "originalBytes": 604,
+      "originalSha256": "f3dd9d2ec3cd35ce7a806a391b6918dddd2c2377ca3039afa624f484985f9bce",
+      "sanitizedBytes": 604,
+      "sanitizedSha256": "f3dd9d2ec3cd35ce7a806a391b6918dddd2c2377ca3039afa624f484985f9bce",
+      "sanitization": "owned/repository/user paths only"
+    }
+  ],
+  "largeMediaOrBinaryIncluded": false
+}

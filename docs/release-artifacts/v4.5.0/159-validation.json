@@ -1,0 +1,158 @@
+{
+  "schema": "media-server.v450.r159.validation.v1",
+  "decision": "BLOCKED_LOCK_CALLSITE_INSTRUMENTATION",
+  "focusedContract": "PASS for executed callsite/native/negative/linkage checks; whole-cycle output budget UNVERIFIED",
+  "instrumentationContract": "INCOMPLETE",
+  "actualLockAttribution": "NOT_RUN",
+  "baseline": "972d7d7cf6fdb41586f353e0d841207258004025",
+  "entry": "159-entry.json",
+  "models": {
+    "main": {
+      "requested": {
+        "model": "gpt-6-astra",
+        "effort": "high"
+      },
+      "toolAccepted": null,
+      "actualRuntimeModel": null,
+      "actualRuntimeEffort": null
+    },
+    "independent": {
+      "requested": {
+        "model": "gpt-6-astra",
+        "effort": "high"
+      },
+      "toolAccepted": null,
+      "actualRuntimeModel": null,
+      "actualRuntimeEffort": null
+    }
+  },
+  "changedScope": [
+    "six scripts/internal/recording_http_lock* test-only files",
+    "MEDIA-012 inventory definition",
+    "derived implementation evidence inventory binding",
+    "159 evidence only"
+  ],
+  "sourceAndLink": {
+    "proof": "159-link-proof.json",
+    "overlayDiff": "159-overlay.json",
+    "fixtureSha256": "3dbdbe0ac65c6636de6c0ba43623838c61c4cc619f27db86ba2ca7acf024bbd4",
+    "originalHeaderSha256": "2747d96d1c1a156692f8d77e05ddc5f89142291dfc60caf5c784d3a550001d1d",
+    "principalSymbols": 7,
+    "originalArchiveMembersExcluded": 6,
+    "productSourceChanged": false,
+    "headerChanged": false,
+    "shadowHeader": false,
+    "classLayoutChanged": false
+  },
+  "focused": {
+    "R159Python": {
+      "tests": 7,
+      "exit": 0
+    },
+    "R155Python": {
+      "tests": 32,
+      "exit": 0,
+      "realStreamingFaultCases": 18,
+      "additionalFixtureCapCase": 1
+    },
+    "R153Python": {
+      "tests": 30,
+      "exit": 0
+    },
+    "R156Python": {
+      "tests": 5,
+      "exit": 0
+    },
+    "R157Python": {
+      "tests": 6,
+      "exit": 0
+    },
+    "R158Python": {
+      "tests": 4,
+      "exit": 0
+    },
+    "nativeChildren": 16,
+    "nativeExecutions": "159-focused-executions.json",
+    "nativeSelectedRows": 21,
+    "newGlobalLossChild": {
+      "count": 1,
+      "detectionToSignalMs": 0.14849985018372536,
+      "firstFailure": "global latency loss",
+      "cleanupErrors": [],
+      "groupsAbsent": true
+    },
+    "TDD": "No preimplementation RED claimed. Injected invalid records/cap scenarios are expected negative checks; setup mistakes are separately preserved, not RED.",
+    "proceduralErrors": "159-procedural-errors.json"
+  },
+  "executions": {
+    "integratedCycles": 0,
+    "integratedSeconds": 0,
+    "productStarts": 0,
+    "new45": "NOT_RUN",
+    "nativeFocusedTopLevelChildren": 16,
+    "syntheticStreamingChildren": 22,
+    "compilerChildren": "commands preserved in link proof; not workload",
+    "pluginScannerChildren": "native GStreamer spawned scanner(s); observed warnings preserved; no precise unobserved child count asserted"
+  },
+  "products": {
+    "media_server": "33f516d35d56cb2f6cafc75647b6c37d2ced67115302d1205cca23bf51ab7f79",
+    "libmedia_server_runtime.a": "2d91cf35fe7e805e0c06e00d16779c86849b35db635e087582277e1b676d198c"
+  },
+  "binding": {
+    "order": [
+      "producer",
+      "readback",
+      "coverage"
+    ],
+    "results": [
+      "PASS",
+      "PASS",
+      "PASS"
+    ],
+    "commands": [
+      "node scripts/internal/verify_v390_review4_feature_semantic_source_audit.mjs --apply-approved-manifest",
+      "node scripts/internal/verify_feature_implementation_evidence.mjs",
+      "node scripts/internal/verify_feature_inventory_coverage.mjs"
+    ],
+    "semanticManifestDiff": [
+      "inventorySha256"
+    ],
+    "prematureReadback": "terminated exit143, invalid/not used; final readback started only after producer exit0"
+  },
+  "independentReview": "159-independent-review.json",
+  "cleanup": "159-closure.json",
+  "history": {
+    "R158": "QUALIFIED_APPROXIMATE_LOCK_WINDOWS",
+    "R157": "CATALOG_HOLD_COST_BOUNDARY_IDENTIFIED",
+    "R156": "CURRENTNESS_COST_BOUNDARY_IDENTIFIED",
+    "R155": "ATTRIBUTION_BOUNDARY_IDENTIFIED",
+    "R154": "FAIL_BOUNDED_HTTP_CONTRACT",
+    "R153": "PASS_BOUNDED_FIXTURE_QUALIFIED",
+    "R149Functional45": "FAIL",
+    "R149Collection45": "INCOMPLETE",
+    "MemoryP0": "HOLD",
+    "Readiness120": "HOLD",
+    "Release": "HOLD"
+  },
+  "futureExecution": "No product optimization or integrated/45min run started after this result",
+  "sourceSha256": {
+    "scripts/internal/recording_http_lock.py": "c94987ac6b857066bb2ab5114aab513f8a4558d0b8ab1e72ad8db6f1770bed5e",
+    "scripts/internal/recording_http_lock.test.py": "0480aa50a8ff856052beb0b884f311f459573a55ea835c429933a118201ca921",
+    "scripts/internal/recording_http_lock_overlay.py": "f678a8153e3302bf8d9162f04700ffdb7e1ffbf5501481dfe8c637dcbd59ae76",
+    "scripts/internal/recording_http_lock_probe.h": "ab3613e89275bbaaca3c1606ad62aad3b2a8f365451456dbf387739c11f77cc1",
+    "scripts/internal/recording_http_lock_run.py": "c1b86a932ebca20a14d9c1e07c26c1f16e9726cf80aa248daa7ea89294b1d3f2",
+    "scripts/internal/recording_http_lock_smoke.cpp": "98a3274280d2e2fbdc349132c77a1883a382f0aba10725365030e8cce2ecde9c"
+  },
+  "postBuildPythonChange": {
+    "file": "scripts/internal/recording_http_lock.py",
+    "reason": "duration parent inequality tightened after compile; Python final tests rerun; compiled native dependencies unchanged",
+    "integratedCandidateFreshness": "NOT_CLAIMED; no cycle run"
+  },
+  "productsAfter": {
+    "media_server": "33f516d35d56cb2f6cafc75647b6c37d2ced67115302d1205cca23bf51ab7f79",
+    "libmedia_server_runtime.a": "2d91cf35fe7e805e0c06e00d16779c86849b35db635e087582277e1b676d198c"
+  },
+  "gitDiffCheck": "PASS",
+  "testCommit": "def6c19542d0dd9d0f3505b89112a9326ed64ba2",
+  "evidencePackaging": "Initial staged diff-check rejected whitespace-only context lines in raw unified-diff artifact; no commit created. Same sanitized text preserved losslessly as JSON string; checks rerun. Not a native test failure."
+}

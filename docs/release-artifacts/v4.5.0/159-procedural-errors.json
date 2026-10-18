@@ -1,0 +1,24 @@
+{
+  "initialR155TestInvocation": {
+    "exit": 1,
+    "cause": "required R155_FOCUSED_ROOT omitted; two KeyErrors before those children started",
+    "red": false,
+    "corrected": "r155-python-corrected.log"
+  },
+  "initialNativeDriver": {
+    "error": "FileExistsError: owned leaf callsite collided with compiled binary callsite",
+    "nativeChildrenStarted": 0,
+    "exit": 1,
+    "evidence": "tool transcript; no raw redirected output",
+    "correction": "owned- prefix for directory; binary unchanged",
+    "expectedRed": false
+  },
+  "prematureReadback": {
+    "pid": 40595,
+    "exit": 143,
+    "cause": "started while producer PID40577 still active",
+    "qualification": "INVALID_NOT_USED",
+    "action": "terminated owned read-only consumer; rerun after producer completion",
+    "productImpact": false
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "baseline": "972d7d7cf6fdb41586f353e0d841207258004025",
+  "branch": "v4.5.0",
+  "clean": true,
+  "localOriginRemoteEqual": true,
+  "products": {
+    "media_server": "33f516d35d56cb2f6cafc75647b6c37d2ced67115302d1205cca23bf51ab7f79",
+    "libmedia_server_runtime.a": "2d91cf35fe7e805e0c06e00d16779c86849b35db635e087582277e1b676d198c"
+  },
+  "headerSha256": "2747d96d1c1a156692f8d77e05ddc5f89142291dfc60caf5c784d3a550001d1d"
+}
