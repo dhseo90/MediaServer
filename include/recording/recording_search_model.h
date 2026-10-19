@@ -10,6 +10,8 @@
 #include <string>
 #include <unordered_map>
 #include <vector>
+#include <iterator>
+#include <stdexcept>
 
 namespace recording {
 
@@ -94,6 +96,7 @@ struct RecordingSearchMatches {
 // 원본 snapshot의 일관성과 event 연결 검증은 adapter 책임이다. 이 모델은 파일 재생 증명이 아니다.
 class RecordingSearchModel {
     friend class RecordingSearchReader;
+    friend class RecordingCatalog;
 public:
     RecordingSearchModel()=default;
     std::uint64_t diagnostic_identity() const noexcept{return memory_diagnostic::ModelIdentity(this);}
@@ -126,15 +129,54 @@ public:
     // 행동 근거 읽기의 대상만 좁힌다. 최종 Query/페이지 판정을 대체하지 않는다.
     bool BehaviourCandidates(const RecordingSearchQuery&, RecordingSearchMatches*, std::string* error) const;
 
-    const std::vector<SearchDocument>& documents() const { return documents_; }
+    // Positions are model-local; payload need not be contiguous. No mutable
+    // reference escapes a published model.
+    class Documents {
+        const RecordingSearchModel* model_;
+    public:
+        struct iterator {
+            using iterator_category=std::forward_iterator_tag;
+            using value_type=SearchDocument;using difference_type=std::ptrdiff_t;
+            using pointer=const SearchDocument*;using reference=const SearchDocument&;
+            const RecordingSearchModel* model=nullptr;std::size_t position=0;
+            reference operator*()const{return model->Document(position);}
+            pointer operator->()const{return &**this;}
+            iterator& operator++(){++position;return *this;}
+            iterator operator++(int){auto old=*this;++*this;return old;}
+            bool operator==(const iterator& b)const{return model==b.model&&position==b.position;}
+            bool operator!=(const iterator& b)const{return !(*this==b);}
+        };
+        explicit Documents(const RecordingSearchModel* model):model_(model){}
+        std::size_t size()const{return model_->shared_documents_.empty()?model_->documents_.size():model_->shared_documents_.size();}
+        bool empty()const{return size()==0;}
+        const SearchDocument& operator[](std::size_t i)const{return model_->Document(i);}
+        const SearchDocument& at(std::size_t i)const{if(i>=size())throw std::out_of_range("search position");return (*this)[i];}
+        const SearchDocument& front()const{return (*this)[0];}
+        const SearchDocument& back()const{return (*this)[size()-1];}
+        iterator begin()const{return {model_,0};}iterator end()const{return {model_,size()};}
+    };
+    Documents documents() const { return Documents(this); }
     const std::vector<std::size_t>& Channel(const std::string& channel_id) const;
     const SearchDocument* Find(const std::string& id) const;
+    std::optional<std::size_t> FindPosition(const std::string& id) const;
     const std::string& source_instance() const { return source_instance_; }
     std::uint64_t revision() const { return revision_; }
     std::size_t accounted_bytes() const { return accounted_bytes_; }
     const std::shared_ptr<SearchModelResidency>& residency()const{return residency_;}
 
 private:
+    struct DocumentBlock {
+        SearchModelResidency::Reservation memory,overhead;
+        std::vector<SearchDocument> documents;
+    };
+    const SearchDocument& Document(std::size_t i)const{return shared_documents_.empty()?documents_[i]:*shared_documents_[i];}
+    std::shared_ptr<const SearchDocument> SharedDocument(const std::string& id)const {
+        const auto it=ids_.find(id);return it==ids_.end()||shared_documents_.empty()?nullptr:shared_documents_[it->second];
+    }
+    void PromoteSourceStorage(SearchModelLimits) noexcept;
+    static bool BuildShared(std::vector<SearchDocument>&,std::vector<std::shared_ptr<const SearchDocument>>&,
+        const RecordingSearchModel*,const std::string&,std::uint64_t,
+        std::shared_ptr<const RecordingSearchModel>*,std::string*,SearchModelLimits);
     static bool BuildOwnedImpl(std::vector<SearchDocument>&&, const std::string&, std::uint64_t,
         std::shared_ptr<const RecordingSearchModel>*, std::string*, SearchModelLimits,
         const RecordingSearchModel*);
@@ -145,6 +187,8 @@ private:
     std::uint64_t revision_{0};
     std::size_t accounted_bytes_{0};
     std::vector<SearchDocument> documents_;
+    SearchModelResidency::Reservation shared_index_memory_;
+    std::vector<std::shared_ptr<const SearchDocument>> shared_documents_;
     std::unordered_map<std::string, std::vector<std::size_t>> channels_;
     std::unordered_map<std::string, std::size_t> ids_;
 };

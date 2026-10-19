@@ -69,6 +69,11 @@ public:
         std::shared_ptr<const RecordingSearchModel>* output, std::string* error,
         SearchModelLimits limits = {}, const RecordingSearchQuery* query = nullptr);
 private:
+    bool RefreshImpl(const std::vector<std::string>& channels,
+        const std::shared_ptr<const RecordingSearchModel>& previous,
+        std::shared_ptr<const RecordingSearchModel>* output, std::string* error,
+        SearchModelLimits limits, bool include_observations,
+        SearchSourceBatch* retry_capture, bool allow_document_sharing) const;
     bool WithPlaybackImpl(const RecordingSearchModel&, const RecordingSearchQuery&,
         std::shared_ptr<const RecordingSearchModel>*, std::string*, SearchModelLimits,
         const std::shared_ptr<const RecordingSearchModel>*) const;

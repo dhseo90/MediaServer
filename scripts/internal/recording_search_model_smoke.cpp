@@ -38,7 +38,7 @@ void Owned126() {
     }
     const auto* allocation=rows.data();std::shared_ptr<const RecordingSearchModel> model;
     Check(RecordingSearchModel::BuildOwned(std::move(rows),"owned",1,&model,&error,{100000,64*1024*1024,owner}),"R126 many mappings admitted");
-    Check(model->documents().data()==allocation&&model->documents().size()==26000,"R126 actual array ownership transferred without copy");
+    Check(&model->documents().front()==allocation&&model->documents().size()==26000,"R126 actual array ownership transferred without copy");
     workspace.reset();Check(owner->used()==model->accounted_bytes(),"R126 preparation reservation released; model held");
     auto held=model;std::vector<SearchDocument> invalid{Row("duplicate","a",1),Row("duplicate","a",2)};
     Check(!RecordingSearchModel::BuildOwned(std::move(invalid),"owned",2,&model,&error,{100000,64*1024*1024,owner})&&model==held&&error=="search-duplicate-id","R126 duplicate rejects and old output unchanged");

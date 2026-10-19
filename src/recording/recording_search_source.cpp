@@ -90,7 +90,7 @@ bool RecordingCatalog::ValidateSearchSource(const SearchSourceBatch& batch, std:
     latency::Lock lock(mu_,latency::Source::Catalog,__LINE__,false,__func__);
     SearchDiagnostic::Stage("validate-source");
     const bool readable=opened_&&CanReadLocked(error);
-    SearchDiagnostic::Source(batch.catalog_instance,batch.resolution_revision,source_snapshot_revision_,search_instance_,readable,batch.rebuild,batch.delta.upserts.size(),batch.pending.size());
+    SearchDiagnostic::Source(batch.catalog_instance,batch.resolution_revision,source_snapshot_revision_,search_instance_,readable,batch.rebuild,batch.delta.upserts.size()+batch.shared_documents_.size(),batch.pending.size());
     if (!readable || !source_snapshot_revision_valid_ ||
         batch.catalog_instance != search_instance_ || batch.channels.empty() ||
         SearchChangedLocked(batch.channels,batch.resolution_revision,false))
@@ -101,10 +101,10 @@ bool RecordingCatalog::ValidateSearchSource(const SearchSourceBatch& batch, std:
 
 bool RecordingCatalog::CaptureSearchSource(const std::vector<std::string>& channels,
     const RecordingSearchModel* previous, SearchSourceBatch* result, std::string* error, SearchModelLimits limits, bool include_observations, SearchSourceBatch* retry_capture) const {
-    return CaptureSearchSourceImpl(channels,previous,result,error,limits,include_observations,retry_capture,true);
+    return CaptureSearchSourceImpl(channels,previous,result,error,limits,include_observations,retry_capture,true,false);
 }
 bool RecordingCatalog::CaptureSearchSourceImpl(const std::vector<std::string>& channels,
-    const RecordingSearchModel* previous, SearchSourceBatch* result, std::string* error, SearchModelLimits limits, bool include_observations, SearchSourceBatch* retry_capture,bool allow_raw_cut) const {
+    const RecordingSearchModel* previous, SearchSourceBatch* result, std::string* error, SearchModelLimits limits, bool include_observations, SearchSourceBatch* retry_capture,bool allow_raw_cut,bool allow_document_sharing) const {
     if (!result || result==retry_capture || channels.empty() || channels.size() > 32) return Fail(error, "search-invalid-channels");
     // Consume the prior attempt once, including exceptions/partial moves. It
     // cannot be offered again after an interrupted current namespace traversal.
@@ -115,7 +115,7 @@ bool RecordingCatalog::CaptureSearchSourceImpl(const std::vector<std::string>& c
     SearchDiagnostic::Stage("capture-source");
     SearchCapacityBegin("capture-source",limits.max_documents,limits.max_bytes,0,0);
     CaptureCost costs;
-    bool optional_cut_owned=false;
+    bool optional_cut_owned=false,optional_sharing_owned=false;
     try {
         latency::Lock lock(mu_,latency::Source::Catalog,__LINE__,false,__func__);
         if (!opened_ || !CanReadLocked(error) || !source_snapshot_revision_valid_ || !search_instance_ ||
@@ -174,6 +174,30 @@ bool RecordingCatalog::CaptureSearchSourceImpl(const std::vector<std::string>& c
         bool raw_valid=false;
         std::size_t bytes = sizeof(batch),span_bytes=0;
         bool remember_spans=remember,optional_vector=false;
+        const RecordingSearchModel* shared_source=nullptr;
+        // Sharing is optional, scoped to append-only invalidations. Capacity for
+        // refs (including growth) is admitted before any document is omitted.
+        if(allow_document_sharing&&!include_observations&&batch.append_order_hint&&previous&&
+           previous->residency()==limits.residency&&
+           !previous->shared_documents_.empty()&&limits.max_documents<=SIZE_MAX/(2*sizeof(std::shared_ptr<const SearchDocument>))) {
+            const auto size=limits.max_documents*sizeof(std::shared_ptr<const SearchDocument>);
+            if(limits.residency->used()<=limits.residency->limit()&&size<=limits.residency->limit()-limits.residency->used()) {
+                auto reservation=limits.residency->ReserveOwned(size,SearchModelResidency::Category::Preparation);
+                if(reservation){
+                    // Allocate once: arbitrary vector growth can exceed a 2N
+                    // transient envelope when max_documents is not a power of two.
+                    try {batch.shared_documents_.reserve(limits.max_documents);}
+                    catch(const std::bad_alloc&){}catch(const std::length_error&){}
+                    if(batch.shared_documents_.capacity()!=limits.max_documents) {
+                        std::vector<std::shared_ptr<const SearchDocument>>{}.swap(batch.shared_documents_);
+                    } else {batch.sharing_memory_=std::move(*reservation);optional_sharing_owned=true;shared_source=previous;
+                    if(reuse&&prior_capture.retry_model_)shared_source=prior_capture.retry_model_.get();
+                    remember_spans=false;
+                    }
+                }
+            }
+        }
+
         const auto drop_spans=[&] {batch.segment_spans_.clear();bytes-=span_bytes;span_bytes=0;remember_spans=false;};
         const auto remember_span=[&](const std::string& id,RecordingLifecycle lifecycle,std::size_t begin) {
             if(!remember_spans||!raw_valid)return true;
@@ -192,8 +216,8 @@ bool RecordingCatalog::CaptureSearchSourceImpl(const std::vector<std::string>& c
             search_capacity_diagnostic.documents=documents.size();
             search_capacity_diagnostic.capacity=documents.capacity();
             search_capacity_diagnostic.index=documents.size();
-            const auto refused=[&](){if(optional_vector)throw OptionalCaptureCapacity{};return false;};
-            if(documents.size()>=limits.max_documents){SearchCapacityReject("document-count",documents.size(),1);return refused();}
+            const auto refused=[&](){if(optional_vector||optional_sharing_owned)throw OptionalCaptureCapacity{};return false;};
+            if(documents.size()+batch.shared_documents_.size()>=limits.max_documents){SearchCapacityReject("document-count",documents.size(),1);return refused();}
             auto next=bytes;
             if(!AccountOwnedSearchDocument(d,&next,SIZE_MAX))return refused();
             const auto required=documents.size()+1;
@@ -289,6 +313,9 @@ bool RecordingCatalog::CaptureSearchSourceImpl(const std::vector<std::string>& c
                                 const auto retained=row.bytes.capacity()+1;
                                 const auto key=2*(id.size()+1);
                                 if(cut.size()==count||retained>limits.max_bytes-cut_bytes||key>limits.max_bytes-cut_bytes-retained)return false;
+#ifdef RECORDING_SEARCH_TESTING
+                                ++search_projection_work_test[0];
+#endif
                                 // Key/control storage is charged independently of raw workspace.
                                 // Row workspace is already larger than raw + bounded ID.
                                 auto key_owner=row.memory.Split(key);
@@ -309,12 +336,43 @@ bool RecordingCatalog::CaptureSearchSourceImpl(const std::vector<std::string>& c
             }
             RecordingLifecycle cut_lifecycle=RecordingLifecycle::Unknown;
             const auto current_lifecycle=[&](const auto& id){return detached?cut_lifecycle:EffectiveLifecycleV2Locked(id,true);};
+            bool counted_current_raw=false;
             const auto consume=[&](const auto& id,const auto& s) {
+                counted_current_raw=false;
                 ++costs.rows;
                 const auto lifecycle=current_lifecycle(id);
                 const auto begin=batch.delta.upserts.size();
                 if (lifecycle==RecordingLifecycle::Deleted) return remember_span(id,lifecycle,begin);
                 const auto segment = [&](const RecordingUtcMappingV1* m) {
+
+                    const auto document_id="s2:"+Key(id)+Key(m?m->mapping_id:"");
+                    if(shared_source) {
+                        auto old=shared_source->SharedDocument(document_id);
+                        const auto known=m&&m->provenance!="unknown"&&m->utc_start_ns&&m->utc_end_ns&&*m->utc_start_ns<*m->utc_end_ns;
+                        // Compare the complete projection directly to the current
+                        // authenticated DTO and separately resolved lifecycle.
+                        // No SourceBinding acquisition or new authority boundary.
+                        if(old&&old->kind==SearchDocumentKind::Recording&&old->id==document_id&&old->channel_id==s.channel_id&&old->segment_id==id&&
+                           old->source_id==s.source_id&&old->store_id==s.store_id&&old->media_epoch_id==s.media_epoch_id&&old->stream_epoch_id==s.media_epoch_id&&
+                           old->media_pts==std::optional<std::int64_t>(m?m->start_pts:s.media_start_pts)&&old->media_end_pts==(m?std::optional<std::int64_t>(m->end_pts):s.media_end_pts)&&
+                           old->time_base_num==s.time_base_num&&old->time_base_den==s.time_base_den&&old->unavailable_reason==State(lifecycle)&&
+                           old->start_ns==(known?m->utc_start_ns:std::nullopt)&&old->end_ns==(known?m->utc_end_ns:std::nullopt)&&
+                           old->time_provenance==(m?m->provenance:std::string{})&&old->uncertainty_ns==(m?m->uncertainty_ns:std::nullopt)&&
+                           old->playback_segment_id.empty()&&old->playback_event_id.empty()&&old->playback_job_id.empty()&&old->observation_id.empty()&&
+                           old->reference_id.empty()&&old->analysis_namespace.empty()&&old->track_id.empty()&&old->object.empty()&&
+                           old->event_ids.empty()&&old->zone_ids.empty()&&old->rule_ids.empty()&&old->event_facts.empty()) {
+                            if(batch.delta.upserts.size()+batch.shared_documents_.size()>=limits.max_documents)return false;
+                            auto next=bytes;if(!AccountOwnedSearchDocument(*old,&next,limits.max_bytes))return false;
+                            batch.shared_documents_.push_back(std::move(old));bytes=next;
+#ifdef RECORDING_SEARCH_TESTING
+                            ++search_projection_work_test[2];
+#endif
+                            return true;
+                        }
+                    }
+#ifdef RECORDING_SEARCH_TESTING
+                    ++search_projection_work_test[1];
+#endif
                     SearchDocument d;d.id="s2:"+Key(id)+Key(m?m->mapping_id:"");d.channel_id=s.channel_id;d.segment_id=id;
                     d.source_id=s.source_id;d.store_id=s.store_id;d.media_epoch_id=s.media_epoch_id;d.stream_epoch_id=s.media_epoch_id;d.media_end_pts=m?m->end_pts:s.media_end_pts;d.media_pts=m?m->start_pts:s.media_start_pts;
                     d.time_base_num=s.time_base_num;d.time_base_den=s.time_base_den;d.unavailable_reason=State(lifecycle);
@@ -330,11 +388,19 @@ bool RecordingCatalog::CaptureSearchSourceImpl(const std::vector<std::string>& c
             const auto excluded=[&](const auto& id){
                 // Channel exclusion never suppresses current lifecycle errors.
                 ++costs.rows;++costs.excluded;
+#ifdef RECORDING_SEARCH_TESTING
+                if(!detached&&segments_v2_.cold()&&!counted_current_raw)++search_projection_work_test[0];
+#endif
+                counted_current_raw=false;
                 (void)current_lifecycle(id);return true;
             };
             const auto raw_consumer=[&](const std::string& id,const std::string& raw)->std::optional<bool>{
+#ifdef RECORDING_SEARCH_TESTING
+                if(!detached&&segments_v2_.cold())++search_projection_work_test[0];
+#endif
+                counted_current_raw=true;
                 raw_valid=false;
-                if(!remember)return {};
+                if(!remember||shared_source)return {};
 #if MEDIA_SERVER_USE_OPENSSL
                 unsigned digest_size=0;
                 raw_valid=EVP_Digest(raw.data(),raw.size(),raw_digest.data(),&digest_size,EVP_sha256(),nullptr)==1&&digest_size==raw_digest.size();
@@ -382,7 +448,7 @@ bool RecordingCatalog::CaptureSearchSourceImpl(const std::vector<std::string>& c
                     hint+=n;
                 }
                 const auto old_capacity=batch.delta.upserts.capacity();
-                if(hint>old_capacity&&bytes<=limits.max_bytes&&
+                if(!shared_source&&hint>old_capacity&&bytes<=limits.max_bytes&&
                    old_capacity<=(limits.max_bytes-bytes)/sizeof(SearchDocument)&&
                    hint<=(limits.max_bytes-bytes)/sizeof(SearchDocument)-old_capacity){
                     optional_vector=true;
@@ -415,7 +481,7 @@ bool RecordingCatalog::CaptureSearchSourceImpl(const std::vector<std::string>& c
                 }
                 costs.outside_ns+=costs.enabled?latency::Now()-outside_begin:0;
             }else complete=segments_v2_.ForEachChannelEntry(channels,consume,excluded,&costs.memo,raw_consumer);
-            if(!complete)return Fail(error,"search-capacity-exceeded");
+            if(!complete){if(optional_sharing_owned)throw OptionalCaptureCapacity{};return Fail(error,"search-capacity-exceeded");}
             if(include_observations&&(!observations_.ForEach(v1)||!observations_v2_.ForEach(v2)||!referenced_observations_.ForEach(referenced)))
                 return Fail(error,"search-capacity-exceeded");
         } else if(include_observations) {
@@ -430,18 +496,28 @@ bool RecordingCatalog::CaptureSearchSourceImpl(const std::vector<std::string>& c
                     if(it!=referenced_observations_.end()&&!referenced(it->second))return Fail(error,"search-capacity-exceeded");}
             }
         }
-        SearchDiagnostic::Source(batch.catalog_instance,batch.resolution_revision,source_snapshot_revision_,search_instance_,true,batch.rebuild,batch.delta.upserts.size(),batch.pending.size());
+        SearchDiagnostic::Source(batch.catalog_instance,batch.resolution_revision,source_snapshot_revision_,search_instance_,true,batch.rebuild,batch.delta.upserts.size()+batch.shared_documents_.size(),batch.pending.size());
+        if(batch.shared_documents_.empty()) {
+            std::vector<std::shared_ptr<const SearchDocument>>{}.swap(batch.shared_documents_);
+            batch.sharing_memory_={};
+        }
         *result=std::move(batch);costs.complete=true;if(error)error->clear();return true;
     } catch(const OptionalCaptureCapacity&) {
         prior_capture=SearchSourceBatch{};
-        return CaptureSearchSourceImpl(channels,previous,result,error,limits,include_observations,nullptr,false);
+#ifdef RECORDING_SEARCH_TESTING
+        if(optional_sharing_owned)++search_projection_work_test[3];
+#endif
+        return CaptureSearchSourceImpl(channels,previous,result,error,limits,include_observations,nullptr,false,allow_document_sharing&&!optional_sharing_owned);
     } catch(const RecordingResourceUnavailable&) {
-        if(!optional_cut_owned)throw;
+        if(!optional_cut_owned&&!optional_sharing_owned)throw;
         // All cut/batch owners and the Catalog lock have unwound. Optional
         // retained raw must not turn streaming headroom into a new rejection.
         // A partially consumed retry is discarded; one strict locked attempt.
         prior_capture=SearchSourceBatch{};
-        return CaptureSearchSourceImpl(channels,previous,result,error,limits,include_observations,nullptr,false);
+#ifdef RECORDING_SEARCH_TESTING
+        if(optional_sharing_owned)++search_projection_work_test[3];
+#endif
+        return CaptureSearchSourceImpl(channels,previous,result,error,limits,include_observations,nullptr,false,allow_document_sharing&&!optional_sharing_owned);
     } catch(const RecordingRetainedReadError&) {return Fail(error,"search-source-unavailable");}
       catch(const std::bad_alloc&) {SearchCapacityReject("allocation-exception",0,0);return Fail(error,"search-capacity-exceeded");}
       catch(const std::length_error&) {SearchCapacityReject("length-exception",0,0);return Fail(error,"search-capacity-exceeded");}

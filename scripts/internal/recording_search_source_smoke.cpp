@@ -258,7 +258,7 @@ int main(int argc,char**argv) {
              !search.WithPlayback(only_recordings,query,&playback,&error,{100000,only_recordings->accounted_bytes()-1})&&
              error=="search-capacity-exceeded"&&playback==only_recordings,
              "R127 shared model respects caller document and byte limits without replacing output");
-         auto non_ns=only_recordings->documents();non_ns.front().media_pts=1000;non_ns.front().media_end_pts=2000;
+         std::vector<SearchDocument> non_ns(only_recordings->documents().begin(),only_recordings->documents().end());non_ns.front().media_pts=1000;non_ns.front().media_end_pts=2000;
          non_ns.front().time_base_den=1000;std::shared_ptr<const RecordingSearchModel> converted;
          Check(RecordingSearchModel::Build(non_ns,only_recordings->source_instance(),only_recordings->revision(),&converted,&error,
                  {100000,64*1024*1024,only_recordings->residency()})&&

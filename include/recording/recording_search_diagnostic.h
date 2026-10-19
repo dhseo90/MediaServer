@@ -21,6 +21,11 @@ inline thread_local std::function<void()> search_outside_raw_cut_test;
 inline thread_local std::function<void()> search_after_build_test;
 // Focused build TU only: actual sorting/merge work, never a product trace.
 inline thread_local std::array<std::size_t,3> search_order_work_test{};
+// Existing focused TU hooks: authenticated V2 raw rows, new projections,
+// shared projections, optional sharing fallback. Never a product trace.
+inline thread_local std::array<std::size_t,4> search_projection_work_test{};
+inline thread_local bool search_projection_reuse_test_enabled=true;
+inline thread_local bool search_projection_build_refused_test=false;
 #endif
 // 최초 거부의 실제 Add 피연산자. thread-local 고정 크기이며 원문을 보유하지 않는다.
 struct SearchCapacityDiagnostic {

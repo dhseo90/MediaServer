@@ -97,6 +97,21 @@ bool AccountOwned(const SearchDocument& d,std::size_t* total,std::size_t limit) 
     return true;
 }
 
+bool SameDocument(const SearchDocument& a,const SearchDocument& b) {
+    const auto fields=[](const SearchDocument& d) {return std::tie(
+        d.id,d.channel_id,d.kind,d.segment_id,d.source_id,d.store_id,d.media_epoch_id,
+        d.playback_segment_id,d.playback_event_id,d.playback_job_id,d.observation_id,d.reference_id,
+        d.analysis_namespace,d.stream_epoch_id,d.track_id,d.object,d.start_ns,d.end_ns,
+        d.time_provenance,d.uncertainty_ns,d.media_pts,d.media_end_pts,d.time_base_num,d.time_base_den,
+        d.event_ids,d.zone_ids,d.rule_ids,d.unavailable_reason);};
+    if(fields(a)!=fields(b)||a.event_facts.size()!=b.event_facts.size())return false;
+    for(std::size_t i=0;i<a.event_facts.size();++i) {
+        const auto& x=a.event_facts[i];const auto& y=b.event_facts[i];
+        if(std::tie(x.event_id,x.event_type,x.scenario_name)!=std::tie(y.event_id,y.event_type,y.scenario_name))return false;
+    }
+    return true;
+}
+
 bool Earlier(const SearchDocument& a, const SearchDocument& b) {
     if (a.start_ns.has_value() != b.start_ns.has_value()) return a.start_ns.has_value();
     if (a.start_ns != b.start_ns) return a.start_ns > b.start_ns;
@@ -156,14 +171,14 @@ bool RecordingSearchModel::QueryImpl(const RecordingSearchQuery& input, Recordin
     try {
         RecordingSearchMatches result;
         if(residency_) {
-            if(documents_.size()>(SIZE_MAX-sizeof(result))/(2*sizeof(std::size_t)))return Fail(error,"search-capacity-exceeded");
-            auto charge=residency_->ReserveOwned(sizeof(result)+2*sizeof(std::size_t)*documents_.size(),SearchModelResidency::Category::Matches);
+            if(documents().size()>(SIZE_MAX-sizeof(result))/(2*sizeof(std::size_t)))return Fail(error,"search-capacity-exceeded");
+            auto charge=residency_->ReserveOwned(sizeof(result)+2*sizeof(std::size_t)*documents().size(),SearchModelResidency::Category::Matches);
             if(!charge)return Fail(error,"search-capacity-exceeded");
             result.memory=std::move(*charge);
         }
         const auto start=q.start_time_ms*1000000,end=q.end_time_ms*1000000;
         for (const auto& channel:q.channels) for (const auto position:Channel(channel)) {
-            const auto& d=documents_[position];
+            const auto& d=Document(position);
             if ((d.kind==SearchDocumentKind::Observation)!=metadata)continue;
             if (d.start_ns ? (*d.start_ns>=end || *d.end_ns<=start) : !q.include_unplaced)continue;
             if (!scalar(q.objects,d.object)||!scalar(q.tracks,d.track_id)||!overlap(q.zones,d.zone_ids)||
@@ -356,9 +371,9 @@ bool RecordingSearchModel::BuildOwnedImpl(std::vector<SearchDocument>&& document
         // fully equal prior documents in this newly authenticated capture.
         const auto append_order=[&]() -> bool {
             if(!base||base->source_instance_!=source_instance||base->revision_>=revision||
-               base->documents_.empty()||base->documents_.size()>=model->documents_.size())return false;
+               base->documents().empty()||base->documents().size()>=model->documents_.size())return false;
             auto& current=model->documents_;
-            const auto n=current.size(),old=base->documents_.size();
+            const auto n=current.size(),old=base->documents().size();
             if(n>SIZE_MAX/(2*sizeof(std::size_t)))return false;
             const auto scratch_bytes=2*n*sizeof(std::size_t);
             if(scratch_bytes>limits.max_bytes)return false;
@@ -373,20 +388,6 @@ bool RecordingSearchModel::BuildOwnedImpl(std::vector<SearchDocument>&& document
                 std::vector<std::size_t> positions(old,SIZE_MAX),added,target(n);
                 added.reserve(n-old);
                 if(positions.capacity()>old||added.capacity()>n-old||target.capacity()>n)return false;
-                const auto same=[](const SearchDocument& a,const SearchDocument& b) {
-                    const auto fields=[](const SearchDocument& d) {return std::tie(
-                        d.id,d.channel_id,d.kind,d.segment_id,d.source_id,d.store_id,d.media_epoch_id,
-                        d.playback_segment_id,d.playback_event_id,d.playback_job_id,d.observation_id,d.reference_id,
-                        d.analysis_namespace,d.stream_epoch_id,d.track_id,d.object,d.start_ns,d.end_ns,
-                        d.time_provenance,d.uncertainty_ns,d.media_pts,d.media_end_pts,d.time_base_num,d.time_base_den,
-                        d.event_ids,d.zone_ids,d.rule_ids,d.unavailable_reason);};
-                    if(fields(a)!=fields(b)||a.event_facts.size()!=b.event_facts.size())return false;
-                    for(std::size_t i=0;i<a.event_facts.size();++i) {
-                        const auto& x=a.event_facts[i];const auto& y=b.event_facts[i];
-                        if(std::tie(x.event_id,x.event_type,x.scenario_name)!=std::tie(y.event_id,y.event_type,y.scenario_name))return false;
-                    }
-                    return true;
-                };
                 for(std::size_t i=0;i<n;++i) {
                     const auto& d=current[i];if(d.kind!=SearchDocumentKind::Recording)return false;
                     const auto found=base->ids_.find(d.id);
@@ -395,7 +396,7 @@ bool RecordingSearchModel::BuildOwnedImpl(std::vector<SearchDocument>&& document
                         added.push_back(i);
                     } else {
                         const auto at=found->second;
-                        if(at>=old||positions[at]!=SIZE_MAX||!same(d,base->documents_[at]))return false;
+                        if(at>=old||positions[at]!=SIZE_MAX||!SameDocument(d,base->Document(at)))return false;
                         positions[at]=i;
                     }
                 }
@@ -480,7 +481,7 @@ bool RecordingSearchModel::ApplyDelta(const RecordingSearchModel& base, const Se
             if (!Account(d, &change_bytes, limits.max_bytes)) return Fail(error, "search-capacity-exceeded");
         }
         std::size_t count = delta.upserts.size();
-        for (const auto& d : base.documents_) if (!changed.count(d.id)) ++count;
+        for (const auto& d : base.documents()) if (!changed.count(d.id)) ++count;
         if (count > limits.max_documents) return Fail(error, "search-capacity-exceeded");
         // 원본/새 사본과 delta workspace를 합산해, 삭제/갱신 중에도 같은 admission을 지킨다.
         std::size_t bytes = change_bytes;
@@ -488,7 +489,7 @@ bool RecordingSearchModel::ApplyDelta(const RecordingSearchModel& base, const Se
             return Fail(error, "search-capacity-exceeded");
         std::vector<SearchDocument> merged;
         merged.reserve(count);
-        for (const auto& d : base.documents_) if (!changed.count(d.id)) merged.push_back(d);
+        for (const auto& d : base.documents()) if (!changed.count(d.id)) merged.push_back(d);
         merged.insert(merged.end(), delta.upserts.begin(), delta.upserts.end());
         return BuildOwned(std::move(merged), delta.source_instance, delta.revision, output, error,
                      {limits.max_documents, limits.max_bytes - change_bytes,limits.residency});
@@ -503,6 +504,124 @@ bool RecordingSearchModel::ApplyDelta(const RecordingSearchModel& base, const Se
 
 const SearchDocument* RecordingSearchModel::Find(const std::string& id) const {
     const auto found = ids_.find(id);
-    return found == ids_.end() ? nullptr : &documents_[found->second];
+    return found == ids_.end() ? nullptr : &Document(found->second);
+}
+} // namespace recording
+
+namespace recording {
+std::optional<std::size_t> RecordingSearchModel::FindPosition(const std::string& id)const {
+    const auto it=ids_.find(id);return it==ids_.end()?std::nullopt:std::optional<std::size_t>(it->second);
+}
+// Only an unpublished, exclusively owned source model is promoted. Its existing
+// payload reservation is transferred, never copied; indices keep their own lease.
+void RecordingSearchModel::PromoteSourceStorage(SearchModelLimits limits) noexcept {
+    if(!residency_||!residency_lease_||documents_.empty()||!shared_documents_.empty())return;
+    try {
+        const auto n=documents_.size();
+        if(n>SIZE_MAX/sizeof(std::shared_ptr<const SearchDocument>))return;
+        const auto refs=n*sizeof(std::shared_ptr<const SearchDocument>);
+        constexpr std::size_t control=sizeof(DocumentBlock)+128;
+        if(refs>SIZE_MAX-control||accounted_bytes_>limits.max_bytes||refs+control>limits.max_bytes-accounted_bytes_)return;
+        const auto extra=refs+control;
+        if(residency_->used()>residency_->limit()||extra>residency_->limit()-residency_->used())return;
+        auto charge=residency_->ReserveOwned(extra,SearchModelResidency::Category::Model);if(!charge)return;
+        auto block=std::make_shared<DocumentBlock>();
+        std::vector<std::shared_ptr<const SearchDocument>> handles;handles.reserve(n);
+        if(handles.capacity()!=n)return;
+        std::size_t payload=(documents_.capacity()-n)*sizeof(SearchDocument);
+        for(const auto& d:documents_){if(!AccountOwned(d,&payload,SIZE_MAX))return;handles.emplace_back(block,&d);}
+        auto original=std::static_pointer_cast<SearchModelResidency::Reservation>(residency_lease_);
+        if(payload>original->bytes())return;
+        // Two reservations, each owning a distinct allocation, move into block.
+        block->memory=original->Split(payload);
+        block->overhead=charge->Split(control);
+        block->documents=std::move(documents_);
+        shared_documents_=std::move(handles);shared_index_memory_=std::move(*charge);
+        // Snapshot pool admission remains the full logical model charge. The
+        // optional handle/control allocation is additionally charged physically.
+    }catch(...){} // Optional representation; the original model remains valid.
+}
+
+bool RecordingSearchModel::BuildShared(std::vector<SearchDocument>& added,
+    std::vector<std::shared_ptr<const SearchDocument>>& reused,const RecordingSearchModel* base,
+    const std::string& instance,std::uint64_t revision,std::shared_ptr<const RecordingSearchModel>* output,
+    std::string* error,SearchModelLimits limits) {
+    const auto optional=[&]() -> std::shared_ptr<const RecordingSearchModel> {
+#ifdef RECORDING_SEARCH_TESTING
+        if(search_projection_build_refused_test)return {};
+#endif
+        if(!limits.residency||reused.empty()||!base||base->residency()!=limits.residency||base->source_instance()!=instance)return {};
+        if(added.size()>limits.max_documents||reused.size()>limits.max_documents-added.size())return {};
+        const auto count=added.size()+reused.size();
+        std::size_t logical=sizeof(RecordingSearchModel)+instance.size(),old_payload=0,new_payload=0;
+        const auto account=[&](const SearchDocument& d){return
+            d.id.capacity()<=SIZE_MAX/2-1&&d.channel_id.capacity()<=SIZE_MAX/2-1&&
+            Add(256,&logical,limits.max_bytes)&&Add(2*(d.id.capacity()+1),&logical,limits.max_bytes)&&
+            Add(2*(d.channel_id.capacity()+1),&logical,limits.max_bytes)&&AccountOwned(d,&logical,limits.max_bytes);};
+        for(const auto& d:reused)if(!d||!account(*d)||!AccountOwned(*d,&old_payload,SIZE_MAX))return {};
+        for(const auto& d:added)if(!Valid(d)||!account(d)||!AccountOwned(d,&new_payload,SIZE_MAX))return {};
+        const auto slack=(added.capacity()-added.size())*sizeof(SearchDocument);
+        if(!Add(slack,&logical,limits.max_bytes)||!Add(slack,&new_payload,SIZE_MAX))return {};
+        constexpr std::size_t control=sizeof(DocumentBlock)+128;
+        if(count>SIZE_MAX/sizeof(std::shared_ptr<const SearchDocument>))return {};
+        const auto ref_bytes=count*sizeof(std::shared_ptr<const SearchDocument>);
+        const auto overhead=2*ref_bytes+control;
+        // Preserve strict admission and fall back before consuming input whenever
+        // sharing's metadata cannot fit the same envelope.
+        if(logical>limits.max_bytes||overhead>limits.max_bytes-logical||old_payload<overhead)return {};
+        const auto physical=logical-old_payload+overhead;
+        if(limits.residency->used()>limits.residency->limit()||physical>limits.residency->limit()-limits.residency->used())return {};
+        auto ticket=limits.residency->ReserveOwned(physical,SearchModelResidency::Category::Model);if(!ticket)return {};
+        auto block=std::make_shared<DocumentBlock>();
+        auto model=memory_diagnostic::Enabled()?std::shared_ptr<RecordingSearchModel>(new RecordingSearchModel,[](auto* v){
+            const auto id=memory_diagnostic::RetireModelKey(v);delete v;memory_diagnostic::DestroyModel(id);
+        }):std::make_shared<RecordingSearchModel>();
+        model->shared_documents_.reserve(count);if(model->shared_documents_.capacity()!=count)return {};
+        auto workspace=ticket->Split(ref_bytes);
+        auto& refs=model->shared_documents_;refs.resize(count);
+        const auto old_count=base->documents().size();std::size_t old_seen=0,next=old_count;
+        bool append=old_count<=count;
+        const auto place=[&](std::shared_ptr<const SearchDocument> d) {
+            const auto position=base->FindPosition(d->id);
+            if(position){if(*position>=count||refs[*position]||!SameDocument(*d,base->Document(*position)))return false;
+                refs[*position]=std::move(d);++old_seen;return true;}
+            if(next>=count)return false;refs[next++]=std::move(d);return true;
+        };
+        if(append)for(const auto& d:reused)if(!place(d)){append=false;break;}
+        if(append)for(const auto& d:added)if(!place(std::shared_ptr<const SearchDocument>(block,&d))){append=false;break;}
+        append=append&&old_seen==old_count&&next==count;
+        const auto earlier=[](const auto& a,const auto& b){return Earlier(*a,*b);};
+        if(append) {
+            std::sort(refs.begin()+old_count,refs.end(),earlier);
+            std::vector<std::shared_ptr<const SearchDocument>> merged;merged.reserve(count);
+            if(merged.capacity()!=count)return {};
+            std::merge(refs.begin(),refs.begin()+old_count,refs.begin()+old_count,refs.end(),std::back_inserter(merged),earlier);
+            refs.swap(merged);
+        } else {
+            refs.clear();for(const auto& d:reused)refs.push_back(d);
+            for(const auto& d:added)refs.emplace_back(block,&d);
+            std::sort(refs.begin(),refs.end(),earlier);
+        }
+#ifdef RECORDING_SEARCH_TESTING
+        search_order_work_test=append?std::array<std::size_t,3>{0,count-old_count,count}:std::array<std::size_t,3>{count,0,0};
+#endif
+        for(std::size_t i=0;i<count;++i){const auto& d=*refs[i];
+            if(!model->ids_.emplace(d.id,i).second)return {};
+            model->channels_[d.channel_id].push_back(i);
+        }
+        model->source_instance_=instance;model->revision_=revision;model->accounted_bytes_=logical;
+        model->residency_=limits.residency;
+        block->memory=ticket->Split(new_payload);block->overhead=ticket->Split(control);
+        model->shared_index_memory_=std::move(*ticket);
+        block->documents=std::move(added); // commit after every throwing preparation
+        memory_diagnostic::CreateModel(logical,count,revision,model.get());
+        return model;
+    };
+    try {if(auto model=optional()){*output=std::move(model);if(error)error->clear();return true;}}
+    catch(const std::bad_alloc&){}catch(const std::length_error&){}
+    // Optional failure leaves both inputs intact. The reader releases every
+    // optional owner before a single strict recapture; no uncharged deep-copy
+    // fallback and no optional reservation can displace the strict builder.
+    return false;
 }
 } // namespace recording

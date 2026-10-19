@@ -1,0 +1,922 @@
+{
+  "work": "R169 continuation",
+  "result": "PRODUCT_WORK_REDUCED",
+  "baselineHead": "1e5db3f84da7d7f452e733e13bf15236a188969e",
+  "branch": "v4.5.0",
+  "model": {
+    "main": {
+      "requested": "gpt-6-astra/high",
+      "toolAccepted": "UNKNOWN",
+      "actualRuntimeModel": "UNKNOWN",
+      "actualRuntimeEffort": "UNKNOWN"
+    },
+    "independent": {
+      "agent": "/root/r166_review",
+      "requested": "gpt-6-astra/high",
+      "toolAccepted": "gpt-6-astra/high",
+      "actualRuntimeModel": "UNKNOWN",
+      "actualRuntimeEffort": "UNKNOWN"
+    }
+  },
+  "implementation": {
+    "representation": "immutable vector block with aliasing const document handles; each model owns ordering and ID/channel indices; no ancestor model/index chain",
+    "gate": "recording-only; same normalized scope/source instance and residency; bounded new-bound-V2 invalidation history; current authenticated DTO plus separate lifecycle and all projection fields equal",
+    "authority": "unchanged Capture raw/DTO/mapping/lifecycle/deletion/revision/authority checks; no new AcquireSourceBindingOwnedLocked or MaterializeSourceBinding; existing Seek/Evidence/Playback checks retained",
+    "fallback": "proof/optional capacity refusal discards optional owners, then one sharing-disabled strict recapture; may add raw authentication. Authority/currentness errors are not converted to success. Existing raw-cut fallback remains separately bounded.",
+    "consumers": "read-only documents view; Query dereferences per-model order; Snapshot ResolveHit uses ID index position instead of pointer subtraction; public Capture still returns complete upserts",
+    "remainingWork": [
+      "all current raw authentication",
+      "projection field comparison",
+      "full ID/channel index rebuild",
+      "strict WithPlayback when its existing reuse conditions do not apply"
+    ],
+    "unchangedCaps": {
+      "sharedBytes": 671088640,
+      "sourceModels": 2,
+      "modelBytes": 67108864,
+      "snapshotBytes": 134217728
+    }
+  },
+  "directEvidence": {
+    "input": "existing actual managed writer/cold generation fixture, 15 documents at AB/BA comparison; not a representative accumulated workload",
+    "authenticatedRawRows": {
+      "strict": 15,
+      "shared": 15
+    },
+    "newDocuments": {
+      "strict": 15,
+      "shared": 3
+    },
+    "sharedDocuments": 12,
+    "deepCopiesOfSharedDocuments": 0,
+    "sharedIdentityProof": "same document addresses plus independent strict all-field/order/ID/channel equality",
+    "latestABBARefreshMs": [
+      {
+        "sharing": false,
+        "ms": 2.20417
+      },
+      {
+        "sharing": true,
+        "ms": 2.02263
+      },
+      {
+        "sharing": true,
+        "ms": 1.97962
+      },
+      {
+        "sharing": false,
+        "ms": 2.04379
+      }
+    ],
+    "timingConclusion": "NO_GENERAL_LATENCY_CLAIM: small same-input full Refresh samples; variation overlaps in earlier validation runs. No NET_TIME_GAIN verdict.",
+    "newModelRetainedBytes": {
+      "strict": 25126,
+      "shared": 12198
+    },
+    "logicalSnapshotChargeBytes": {
+      "strict": 25126,
+      "shared": 25726
+    },
+    "ownershipTestDomain": {
+      "peakBytes": 142449518,
+      "finalBytes": 0,
+      "limitBytes": 671088640,
+      "scope": "dedicated focused residency domain, not process RSS or complete runtime peak"
+    },
+    "memoryLimit": "physical backing has one reservation owner; model refs/index/workspace separately charged; snapshot pool retains full conservative logical charge. Resource-pressure test is exception injection, not real cap saturation."
+  },
+  "validation": {
+    "expectedRed": {
+      "assertion": "R169 unchanged authenticated projection has identical immutable document address",
+      "result": {
+        "status": "FAIL",
+        "childExit": 1,
+        "exit": 1,
+        "executionElapsedSeconds": 2.5015567920636386,
+        "elapsedSeconds": 2.5015969171654433,
+        "timeoutSeconds": 90,
+        "timedOut": false,
+        "interruptedSignals": [],
+        "residualGroupAfterCommand": false,
+        "cleanupSignals": [],
+        "processGroupAbsent": true,
+        "cleanupErrors": [],
+        "cleanupOnlySeconds": 1.0207993909716606e-05,
+        "registeredGroupsAbsent": true,
+        "residualRegisteredGroups": false,
+        "registeredGroupSignals": [],
+        "registeredGroupCleanupSeconds": 4.958128556609154e-06,
+        "finishedAt": "2026-10-18T22:03:02.254213+00:00"
+      },
+      "source": "immutable git-show baseline model/source/reader and headers; baseline TESTING native binary; test file later extended, pre-extension test hash was not captured",
+      "binarySha256": "327313e02cea949d9e691ac41029c0e849e7fc36c9ce59a989ebab1fafe22809"
+    },
+    "firstActualFailure": {
+      "result": {
+        "status": "FAIL",
+        "childExit": 1,
+        "exit": 1,
+        "executionElapsedSeconds": 2.0132775420788676,
+        "elapsedSeconds": 2.0133222080767155,
+        "timeoutSeconds": 90,
+        "timedOut": false,
+        "interruptedSignals": [],
+        "residualGroupAfterCommand": false,
+        "cleanupSignals": [],
+        "processGroupAbsent": true,
+        "cleanupErrors": [],
+        "cleanupOnlySeconds": 9.666895493865013e-06,
+        "registeredGroupsAbsent": true,
+        "residualRegisteredGroups": false,
+        "registeredGroupSignals": [],
+        "registeredGroupCleanupSeconds": 7.125083357095718e-06,
+        "finishedAt": "2026-10-18T22:09:32.634381+00:00"
+      },
+      "assertion": "R169 shared snapshot begin with cursor",
+      "cause": "new test query exceeded unchanged 31-day query limit",
+      "classification": "TEST_INPUT_ERROR, not expected RED",
+      "correction": "query uses actual document timestamp and one-day window; product query limit unchanged"
+    },
+    "retryRuns": [
+      {
+        "name": "candidate-retry-2",
+        "result": {
+          "status": "PASS",
+          "childExit": 0,
+          "exit": 0,
+          "executionElapsedSeconds": 2.0123246659059078,
+          "elapsedSeconds": 2.0123647497966886,
+          "timeoutSeconds": 90,
+          "timedOut": false,
+          "interruptedSignals": [],
+          "residualGroupAfterCommand": false,
+          "cleanupSignals": [],
+          "processGroupAbsent": true,
+          "cleanupErrors": [],
+          "cleanupOnlySeconds": 1.3665994629263878e-05,
+          "registeredGroupsAbsent": true,
+          "residualRegisteredGroups": false,
+          "registeredGroupSignals": [],
+          "registeredGroupCleanupSeconds": 3.541819751262665e-06,
+          "finishedAt": "2026-10-18T22:10:23.945015+00:00"
+        }
+      },
+      {
+        "name": "candidate-retry-final",
+        "result": {
+          "status": "PASS",
+          "childExit": 0,
+          "exit": 0,
+          "executionElapsedSeconds": 2.0036511248908937,
+          "elapsedSeconds": 2.003705957904458,
+          "timeoutSeconds": 90,
+          "timedOut": false,
+          "interruptedSignals": [],
+          "residualGroupAfterCommand": false,
+          "cleanupSignals": [],
+          "processGroupAbsent": true,
+          "cleanupErrors": [],
+          "cleanupOnlySeconds": 1.2250151485204697e-05,
+          "registeredGroupsAbsent": true,
+          "residualRegisteredGroups": false,
+          "registeredGroupSignals": [],
+          "registeredGroupCleanupSeconds": 6.292015314102173e-06,
+          "finishedAt": "2026-10-18T22:12:22.176326+00:00"
+        }
+      },
+      {
+        "name": "candidate-retry-owner",
+        "result": {
+          "status": "PASS",
+          "childExit": 0,
+          "exit": 0,
+          "executionElapsedSeconds": 2.306436791084707,
+          "elapsedSeconds": 2.306468625087291,
+          "timeoutSeconds": 90,
+          "timedOut": false,
+          "interruptedSignals": [],
+          "residualGroupAfterCommand": false,
+          "cleanupSignals": [],
+          "processGroupAbsent": true,
+          "cleanupErrors": [],
+          "cleanupOnlySeconds": 7.750000804662704e-06,
+          "registeredGroupsAbsent": true,
+          "residualRegisteredGroups": false,
+          "registeredGroupSignals": [],
+          "registeredGroupCleanupSeconds": 3.95788811147213e-06,
+          "finishedAt": "2026-10-18T22:15:41.844364+00:00"
+        }
+      }
+    ],
+    "finalRetry": "PASS141; includes injected pre-build resource refusal, BuildShared optional refusal, foreign owner, actual post-build writer race, strict current oracle, snapshot/cursor/ResolveHit and owner0",
+    "influenceRegressions": [
+      {
+        "label": "model",
+        "compile": {
+          "exit": 0,
+          "seconds": 2.5033181249164045
+        },
+        "run": {
+          "status": "PASS",
+          "childExit": 0,
+          "exit": 0,
+          "executionElapsedSeconds": 1.3745383748319,
+          "elapsedSeconds": 1.3745824578218162,
+          "timeoutSeconds": 90,
+          "timedOut": false,
+          "interruptedSignals": [],
+          "residualGroupAfterCommand": false,
+          "cleanupSignals": [],
+          "processGroupAbsent": true,
+          "cleanupErrors": [],
+          "cleanupOnlySeconds": 1.100008375942707e-05,
+          "registeredGroupsAbsent": true,
+          "residualRegisteredGroups": false,
+          "registeredGroupSignals": [],
+          "registeredGroupCleanupSeconds": 5.375128239393234e-06,
+          "finishedAt": "2026-10-18T22:10:53.502001+00:00",
+          "command": [
+            "bash",
+            "-c",
+            "source \"$1\"; export MEDIA_SERVER_GST_CACHE_DIR=\"$2\"; media_server_apply_homebrew_gst_env; exec \"$3\" \"$4\"",
+            "r169",
+            "/Users/dhseo/Workspace/mediaServer/scripts/internal/env_common.sh",
+            "/private/tmp/media-server-r169-wxdcz099/model-root/gst-cache",
+            "/private/tmp/media-server-r169-wxdcz099/model",
+            "/private/tmp/media-server-r169-wxdcz099/model-root"
+          ]
+        }
+      },
+      {
+        "label": "source",
+        "compile": {
+          "exit": 0,
+          "seconds": 2.779181082965806
+        },
+        "run": {
+          "status": "PASS",
+          "childExit": 0,
+          "exit": 0,
+          "executionElapsedSeconds": 1.7871027910150588,
+          "elapsedSeconds": 1.7871432909741998,
+          "timeoutSeconds": 90,
+          "timedOut": false,
+          "interruptedSignals": [],
+          "residualGroupAfterCommand": false,
+          "cleanupSignals": [],
+          "processGroupAbsent": true,
+          "cleanupErrors": [],
+          "cleanupOnlySeconds": 1.00000761449337e-05,
+          "registeredGroupsAbsent": true,
+          "residualRegisteredGroups": false,
+          "registeredGroupSignals": [],
+          "registeredGroupCleanupSeconds": 3.5830307751893997e-06,
+          "finishedAt": "2026-10-18T22:10:58.069839+00:00",
+          "command": [
+            "bash",
+            "-c",
+            "source \"$1\"; export MEDIA_SERVER_GST_CACHE_DIR=\"$2\"; media_server_apply_homebrew_gst_env; exec \"$3\" \"$4\"",
+            "r169",
+            "/Users/dhseo/Workspace/mediaServer/scripts/internal/env_common.sh",
+            "/private/tmp/media-server-r169-wxdcz099/source-root/gst-cache",
+            "/private/tmp/media-server-r169-wxdcz099/source",
+            "/private/tmp/media-server-r169-wxdcz099/source-root"
+          ]
+        }
+      },
+      {
+        "label": "generation",
+        "compile": {
+          "exit": 0,
+          "seconds": 3.1424152911640704
+        },
+        "run": {
+          "status": "PASS",
+          "childExit": 0,
+          "exit": 0,
+          "executionElapsedSeconds": 0.7062406251206994,
+          "elapsedSeconds": 0.7063025000970811,
+          "timeoutSeconds": 90,
+          "timedOut": false,
+          "interruptedSignals": [],
+          "residualGroupAfterCommand": false,
+          "cleanupSignals": [],
+          "processGroupAbsent": true,
+          "cleanupErrors": [],
+          "cleanupOnlySeconds": 1.2125121429562569e-05,
+          "registeredGroupsAbsent": true,
+          "residualRegisteredGroups": false,
+          "registeredGroupSignals": [],
+          "registeredGroupCleanupSeconds": 3.375113010406494e-06,
+          "finishedAt": "2026-10-18T22:11:01.919900+00:00",
+          "command": [
+            "bash",
+            "-c",
+            "source \"$1\"; export MEDIA_SERVER_GST_CACHE_DIR=\"$2\"; media_server_apply_homebrew_gst_env; exec \"$3\" \"$4\"",
+            "r169",
+            "/Users/dhseo/Workspace/mediaServer/scripts/internal/env_common.sh",
+            "/private/tmp/media-server-r169-wxdcz099/generation-root/gst-cache",
+            "/private/tmp/media-server-r169-wxdcz099/generation",
+            "/private/tmp/media-server-r169-wxdcz099/generation-root"
+          ]
+        }
+      },
+      {
+        "label": "scope",
+        "compile": {
+          "exit": 0,
+          "seconds": 3.1579158750828356
+        },
+        "run": {
+          "status": "PASS",
+          "childExit": 0,
+          "exit": 0,
+          "executionElapsedSeconds": 1.7808525830041617,
+          "elapsedSeconds": 1.7809125420171767,
+          "timeoutSeconds": 90,
+          "timedOut": false,
+          "interruptedSignals": [],
+          "residualGroupAfterCommand": false,
+          "cleanupSignals": [],
+          "processGroupAbsent": true,
+          "cleanupErrors": [],
+          "cleanupOnlySeconds": 9.292038157582283e-06,
+          "registeredGroupsAbsent": true,
+          "residualRegisteredGroups": false,
+          "registeredGroupSignals": [],
+          "registeredGroupCleanupSeconds": 2.7921050786972046e-06,
+          "finishedAt": "2026-10-18T22:11:06.859846+00:00",
+          "command": [
+            "bash",
+            "-c",
+            "source \"$1\"; export MEDIA_SERVER_GST_CACHE_DIR=\"$2\"; media_server_apply_homebrew_gst_env; exec \"$3\" \"$4\"",
+            "r169",
+            "/Users/dhseo/Workspace/mediaServer/scripts/internal/env_common.sh",
+            "/private/tmp/media-server-r169-wxdcz099/scope-root/gst-cache",
+            "/private/tmp/media-server-r169-wxdcz099/scope",
+            "/private/tmp/media-server-r169-wxdcz099/scope-root"
+          ]
+        }
+      },
+      {
+        "label": "cursor",
+        "compile": {
+          "exit": 0,
+          "seconds": 2.4661480421200395
+        },
+        "run": {
+          "status": "PASS",
+          "childExit": 0,
+          "exit": 0,
+          "executionElapsedSeconds": 0.7074392910581082,
+          "elapsedSeconds": 0.7074803749565035,
+          "timeoutSeconds": 90,
+          "timedOut": false,
+          "interruptedSignals": [],
+          "residualGroupAfterCommand": false,
+          "cleanupSignals": [],
+          "processGroupAbsent": true,
+          "cleanupErrors": [],
+          "cleanupOnlySeconds": 9.790994226932526e-06,
+          "registeredGroupsAbsent": true,
+          "residualRegisteredGroups": false,
+          "registeredGroupSignals": [],
+          "registeredGroupCleanupSeconds": 3.95788811147213e-06,
+          "finishedAt": "2026-10-18T22:11:10.034831+00:00",
+          "command": [
+            "bash",
+            "-c",
+            "source \"$1\"; export MEDIA_SERVER_GST_CACHE_DIR=\"$2\"; media_server_apply_homebrew_gst_env; exec \"$3\" \"$4\"",
+            "r169",
+            "/Users/dhseo/Workspace/mediaServer/scripts/internal/env_common.sh",
+            "/private/tmp/media-server-r169-wxdcz099/cursor-root/gst-cache",
+            "/private/tmp/media-server-r169-wxdcz099/cursor",
+            "/private/tmp/media-server-r169-wxdcz099/cursor-root"
+          ]
+        }
+      },
+      {
+        "label": "playback",
+        "compile": {
+          "exit": 0,
+          "seconds": 3.202277750009671
+        },
+        "run": {
+          "status": "PASS",
+          "childExit": 0,
+          "exit": 0,
+          "executionElapsedSeconds": 3.924510625191033,
+          "elapsedSeconds": 3.9245519591495395,
+          "timeoutSeconds": 90,
+          "timedOut": false,
+          "interruptedSignals": [],
+          "residualGroupAfterCommand": false,
+          "cleanupSignals": [],
+          "processGroupAbsent": true,
+          "cleanupErrors": [],
+          "cleanupOnlySeconds": 1.0249903425574303e-05,
+          "registeredGroupsAbsent": true,
+          "residualRegisteredGroups": false,
+          "registeredGroupSignals": [],
+          "registeredGroupCleanupSeconds": 2.9578804969787598e-06,
+          "finishedAt": "2026-10-18T22:11:17.163158+00:00",
+          "command": [
+            "bash",
+            "-c",
+            "source \"$1\"; export MEDIA_SERVER_GST_CACHE_DIR=\"$2\"; media_server_apply_homebrew_gst_env; exec \"$3\" \"$4\"",
+            "r169",
+            "/Users/dhseo/Workspace/mediaServer/scripts/internal/env_common.sh",
+            "/private/tmp/media-server-r169-wxdcz099/playback-root/gst-cache",
+            "/private/tmp/media-server-r169-wxdcz099/playback",
+            "/private/tmp/media-server-r169-wxdcz099/playback-root"
+          ]
+        }
+      },
+      {
+        "label": "concurrent",
+        "compile": {
+          "exit": 0,
+          "seconds": 3.1305359578691423
+        },
+        "run": {
+          "status": "PASS",
+          "childExit": 0,
+          "exit": 0,
+          "executionElapsedSeconds": 11.464612292125821,
+          "elapsedSeconds": 11.464677292155102,
+          "timeoutSeconds": 90,
+          "timedOut": false,
+          "interruptedSignals": [],
+          "residualGroupAfterCommand": false,
+          "cleanupSignals": [],
+          "processGroupAbsent": true,
+          "cleanupErrors": [],
+          "cleanupOnlySeconds": 1.2875068932771683e-05,
+          "registeredGroupsAbsent": true,
+          "residualRegisteredGroups": false,
+          "registeredGroupSignals": [],
+          "registeredGroupCleanupSeconds": 3.250082954764366e-06,
+          "finishedAt": "2026-10-18T22:11:31.759760+00:00",
+          "command": [
+            "bash",
+            "-c",
+            "source \"$1\"; export MEDIA_SERVER_GST_CACHE_DIR=\"$2\"; media_server_apply_homebrew_gst_env; exec \"$3\" \"$4\"",
+            "r169",
+            "/Users/dhseo/Workspace/mediaServer/scripts/internal/env_common.sh",
+            "/private/tmp/media-server-r169-wxdcz099/concurrent-root/gst-cache",
+            "/private/tmp/media-server-r169-wxdcz099/concurrent",
+            "/private/tmp/media-server-r169-wxdcz099/concurrent-root"
+          ]
+        }
+      }
+    ],
+    "regressionSourceNote": "7 regressions precede final capture-only owner release and document diagnostic count correction. Those two changes received independent static review plus final retry PASS141; no unrelated repeat.",
+    "compileCommandTemplate": [
+      "/usr/bin/c++",
+      "-DGST_USE_UNSTABLE_API=1",
+      "-DMEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND=1",
+      "-DMEDIA_SERVER_ENABLE_YOUTUBE_SOURCE=0",
+      "-DMEDIA_SERVER_USE_GSTREAMER=1",
+      "-DMEDIA_SERVER_USE_LIBSODIUM=1",
+      "-DMEDIA_SERVER_USE_ONNXRUNTIME=1",
+      "-DMEDIA_SERVER_USE_OPENSSL=1",
+      "-DMEDIA_SERVER_USE_PANGOCAIRO=1",
+      "-DMEDIA_SERVER_USE_SIGLIP2=1",
+      "-DMEDIA_SERVER_USE_SQLITE3=1",
+      "-I/Users/dhseo/Workspace/mediaServer/include",
+      "-I/opt/homebrew/include/onnxruntime",
+      "-I/Users/dhseo/Workspace/mediaServer/third_party/v430-embedding/sentencepiece/include",
+      "-isystem",
+      "/opt/homebrew/Cellar/gstreamer/1.28.1/include/gstreamer-1.0",
+      "-isystem",
+      "/opt/homebrew/Cellar/glib/2.86.4/include/gio-unix-2.0",
+      "-isystem",
+      "/opt/homebrew/Cellar/orc/0.4.42/include/orc-0.4",
+      "-isystem",
+      "/opt/homebrew/Cellar/glib/2.86.4/include",
+      "-isystem",
+      "/Library/Developer/CommandLineTools/SDKs/MacOSX26.sdk/usr/include/ffi",
+      "-isystem",
+      "/opt/homebrew/Cellar/glib/2.86.4/include/glib-2.0",
+      "-isystem",
+      "/opt/homebrew/Cellar/glib/2.86.4/lib/glib-2.0/include",
+      "-isystem",
+      "/opt/homebrew/opt/gettext/include",
+      "-isystem",
+      "/opt/homebrew/Cellar/pcre2/10.47_1/include",
+      "-isystem",
+      "/opt/homebrew/Cellar/pango/1.57.0_2/include/pango-1.0",
+      "-isystem",
+      "/opt/homebrew/Cellar/cairo/1.18.4/include/cairo",
+      "-isystem",
+      "/opt/homebrew/Cellar/libxext/1.3.7/include",
+      "-isystem",
+      "/opt/homebrew/Cellar/xorgproto/2025.1/include",
+      "-isystem",
+      "/opt/homebrew/Cellar/libxrender/0.9.12/include",
+      "-isystem",
+      "/opt/homebrew/Cellar/libx11/1.8.13/include",
+      "-isystem",
+      "/opt/homebrew/Cellar/libxcb/1.17.0/include",
+      "-isystem",
+      "/opt/homebrew/Cellar/libxau/1.0.12/include",
+      "-isystem",
+      "/opt/homebrew/Cellar/libxdmcp/1.1.5/include",
+      "-isystem",
+      "/opt/homebrew/Cellar/pixman/0.46.4/include/pixman-1",
+      "-isystem",
+      "/opt/homebrew/Cellar/fribidi/1.0.16/include/fribidi",
+      "-isystem",
+      "/opt/homebrew/Cellar/libthai/0.1.30/include",
+      "-isystem",
+      "/opt/homebrew/Cellar/libdatrie/0.2.14/include",
+      "-isystem",
+      "/opt/homebrew/Cellar/fontconfig/2.17.1/include",
+      "-isystem",
+      "/opt/homebrew/Cellar/harfbuzz/13.1.1/include/harfbuzz",
+      "-isystem",
+      "/opt/homebrew/opt/freetype/include/freetype2",
+      "-isystem",
+      "/opt/homebrew/opt/libpng/include/libpng16",
+      "-isystem",
+      "/opt/homebrew/opt/graphite2/include",
+      "-isystem",
+      "/opt/homebrew/Cellar/libsodium/1.0.21/include",
+      "-isystem",
+      "/opt/homebrew/Cellar/openssl@3/3.6.2/include",
+      "-std=c++17",
+      "-arch",
+      "arm64",
+      "-DRECORDING_SEARCH_TESTING=1",
+      "-I/Users/dhseo/Workspace/mediaServer/scripts/internal",
+      "/Users/dhseo/Workspace/mediaServer/src/recording/recording_search_source.cpp",
+      "/Users/dhseo/Workspace/mediaServer/src/recording/recording_search_reader.cpp",
+      "/Users/dhseo/Workspace/mediaServer/src/recording/recording_search_model.cpp",
+      "/Users/dhseo/Workspace/mediaServer/scripts/internal/recording_search_retry_smoke.cpp",
+      "/Users/dhseo/Workspace/mediaServer/build-gst-onnx/libmedia_server_runtime.a",
+      "/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib/libz.tbd",
+      "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstrtspserver-1.0.dylib",
+      "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstapp-1.0.dylib",
+      "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstwebrtc-1.0.dylib",
+      "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstsdp-1.0.dylib",
+      "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstpbutils-1.0.dylib",
+      "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstaudio-1.0.dylib",
+      "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstvideo-1.0.dylib",
+      "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstbase-1.0.dylib",
+      "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstreamer-1.0.dylib",
+      "/opt/homebrew/Cellar/pango/1.57.0_2/lib/libpangocairo-1.0.dylib",
+      "/opt/homebrew/Cellar/pango/1.57.0_2/lib/libpango-1.0.dylib",
+      "/opt/homebrew/Cellar/cairo/1.18.4/lib/libcairo.dylib",
+      "/opt/homebrew/Cellar/harfbuzz/13.1.1/lib/libharfbuzz.dylib",
+      "/opt/homebrew/Cellar/glib/2.86.4/lib/libgobject-2.0.dylib",
+      "/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib/libsqlite3.tbd",
+      "/opt/homebrew/Cellar/libsodium/1.0.21/lib/libsodium.dylib",
+      "/opt/homebrew/Cellar/openssl@3/3.6.2/lib/libssl.dylib",
+      "/opt/homebrew/Cellar/openssl@3/3.6.2/lib/libcrypto.dylib",
+      "/opt/homebrew/lib/libonnxruntime.dylib",
+      "/Users/dhseo/Workspace/mediaServer/third_party/v430-embedding/sentencepiece/lib/libsentencepiece.a",
+      "/opt/homebrew/Cellar/glib/2.86.4/lib/libglib-2.0.dylib",
+      "/opt/homebrew/opt/gettext/lib/libintl.dylib",
+      "-o",
+      "/private/tmp/media-server-r169-wxdcz099/candidate-retry"
+    ],
+    "baselineCompileCommand": [
+      "/usr/bin/c++",
+      "-I/private/tmp/media-server-r169-wxdcz099/baseline/include",
+      "-DGST_USE_UNSTABLE_API=1",
+      "-DMEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND=1",
+      "-DMEDIA_SERVER_ENABLE_YOUTUBE_SOURCE=0",
+      "-DMEDIA_SERVER_USE_GSTREAMER=1",
+      "-DMEDIA_SERVER_USE_LIBSODIUM=1",
+      "-DMEDIA_SERVER_USE_ONNXRUNTIME=1",
+      "-DMEDIA_SERVER_USE_OPENSSL=1",
+      "-DMEDIA_SERVER_USE_PANGOCAIRO=1",
+      "-DMEDIA_SERVER_USE_SIGLIP2=1",
+      "-DMEDIA_SERVER_USE_SQLITE3=1",
+      "-I/Users/dhseo/Workspace/mediaServer/include",
+      "-I/opt/homebrew/include/onnxruntime",
+      "-I/Users/dhseo/Workspace/mediaServer/third_party/v430-embedding/sentencepiece/include",
+      "-isystem",
+      "/opt/homebrew/Cellar/gstreamer/1.28.1/include/gstreamer-1.0",
+      "-isystem",
+      "/opt/homebrew/Cellar/glib/2.86.4/include/gio-unix-2.0",
+      "-isystem",
+      "/opt/homebrew/Cellar/orc/0.4.42/include/orc-0.4",
+      "-isystem",
+      "/opt/homebrew/Cellar/glib/2.86.4/include",
+      "-isystem",
+      "/Library/Developer/CommandLineTools/SDKs/MacOSX26.sdk/usr/include/ffi",
+      "-isystem",
+      "/opt/homebrew/Cellar/glib/2.86.4/include/glib-2.0",
+      "-isystem",
+      "/opt/homebrew/Cellar/glib/2.86.4/lib/glib-2.0/include",
+      "-isystem",
+      "/opt/homebrew/opt/gettext/include",
+      "-isystem",
+      "/opt/homebrew/Cellar/pcre2/10.47_1/include",
+      "-isystem",
+      "/opt/homebrew/Cellar/pango/1.57.0_2/include/pango-1.0",
+      "-isystem",
+      "/opt/homebrew/Cellar/cairo/1.18.4/include/cairo",
+      "-isystem",
+      "/opt/homebrew/Cellar/libxext/1.3.7/include",
+      "-isystem",
+      "/opt/homebrew/Cellar/xorgproto/2025.1/include",
+      "-isystem",
+      "/opt/homebrew/Cellar/libxrender/0.9.12/include",
+      "-isystem",
+      "/opt/homebrew/Cellar/libx11/1.8.13/include",
+      "-isystem",
+      "/opt/homebrew/Cellar/libxcb/1.17.0/include",
+      "-isystem",
+      "/opt/homebrew/Cellar/libxau/1.0.12/include",
+      "-isystem",
+      "/opt/homebrew/Cellar/libxdmcp/1.1.5/include",
+      "-isystem",
+      "/opt/homebrew/Cellar/pixman/0.46.4/include/pixman-1",
+      "-isystem",
+      "/opt/homebrew/Cellar/fribidi/1.0.16/include/fribidi",
+      "-isystem",
+      "/opt/homebrew/Cellar/libthai/0.1.30/include",
+      "-isystem",
+      "/opt/homebrew/Cellar/libdatrie/0.2.14/include",
+      "-isystem",
+      "/opt/homebrew/Cellar/fontconfig/2.17.1/include",
+      "-isystem",
+      "/opt/homebrew/Cellar/harfbuzz/13.1.1/include/harfbuzz",
+      "-isystem",
+      "/opt/homebrew/opt/freetype/include/freetype2",
+      "-isystem",
+      "/opt/homebrew/opt/libpng/include/libpng16",
+      "-isystem",
+      "/opt/homebrew/opt/graphite2/include",
+      "-isystem",
+      "/opt/homebrew/Cellar/libsodium/1.0.21/include",
+      "-isystem",
+      "/opt/homebrew/Cellar/openssl@3/3.6.2/include",
+      "-std=c++17",
+      "-arch",
+      "arm64",
+      "-DRECORDING_SEARCH_TESTING=1",
+      "-I/Users/dhseo/Workspace/mediaServer/scripts/internal",
+      "/private/tmp/media-server-r169-wxdcz099/baseline/src/recording/recording_search_source.cpp",
+      "/private/tmp/media-server-r169-wxdcz099/baseline/src/recording/recording_search_reader.cpp",
+      "/private/tmp/media-server-r169-wxdcz099/baseline/src/recording/recording_search_model.cpp",
+      "/Users/dhseo/Workspace/mediaServer/scripts/internal/recording_search_retry_smoke.cpp",
+      "/Users/dhseo/Workspace/mediaServer/build-gst-onnx/libmedia_server_runtime.a",
+      "/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib/libz.tbd",
+      "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstrtspserver-1.0.dylib",
+      "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstapp-1.0.dylib",
+      "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstwebrtc-1.0.dylib",
+      "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstsdp-1.0.dylib",
+      "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstpbutils-1.0.dylib",
+      "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstaudio-1.0.dylib",
+      "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstvideo-1.0.dylib",
+      "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstbase-1.0.dylib",
+      "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstreamer-1.0.dylib",
+      "/opt/homebrew/Cellar/pango/1.57.0_2/lib/libpangocairo-1.0.dylib",
+      "/opt/homebrew/Cellar/pango/1.57.0_2/lib/libpango-1.0.dylib",
+      "/opt/homebrew/Cellar/cairo/1.18.4/lib/libcairo.dylib",
+      "/opt/homebrew/Cellar/harfbuzz/13.1.1/lib/libharfbuzz.dylib",
+      "/opt/homebrew/Cellar/glib/2.86.4/lib/libgobject-2.0.dylib",
+      "/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib/libsqlite3.tbd",
+      "/opt/homebrew/Cellar/libsodium/1.0.21/lib/libsodium.dylib",
+      "/opt/homebrew/Cellar/openssl@3/3.6.2/lib/libssl.dylib",
+      "/opt/homebrew/Cellar/openssl@3/3.6.2/lib/libcrypto.dylib",
+      "/opt/homebrew/lib/libonnxruntime.dylib",
+      "/Users/dhseo/Workspace/mediaServer/third_party/v430-embedding/sentencepiece/lib/libsentencepiece.a",
+      "/opt/homebrew/Cellar/glib/2.86.4/lib/libglib-2.0.dylib",
+      "/opt/homebrew/opt/gettext/lib/libintl.dylib",
+      "-o",
+      "/private/tmp/media-server-r169-wxdcz099/red-verified"
+    ],
+    "builds": [
+      {
+        "command": [
+          "cmake",
+          "--build",
+          "build-gst-onnx",
+          "-j",
+          "3"
+        ],
+        "exit": 0,
+        "elapsed": 16.897655999986455
+      },
+      {
+        "command": [
+          "cmake",
+          "--build",
+          "build-gst-onnx",
+          "-j",
+          "3"
+        ],
+        "exit": 0,
+        "elapsed": 2.00386262498796
+      },
+      {
+        "command": [
+          "cmake",
+          "--build",
+          "build-gst-onnx",
+          "-j",
+          "3"
+        ],
+        "exit": 0,
+        "elapsed": 2.1522341668605804
+      },
+      {
+        "command": [
+          "cmake",
+          "--build",
+          "build-gst-onnx",
+          "-j",
+          "3"
+        ],
+        "exit": 0,
+        "elapsed": 16.67742924997583
+      }
+    ],
+    "noHTTP": true,
+    "longRun": "NOT_RUN"
+  },
+  "independentReview": {
+    "result": "PASS_WITH_LIMITS",
+    "mode": "read-only; no execution, modification or delegation",
+    "resolvedFindings": [
+      "reference vector growth admission",
+      "strict fallback reservation lifetime",
+      "residency owner equality",
+      "independent snapshot oracle copy",
+      "empty-sharing metadata and pre-build resource fallback",
+      "direct shared retry evidence"
+    ],
+    "finalObservation": "final output PASS141/FAIL0, exit0, no timeout, group absent, peak142449518/final0/limit671088640; PRODUCT_WORK_REDUCED accepted; representative latency unverified"
+  },
+  "sourceSha256": {
+    "docs/project-feature-test-inventory.md": "1fe0c502ea1915b2c103bd96aad9fd92e6f6dff3de63efee30efbf6d87c01b54",
+    "include/recording/recording_catalog.h": "bcfb93e1e45524e4f258875fa46287cb76247166073ba404d1d12a70a0bb81cc",
+    "include/recording/recording_search_diagnostic.h": "ff7a6be02b097f3d07234b13b4035953bcb3ac33f3fd153a7fe73f74f0c2d5d5",
+    "include/recording/recording_search_model.h": "6ca9f30186fa767db05dd63bd3dc7e7f63dfbb6b2e418d3f9d33a5eafe8c514f",
+    "include/recording/recording_search_reader.h": "864d4b5e8c5de409aa84ac6e9dcb431cc2982a51fcc12fa2cd6841fdaaf9447e",
+    "include/recording/recording_search_source.h": "4934d9139dbbe22ceeb851e8958c86f2ed67a971d8da37d94112314f4673fbba",
+    "scripts/internal/recording_search_model_smoke.cpp": "a03483192eca402a2df68304d15f0e33bf65294ade539656c9ec927e8395eb6a",
+    "scripts/internal/recording_search_retry_smoke.cpp": "c59e7c44de223a35d83c83cd8cded0790827815e8979b438fadfd468d169b511",
+    "scripts/internal/recording_search_source_smoke.cpp": "7dd4cba691d72958ef02ac58ad79e57daa4a3ef6b6769d1bbdba94b5e3e2aea2",
+    "src/recording/recording_search_model.cpp": "c6299699b218f0f8df85d2108e853cdde8185846249d852067eea8b886f425c4",
+    "src/recording/recording_search_reader.cpp": "35097924a139438d70684afbbdffdd2a0a08e9983c9db059892b5a1d43f5bf12",
+    "src/recording/recording_search_snapshots.cpp": "daaa7f5fbec47958cc5e0d46b38853e297ec52f46466d447973246b5bfff90a3",
+    "src/recording/recording_search_source.cpp": "aa1eb436622f5c605911b18da655aebd294bd59de237854095eda5e28fa1931b",
+    "test/fixtures/project_feature_implementation_evidence.json": "8f6ddaca2cd0f0be97d55d54058102600d6c61ad16cd5dd46278731af90b021f"
+  },
+  "baselineBinarySha256": {
+    "product": "dd347ac586171ee3b16bd02b1441eb1fc4578d23f9c94cd0b1c5b7234b56f6ef",
+    "runtime": "9def44ebe4a1a1d8fa54a927d610c5eb466bbb111302a184824fa477de66c305"
+  },
+  "finalBinarySha256": {
+    "build-gst-onnx/media_server": "894b1599e2399865ba97cbe88b58b5d424c30e6a941d549d57bb45caf8d894f0",
+    "build-gst-onnx/libmedia_server_runtime.a": "cfba42f09cb7b047c73f56a03f7951bfa91e47260e84f208a5c2142f4e3bb163"
+  },
+  "nativeBinarySha256": "88668576f5bf15ba8998499a744cd3bd6b52744a2623018eacd8d15c830fe32c",
+  "rawOutput": {
+    "candidate-retry-2-output.log": {
+      "bytes": 9315,
+      "sha256": "af0684f487e5ed7a0fcf748a49731cdd5026dfc61f4fe64277c1bbf24df8c4b5",
+      "text": "[pass] generation runtime open\n[pass] actual writer start\n[recording] file evidence unavailable: file evidence profile/bound 오류\n[recording] file evidence unavailable: file evidence profile/bound 오류\n[recording] file evidence unavailable: file evidence profile/bound 오류\n[pass] actual cold checkpoint\n[pass] actual cold raw span path entered\n[pass] actual writer start\n[recording] file evidence unavailable: file evidence profile/bound 오류\n[recording] file evidence unavailable: file evidence profile/bound 오류\n[recording] file evidence unavailable: file evidence profile/bound 오류\n[pass] current cold raw reuses old spans and includes real new writer\n[pass] independent no-reuse full capture\n[pass] all recording source fields agree with independent full capture\n[pass] independent owned document charge\n[pass] independent owned document charge\n[pass] independent owned document charge\n[pass] independent owned document charge\n[pass] independent owned document charge\n[pass] independent owned document charge\n[pass] cold optional spans yield to exact document and vector capacity envelope\n[pass] R132 allocation hint does not survive as model index slack\n[pass] R132 independent source restored after model ownership transfer\n[pass] separate lifecycle changed without segment raw change\n[pass] cold reused neighbors retain current corrupt lifecycle for changed segment\n[pass] nonempty cold prior cannot cross normalized source scope\n[pass] cold exact-count prior created\n[pass] actual writer start\n[recording] file evidence unavailable: file evidence profile/bound 오류\n[recording] file evidence unavailable: file evidence profile/bound 오류\n[recording] file evidence unavailable: file evidence profile/bound 오류\n[pass] cold growth rejection consumes prior once and preserves output\n[pass] R132 initial immutable model\n[pass] actual writer start\n[recording] file evidence unavailable: file evidence profile/bound 오류\n[recording] file evidence unavailable: file evidence profile/bound 오류\n[recording] file evidence unavailable: file evidence profile/bound 오류\n[pass] R132 real postBuild finalization retains unpublished source only\n[pass] R132 postBuild retry succeeds with current new source\n[pass] R132 postBuild IDs order counts fields match independent full model and prior unchanged\n[pass] R132 independent live segment for detached lifecycle race\n[pass] R132 callback may acquire Catalog outside raw cut\n[pass] R132 actual cold cut runs outside Catalog with owned raw\n[pass] R132 real detached lifecycle change rejects old currentness\n[pass] R132 detached reservation exception falls back once to locked full authentication\n[pass] R132 optional cut failure preserves exact full source result\n[pass] R167 actual immutable base\n[pass] actual writer start\n[recording] file evidence unavailable: file evidence profile/bound 오류\n[recording] file evidence unavailable: file evidence profile/bound 오류\n[recording] file evidence unavailable: file evidence profile/bound 오류\n[pass] R167 actual bound finalize enables ordering hint with full capture\n[pass] R167 real reader sorts additions only\n[append-order-work] fullSort=0 addedSort=3 merged=15\n[pass] R167 actual append ordering equals strict full source\n[pass] R169 strict/shared full Refresh fields and order agree\n[pass] R169 channel index agrees\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 actual immutable sharing versus independent materialization\n[projection-work] sharing=0 raw=15 materialized=15 shared=0 fallback=0 documents=15 logicalBytes=25126 retainedDelta=25126 elapsedMs=2.10333\n[pass] R169 measured model returns all per-model and new-block reservations\n[pass] R169 strict/shared full Refresh fields and order agree\n[pass] R169 channel index agrees\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 actual immutable sharing versus independent materialization\n[projection-work] sharing=1 raw=15 materialized=3 shared=12 fallback=0 documents=15 logicalBytes=25726 retainedDelta=12198 elapsedMs=2.02008\n[pass] R169 measured model returns all per-model and new-block reservations\n[pass] R169 strict/shared full Refresh fields and order agree\n[pass] R169 channel index agrees\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 actual immutable sharing versus independent materialization\n[projection-work] sharing=1 raw=15 materialized=3 shared=12 fallback=0 documents=15 logicalBytes=25726 retainedDelta=12198 elapsedMs=1.9635\n[pass] R169 measured model returns all per-model and new-block reservations\n[pass] R169 strict/shared full Refresh fields and order agree\n[pass] R169 channel index agrees\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 actual immutable sharing versus independent materialization\n[projection-work] sharing=0 raw=15 materialized=15 shared=0 fallback=0 documents=15 logicalBytes=25126 retainedDelta=25126 elapsedMs=2.03238\n[pass] R169 measured model returns all per-model and new-block reservations\n[pass] R169 same authenticated raw count with fewer materialized documents\n[pass] R169 optional sharing refusal releases metadata and performs one strict authenticated recapture\n[pass] R169 optional sharing pressure before Build releases owners and preserves strict success\n[pass] R169 different residency owner cannot borrow uncharged backing\n[pass] R169 foreign owner fully released\n[pass] R169 capacity error preserves prior published output\n[pass] R167 unchanged scope reuses model\n[pass] actual writer start\n[recording] file evidence unavailable: file evidence profile/bound 오류\n[recording] file evidence unavailable: file evidence profile/bound 오류\n[recording] file evidence unavailable: file evidence profile/bound 오류\n[pass] R167 other channel mutation preserves scope\n[pass] R167 changed lifecycle fixture\n[pass] R167 lifecycle change refuses append ordering\n[pass] R167 lifecycle fallback equals strict full source\n[pass] R167 held prior model retains pre-mutation lifecycle\n[pass] R169 snapshot ownership base\n[pass] actual writer start\n[recording] file evidence unavailable: file evidence profile/bound 오류\n[recording] file evidence unavailable: file evidence profile/bound 오류\n[recording] file evidence unavailable: file evidence profile/bound 오류\n[pass] R169 snapshot ownership shared child\n[pass] R169 shared snapshot begin with cursor\n[pass] R169 cursor retains immutable blocks after source eviction\n[pass] R169 ResolveHit uses model-local position for shared storage\n[pass] R169 shared snapshot principal isolation\n[pass] R169 last snapshot releases blocks indices and owner tickets\n[pass] explicit generation Finish\n[pass] R169 unchanged authenticated projection has identical immutable document address\n[search-retry] pass=138 fail=0\n"
+    },
+    "candidate-retry-final-output.log": {
+      "bytes": 9832,
+      "sha256": "80e1d3cc535633c76545741c5fa885b6586bbc3ac503f43541c48aaaa9f3a27f",
+      "text": "[pass] generation runtime open\n[pass] actual writer start\n[recording] file evidence unavailable: file evidence profile/bound 오류\n[recording] file evidence unavailable: file evidence profile/bound 오류\n[recording] file evidence unavailable: file evidence profile/bound 오류\n[pass] actual cold checkpoint\n[pass] actual cold raw span path entered\n[pass] actual writer start\n[recording] file evidence unavailable: file evidence profile/bound 오류\n[recording] file evidence unavailable: file evidence profile/bound 오류\n[recording] file evidence unavailable: file evidence profile/bound 오류\n[pass] current cold raw reuses old spans and includes real new writer\n[pass] independent no-reuse full capture\n[pass] all recording source fields agree with independent full capture\n[pass] independent owned document charge\n[pass] independent owned document charge\n[pass] independent owned document charge\n[pass] independent owned document charge\n[pass] independent owned document charge\n[pass] independent owned document charge\n[pass] cold optional spans yield to exact document and vector capacity envelope\n[pass] R132 allocation hint does not survive as model index slack\n[pass] R132 independent source restored after model ownership transfer\n[pass] separate lifecycle changed without segment raw change\n[pass] cold reused neighbors retain current corrupt lifecycle for changed segment\n[pass] nonempty cold prior cannot cross normalized source scope\n[pass] cold exact-count prior created\n[pass] actual writer start\n[recording] file evidence unavailable: file evidence profile/bound 오류\n[recording] file evidence unavailable: file evidence profile/bound 오류\n[recording] file evidence unavailable: file evidence profile/bound 오류\n[pass] cold growth rejection consumes prior once and preserves output\n[pass] R132 initial immutable model\n[pass] actual writer start\n[recording] file evidence unavailable: file evidence profile/bound 오류\n[recording] file evidence unavailable: file evidence profile/bound 오류\n[recording] file evidence unavailable: file evidence profile/bound 오류\n[pass] R132 real postBuild finalization retains unpublished source only\n[pass] R132 postBuild retry succeeds with current new source\n[pass] R132 postBuild IDs order counts fields match independent full model and prior unchanged\n[pass] R132 independent live segment for detached lifecycle race\n[pass] R132 callback may acquire Catalog outside raw cut\n[pass] R132 actual cold cut runs outside Catalog with owned raw\n[pass] R132 real detached lifecycle change rejects old currentness\n[pass] R132 detached reservation exception falls back once to locked full authentication\n[pass] R132 optional cut failure preserves exact full source result\n[pass] R167 actual immutable base\n[pass] actual writer start\n[recording] file evidence unavailable: file evidence profile/bound 오류\n[recording] file evidence unavailable: file evidence profile/bound 오류\n[recording] file evidence unavailable: file evidence profile/bound 오류\n[pass] R167 actual bound finalize enables ordering hint with full capture\n[pass] R167 real reader sorts additions only\n[append-order-work] fullSort=0 addedSort=3 merged=15\n[pass] R167 actual append ordering equals strict full source\n[pass] R169 strict/shared full Refresh fields and order agree\n[pass] R169 channel index agrees\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 actual immutable sharing versus independent materialization\n[projection-work] sharing=0 raw=15 materialized=15 shared=0 fallback=0 documents=15 logicalBytes=25126 retainedDelta=25126 elapsedMs=2.1535\n[pass] R169 measured model returns all per-model and new-block reservations\n[pass] R169 strict/shared full Refresh fields and order agree\n[pass] R169 channel index agrees\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 actual immutable sharing versus independent materialization\n[projection-work] sharing=1 raw=15 materialized=3 shared=12 fallback=0 documents=15 logicalBytes=25726 retainedDelta=12198 elapsedMs=2.24646\n[pass] R169 measured model returns all per-model and new-block reservations\n[pass] R169 strict/shared full Refresh fields and order agree\n[pass] R169 channel index agrees\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 actual immutable sharing versus independent materialization\n[projection-work] sharing=1 raw=15 materialized=3 shared=12 fallback=0 documents=15 logicalBytes=25726 retainedDelta=12198 elapsedMs=2.01221\n[pass] R169 measured model returns all per-model and new-block reservations\n[pass] R169 strict/shared full Refresh fields and order agree\n[pass] R169 channel index agrees\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 actual immutable sharing versus independent materialization\n[projection-work] sharing=0 raw=15 materialized=15 shared=0 fallback=0 documents=15 logicalBytes=25126 retainedDelta=25126 elapsedMs=2.08317\n[pass] R169 measured model returns all per-model and new-block reservations\n[pass] R169 same authenticated raw count with fewer materialized documents\n[pass] R169 optional sharing refusal releases metadata and performs one strict authenticated recapture\n[pass] R169 optional sharing pressure before Build releases owners and preserves strict success\n[pass] R169 different residency owner cannot borrow uncharged backing\n[pass] R169 foreign owner fully released\n[pass] R169 capacity error preserves prior published output\n[pass] R167 unchanged scope reuses model\n[pass] actual writer start\n[recording] file evidence unavailable: file evidence profile/bound 오류\n[recording] file evidence unavailable: file evidence profile/bound 오류\n[recording] file evidence unavailable: file evidence profile/bound 오류\n[pass] R167 other channel mutation preserves scope\n[pass] R167 changed lifecycle fixture\n[pass] R167 lifecycle change refuses append ordering\n[pass] R167 lifecycle fallback equals strict full source\n[pass] R167 held prior model retains pre-mutation lifecycle\n[pass] R169 snapshot ownership base\n[pass] actual writer start\n[recording] file evidence unavailable: file evidence profile/bound 오류\n[recording] file evidence unavailable: file evidence profile/bound 오류\n[recording] file evidence unavailable: file evidence profile/bound 오류\n[pass] actual writer start\n[recording] file evidence unavailable: file evidence profile/bound 오류\n[recording] file evidence unavailable: file evidence profile/bound 오류\n[recording] file evidence unavailable: file evidence profile/bound 오류\n[pass] R169 shared build rejects concurrent finalization without publishing output\n[pass] R169 retry reauthenticates current raw and shares unpublished added block without parent chain\n[pass] R169 shared retry equals independent strict current model\n[pass] R169 shared snapshot begin with cursor\n[pass] R169 cursor retains immutable blocks after source eviction\n[pass] R169 ResolveHit uses model-local position for shared storage\n[pass] R169 shared snapshot principal isolation\n[pass] R169 last snapshot releases blocks indices and owner tickets\n[projection-residency] peak=144049518 final=0 limit=671088640\n[pass] explicit generation Finish\n[pass] R169 unchanged authenticated projection has identical immutable document address\n[search-retry] pass=141 fail=0\n"
+    },
+    "candidate-retry-output.log": {
+      "bytes": 8830,
+      "sha256": "bd49a2acf750815cb6fa8a231cea59b2432c068b333bdf891ed6c6a5e6283244",
+      "text": "[pass] generation runtime open\n[pass] actual writer start\n[recording] file evidence unavailable: file evidence profile/bound 오류\n[recording] file evidence unavailable: file evidence profile/bound 오류\n[recording] file evidence unavailable: file evidence profile/bound 오류\n[pass] actual cold checkpoint\n[pass] actual cold raw span path entered\n[pass] actual writer start\n[recording] file evidence unavailable: file evidence profile/bound 오류\n[recording] file evidence unavailable: file evidence profile/bound 오류\n[recording] file evidence unavailable: file evidence profile/bound 오류\n[pass] current cold raw reuses old spans and includes real new writer\n[pass] independent no-reuse full capture\n[pass] all recording source fields agree with independent full capture\n[pass] independent owned document charge\n[pass] independent owned document charge\n[pass] independent owned document charge\n[pass] independent owned document charge\n[pass] independent owned document charge\n[pass] independent owned document charge\n[pass] cold optional spans yield to exact document and vector capacity envelope\n[pass] R132 allocation hint does not survive as model index slack\n[pass] R132 independent source restored after model ownership transfer\n[pass] separate lifecycle changed without segment raw change\n[pass] cold reused neighbors retain current corrupt lifecycle for changed segment\n[pass] nonempty cold prior cannot cross normalized source scope\n[pass] cold exact-count prior created\n[pass] actual writer start\n[recording] file evidence unavailable: file evidence profile/bound 오류\n[recording] file evidence unavailable: file evidence profile/bound 오류\n[recording] file evidence unavailable: file evidence profile/bound 오류\n[pass] cold growth rejection consumes prior once and preserves output\n[pass] R132 initial immutable model\n[pass] actual writer start\n[recording] file evidence unavailable: file evidence profile/bound 오류\n[recording] file evidence unavailable: file evidence profile/bound 오류\n[recording] file evidence unavailable: file evidence profile/bound 오류\n[pass] R132 real postBuild finalization retains unpublished source only\n[pass] R132 postBuild retry succeeds with current new source\n[pass] R132 postBuild IDs order counts fields match independent full model and prior unchanged\n[pass] R132 independent live segment for detached lifecycle race\n[pass] R132 callback may acquire Catalog outside raw cut\n[pass] R132 actual cold cut runs outside Catalog with owned raw\n[pass] R132 real detached lifecycle change rejects old currentness\n[pass] R132 detached reservation exception falls back once to locked full authentication\n[pass] R132 optional cut failure preserves exact full source result\n[pass] R167 actual immutable base\n[pass] actual writer start\n[recording] file evidence unavailable: file evidence profile/bound 오류\n[recording] file evidence unavailable: file evidence profile/bound 오류\n[recording] file evidence unavailable: file evidence profile/bound 오류\n[pass] R167 actual bound finalize enables ordering hint with full capture\n[pass] R167 real reader sorts additions only\n[append-order-work] fullSort=0 addedSort=3 merged=15\n[pass] R167 actual append ordering equals strict full source\n[pass] R169 strict/shared full Refresh fields and order agree\n[pass] R169 channel index agrees\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 actual immutable sharing versus independent materialization\n[projection-work] sharing=0 raw=15 materialized=15 shared=0 fallback=0 documents=15 logicalBytes=25126 retainedDelta=25126 elapsedMs=2.14646\n[pass] R169 measured model returns all per-model and new-block reservations\n[pass] R169 strict/shared full Refresh fields and order agree\n[pass] R169 channel index agrees\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 actual immutable sharing versus independent materialization\n[projection-work] sharing=1 raw=15 materialized=3 shared=12 fallback=0 documents=15 logicalBytes=25726 retainedDelta=12198 elapsedMs=1.96867\n[pass] R169 measured model returns all per-model and new-block reservations\n[pass] R169 strict/shared full Refresh fields and order agree\n[pass] R169 channel index agrees\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 actual immutable sharing versus independent materialization\n[projection-work] sharing=1 raw=15 materialized=3 shared=12 fallback=0 documents=15 logicalBytes=25726 retainedDelta=12198 elapsedMs=2.00446\n[pass] R169 measured model returns all per-model and new-block reservations\n[pass] R169 strict/shared full Refresh fields and order agree\n[pass] R169 channel index agrees\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 actual immutable sharing versus independent materialization\n[projection-work] sharing=0 raw=15 materialized=15 shared=0 fallback=0 documents=15 logicalBytes=25126 retainedDelta=25126 elapsedMs=2.08054\n[pass] R169 measured model returns all per-model and new-block reservations\n[pass] R169 same authenticated raw count with fewer materialized documents\n[pass] R169 optional sharing refusal releases metadata and performs one strict authenticated recapture\n[pass] R169 different residency owner cannot borrow uncharged backing\n[pass] R169 foreign owner fully released\n[pass] R169 capacity error preserves prior published output\n[pass] R167 unchanged scope reuses model\n[pass] actual writer start\n[recording] file evidence unavailable: file evidence profile/bound 오류\n[recording] file evidence unavailable: file evidence profile/bound 오류\n[recording] file evidence unavailable: file evidence profile/bound 오류\n[pass] R167 other channel mutation preserves scope\n[pass] R167 changed lifecycle fixture\n[pass] R167 lifecycle change refuses append ordering\n[pass] R167 lifecycle fallback equals strict full source\n[pass] R167 held prior model retains pre-mutation lifecycle\n[pass] R169 snapshot ownership base\n[pass] actual writer start\n[recording] file evidence unavailable: file evidence profile/bound 오류\n[recording] file evidence unavailable: file evidence profile/bound 오류\n[recording] file evidence unavailable: file evidence profile/bound 오류\n[pass] R169 snapshot ownership shared child\n[search-retry] FAIL R169 shared snapshot begin with cursor\n"
+    },
+    "candidate-retry-owner-output.log": {
+      "bytes": 9833,
+      "sha256": "775bd9d6f6a41910fad7826177e135de3c7cbb7085d95fdb50cf6b3790a8be1d",
+      "text": "[pass] generation runtime open\n[pass] actual writer start\n[recording] file evidence unavailable: file evidence profile/bound 오류\n[recording] file evidence unavailable: file evidence profile/bound 오류\n[recording] file evidence unavailable: file evidence profile/bound 오류\n[pass] actual cold checkpoint\n[pass] actual cold raw span path entered\n[pass] actual writer start\n[recording] file evidence unavailable: file evidence profile/bound 오류\n[recording] file evidence unavailable: file evidence profile/bound 오류\n[recording] file evidence unavailable: file evidence profile/bound 오류\n[pass] current cold raw reuses old spans and includes real new writer\n[pass] independent no-reuse full capture\n[pass] all recording source fields agree with independent full capture\n[pass] independent owned document charge\n[pass] independent owned document charge\n[pass] independent owned document charge\n[pass] independent owned document charge\n[pass] independent owned document charge\n[pass] independent owned document charge\n[pass] cold optional spans yield to exact document and vector capacity envelope\n[pass] R132 allocation hint does not survive as model index slack\n[pass] R132 independent source restored after model ownership transfer\n[pass] separate lifecycle changed without segment raw change\n[pass] cold reused neighbors retain current corrupt lifecycle for changed segment\n[pass] nonempty cold prior cannot cross normalized source scope\n[pass] cold exact-count prior created\n[pass] actual writer start\n[recording] file evidence unavailable: file evidence profile/bound 오류\n[recording] file evidence unavailable: file evidence profile/bound 오류\n[recording] file evidence unavailable: file evidence profile/bound 오류\n[pass] cold growth rejection consumes prior once and preserves output\n[pass] R132 initial immutable model\n[pass] actual writer start\n[recording] file evidence unavailable: file evidence profile/bound 오류\n[recording] file evidence unavailable: file evidence profile/bound 오류\n[recording] file evidence unavailable: file evidence profile/bound 오류\n[pass] R132 real postBuild finalization retains unpublished source only\n[pass] R132 postBuild retry succeeds with current new source\n[pass] R132 postBuild IDs order counts fields match independent full model and prior unchanged\n[pass] R132 independent live segment for detached lifecycle race\n[pass] R132 callback may acquire Catalog outside raw cut\n[pass] R132 actual cold cut runs outside Catalog with owned raw\n[pass] R132 real detached lifecycle change rejects old currentness\n[pass] R132 detached reservation exception falls back once to locked full authentication\n[pass] R132 optional cut failure preserves exact full source result\n[pass] R167 actual immutable base\n[pass] actual writer start\n[recording] file evidence unavailable: file evidence profile/bound 오류\n[recording] file evidence unavailable: file evidence profile/bound 오류\n[recording] file evidence unavailable: file evidence profile/bound 오류\n[pass] R167 actual bound finalize enables ordering hint with full capture\n[pass] R167 real reader sorts additions only\n[append-order-work] fullSort=0 addedSort=3 merged=15\n[pass] R167 actual append ordering equals strict full source\n[pass] R169 strict/shared full Refresh fields and order agree\n[pass] R169 channel index agrees\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 actual immutable sharing versus independent materialization\n[projection-work] sharing=0 raw=15 materialized=15 shared=0 fallback=0 documents=15 logicalBytes=25126 retainedDelta=25126 elapsedMs=2.20417\n[pass] R169 measured model returns all per-model and new-block reservations\n[pass] R169 strict/shared full Refresh fields and order agree\n[pass] R169 channel index agrees\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 actual immutable sharing versus independent materialization\n[projection-work] sharing=1 raw=15 materialized=3 shared=12 fallback=0 documents=15 logicalBytes=25726 retainedDelta=12198 elapsedMs=2.02263\n[pass] R169 measured model returns all per-model and new-block reservations\n[pass] R169 strict/shared full Refresh fields and order agree\n[pass] R169 channel index agrees\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 actual immutable sharing versus independent materialization\n[projection-work] sharing=1 raw=15 materialized=3 shared=12 fallback=0 documents=15 logicalBytes=25726 retainedDelta=12198 elapsedMs=1.97962\n[pass] R169 measured model returns all per-model and new-block reservations\n[pass] R169 strict/shared full Refresh fields and order agree\n[pass] R169 channel index agrees\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 ID index points at exact document\n[pass] R169 actual immutable sharing versus independent materialization\n[projection-work] sharing=0 raw=15 materialized=15 shared=0 fallback=0 documents=15 logicalBytes=25126 retainedDelta=25126 elapsedMs=2.04379\n[pass] R169 measured model returns all per-model and new-block reservations\n[pass] R169 same authenticated raw count with fewer materialized documents\n[pass] R169 optional sharing refusal releases metadata and performs one strict authenticated recapture\n[pass] R169 optional sharing pressure before Build releases owners and preserves strict success\n[pass] R169 different residency owner cannot borrow uncharged backing\n[pass] R169 foreign owner fully released\n[pass] R169 capacity error preserves prior published output\n[pass] R167 unchanged scope reuses model\n[pass] actual writer start\n[recording] file evidence unavailable: file evidence profile/bound 오류\n[recording] file evidence unavailable: file evidence profile/bound 오류\n[recording] file evidence unavailable: file evidence profile/bound 오류\n[pass] R167 other channel mutation preserves scope\n[pass] R167 changed lifecycle fixture\n[pass] R167 lifecycle change refuses append ordering\n[pass] R167 lifecycle fallback equals strict full source\n[pass] R167 held prior model retains pre-mutation lifecycle\n[pass] R169 snapshot ownership base\n[pass] actual writer start\n[recording] file evidence unavailable: file evidence profile/bound 오류\n[recording] file evidence unavailable: file evidence profile/bound 오류\n[recording] file evidence unavailable: file evidence profile/bound 오류\n[pass] actual writer start\n[recording] file evidence unavailable: file evidence profile/bound 오류\n[recording] file evidence unavailable: file evidence profile/bound 오류\n[recording] file evidence unavailable: file evidence profile/bound 오류\n[pass] R169 shared build rejects concurrent finalization without publishing output\n[pass] R169 retry reauthenticates current raw and shares unpublished added block without parent chain\n[pass] R169 shared retry equals independent strict current model\n[pass] R169 shared snapshot begin with cursor\n[pass] R169 cursor retains immutable blocks after source eviction\n[pass] R169 ResolveHit uses model-local position for shared storage\n[pass] R169 shared snapshot principal isolation\n[pass] R169 last snapshot releases blocks indices and owner tickets\n[projection-residency] peak=142449518 final=0 limit=671088640\n[pass] explicit generation Finish\n[pass] R169 unchanged authenticated projection has identical immutable document address\n[search-retry] pass=141 fail=0\n"
+    },
+    "concurrent-output.log": {
+      "bytes": 935,
+      "sha256": "356ec3d4ad454fd491f0c538735d49af7b6f2611f3aa41bf6af72d3e56ef38cc",
+      "text": "[pass] R04 source warmup before four-client measurement\n[client] index=1 requests=65 ready=65 unavailable=0\n[client] index=2 requests=66 ready=66 unavailable=0\n[client] index=3 requests=66 ready=66 unavailable=0\n[pass] R04 all four clients finish and observe ready results under existing application serialization\n[pass] R04 p95 <= 2s and every response <= 5s; transient failures included in latency but not success\n[pass] writer packet advances inside measured search interval\n[pass] recording packets advance while search requests execute\n[pass] post-finalize search exposes three actual source seconds\n[pass] writer finalizes all three GOP segments\n[pass] all finalized files remain healthy after concurrent reads\n[concurrent] clients=4 measured=263 p95Ms=4.13925 allMaxMs=9.02679 searches=66 ready=66 transientUnavailable=0 observations=10000 maxSearchMs=6.51396 progressingSearches=24 packets=90\n[search-concurrent] pass=8 fail=0\n"
+    },
+    "cursor-output.log": {
+      "bytes": 2307,
+      "sha256": "53a67d789aa877464b5df4932719c8b25ac0d71e262f24f6ec1594a23ad98976",
+      "text": "[pass] MEM84-U01 reserve before body allocation\n[pass] MEM84-U02 deep copy denied before storage copy; original retained\n[pass] MEM84-U03 move transfers charge\n[pass] MEM84-U04 split preserves total\n[pass] MEM84-U05 actual body destruction releases its share\n[pass] MEM84-U06 overflow refusal leaves owner unchanged\n[pass] MEM84-U07 deep copies reserve independently\n[pass] MEM84-U08 shared alias does not charge twice or release early\n[pass] MEM84-U09 last shared owner releases reservation\n[pass] MEM84-U10 concurrent reserve/release never exceeds bound\n[pass] fixture\n[pass] first page stable ties and full counts\n[pass] incomplete fixture\n[pass] incomplete first search publishes no snapshot\n[pass] incomplete attempt does not replace existing cursor snapshot\n[pass] member on later page resolves\n[pass] hit other principal rejects atomically\n[pass] hit changed scope rejected\n[pass] model member outside query cannot seek\n[pass] hit exact expiry boundary\n[pass] cursor fixture renewed after hit expiry\n[pass] normalized equivalent query resumes\n[pass] cursor replay idempotent\n[pass] unknown last final page no cursor\n[pass] other principal rejected atomically\n[pass] scope change rejected\n[pass] query change rejected\n[pass] query change rejected\n[pass] query change rejected\n[pass] query change rejected\n[pass] tampered MAC rejected\n[pass] schema mismatch rejected\n[pass] restart rejects prior server cursor\n[pass] changed source fixture\n[pass] new observation and removal do not mutate old membership\n[pass] before expiry accepted\n[pass] exact expiry rejected\n[pass] snapshot count evicts oldest\n[pass] aggregate byte budget evicts oldest\n[pass] oversized fixture exceeds unchanged pool budget\n[pass] failed admission preserves existing snapshot\n[pass] byte limit failure output unchanged\n[pass] empty successful page\n[pass] expiry arithmetic overflow rejected\n[pass] R03 idle fixture\n[pass] R03 idle snapshot begin\n[pass] R03 idle expiration releases model without another request\n[pass] R03 held fixture\n[pass] R03 held snapshot begin\n[pass] R03 expiry preserves caller-owned immutable page\n[pass] R03 last external owner release frees expired model\n[pass] R03 shutdown fixture with future expiry\n[pass] R03 destructor joins without waiting for five-minute deadline\n[search-cursor] pass=53 fail=0\n"
+    },
+    "generation-output.log": {
+      "bytes": 1772,
+      "sha256": "c0661b2c84bbdbdbaaf97040c5a2746076455a7d58d9868f90ead45ebe4fd192",
+      "text": "[pass] generation-search-refresh\n[pass] generation-original-sample-exact-utc\n[pass] generation-missing-original-stays-unplaced\n[pass] generation-search-journal-unchanged\n[pass] R121 authenticated full capture independent segment identity\n[pass] R121 capacity refusal preserves output and is not corruption\n[pass] R121 refusal retains source authority\n[pass] V430-R04 reservation preserves source resolution and empty delta\n[pass] V430-R04 no search change reuses identical immutable model\n[pass] generation-search-refresh\n[pass] generation-original-sample-exact-utc\n[pass] generation-missing-original-stays-unplaced\n[pass] generation-search-journal-unchanged\n[pass] generation-reopen-rebuild-preserves-held-model\n[pass] R121 authenticated full capture independent segment identity\n[pass] R121 capacity refusal preserves output and is not corruption\n[pass] R121 refusal retains source authority\n[pass] V430-R04 reservation preserves source resolution and empty delta\n[pass] V430-R04 no search change reuses identical immutable model\n[pass] generation-search-refresh\n[pass] generation-original-sample-exact-utc\n[pass] generation-missing-original-stays-unplaced\n[pass] generation-search-journal-unchanged\n[pass] generation-reopen-rebuild-preserves-held-model\n[pass] R121 authenticated full capture independent segment identity\n[pass] R121 capacity refusal preserves output and is not corruption\n[pass] R121 refusal retains source authority\n[pass] V430-R04 reservation preserves source resolution and empty delta\n[pass] V430-R04 no search change reuses identical immutable model\n[pass] R167 full current raw authentication rejects damaged owned row store atomically\n[pass] R167 lost authority rejects prior model reuse with output unchanged\n[search-generation] pass=31 fail=0\n"
+    },
+    "model-output.log": {
+      "bytes": 2169,
+      "sha256": "c0e78702f15078ae2760644fe16603eaa889592fd62ad4b6644e8e01ccc1e2f3",
+      "text": "[pass] R126 many mappings admitted\n[pass] R126 actual array ownership transferred without copy\n[pass] R126 preparation reservation released; model held\n[pass] R126 duplicate rejects and old output unchanged\n[pass] R126 failed owner rolls back\n[pass] R126 shared refusal before consuming input\n[pass] R126 unused capacity remains charged\n[pass] R126 relocation rejected before vector allocation\n[pass] R126 integer overflow rejected\n[pass] R126 all mappings known/unplaced query\n[pass] R126 previous reader owns exact lease\n[pass] R126 final owner zero\n[pass] M01 build\n[pass] M01 known-desc/channel/id then unknown\n[pass] M01 channel index and absent channel\n[pass] M01 source immutable / normalized projection\n[pass] M01 identity and unknown are preserved\n[pass] M01 rebuild independent of input order\n[pass] M02 duplicate cannot replace published model\n[pass] M02 empty interval rejected atomically\n[pass] M02 half-known interval rejected\n[pass] M02 unlinked event fact rejected\n[pass] M02 conflicting event facts rejected\n[pass] M01 numeric track reuse does not merge sessions\n[pass] M03 row limit overflow atomic\n[pass] M03 row limit equality\n[pass] M03 byte accounting baseline\n[pass] M03 exact byte budget admitted\n[pass] M03 one byte short rejected atomically\n[pass] M02 invalid source rejected\n[pass] M02 successful empty distinct from failed build\n[pass] M01 retained immutable model survives replacements\n[pass] L01 delta adds/updates/deletes and reorders exact expected ids\n[pass] L02 removal changes new snapshot without mutating held pages\n[pass] L01 stale predecessor requires rebuild\n[pass] L02 restarted source cannot apply old lineage\n[pass] L02 upsert/delete same id rejected atomically\n[pass] L01 empty delta advances only revision\n[pass] M03 scale explicit endpoints\n[scale] rows=1 accountedBytes=3249 elapsedUs=5\n[pass] M03 scale explicit endpoints\n[scale] rows=1000 accountedBytes=3020229 elapsedUs=2067\n[pass] M03 scale explicit endpoints\n[scale] rows=10000 accountedBytes=30200229 elapsedUs=20853\n[pass] M03 default 100001 rows rejected before projection\n[pass] M03 100000 valid rows still obey earlier 64MiB limit\n[search-model] pass=43 fail=0\n"
+    },
+    "playback-output.log": {
+      "bytes": 2858,
+      "sha256": "2f08938a86ded0aa75c22222fe06a51badc5a8bd0942a741385fcbb54f9c41b9",
+      "text": "[recording] file evidence unavailable: file evidence profile/bound 오류\n[recording] file evidence unavailable: file evidence profile/bound 오류\n[recording] file evidence unavailable: file evidence profile/bound 오류\n[pass] intent cannot replace source\n[pass] intent matches full timeline and public JSON\n[pass] completed job invalidates prior source view\n[pass] actual completed outputs yield playable proven candidates\n[pass] partial complete job matches full timeline and public JSON\n[pass] actual original coverage retains uncovered source tail\n[pass] missing file matches full timeline and public JSON\n[pass] missing event file cannot supersede source\n[pass] restored file is revalidated on new lookup\n[pass] restored file matches full timeline and public JSON\n[pass] retired source change invalidates prior source view\n[pass] deleted unplaced history leaves exact event candidates and public JSON\n[pass] full timeline retains every deleted history mapping\n[pass] deleted originals retain proven event candidates\n[pass] deleted output matches full timeline and public JSON\n[pass] foreign channel cannot acquire event candidates\n[recording] file evidence unavailable: file evidence profile/bound 오류\n[recording] file evidence unavailable: file evidence profile/bound 오류\n[recording] file evidence unavailable: file evidence profile/bound 오류\n[pass] unplaced partial event is not a proven UTC replacement\n[recording] file evidence unavailable: file evidence profile/bound 오류\n[recording] file evidence unavailable: file evidence profile/bound 오류\n[recording] file evidence unavailable: file evidence profile/bound 오류\n[pass] B retired source retains exact event candidates after reopen\n[pass] B full timeline retains known and unplaced retired mapping IDs\n[pass] unconsumed isolated continuous archive is validated lazily\n[pass] full timeline strictly rejects consumed corrupt history\n[pass] related cold/warm corruption or lost authority rejects with every output field unchanged\n[recording] file evidence unavailable: file evidence profile/bound 오류\n[recording] file evidence unavailable: file evidence profile/bound 오류\n[recording] file evidence unavailable: file evidence profile/bound 오류\n[pass] related cold/warm corruption or lost authority rejects with every output field unchanged\n[recording] file evidence unavailable: file evidence profile/bound 오류\n[recording] file evidence unavailable: file evidence profile/bound 오류\n[recording] file evidence unavailable: file evidence profile/bound 오류\n[pass] B retired source retains exact event candidates after reopen\n[pass] B full timeline retains known and unplaced retired mapping IDs\n[pass] related cold/warm corruption or lost authority rejects with every output field unchanged\n[pass] legacy timeline page limit unchanged\n[search-playback] pass=27 fail=0\n"
+    },
+    "red-output.log": {
+      "bytes": 3932,
+      "sha256": "0e300c96f570de35180ca0e5d59a714d0fe8d456e70c0a52648ae9e72c5742ca",
+      "text": "[pass] generation runtime open\n[pass] actual writer start\n[recording] file evidence unavailable: file evidence profile/bound 오류\n[recording] file evidence unavailable: file evidence profile/bound 오류\n[recording] file evidence unavailable: file evidence profile/bound 오류\n[pass] actual cold checkpoint\n[pass] actual cold raw span path entered\n[pass] actual writer start\n[recording] file evidence unavailable: file evidence profile/bound 오류\n[recording] file evidence unavailable: file evidence profile/bound 오류\n[recording] file evidence unavailable: file evidence profile/bound 오류\n[pass] current cold raw reuses old spans and includes real new writer\n[pass] independent no-reuse full capture\n[pass] all recording source fields agree with independent full capture\n[pass] independent owned document charge\n[pass] independent owned document charge\n[pass] independent owned document charge\n[pass] independent owned document charge\n[pass] independent owned document charge\n[pass] independent owned document charge\n[pass] cold optional spans yield to exact document and vector capacity envelope\n[pass] R132 allocation hint does not survive as model index slack\n[pass] R132 independent source restored after model ownership transfer\n[pass] separate lifecycle changed without segment raw change\n[pass] cold reused neighbors retain current corrupt lifecycle for changed segment\n[pass] nonempty cold prior cannot cross normalized source scope\n[pass] cold exact-count prior created\n[pass] actual writer start\n[recording] file evidence unavailable: file evidence profile/bound 오류\n[recording] file evidence unavailable: file evidence profile/bound 오류\n[recording] file evidence unavailable: file evidence profile/bound 오류\n[pass] cold growth rejection consumes prior once and preserves output\n[pass] R132 initial immutable model\n[pass] actual writer start\n[recording] file evidence unavailable: file evidence profile/bound 오류\n[recording] file evidence unavailable: file evidence profile/bound 오류\n[recording] file evidence unavailable: file evidence profile/bound 오류\n[pass] R132 real postBuild finalization retains unpublished source only\n[pass] R132 postBuild retry succeeds with current new source\n[pass] R132 postBuild IDs order counts fields match independent full model and prior unchanged\n[pass] R132 independent live segment for detached lifecycle race\n[pass] R132 callback may acquire Catalog outside raw cut\n[pass] R132 actual cold cut runs outside Catalog with owned raw\n[pass] R132 real detached lifecycle change rejects old currentness\n[pass] R132 detached reservation exception falls back once to locked full authentication\n[pass] R132 optional cut failure preserves exact full source result\n[pass] R167 actual immutable base\n[pass] actual writer start\n[recording] file evidence unavailable: file evidence profile/bound 오류\n[recording] file evidence unavailable: file evidence profile/bound 오류\n[recording] file evidence unavailable: file evidence profile/bound 오류\n[pass] R167 actual bound finalize enables ordering hint with full capture\n[pass] R167 real reader sorts additions only\n[append-order-work] fullSort=0 addedSort=3 merged=15\n[pass] R167 actual append ordering equals strict full source\n[pass] R167 unchanged scope reuses model\n[pass] actual writer start\n[recording] file evidence unavailable: file evidence profile/bound 오류\n[recording] file evidence unavailable: file evidence profile/bound 오류\n[recording] file evidence unavailable: file evidence profile/bound 오류\n[pass] R167 other channel mutation preserves scope\n[pass] R167 changed lifecycle fixture\n[pass] R167 lifecycle change refuses append ordering\n[pass] R167 lifecycle fallback equals strict full source\n[pass] R167 held prior model retains pre-mutation lifecycle\n[pass] explicit generation Finish\n[search-retry] FAIL R169 unchanged authenticated projection has identical immutable document address\n"
+    },
+    "scope-output.log": {
+      "bytes": 18859,
+      "sha256": "54e6b643f7f30f2a7b87f9fd2dd79007677d2dbb568df6b7e70e7f0f69e0fb0a",
+      "text": "[recording] file evidence unavailable: file evidence profile/bound 오류\n[recording] file evidence unavailable: file evidence profile/bound 오류\n[recording] file evidence unavailable: file evidence profile/bound 오류\n[pass] selected observation fixture\n[search-failure-probe] {\"version\":1,\"attempts\":3}\n[search-request-cost] {\"id\":1,\"thread\":1,\"startNs\":1668697782728208,\"endNs\":1668697783630375,\"status\":200,\"loss\":false,\"phases\":[[\"service-wait\",1668697782748791,1668697782749000],[\"service-hold\",1668697782749000,1668697782960416],[\"Capture\",1668697782963208,1668697783084625],[\"BuildOwned\",1668697783160541,1668697783267041],[\"Refresh\",1668697782962875,1668697783267625],[\"PlaybackCandidates\",1668697783268208,1668697783513375],[\"PlaybackNoCandidates\",1668697783513458,1668697783513458],[\"PlaybackBuildOwned\",1668697783523750,1668697783601875],[\"PlaybackDocuments\",1668697783513875,1668697783602208],[\"WithPlayback\",1668697783267833,1668697783602583],[\"SnapshotBegin\",1668697783602625,1668697783616250],[\"preparation-wait\",1668697782961416,1668697782961500],[\"preparation-hold\",1668697782961500,1668697783616458],[\"CurrentnessJson\",1668697783616583,1668697783629791]]}\n[search-request-cost] {\"id\":2,\"thread\":1,\"startNs\":1668697783637791,\"endNs\":1668697784116333,\"status\":200,\"loss\":false,\"phases\":[[\"service-wait\",1668697783641833,1668697783641875],[\"service-hold\",1668697783641875,1668697783641958],[\"Capture\",1668697783642916,1668697783721458],[\"BuildOwned\",1668697783794916,1668697783869375],[\"Refresh\",1668697783642791,1668697783869583],[\"PlaybackCandidates\",1668697783869833,1668697784024166],[\"PlaybackNoCandidates\",1668697784024208,1668697784024250],[\"PlaybackReuse\",1668697784096500,1668697784096500],[\"WithPlayback\",1668697783869708,1668697784096833],[\"SnapshotBegin\",1668697784096875,1668697784109000],[\"preparation-wait\",1668697783642166,1668697783642208],[\"preparation-hold\",1668697783642208,1668697784109166],[\"CurrentnessJson\",1668697784109250,1668697784116000]]}\n[search-request-cost] {\"id\":3,\"thread\":1,\"startNs\":1668697784123250,\"endNs\":1668697784539125,\"status\":200,\"loss\":false,\"phases\":[[\"service-wait\",1668697784127291,1668697784127333],[\"service-hold\",1668697784127333,1668697784127375],[\"Capture\",1668697784128041,1668697784204458],[\"RefreshReuse\",1668697784277458,1668697784277458],[\"Refresh\",1668697784127916,1668697784277791],[\"PlaybackCandidates\",1668697784278000,1668697784435666],[\"PlaybackNoCandidates\",1668697784435708,1668697784435708],[\"PlaybackBuildOwned\",1668697784443125,1668697784519000],[\"PlaybackDocuments\",1668697784435958,1668697784519250],[\"WithPlayback\",1668697784277875,1668697784519541],[\"SnapshotBegin\",1668697784519583,1668697784528708],[\"preparation-wait\",1668697784127583,1668697784127583],[\"preparation-hold\",1668697784127583,1668697784528833],[\"CurrentnessJson\",1668697784528916,1668697784538708]]}\n[pass] R166 A-B-A identical membership and public fields\n[scope-rebuilds] 1 1 0\n[pass] R166 A-B-A rebuilds only first two scopes\n[search-request-cost] {\"id\":4,\"thread\":1,\"startNs\":1668697784621500,\"endNs\":1668697785042791,\"status\":200,\"loss\":false,\"phases\":[[\"service-wait\",1668697784626250,1668697784626291],[\"service-hold\",1668697784626291,1668697784626333],[\"Capture\",1668697784626916,1668697784706208],[\"RefreshReuse\",1668697784779000,1668697784779041],[\"Refresh\",1668697784626833,1668697784779333],[\"PlaybackCandidates\",1668697784779541,1668697784936958],[\"PlaybackNoCandidates\",1668697784937000,1668697784937000],[\"PlaybackBuildOwned\",1668697784944375,1668697785022916],[\"PlaybackDocuments\",1668697784937250,1668697785023083],[\"WithPlayback\",1668697784779416,1668697785023375],[\"SnapshotBegin\",1668697785023416,1668697785032500],[\"preparation-wait\",1668697784626583,1668697784626583],[\"preparation-hold\",1668697784626583,1668697785032666],[\"CurrentnessJson\",1668697785032750,1668697785042416]]}\n[pass] R166 normalized same scope reuses after fresh capture\n[search-request-cost] {\"id\":5,\"thread\":1,\"startNs\":1668697785053125,\"endNs\":1668697786144041,\"status\":200,\"loss\":false,\"phases\":[[\"service-wait\",1668697785056958,1668697785057000],[\"service-hold\",1668697785057000,1668697785057041],[\"Capture\",1668697785058166,1668697785150166],[\"BuildOwned\",1668697785223875,1668697785314166],[\"Refresh\",1668697785058041,1668697785314458],[\"PlaybackCandidates\",1668697785314666,1668697785474750],[\"PlaybackNoCandidates\",1668697785474791,1668697785474833],[\"PlaybackReuse\",1668697785548333,1668697785548333],[\"WithPlayback\",1668697785314541,1668697785548666],[\"SnapshotBegin\",1668697785548708,1668697785571666],[\"preparation-wait\",1668697785057250,1668697785057291],[\"preparation-hold\",1668697785057291,1668697785571833],[\"CurrentnessJson\",1668697785571916,1668697786143458]]}\n[pass] R166 observation inclusion is a distinct scope\n[search-request-cost] {\"id\":6,\"thread\":1,\"startNs\":1668697786195916,\"endNs\":1668697786637541,\"status\":200,\"loss\":false,\"phases\":[[\"service-wait\",1668697786201666,1668697786201708],[\"service-hold\",1668697786201708,1668697786201791],[\"Capture\",1668697786202750,1668697786282083],[\"RefreshReuse\",1668697786355833,1668697786355833],[\"Refresh\",1668697786202583,1668697786356291],[\"PlaybackCandidates\",1668697786356666,1668697786518625],[\"PlaybackNoCandidates\",1668697786518625,1668697786518666],[\"PlaybackBuildOwned\",1668697786527875,1668697786608291],[\"PlaybackDocuments\",1668697786519000,1668697786608541],[\"WithPlayback\",1668697786356458,1668697786608916],[\"SnapshotBegin\",1668697786609000,1668697786621208],[\"preparation-wait\",1668697786202125,1668697786202166],[\"preparation-hold\",1668697786202166,1668697786621375],[\"CurrentnessJson\",1668697786621458,1668697786637041]]}\n[pass] R166 most recent observation scope survives third key eviction\n[search-request-cost] {\"id\":7,\"thread\":1,\"startNs\":1668697786647500,\"endNs\":1668697787118708,\"status\":200,\"loss\":false,\"phases\":[[\"service-wait\",1668697786651541,1668697786651583],[\"service-hold\",1668697786651583,1668697786651583],[\"Capture\",1668697786652833,1668697786734291],[\"BuildOwned\",1668697786807500,1668697786881166],[\"Refresh\",1668697786652708,1668697786881500],[\"PlaybackCandidates\",1668697786881708,1668697787033291],[\"PlaybackNoCandidates\",1668697787033291,1668697787033333],[\"PlaybackReuse\",1668697787105416,1668697787105458],[\"WithPlayback\",1668697786881583,1668697787105750],[\"SnapshotBegin\",1668697787105791,1668697787114916],[\"preparation-wait\",1668697786651791,1668697786651833],[\"preparation-hold\",1668697786651833,1668697787115041],[\"CurrentnessJson\",1668697787115125,1668697787118458]]}\n[pass] R166 least recent scope evicted at two entries\n[search-request-cost] {\"id\":8,\"thread\":1,\"startNs\":1668697787129416,\"endNs\":1668697787582541,\"status\":200,\"loss\":false,\"phases\":[[\"service-wait\",1668697787133750,1668697787133791],[\"service-hold\",1668697787133791,1668697787133833],[\"CurrentnessJson\",1668697787143708,1668697787582083]]}\n[pass] R166 evicted source snapshot cursor remains usable without preparation\n[search-request-cost] {\"id\":9,\"thread\":1,\"startNs\":1668697787588458,\"endNs\":1668697787593916,\"status\":403,\"loss\":false,\"phases\":[]}\n[pass] R166 warm scope still requires authorization before capture\n[search-request-cost] {\"id\":10,\"thread\":1,\"startNs\":1668697787599375,\"endNs\":1668697787680416,\"status\":503,\"loss\":false,\"phases\":[[\"service-wait\",1668697787602958,1668697787603000],[\"service-hold\",1668697787603000,1668697787603041],[\"Capture\",1668697787605666,1668697787678666],[\"Refresh\",1668697787605541,1668697787678791],[\"preparation-wait\",1668697787603208,1668697787603250],[\"preparation-hold\",1668697787603250,1668697787680166]]}\n[search-capacity] {\"stage\":\"capture-source\",\"condition\":\"shared-reservation\",\"maxDocuments\":100000,\"maxBytes\":67108864,\"documents\":0,\"capacity\":0,\"index\":0,\"before\":0,\"addition\":67108864}\n[search-failure] {\"version\":1,\"status\":503,\"channels\":1,\"exception\":\"none\",\"resourceRejectionsBefore\":0,\"resourceRejectionsAfter\":1,\"attempts\":[{\"stage\":\"capture-source\",\"reason\":\"search-capacity-exceeded\",\"instance\":0,\"currentInstance\":0,\"captured\":0,\"current\":0,\"documents\":0,\"references\":0,\"rebuild\":false,\"authority\":false}]}\n[pass] R166 new scope refuses saturated shared admission without completed capture\n[search-request-cost] {\"id\":11,\"thread\":1,\"startNs\":1668697787689458,\"endNs\":1668697788075458,\"status\":200,\"loss\":false,\"phases\":[[\"service-wait\",1668697787692625,1668697787692666],[\"service-hold\",1668697787692666,1668697787692666],[\"Capture\",1668697787693250,1668697787766166],[\"RefreshReuse\",1668697787839208,1668697787839250],[\"Refresh\",1668697787693166,1668697787839583],[\"PlaybackCandidates\",1668697787839791,1668697787990833],[\"PlaybackNoCandidates\",1668697787990833,1668697787990875],[\"PlaybackReuse\",1668697788062916,1668697788062916],[\"WithPlayback\",1668697787839666,1668697788063250],[\"SnapshotBegin\",1668697788063250,1668697788071958],[\"preparation-wait\",1668697787692875,1668697787692916],[\"preparation-hold\",1668697787692916,1668697788072041],[\"CurrentnessJson\",1668697788072125,1668697788075208]]}\n[pass] R166 admission failure preserves most recent scope and permits recovery\n[search-request-cost] {\"id\":12,\"thread\":1,\"startNs\":1668697788115250,\"endNs\":1668697788678166,\"status\":200,\"loss\":false,\"phases\":[[\"service-wait\",1668697788121500,1668697788121541],[\"service-hold\",1668697788121541,1668697788132708],[\"Capture\",1668697788134666,1668697788248666],[\"BuildOwned\",1668697788323958,1668697788411416],[\"Refresh\",1668697788134416,1668697788411875],[\"PlaybackCandidates\",1668697788412208,1668697788575583],[\"PlaybackNoCandidates\",1668697788575625,1668697788575625],[\"PlaybackBuildOwned\",1668697788584208,1668697788659750],[\"PlaybackDocuments\",1668697788575916,1668697788660000],[\"WithPlayback\",1668697788412000,1668697788660333],[\"SnapshotBegin\",1668697788660375,1668697788671125],[\"preparation-wait\",1668697788133333,1668697788133375],[\"preparation-hold\",1668697788133375,1668697788671291],[\"CurrentnessJson\",1668697788671416,1668697788677833]]}\n[pass] baseline actual search\n[search-request-cost] {\"id\":13,\"thread\":1,\"startNs\":1668697788688708,\"endNs\":1668697789581125,\"status\":200,\"loss\":false,\"phases\":[[\"service-wait\",1668697788692666,1668697788692708],[\"service-hold\",1668697788692708,1668697788692791],[\"Capture\",1668697788693708,1668697788781250],[\"BuildOwned\",1668697788851958,1668697788937416],[\"Refresh\",1668697788693541,1668697788937708],[\"PlaybackCandidates\",1668697788937916,1668697789096000],[\"PlaybackNoCandidates\",1668697789096041,1668697789096083],[\"PlaybackReuse\",1668697789166833,1668697789166875],[\"WithPlayback\",1668697788937791,1668697789167166],[\"SnapshotBegin\",1668697789167208,1668697789178708],[\"preparation-wait\",1668697788692958,1668697788693000],[\"preparation-hold\",1668697788693000,1668697789178833],[\"CurrentnessJson\",1668697789178916,1668697789580541]]}\n[pass] R127 prior immutable snapshot has a next page\n[pass] unrelated writer start\n[search-request-cost] {\"id\":15,\"thread\":3,\"startNs\":1668697795950416,\"endNs\":1668697796375666,\"status\":200,\"loss\":false,\"phases\":[[\"service-wait\",1668697795954666,1668697795954708],[\"service-hold\",1668697795954708,1668697795954708],[\"CurrentnessJson\",1668697795964583,1668697796374166]]}\n[pass] R127 prior cursor progresses while a new preparation is held\n[search-request-cost] {\"id\":16,\"thread\":1,\"startNs\":1668697796392875,\"endNs\":1668697796404833,\"status\":403,\"loss\":false,\"phases\":[[\"service-wait\",1668697796397625,1668697796397625],[\"service-hold\",1668697796397625,1668697796397666]]}\n[pass] R127 independent cursor principal binding remains enforced during preparation\n[recording] file evidence unavailable: file evidence profile/bound 오류\n[recording] file evidence unavailable: file evidence profile/bound 오류\n[recording] file evidence unavailable: file evidence profile/bound 오류\n[search-request-cost] {\"id\":14,\"thread\":2,\"startNs\":1668697795820500,\"endNs\":1668697815591875,\"status\":200,\"loss\":false,\"phases\":[[\"service-wait\",1668697795825291,1668697795825333],[\"service-hold\",1668697795825333,1668697795825416],[\"Capture\",1668697795826166,1668697795907708],[\"RefreshReuse\",1668697815293166,1668697815293208],[\"Refresh\",1668697795826000,1668697815294500],[\"PlaybackCandidates\",1668697815295166,1668697815467041],[\"PlaybackNoCandidates\",1668697815467083,1668697815467083],[\"PlaybackBuildOwned\",1668697815478416,1668697815558333],[\"PlaybackDocuments\",1668697815467500,1668697815558541],[\"WithPlayback\",1668697815294625,1668697815558875],[\"SnapshotBegin\",1668697815558916,1668697815582708],[\"preparation-wait\",1668697795825625,1668697795825666],[\"preparation-hold\",1668697795825666,1668697815582875],[\"CurrentnessJson\",1668697815583000,1668697815591291]]}\n[pass] unrelated real writer finalization preserves one-attempt selected search\n[pass] selected membership unchanged independently\n[search-request-cost] {\"id\":17,\"thread\":1,\"startNs\":1668697815708791,\"endNs\":1668697825673083,\"status\":200,\"loss\":false,\"phases\":[[\"service-wait\",1668697815716875,1668697815716916],[\"service-hold\",1668697815716916,1668697815717041],[\"Capture\",1668697815717875,1668697815819833],[\"RefreshReuse\",1668697825391291,1668697825391333],[\"Refresh\",1668697815717750,1668697825392125],[\"PlaybackCandidates\",1668697825392750,1668697825561166],[\"PlaybackNoCandidates\",1668697825561208,1668697825561250],[\"PlaybackBuildOwned\",1668697825571125,1668697825648541],[\"PlaybackDocuments\",1668697825561583,1668697825648791],[\"WithPlayback\",1668697825392333,1668697825649083],[\"SnapshotBegin\",1668697825649125,1668697825664250],[\"preparation-wait\",1668697815717333,1668697815717375],[\"preparation-hold\",1668697815717375,1668697825664375],[\"CurrentnessJson\",1668697825664541,1668697825672541]]}\n[pass] unrelated actual deletion retains selected membership without retry\n[search-request-cost] {\"id\":18,\"thread\":1,\"startNs\":1668697825749083,\"endNs\":1668697828216541,\"status\":503,\"loss\":false,\"phases\":[[\"service-wait\",1668697825753541,1668697825753583],[\"service-hold\",1668697825753583,1668697825753708],[\"Capture\",1668697825754375,1668697825832375],[\"Refresh\",1668697825754291,1668697826567375],[\"Capture\",1668697826568083,1668697826649458],[\"Refresh\",1668697826567916,1668697827378041],[\"Capture\",1668697827378458,1668697827466916],[\"Refresh\",1668697827378291,1668697828214708],[\"preparation-wait\",1668697825753958,1668697825754000],[\"preparation-hold\",1668697825754000,1668697828216208]]}\n[search-failure] {\"version\":1,\"status\":503,\"channels\":1,\"exception\":\"none\",\"resourceRejectionsBefore\":1,\"resourceRejectionsAfter\":1,\"attempts\":[{\"stage\":\"validate-source\",\"reason\":\"search-source-changed\",\"instance\":1,\"currentInstance\":1,\"captured\":14,\"current\":15,\"documents\":0,\"references\":0,\"rebuild\":false,\"authority\":true},{\"stage\":\"validate-source\",\"reason\":\"search-source-changed\",\"instance\":1,\"currentInstance\":1,\"captured\":15,\"current\":16,\"documents\":1,\"references\":0,\"rebuild\":false,\"authority\":true},{\"stage\":\"validate-source\",\"reason\":\"search-source-changed\",\"instance\":1,\"currentInstance\":1,\"captured\":16,\"current\":17,\"documents\":2,\"references\":0,\"rebuild\":false,\"authority\":true}]}\n[pass] related candidate additions exhaust exactly three attempts fail closed\n[search-request-cost] {\"id\":19,\"thread\":1,\"startNs\":1668697828226333,\"endNs\":1668697828879416,\"status\":200,\"loss\":false,\"phases\":[[\"service-wait\",1668697828230708,1668697828230791],[\"service-hold\",1668697828230791,1668697828230833],[\"Capture\",1668697828231416,1668697828352166],[\"ApplyDelta\",1668697828431708,1668697828578250],[\"Refresh\",1668697828231291,1668697828578708],[\"PlaybackCandidates\",1668697828579041,1668697828745041],[\"PlaybackNoCandidates\",1668697828745083,1668697828745083],[\"PlaybackBuildOwned\",1668697828768333,1668697828852166],[\"PlaybackDocuments\",1668697828745333,1668697828852416],[\"WithPlayback\",1668697828578875,1668697828852708],[\"SnapshotBegin\",1668697828852750,1668697828865083],[\"preparation-wait\",1668697828231041,1668697828231041],[\"preparation-hold\",1668697828231041,1668697828865208],[\"CurrentnessJson\",1668697828865333,1668697828879083]]}\n[pass] fresh search includes every related addition\n[pass] R131 real finalization rejects before Build and retains one private charged batch\n[pass] R131 next bounded attempt consumes prior batch and releases retry owner\n[pass] R131 independent cold source comparison\n[pass] R131 reused and fresh complete source fields agree and include actual new segment\n[pass] R131 separate lifecycle mutation rejects while previous model remains immutable\n[pass] R131 raw-equal current lifecycle is not replaced by stale retry state\n[pass] R131 retry fixture for changed limits\n[pass] R131 capacity failure clears consumed retry without changing prior output\n[pass] R131 nonempty retry before changing source range\n[pass] R131 different source range never imports prior segment documents\n[pass] R131 current exact document bound\n[pass] R131 real added segment invalidates exact-count captured source\n[pass] R131 new candidate over exact bound clears partially consumed retry and preserves output\n[search-request-cost] {\"id\":20,\"thread\":1,\"startNs\":1668697843189583,\"endNs\":1668697843847083,\"status\":403,\"loss\":false,\"phases\":[[\"service-wait\",1668697843195500,1668697843195625],[\"service-hold\",1668697843195625,1668697843195875],[\"Capture\",1668697843196958,1668697843329208],[\"BuildOwned\",1668697843406333,1668697843514125],[\"Refresh\",1668697843196875,1668697843514416],[\"PlaybackCandidates\",1668697843514916,1668697843680500],[\"PlaybackNoCandidates\",1668697843680541,1668697843680541],[\"PlaybackBuildOwned\",1668697843714750,1668697843803166],[\"PlaybackDocuments\",1668697843680875,1668697843803500],[\"WithPlayback\",1668697843514583,1668697843803958],[\"SnapshotBegin\",1668697843804000,1668697843821583],[\"preparation-wait\",1668697843196291,1668697843196333],[\"preparation-hold\",1668697843196333,1668697843821750],[\"CurrentnessJson\",1668697843821916,1668697843846708]]}\n[pass] authority revoked during preparation not published\n[search-request-cost] {\"id\":21,\"thread\":1,\"startNs\":1668697843855250,\"endNs\":1668697844332125,\"status\":200,\"loss\":false,\"phases\":[[\"service-wait\",1668697843859666,1668697843859708],[\"service-hold\",1668697843859708,1668697843859750],[\"Capture\",1668697843860333,1668697843938708],[\"RefreshReuse\",1668697844012916,1668697844012916],[\"Refresh\",1668697843860208,1668697844013250],[\"PlaybackCandidates\",1668697844013625,1668697844182000],[\"PlaybackNoCandidates\",1668697844182041,1668697844182083],[\"PlaybackBuildOwned\",1668697844215000,1668697844302208],[\"PlaybackDocuments\",1668697844182333,1668697844302458],[\"WithPlayback\",1668697844013375,1668697844302791],[\"SnapshotBegin\",1668697844302791,1668697844313375],[\"preparation-wait\",1668697843859958,1668697843860000],[\"preparation-hold\",1668697843860000,1668697844313500],[\"CurrentnessJson\",1668697844313583,1668697844331791]]}\n[pass] failure path releases request owners and resumes\n[search-scope] pass=36 fail=0\n"
+    },
+    "source-output.log": {
+      "bytes": 4202,
+      "sha256": "3378386ff00b583aa913367794d4cbd3e16974273159bafd367ecf8f38e7efaa",
+      "text": "[pass] MEM83 budget fixture admission\n[pass] MEM83 three simultaneous model owners charged\n[pass] MEM83 shared readers do not double charge\n[pass] MEM83 full owner budget rejects before allocation and preserves output\n[pass] MEM83 caller holds old model after source replacement\n[pass] MEM83 final reader release permits fresh work\n[pass] MEM84 full shared owner rejects snapshot work before positions allocation\n[pass] MEM84 release actual models before snapshot resume\n[pass] MEM84 released budget admits snapshot and page\n[pass] MEM84 snapshot matches and page separately charged\n[pass] MEM84 expiry releases matches but retains caller model and page\n[pass] MEM84 final page/model release; finite high water\n[pass] R167 base immutable ordering\n[pass] R167 append equals independent full build\n[pass] R167 actual full-sort versus added-sort work\n[pass] R167 changed non-order field strict fallback\n[pass] R167 actual full-sort versus added-sort work\n[pass] R167 lifecycle projection strict fallback\n[pass] R167 actual full-sort versus added-sort work\n[pass] R167 missing prior document strict fallback\n[pass] R167 actual full-sort versus added-sort work\n[pass] R167 duplicate ID same full-build failure\n[pass] R167 different source strict fallback\n[pass] R167 actual full-sort versus added-sort work\n[pass] R167 non-advancing revision strict fallback\n[pass] R167 actual full-sort versus added-sort work\n[pass] R167 exact model admission oracle\n[pass] R167 no scratch headroom falls back without changing model admission\n[pass] R167 model reservation rejection preserves prior owner\n[pass] R167 prior model snapshot cursor remains bound after append build\n[pass] R167 prior snapshot model unchanged\n[pass] journal-open\n[pass] closed-source-rejected\n[pass] catalog-open\n[pass] empty-source-success\n[pass] invalid-channel-output-unchanged\n[pass] finalize\n[pass] R90 capture before unrelated finalization\n[pass] R90 actual unrelated finalization\n[pass] R90 unrelated channel must preserve captured search\n[pass] R90 V1 original channel fixture\n[pass] R90 V1 original membership\n[pass] R90 V1 movement guard\n[pass] R90 old channel rejects moved V1 candidate\n[pass] R90 moved V1 removed by structural rebuild\n[pass] unknown-observation-put\n[pass] unknown-is-not-inferred\n[pass] MEM83 recording-only source does not load unused observation rows\n[pass] MEM83 recording-only playback guard preserves source mode\n[pass] R127 no-candidate ns recording source shares immutable model\n[pass] R127 shared model preserves identity time and effective original playback\n[pass] R127 shared model respects caller document and byte limits without replacing output\n[pass] R127 non-ns input retains conversion path\n[pass] R127 mixed source retains recording-only projection\n[pass] MEM83 query-kind switch rebuilds complete observation source and preserves old reader\n[pass] stored-locator-put\n[pass] observation-delta-only\n[pass] stored-locator-utc-and-pts\n[pass] unchanged-model-reused\n[pass] search-does-not-write-journal\n[pass] capture-before-observation\n[pass] R90 new relevant observation invalidates captured membership\n[pass] new-model-held-snapshot-independent\n[pass] capacity-failure-output-unchanged\n[pass] scope-change-rebuild\n[pass] history-gap-rebuild\n[pass] structural-change-invalidates-captured-batch\n[pass] corruption-new-state-old-snapshot-preserved\n[pass] journal-reopen-rebuild\n[pass] sqlite-reopen-rebuild\n[pass] rebuild-does-not-write-journal\n[pass] v2-journal-fixture\n[pass] v2-unknown-fixture\n[pass] v2-source-open\n[pass] v2-mappings-separate-clock-overlap-preserved\n[pass] v2-unknown-retains-media-axis\n[pass] R131 compact boundary source\n[pass] R131 independent document accounting\n[pass] R131 independent document accounting\n[pass] R131 independent document accounting\n[pass] R131 optional span metadata yields to exact existing document/vector envelope\n[pass] v2-deletion-pending-refresh\n[pass] R127 deletion invalidates reusable source and preserves prior output\n[pass] v2-tombstone-removes-all-mappings-held-model-unchanged\n[pass] v2-read-journal-unchanged\n[pass] v2-source-open\n[pass] v2-reopen-tombstone-no-resurrection\n[pass] v2-read-journal-unchanged\n[search-source] pass=88 fail=0 error=\n"
+    }
+  },
+  "outputPreservation": "text decoded/re-encoded as UTF-8; each embedded output has exact original byte length/SHA, not reconstructed trace; no media or native binaries embedded",
+  "historical": {
+    "R149": "FAIL",
+    "R165": "FAIL",
+    "R166RepresentativeLatency": "FAIL",
+    "MemoryP0": "HOLD",
+    "Readiness120": "HOLD",
+    "Release": "HOLD"
+  },
+  "git": {
+    "head": "1e5db3f84da7d7f452e733e13bf15236a188969e",
+    "stage": "NOT_RUN",
+    "commit": "NOT_RUN",
+    "push": "NOT_RUN",
+    "reason": "R169-specific Git authorization not unambiguously established; validated changes remain in working tree"
+  },
+  "cleanup": {
+    "ownedRoot": "/private/tmp/media-server-r169-wxdcz099",
+    "status": "PASS_LOCAL_PRESERVATION_AND_OWNED_CLEANUP",
+    "ports": "NOT_APPLICABLE: no HTTP/server execution",
+    "nativeGroupsAbsent": true,
+    "rootAbsent": true,
+    "filesRemoved": 390,
+    "directoriesRemoved": 210,
+    "bytesRemoved": 279205403,
+    "ownedCacheLinksUnlinked": 3324,
+    "symlinksFollowed": false,
+    "externalTargetsModified": false,
+    "initialPrecheck": "Stopped before deletion at symlink guard; read-only review identified all links as gst_plugin_cache.py-owned test cache links; no unknown links",
+    "remotePreservation": "NOT_RUN: no push authorization claimed"
+  },
+  "binding": {
+    "sequence": [
+      {
+        "command": [
+          "node",
+          "scripts/internal/verify_v390_review4_feature_semantic_source_audit.mjs",
+          "--apply-approved-manifest"
+        ],
+        "exit": 0,
+        "seconds": 95.22142429091036
+      },
+      {
+        "phase": "readback",
+        "command": [
+          "node",
+          "scripts/internal/verify_feature_implementation_evidence.mjs"
+        ],
+        "exit": 0,
+        "seconds": 70.17431774991564
+      },
+      {
+        "phase": "coverage",
+        "command": [
+          "node",
+          "scripts/internal/verify_feature_inventory_coverage.mjs"
+        ],
+        "exit": 0,
+        "seconds": 86.10919741704129
+      }
+    ],
+    "manifestChange": "inventorySha256 only; generated JSON equality verified before retaining original formatting",
+    "logs": {
+      "producer": {
+        "bytes": 12812,
+        "sha256": "d044f8ac77f4e3e0a7ee0672c9d63381151b9f522393a0aa536f910913ef258f",
+        "text": "[pass] candidate covers the exact 986 inventory IDs without using REVIEW3 claims\n[pass] every row has an independently dispatched verifier\n[pass] all rows are source-resolved before REVIEW4 approval\n[pass] source proof roles and independent readback are exact\n[pass] known REVIEW3 false mappings are replaced by actual source owners\n[pass] UI-001 through UI-050 remain strict and VLM mutations use independent readback\n[pass] UI-051 through UI-100 remain strict on canonical functional verifiers\n[pass] stored approvals are external to candidate generation and cover all rows\n[pass] negative fixtures reject unrelated, shared, self-comparison, invented-edge, and generator approval\n[pass] outside-3-line function/blob mutation invalidates source-flow digest\n[pass] unrelated product file mutation outside bound body preserves source-flow digest\n[pass] require-only or basename-mention dispatch is rejected\n[pass] stored audit body tamper invalidates canonical candidate digest\n[pass] apply-time proof tamper is rejected by source-flow recomputation\n[pass] unrelated proof row swap is rejected by typed obligation\n[pass] fake def-use edge without shared symbol or variable is rejected\n[pass] comparison and arrow operators cannot impersonate assignment def-use\n[pass] generic canonical role labels cannot satisfy def-use sharing\n[pass] same-body assignment def-use rejects reverse source order\n[pass] reviewer symbols and consumer-only returned calls cannot impersonate directional def-use\n[pass] co-asserted boundary requires both ordered values in one canonical assertion\n[pass] static source-string assertion cannot satisfy mutation runtime readback\n[pass] static source-string assertion cannot satisfy non-mutation runtime-readback edge\n[pass] witness-only token and primary mutation response cannot satisfy independent readback\n[pass] explicit REVIEW4 proof-only scaffold cannot satisfy source semantics\n[pass] authored edge ranges and generated proof narratives are rejected before normalization\n[pass] typed requirement honors explicit deferral without corrupting positive mutations\n[pass] Python runtime assertions and case-normalized field identifiers preserve exact semantic binding\n[pass] typed negative boundaries recognize exact false field names\n[pass] comparison-only body cannot impersonate authoritative mutation\n[pass] generic condition cannot hide static source provenance in its enclosing body\n[pass] semantic readback labels bind their enclosing check callback instead of a later regex test call\n[pass] runtime artifact write then separate file read remains eligible readback\n[pass] default object argument brace resolves the real enclosing function body\n[pass] same-check token in a different assertion loop cannot satisfy readback\n[pass] generic snippet loop cannot satisfy a structural readback token\n[pass] whole-file anywhere assertion cannot satisfy structural product readback\n[pass] whole-file aliases cannot disguise an anywhere assertion\n[pass] literal objects and fixture files cannot impersonate runtime observations\n[pass] approval envelope rejects generator-shaped per-row approval claims\n[pass] same-route proof row swap cannot bypass strong outcome binding\n[pass] mixed positive UI keeps allow outcome and binds explicit negative boundaries\n[pass] negative boundary words in assertion messages cannot satisfy the condition oracle\n[pass] negative boundaries do not cross unrelated positive save clauses\n[pass] same negative condition with different messages is shared ambiguity\n[pass] outcome obligation cardinality is possible and stale ledger requires regeneration\n[pass] self-declared reports and fixture-derived outcomes are not product runtime readbacks\n[pass] auth wrapper fixed mode reaches only its selected workflow oracle\n[pass] multiline destructured arrow brace resolves the real enclosing function body\n[pass] positive oracle cannot approve deny or redact obligation\n[pass] token or adjacent-line changes cannot bypass canonical shared flow detection\n\n== V390 REVIEW4 feature semantic source audit ==\n- rows: 986\n- resolvedCandidates: 986\n- discoveredCandidates: 0\n- unresolvedCandidates: 0\n- resolvedIds: UI-001,UI-002,UI-003,UI-004,UI-005,UI-006,UI-007,UI-008,UI-009,UI-010,UI-011,UI-012,UI-013,UI-014,UI-015,UI-016,UI-017,UI-018,UI-019,UI-020,UI-021,UI-022,UI-023,UI-024,UI-025,UI-026,UI-027,UI-028,UI-029,UI-030,UI-031,UI-032,UI-033,UI-034,UI-035,UI-036,UI-037,UI-038,UI-039,UI-040,UI-041,UI-042,UI-043,UI-044,UI-045,UI-046,UI-047,UI-048,UI-049,UI-050,UI-051,UI-052,UI-053,UI-054,UI-055,UI-056,UI-057,UI-058,UI-059,UI-060,UI-061,UI-062,UI-063,UI-064,UI-065,UI-066,UI-067,UI-068,UI-069,UI-070,UI-071,UI-072,UI-073,UI-074,UI-075,UI-076,UI-077,UI-078,UI-079,UI-080,UI-081,UI-082,UI-083,UI-084,UI-085,UI-086,UI-087,UI-088,UI-089,UI-090,UI-091,UI-092,UI-093,UI-094,UI-095,UI-096,UI-097,UI-098,UI-099,UI-100,UI-101,UI-102,UI-103,UI-104,UI-105,UI-106,UI-107,UI-108,UI-109,UI-110,UI-111,UI-112,UI-113,UI-114,UI-115,AUTH-001,AUTH-002,AUTH-003,AUTH-004,AUTH-005,AUTH-006,AUTH-007,AUTH-008,AUTH-009,AUTH-010,AUTH-011,AUTH-012,AUTH-013,AUTH-014,AUTH-015,AUTH-016,AUTH-017,AUTH-018,AUTH-019,AUTH-020,AUTH-021,AUTH-022,AUTH-023,AUTH-024,AUTH-025,AUTH-026,AUTH-027,AUTH-028,AUTH-029,AUTH-030,AUTH-031,AUTH-032,AUTH-033,AUTH-034,AUTH-035,AUTH-036,AUTH-037,AUTH-038,AUTH-039,AUTH-040,AUTH-041,AUTH-042,SRC-001,SRC-002,SRC-003,SRC-004,SRC-005,SRC-006,SRC-007,SRC-008,SRC-009,SRC-010,SRC-011,SRC-012,SRC-013,SRC-014,SRC-015,SRC-016,SRC-017,SRC-018,SRC-019,SRC-020,SRC-021,SRC-022,SRC-023,SRC-024,SRC-025,SRC-026,SRC-027,SRC-028,SRC-029,SRC-030,SRC-031,SRC-032,SRC-033,SRC-034,SRC-035,SRC-036,SRC-037,SRC-038,SRC-039,SRC-040,SRC-041,SRC-042,SRC-043,SRC-044,SRC-045,SRC-046,SRC-047,SRC-048,SRC-049,SRC-050,SRC-051,SRC-052,SRC-053,SRC-054,SRC-055,SRC-056,SRC-057,SRC-058,SRC-059,SRC-060,SRC-061,SRC-062,SRC-063,SRC-064,SRC-065,SRC-066,SRC-067,SRC-068,RULE-001,RULE-002,RULE-003,RULE-004,RULE-005,RULE-006,RULE-007,RULE-008,RULE-009,RULE-010,RULE-011,RULE-012,RULE-013,RULE-014,RULE-015,RULE-016,RULE-017,RULE-018,RULE-019,RULE-020,RULE-021,RULE-022,RULE-023,RULE-024,RULE-025,RULE-026,RULE-027,RULE-028,RULE-029,RULE-030,RULE-031,RULE-032,RULE-033,RULE-034,RULE-035,RULE-036,RULE-037,RULE-038,RULE-039,RULE-040,RULE-041,RULE-042,RULE-043,RULE-044,RULE-045,RULE-046,RULE-047,RULE-048,RULE-049,RULE-050,RULE-051,RULE-052,RULE-053,RULE-054,RULE-055,RULE-056,RULE-057,RULE-058,RULE-059,RULE-060,RULE-061,RULE-062,RULE-063,RULE-064,RULE-065,RULE-066,RULE-067,RULE-068,RULE-069,RULE-070,RULE-071,RULE-072,RULE-073,RULE-074,RULE-075,RULE-076,RULE-077,RULE-078,RULE-079,RULE-080,RULE-081,RULE-082,RULE-083,RULE-084,RULE-085,RULE-086,RULE-087,RULE-088,RULE-089,RULE-090,RULE-091,RULE-092,RULE-093,RULE-094,RULE-095,RULE-096,RULE-097,RULE-098,RULE-099,RULE-100,RULE-101,RULE-102,RULE-103,RULE-104,RULE-105,RULE-106,RULE-107,RULE-108,RULE-109,RULE-110,RULE-111,RULE-112,EVT-001,EVT-002,EVT-003,EVT-004,EVT-005,EVT-006,EVT-007,EVT-008,EVT-009,EVT-010,EVT-011,EVT-012,EVT-013,EVT-014,EVT-015,EVT-016,EVT-017,EVT-018,EVT-019,EVT-020,EVT-021,EVT-022,EVT-023,EVT-024,EVT-025,EVT-026,EVT-027,EVT-028,EVT-029,EVT-030,EVT-031,EVT-032,EVT-033,EVT-034,EVT-035,EVT-036,EVT-037,EVT-038,EVT-039,EVT-040,EVT-041,EVT-042,EVT-043,EVT-044,EVT-045,EVT-046,EVT-047,EVT-048,EVT-049,EVT-050,EVT-051,EVT-052,EVT-053,EVT-054,EVT-055,EVT-056,EVT-057,EVT-058,EVT-059,EVT-060,EVT-061,EVT-062,EVT-063,EVT-064,EVT-065,EVT-066,EVT-067,EVT-068,EVT-069,EVT-070,EVT-071,EVT-072,EVT-073,EVT-074,EVT-075,EVT-076,EVT-077,EVT-078,EVT-079,EVT-080,EVT-081,EVT-082,EVT-083,EVT-084,EVT-085,EVT-086,EVT-087,CLIENT-001,CLIENT-002,CLIENT-003,CLIENT-004,CLIENT-005,CLIENT-006,CLIENT-007,CLIENT-008,CLIENT-009,CLIENT-010,CLIENT-011,CLIENT-012,CLIENT-013,CLIENT-014,CLIENT-015,CLIENT-016,CLIENT-017,CLIENT-018,CLIENT-019,CLIENT-020,CLIENT-021,CLIENT-022,CLIENT-023,CLIENT-024,CLIENT-025,CLIENT-026,CLIENT-027,CLIENT-028,CLIENT-029,CLIENT-030,CLIENT-031,CLIENT-032,CLIENT-033,CLIENT-034,CLIENT-035,CLIENT-036,CLIENT-037,CLIENT-038,CLIENT-039,CLIENT-040,CLIENT-041,CLIENT-042,MEDIA-001,MEDIA-002,MEDIA-003,MEDIA-004,MEDIA-005,MEDIA-006,MEDIA-007,MEDIA-008,MEDIA-009,MEDIA-010,MEDIA-011,MEDIA-012,MEDIA-013,MEDIA-014,MEDIA-015,MEDIA-016,MEDIA-017,MEDIA-018,MEDIA-019,MEDIA-020,MEDIA-021,MEDIA-022,MEDIA-023,MEDIA-024,MEDIA-025,MEDIA-026,MEDIA-027,LAB-001,LAB-002,LAB-003,LAB-004,LAB-005,LAB-006,LAB-007,LAB-008,LAB-009,LAB-010,LAB-011,LAB-012,LAB-013,LAB-014,LAB-015,LAB-016,LAB-017,LAB-018,LAB-019,LAB-020,LAB-021,LAB-022,LAB-023,LAB-024,LAB-025,LAB-026,LAB-027,LAB-028,LAB-029,LAB-030,LAB-031,LAB-032,LAB-033,LAB-034,LAB-035,LAB-036,LAB-037,LAB-038,LAB-039,LAB-040,LAB-041,LAB-042,LAB-043,LAB-044,LAB-045,LAB-046,LAB-047,LAB-048,LAB-049,LAB-050,LAB-051,LAB-052,LAB-053,LAB-054,LAB-055,LAB-056,LAB-057,LAB-058,LAB-059,LAB-060,LAB-061,LAB-062,LAB-063,LAB-064,LAB-065,LAB-066,LAB-067,LAB-068,LAB-069,LAB-070,LAB-071,LAB-072,LAB-073,LAB-074,LAB-075,LAB-076,LAB-077,LAB-078,LAB-079,LAB-080,LAB-081,LAB-082,LAB-083,LAB-084,LAB-085,LAB-086,LAB-087,LAB-088,LAB-089,LAB-090,LAB-091,LAB-092,LAB-093,LAB-094,LAB-095,LAB-096,LAB-097,LAB-098,LAB-099,LAB-100,LAB-101,LAB-102,LAB-103,LAB-104,LAB-105,LAB-106,LAB-107,LAB-108,LAB-109,LAB-110,LAB-111,LAB-112,LAB-113,LAB-114,LAB-115,LAB-116,LAB-117,LAB-118,LAB-119,LAB-120,LAB-121,LAB-122,LAB-123,LAB-124,LAB-125,LAB-126,SAFE-001,SAFE-002,SAFE-003,SAFE-004,SAFE-005,SAFE-006,SAFE-007,SAFE-008,SAFE-009,SAFE-010,SAFE-011,SAFE-012,SAFE-013,SAFE-014,SAFE-015,SAFE-016,SAFE-017,SAFE-018,SAFE-019,SAFE-020,SAFE-021,SAFE-022,SAFE-023,SAFE-024,SAFE-025,SAFE-026,SAFE-027,SAFE-028,SAFE-029,SAFE-030,SAFE-031,SAFE-032,SAFE-033,SAFE-034,SAFE-035,SAFE-036,SAFE-037,SAFE-038,SAFE-039,SAFE-040,SAFE-041,SAFE-042,SAFE-043,SAFE-044,SAFE-045,SAFE-046,SAFE-047,SAFE-048,SAFE-049,SAFE-050,SAFE-051,SAFE-052,SAFE-053,SAFE-054,SAFE-055,SAFE-056,SAFE-057,SAFE-058,SAFE-059,SAFE-060,SAFE-061,SAFE-062,SAFE-063,SAFE-064,SAFE-065,SAFE-066,SAFE-067,SAFE-068,SAFE-069,SAFE-070,SAFE-071,SAFE-072,SAFE-073,SAFE-074,SAFE-075,SAFE-076,SAFE-077,SAFE-078,SAFE-079,SAFE-080,SAFE-081,SAFE-082,SAFE-083,SAFE-084,SAFE-085,SAFE-086,SAFE-087,SAFE-088,SAFE-089,SAFE-090,SAFE-091,SAFE-092,SAFE-093,SAFE-094,SAFE-095,SAFE-096,SAFE-097,SAFE-098,SAFE-099,SAFE-100,SAFE-101,SAFE-102,SAFE-103,SAFE-104,SAFE-105,SAFE-106,SAFE-107,SAFE-108,SAFE-109,SAFE-110,SAFE-111,SAFE-112,SAFE-113,SAFE-114,SAFE-115,SAFE-116,SAFE-117,SAFE-118,SAFE-119,SAFE-120,SAFE-121,SAFE-122,SAFE-123,SAFE-124,SAFE-125,SAFE-126,SAFE-127,SAFE-128,SAFE-129,SAFE-130,SAFE-131,SAFE-132,SAFE-133,SAFE-134,SAFE-135,SAFE-136,SAFE-137,SAFE-138,SAFE-139,SAFE-140,SAFE-141,SAFE-142,SAFE-143,SAFE-144,SAFE-145,SAFE-146,SAFE-147,SAFE-148,SAFE-149,SAFE-150,SAFE-151,SAFE-152,SAFE-153,SAFE-154,SAFE-155,SAFE-156,SAFE-157,SAFE-158,SAFE-159,SAFE-160,SAFE-161,SAFE-162,SAFE-163,SAFE-164,SAFE-165,SAFE-166,SAFE-167,SAFE-168,SAFE-169,SAFE-170,SAFE-171,SAFE-172,SAFE-173,SAFE-174,SAFE-175,SAFE-176,SAFE-177,SAFE-178,SAFE-179,SAFE-180,SAFE-181,SAFE-182,SAFE-183,SAFE-184,SAFE-185,SAFE-186,SAFE-187,SAFE-188,SAFE-189,SAFE-190,SAFE-191,SAFE-192,SAFE-193,SAFE-194,SAFE-195,SAFE-196,SAFE-197,SAFE-198,SAFE-199,SAFE-200,SAFE-201,SAFE-202,SAFE-203,SAFE-204,SAFE-205,SAFE-206,SAFE-207,SAFE-208,SAFE-209,SAFE-210,SAFE-211,SAFE-212,SAFE-213,SAFE-214,SAFE-215,SAFE-216,SAFE-217,OPS-035,OPS-036,OPS-037,OPS-038,OPS-039,OPS-040,OPS-041,OPS-042,OPS-043,OPS-044,OPS-045,OPS-046,OPS-047,OPS-048,OPS-049,OPS-050,OPS-051,OPS-052,OPS-053,OPS-054,OPS-055,OPS-056,OPS-057,OPS-058,OPS-059,OPS-060,OPS-061,OPS-062,OPS-063,OPS-064,OPS-065,OPS-066,OPS-067,OPS-068,OPS-069,OPS-070,OPS-071,OPS-072,OPS-073,OPS-074,OPS-075,OPS-076,OPS-077,OPS-078,OPS-079,OPS-080,OPS-081,OPS-082,OPS-083,OPS-084,OPS-085,OPS-086,OPS-087,OPS-088,OPS-089,OPS-090,OPS-091,OPS-092,OPS-093,OPS-094,OPS-095,OPS-096,OPS-097,OPS-098,OPS-099,OPS-100,OPS-101,OPS-102,OPS-103,OPS-104,OPS-105,OPS-106,OPS-107,OPS-108,OPS-109,OPS-110,OPS-111,OPS-112,OPS-113,OPS-114,OPS-115,OPS-116,OPS-117,OPS-118,OPS-119,OPS-120,OPS-121,OPS-122,OPS-123,OPS-124,OPS-125,OPS-126,OPS-127,OPS-128,OPS-129,OPS-130,OPS-131,OPS-132,OPS-133,OPS-134,OPS-135,OPS-136,OPS-137,OPS-138,OPS-139,OPS-140,OPS-141,OPS-142,OPS-143,OPS-144,OPS-145,OPS-146,OPS-147,OPS-148,OPS-149,OPS-150,OPS-151,OPS-152,OPS-153,OPS-154,OPS-155,OPS-156,OPS-157,OPS-158,OPS-159,OPS-160,OPS-161,OPS-162,OPS-163,OPS-164,OPS-165,OPS-166,OPS-167,OPS-168,OPS-169,OPS-170,OPS-171,OPS-172,OPS-173,OPS-174,OPS-175,OPS-176,OPS-177,OPS-178,OPS-179,OPS-180,OPS-181,OPS-182,OPS-183,OPS-184\n- familyStatus: UI:115/0,AUTH:42/0,SRC:68/0,RULE:112/0,EVT:87/0,CLIENT:42/0,MEDIA:27/0,LAB:126/0,SAFE:217/0,OPS:150/0\n- unresolvedReasons: none\n- typedSemanticErrors: none\n- reviewedProofErrors: none\n- approvals: 986\n- pass: 51\n- fail: 0\n[pass] applied independently approved REVIEW4 source flows to canonical implementation manifest\n"
+      },
+      "readback": {
+        "bytes": 1141,
+        "sha256": "f004e8a145e0b287322992e5f2f9c356c12a495834505e9ea79a414fd1f6b6f7",
+        "text": "[pass] negative fixture missing-id\n[pass] negative fixture duplicate-id\n[pass] negative fixture wrong-section-prefix\n[pass] negative fixture missing-source-file\n[pass] negative fixture missing-source-anchor\n[pass] negative fixture missing-ui-control-anchor\n[pass] negative fixture missing-ui-screen-route\n[pass] negative fixture unknown-verifier-command\n[pass] negative fixture missing-verifier-assertion\n[pass] negative fixture legacy-longrun-command\n[pass] negative fixture inventory-hash-drift\n[pass] negative fixture missing-reviewed-call-chain\n[pass] negative fixture bulk-review-reason\n[pass] negative fixture safe-140-unrelated-owner\n[pass] negative fixture rule-017-generic-json-owner\n\n== Feature implementation evidence summary ==\n- expectedFeatureRows: 986\n- inventoryRows: 986\n- manifestRows: 986\n- sourceEvidenceRows: 986\n- uiEvidenceRows: 441\n- verifierEvidenceRows: 986\n- manualUiCaseRows: 424\n- semanticReviewedRows: 986\n- uniqueSemanticDigests: 986\n- reviewedCallChains: 986\n- uniqueReviewReasons: 986\n- validationErrors: 0\n- review4GlobalErrors: 0\n- negativeFixtures: 15/15\n- executionEvidenceStatus: not-execution-evidence\n"
+      },
+      "coverage": {
+        "bytes": 604,
+        "sha256": "f3dd9d2ec3cd35ce7a806a391b6918dddd2c2377ca3039afa624f484985f9bce",
+        "text": "[pass] V450 current ID/dispatch registration (not independent approval)\n[pass] S05 개별 동작 등록 exact 연결 (실행 증거 아님)\n[pass] inventory row count is stable\n[pass] inventory uses only the four approved test areas\n[pass] coverage docs and server command are wired\n[pass] exact implementation evidence manifest is valid\n[pass] all feature IDs have exact coverage targets\n[pass] negative missing-ID fixture fails\n[pass] SAFE-200 canonical coverage wording truthfulness boundary\n\n== Feature inventory coverage summary ==\n- featureRows: 986\n- covered: 986\n- missing: 0\n- pass: 9\n- fail: 0\n"
+      }
+    }
+  }
+}

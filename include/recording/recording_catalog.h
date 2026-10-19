@@ -290,7 +290,7 @@ public:
 private:
     bool CaptureSearchSourceImpl(const std::vector<std::string>& channels,
         const RecordingSearchModel* previous, SearchSourceBatch* result, std::string* error,
-        SearchModelLimits limits, bool include_observations, SearchSourceBatch* retry_capture, bool allow_raw_cut) const;
+        SearchModelLimits limits, bool include_observations, SearchSourceBatch* retry_capture, bool allow_raw_cut, bool allow_document_sharing = true) const;
     bool EvidenceRowsLocked(const EvidenceSnapshot&,std::vector<ReferencedObservationV1>*,
         std::vector<std::string>*,std::string*) const;
     bool EvidenceDependenciesLocked(const EvidenceSnapshot&,std::vector<std::string>*,std::string*) const;

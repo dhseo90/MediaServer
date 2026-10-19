@@ -184,9 +184,9 @@ bool RecordingSearchSnapshots::ResolveHit(const std::string& id,const std::strin
         const auto it=std::find_if(entries_.begin(),entries_.end(),[&](const auto& entry){return entry.id==id;});
         if(it==entries_.end())return Fail(error,"search-snapshot-expired");
         if(it->query_hash!=hash||it->principal!=principal||it->scope!=scope)return Fail(error,"search-cursor-binding-mismatch");
-        const auto* document=it->model->Find(hit);
-        if(!document)return Fail(error,"search-hit-unavailable");
-        const auto index=static_cast<std::size_t>(document-it->model->documents().data());
+        const auto position_in_model=it->model->FindPosition(hit);
+        if(!position_in_model)return Fail(error,"search-hit-unavailable");
+        const auto index=*position_in_model;
         if(!std::binary_search(it->matches.positions.begin(),it->matches.positions.end(),index))return Fail(error,"search-hit-unavailable");
         *output=it->model;*position=index;if(error)error->clear();return true;
     }catch(const std::bad_alloc&){return Fail(error,"search-snapshot-capacity");}

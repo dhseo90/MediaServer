@@ -86,10 +86,20 @@ void Locate(SearchDocument& d, const ConsumerReferenceResolution& resolution) {
 bool RecordingSearchReader::Refresh(const std::vector<std::string>& channels,
     const std::shared_ptr<const RecordingSearchModel>& previous,
     std::shared_ptr<const RecordingSearchModel>* output, std::string* error, SearchModelLimits limits, bool include_observations, SearchSourceBatch* retry_capture) const {
+    bool sharing=true;
+#ifdef RECORDING_SEARCH_TESTING
+    sharing=search_projection_reuse_test_enabled;
+#endif
+    return RefreshImpl(channels,previous,output,error,limits,include_observations,retry_capture,sharing);
+}
+bool RecordingSearchReader::RefreshImpl(const std::vector<std::string>& channels,
+    const std::shared_ptr<const RecordingSearchModel>& previous,
+    std::shared_ptr<const RecordingSearchModel>* output,std::string* error,SearchModelLimits limits,
+    bool include_observations,SearchSourceBatch* retry_capture,bool allow_document_sharing) const {
     if (!output) {if(error)*error="search-invalid-output";return false;}
     if(!limits.residency)limits.residency=catalog_.SearchResidency();
     SearchSourceBatch batch;
-    {SearchDiagnostic::Phase cost("Capture");if (!catalog_.CaptureSearchSource(channels, previous.get(), &batch, error, limits, include_observations, retry_capture)) {if(retry_capture)*retry_capture=SearchSourceBatch{};return false;}}
+    {SearchDiagnostic::Phase cost("Capture");if (!catalog_.CaptureSearchSourceImpl(channels, previous.get(), &batch, error, limits, include_observations, retry_capture,true,allow_document_sharing)) {if(retry_capture)*retry_capture=SearchSourceBatch{};return false;}}
     if(retry_capture)*retry_capture=SearchSourceBatch{};
 
 #ifdef RECORDING_SEARCH_TESTING
@@ -127,14 +137,30 @@ bool RecordingSearchReader::Refresh(const std::vector<std::string>& channels,
     std::shared_ptr<const RecordingSearchModel> next;
     SearchDiagnostic::Stage(batch.rebuild?"model-build":"model-delta");
     SearchDiagnostic::Phase build_cost(batch.rebuild?"BuildOwned":"ApplyDelta");
-    const bool built = batch.rebuild ? (batch.append_order_hint&&previous ?
+    const bool built = !batch.shared_documents_.empty() ? RecordingSearchModel::BuildShared(
+        batch.delta.upserts,batch.shared_documents_,previous.get(),batch.delta.source_instance,batch.delta.revision,&next,error,limits) : batch.rebuild ? (batch.append_order_hint&&previous ?
         RecordingSearchModel::BuildOwnedAppend(std::move(batch.delta.upserts),*previous,
             batch.delta.source_instance,batch.delta.revision,&next,error,limits) :
         RecordingSearchModel::BuildOwned(std::move(batch.delta.upserts),
             batch.delta.source_instance, batch.delta.revision, &next, error, limits)) :
         RecordingSearchModel::ApplyDelta(*previous, batch.delta, &next, error, limits);
     // 정렬/복사 동안 발생한 원본 상태 변경도 완료 직전에 거부한다.
-    if(!built)return false;
+    if(!built) {
+        if(!batch.shared_documents_.empty()) {
+            // Only optional BuildShared failure reaches this branch. Capture,
+            // authority and currentness failures above retain their own errors.
+            batch=SearchSourceBatch{};
+#ifdef RECORDING_SEARCH_TESTING
+            ++search_projection_work_test[3];
+#endif
+            return RefreshImpl(channels,previous,output,error,limits,include_observations,retry_capture,false);
+        }
+        return false;
+    }
+    // The model now owns its references. Drop the capture-only array/ticket;
+    // post-build diagnostics keep the strict path's consumed-batch meaning.
+    std::vector<std::shared_ptr<const SearchDocument>>{}.swap(batch.shared_documents_);
+    batch.sharing_memory_={};
 #ifdef RECORDING_SEARCH_TESTING
     if(search_after_build_test)search_after_build_test();
 #endif
@@ -143,7 +169,10 @@ bool RecordingSearchReader::Refresh(const std::vector<std::string>& channels,
         // No WithPlayback/event projection or published snapshot reaches here.
         // Its old revision is never accepted: retry traverses/authenticates all
         // current raw again and checks the current lifecycle before using spans.
-        if(retry_capture&&!include_observations&&batch.rebuild&&!batch.segment_spans_.empty()&&
+        if(retry_capture&&!include_observations&&batch.rebuild&&!next->shared_documents_.empty()&&error&&*error=="search-source-changed") {
+            batch.retry_model_=next;batch.shared_documents_.clear();
+            batch.memory.DiagnosticCategory(SearchModelResidency::Category::RetryBatch);*retry_capture=std::move(batch);
+        } else if(retry_capture&&!include_observations&&batch.rebuild&&!batch.segment_spans_.empty()&&
            error&&*error=="search-source-changed"&&next.use_count()==1){
             auto owned=std::const_pointer_cast<RecordingSearchModel>(std::move(next));
             batch.delta.upserts=std::move(owned->documents_);
@@ -164,6 +193,8 @@ bool RecordingSearchReader::Refresh(const std::vector<std::string>& channels,
         }
         return false;
     }
+    if(allow_document_sharing&&!include_observations&&next.use_count()==1)
+        std::const_pointer_cast<RecordingSearchModel>(next)->PromoteSourceStorage(limits);
     *output = std::move(next);if(error)error->clear();return true;
 }
 bool RecordingSearchReader::WithEventFacts(const RecordingSearchModel& source,
