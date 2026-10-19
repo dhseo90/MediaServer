@@ -41,7 +41,7 @@ const char* EvidenceErrorCode(const std::string& error) noexcept {
     return "evidence-internal-error";
 }
 void TraceEvidenceFailure(const EvidenceFailure& d,const char* code) noexcept {
-    if(!latency::Enabled())return;
+    if(!completion::Enabled())return;
     // 기존 진단 opt-in/출력 budget을 공유한다. 고정 코드·숫자만 출력한다.
     try {
         char line[768];const int n=std::snprintf(line,sizeof(line),

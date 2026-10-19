@@ -18,7 +18,7 @@ assert.equal(verdict('\n'+good+'\n').status,'captured');
 for(let at=0;at<=Buffer.byteLength(good);++at){const c=completionCollection(),buf=Buffer.from(good);c.append(buf.subarray(0,at));c.append(buf.subarray(at));assert.equal(c.finish().status,'captured');}
 // Cross-stream delivery can arrive after stderr receipt; final aggregate reconciles both streams.
 const multi=completionCollection();multi.append(b+end(2,Buffer.byteLength(a+b)),'stderr');multi.append(a,'stdout');assert.equal(multi.finish().status,'captured');
-const negatives=[a,good+a,a+end(2,Buffer.byteLength(a)),a+end(1,1),a+end(1,Buffer.byteLength(a),{lost:true}),a+end(1,Buffer.byteLength(a),{writeError:true}),a+end(1,Buffer.byteLength(a),{complete:false}),
+const negatives=[a,good+end(2,Buffer.byteLength(a+b)),good+a,a+end(2,Buffer.byteLength(a)),a+end(1,1),a+end(1,Buffer.byteLength(a),{lost:true}),a+end(1,Buffer.byteLength(a),{writeError:true}),a+end(1,Buffer.byteLength(a),{complete:false}),
  line('[recording-completion]',{...completion,event:14,begin:'0',end:'0',request:0,n:1,x:0,y:0}),line('[recording-evidence]',{lost:true}),
  '[recording-completion] {bad}\n','[recording-evidence] {}\n','[recording-completion] ',
  line('[recording-evidence]',{...evidence,checked:2}),line('[recording-completion]',{...completion,unexpected:true}),
@@ -43,15 +43,42 @@ const binary=path.join(root,'receipt-smoke');
 const flags=spawnSync('pkg-config',['--cflags','--libs','openssl'],{encoding:'utf8'});assert.equal(flags.status,0,flags.stderr);
 const build=spawnSync(process.env.CXX||'c++',['-std=c++17','-Wall','-Wextra','-Werror','-pthread','-DMEDIA_SERVER_USE_OPENSSL=1','-Iinclude','scripts/internal/recording_completion_receipt_smoke.cpp',...flags.stdout.trim().split(/\s+/),'-o',binary],{encoding:'utf8',timeout:30000});assert.equal(build.status,0,build.stderr);
 const native=[];
-for(const mode of ['normal','exception','short','flush','cap','bytes','abnormal','late']){
- const r=spawnSync(binary,[mode],{env:{...process.env,MEDIA_SERVER_VERIFY_RECORDING_LATENCY_TRACE:'1'},encoding:'utf8',timeout:10000,maxBuffer:3*1024*1024});assert.equal(r.status,0,r.stderr);
- fs.writeFileSync(path.join(root,'receipt-'+mode+'.log'),r.stdout+r.stderr,{flag:'wx'});
- assert(Buffer.byteLength(r.stdout+r.stderr)<=2*1024*1024);
- const result=verdict(r.stdout);assert.equal(result.status,mode==='normal'?'captured':'incomplete',mode);
- assert.equal((r.stdout.match(/\[recording-completion-end\]/g)||[]).length,1);
- if(mode==='normal')assert.equal(result.rows,2); // destructor row included before terminal
- native.push({mode,...result,wireBytes:Buffer.byteLength(r.stdout)});
+for(const [latency,completionFlag] of [['0','1'],['1','0']])for(const mode of ['normal','exception','short','flush','cap','bytes','abnormal','late','missing']){
+ const r=spawnSync(binary,[mode],{env:{...process.env,MEDIA_SERVER_VERIFY_RECORDING_LATENCY_TRACE:latency,MEDIA_SERVER_VERIFY_RECORDING_COMPLETION_TRACE:completionFlag},encoding:'utf8',timeout:10000,maxBuffer:3*1024*1024});assert.equal(r.status,0,r.stderr);
+ fs.writeFileSync(path.join(root,`receipt-${latency}-${completionFlag}-${mode}.log`),r.stdout+r.stderr,{flag:'wx'});
+ assert(Buffer.byteLength(r.stdout)<=2*1024*1024);
+ assert.equal(r.stderr.includes('[recording-latency]'),latency==='1','global lock trace isolation');
+ const result=verdict(r.stdout);assert.equal(result.status,mode==='normal'?'captured':'incomplete',`${latency}/${completionFlag}/${mode}`);
+ assert.equal((r.stdout.match(/\[recording-completion-end\]/g)||[]).length,mode==='missing'?0:1);
+ const terminal=r.stdout.match(/\[recording-completion-end\] (.*)/);
+ if(terminal){const receipt=JSON.parse(terminal[1]);
+  if(['short','flush'].includes(mode))assert.equal(receipt.writeError,true);
+  if(['short','cap','bytes','exception'].includes(mode))assert.equal(receipt.lost,true);
+  if(['abnormal','short','flush','cap','bytes','exception'].includes(mode))assert.equal(receipt.complete,false);
+ }
+ if(mode==='normal'){
+  assert.equal(result.rows,2);assert.equal(result.receipt.bytes,result.bytes);assert.equal(result.receipt.rows,result.rows);
+  const rows=r.stdout.split('\n').filter(x=>x.startsWith('[recording-completion] ')).map(x=>JSON.parse(x.slice('[recording-completion] '.length)));
+  assert.equal(rows.length,2);for(const row of rows){assert(BigInt(row.begin)>0n&&BigInt(row.end)>=BigInt(row.begin));assert(row.thread>0);assert.equal(row.request,1);}
+ }
+ native.push({latency,completionFlag,mode,...result,wireBytes:Buffer.byteLength(r.stdout)});
 }
-const off=spawnSync(binary,['normal'],{env:{...process.env,MEDIA_SERVER_VERIFY_RECORDING_LATENCY_TRACE:'0'},encoding:'utf8'});assert.equal(off.status,0);assert.equal(off.stdout+off.stderr,'');
+for(const flag of ['0','','true','01','1 ']){
+ const off=spawnSync(binary,['normal'],{env:{...process.env,MEDIA_SERVER_VERIFY_RECORDING_LATENCY_TRACE:'0',MEDIA_SERVER_VERIFY_RECORDING_COMPLETION_TRACE:flag},encoding:'utf8',timeout:10000});assert.equal(off.status,0);assert.equal(off.stdout+off.stderr,'');
+}
+// Optional rebuilt-runtime binding: actual Evidence producer, no header test sink.
+if(process.env.COMPLETION_LINKED_BINARY){
+ for(const [latency,flag] of [['0','0'],['0','1'],['1','0']])for(const mode of ['normal','abnormal','missing']){
+  const r=spawnSync(process.env.COMPLETION_LINKED_BINARY,[mode],{env:{...process.env,MEDIA_SERVER_VERIFY_RECORDING_LATENCY_TRACE:latency,MEDIA_SERVER_VERIFY_RECORDING_COMPLETION_TRACE:flag},encoding:'utf8',timeout:10000,maxBuffer:3*1024*1024});
+  assert.equal(r.status,0,r.stderr);const text=r.stdout+r.stderr;
+  fs.writeFileSync(path.join(root,`linked-${latency}-${flag}-${mode}.log`),text,{flag:'wx'});
+  if(latency==='0'&&flag==='0'){assert.equal(text,'');continue;}
+  assert.equal(text.includes('[recording-latency]'),latency==='1');
+  assert.equal((text.match(/\[recording-evidence\]/g)||[]).length,1);
+  const result=verdict(text);assert.equal(result.status,mode==='normal'?'captured':'incomplete');
+  if(mode==='normal'){assert.equal(result.rows,3);assert.equal(result.receipt.rows,3);assert.equal(result.bytes,result.receipt.bytes);}
+  native.push({linked:true,latency,completionFlag:flag,mode,...result});
+ }
+}
 console.log(JSON.stringify({status:'PASS',splitPositions:Buffer.byteLength(good)+1,negativeCases:negatives.length*2,native,productRuns:0,receiptTransportIsNotShutdownOrJournalProof:true}));
 if(!process.env.R141_ROOT)fs.rmSync(root,{recursive:true});

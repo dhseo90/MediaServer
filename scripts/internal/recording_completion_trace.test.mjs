@@ -19,10 +19,12 @@ after(()=>{if(root){const bytes=fs.readdirSync(root).reduce((n,p)=>n+fs.statSync
 const ref='a'.repeat(64),job='b'.repeat(64);
 const row=(event=1,at='10')=>({v:1,event,begin:at,end:at,thread:1,request:0,reference:ref,job:event===1?null:job,n:0,x:0,y:0});
 const line=x=>'[recording-completion] '+JSON.stringify(x)+'\n';
-function run(mode,env='1'){
-  const result=spawnSync(binary,[mode],{encoding:'utf8',timeout:10000,maxBuffer:3*1024*1024,env:{PATH:process.env.PATH,...(env===null?{}:{MEDIA_SERVER_VERIFY_RECORDING_LATENCY_TRACE:env})}});assert.equal(result.status,0);assert.equal(result.stderr,'');return result.stdout;
+function run(mode,env='1',completion='0'){
+  const result=spawnSync(binary,[mode],{encoding:'utf8',timeout:10000,maxBuffer:3*1024*1024,env:{PATH:process.env.PATH,MEDIA_SERVER_VERIFY_RECORDING_LATENCY_TRACE:env??'',MEDIA_SERVER_VERIFY_RECORDING_COMPLETION_TRACE:completion}});assert.equal(result.status,0);assert.equal(result.stderr,'');return result.stdout;
 }
 test('LP22-T01 trace off and invalid environment emit nothing',()=>{for(const env of [null,'','0','true','01','1 '])assert.equal(run('normal',env),'');});
+test('completion explicit flag emits Point with a valid clock/context independently',()=>{const c=createCompletionTraceCollector();c.append(run('normal','0','1'));const rows=c.finish();assert.equal(rows.length,1);assert(BigInt(rows[0].begin)>0n);assert.equal(rows[0].begin,rows[0].end);assert(rows[0].thread>0);});
+
 test('LP22-T02 trace hashes canary identity and rejects unknown raw fields',()=>{const raw=run('normal');assert(!raw.includes('CANARY'));const c=createCompletionTraceCollector();c.append(raw);assert.equal(c.finish()[0].reference,crypto.createHash('sha256').update('CANARY_REFERENCE').digest('hex'));assert.throws(()=>validateCompletionRow({...row(),raw:'CANARY'}));});
 test('LP22-T02 trace count and byte caps emit one explicit loss',()=>{for(const mode of ['cap','bytes']){const raw=run(mode),c=createCompletionTraceCollector();assert(Buffer.byteLength(raw)<=2*1024*1024);c.append(raw);const rows=c.finish();assert(rows.length<=4096);assert.equal(rows.filter(x=>x.event===14).length,1);assert.equal(c.status().status,'loss');}});
 test('LP22-T03 partial lines and malformed clocks fail closed',()=>{const c=createCompletionTraceCollector();c.append(line(row()).slice(0,-1));assert.throws(()=>c.finish(),/partial/);assert.throws(()=>validateCompletionRow({...row(),begin:'20',end:'10'}));const real=createCompletionTraceCollector();real.append(run('clock'));assert.equal(real.finish()[0].request,7);});

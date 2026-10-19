@@ -357,7 +357,8 @@ test('C1 strict JSON and execution agree on exact allowances and mixed forbidden
 
 test('C1 moved completion diagnostics retain opt-in, bounds, redaction and failure isolation', () => {
   const trace = read('include/recording/recording_completion_trace.h');
-  assert(trace.includes('if(!latency::Enabled())return;'));
+  assert(trace.includes('if(!Enabled())return;'));
+  assert(trace.includes('return latency::Enabled()||explicit_enabled;'));
   assert(trace.includes('rows>=4095') && trace.includes('2*1024*1024-512'));
   assert(trace.includes('Hash(reference,ref)&&Hash(job,id)'));
   assert(trace.includes('catch(...)') && trace.includes('noexcept'));

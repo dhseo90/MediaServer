@@ -52,7 +52,7 @@ def generate(out):
     s=replace(s,'stateDiagnose?2880000','stateDiagnose?1870000')
     s=replace(s,"BIN_PATH:path.join(repo,'build-gst-onnx/media_server')","BIN_PATH:process.env.R165_BINARY")
     s=replace(s,'VERIFY_RECORDING_SEARCH_TRACE:1','VERIFY_RECORDING_SEARCH_TRACE:0')
-    s=replace(s,'VERIFY_RECORDING_LATENCY_TRACE:1','VERIFY_RECORDING_LATENCY_TRACE:0')
+    s=replace(s,'VERIFY_RECORDING_LATENCY_TRACE:1','VERIFY_RECORDING_LATENCY_TRACE:0,VERIFY_RECORDING_COMPLETION_TRACE:1')
     s=replace(s,'VERIFY_RECORDING_LATENCY_SLOW_ONLY:1','VERIFY_RECORDING_LATENCY_SLOW_ONLY:0')
     s=replace(s,'aLoad.start(begin,duration);','aLoad.start(begin,2700000); // original minute schedule; outer observation is bounded to 1800s')
     s=replace(s,'async function evidenceFetch(app,route,method=\'GET\',body){','''async function evidenceFetch(app,route,method='GET',body,selectedId=0){

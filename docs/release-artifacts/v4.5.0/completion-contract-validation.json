@@ -1,0 +1,896 @@
+{
+  "task": "Completion Producer/Collector Contract Fix",
+  "baselineHead": "833fbe391abe88e5108f2551dfe0870b857f4dfb",
+  "functionalResult": "COMPLETION_CONTRACT_FIXED",
+  "representativeCapacity": "CAPACITY_UNPROVEN",
+  "sourceFiles": {
+    "docs/project-feature-test-inventory.md": {
+      "bytes": 1101080,
+      "sha256": "de9ddf9163b83a2a473868dca0a83e0922f6be84eb23008babcf9863a39f5fbf"
+    },
+    "include/recording/recording_completion_trace.h": {
+      "bytes": 6185,
+      "sha256": "00ad7cdaf9e01457239563606d8af07a85b0cf4cc6a2856d70e4a436a842c892"
+    },
+    "scripts/internal/recording_accumulated_cost.py": {
+      "bytes": 15218,
+      "sha256": "11d6aa55c4dbc16145761c37e2d72798e59f79f075a1e97afff81576fa2c5c28"
+    },
+    "scripts/internal/recording_accumulated_cost.test.mjs": {
+      "bytes": 6783,
+      "sha256": "0b228c69b7b389dc772c58eeaed649079424bcce61bccc8d0ad95fdf840899cf"
+    },
+    "scripts/internal/recording_completion_collection.test.mjs": {
+      "bytes": 8040,
+      "sha256": "65c0e8948b85943ac40e7092a61673378fe7d14d7c947686f831d6614b7f4abd"
+    },
+    "scripts/internal/recording_completion_receipt_smoke.cpp": {
+      "bytes": 1921,
+      "sha256": "fd443c665b810d1991ecd989fb12438b8fdc12772feb906614bf93b0b27a1f77"
+    },
+    "scripts/internal/recording_completion_trace.test.mjs": {
+      "bytes": 5579,
+      "sha256": "314c951ec7677128e1c95eb8fba8906221e7b2fe8917c78776d13e8ddcaffa33"
+    },
+    "scripts/internal/structure_owner_classification.test.mjs": {
+      "bytes": 30865,
+      "sha256": "45b7ef7fddf9c6d890ecbe6a13b572fc276f375fe9532319395b722f0930e86d"
+    },
+    "src/recording/evidence_package_store.cpp": {
+      "bytes": 23197,
+      "sha256": "6c38e8747cf50460b230f7fd81899c75d80db0e918e50da6e0c40dfd524bf639"
+    },
+    "test/fixtures/project_feature_implementation_evidence.json": {
+      "bytes": 26350232,
+      "sha256": "3416d12ef63d3eefb6acb996756df86faa31a82a23fa60724224f19505eb1e0f"
+    }
+  },
+  "binaryAfter": {
+    "build-gst-onnx/media_server": {
+      "bytes": 38200992,
+      "sha256": "76f48e51100a086610068b53d0e35e534012873ddf5aeafd71bd2db9a97b81ed"
+    },
+    "build-gst-onnx/libmedia_server_runtime.a": {
+      "bytes": 113539784,
+      "sha256": "3f39ce79070c000f0cb4baed18ab0b3103c44f9279faad21255ea0ff27cf2786"
+    },
+    "/private/tmp/media-server-completion-fix-xrnps5qx/receipt-linked": {
+      "bytes": 15620384,
+      "sha256": "a84407c74cd2b8bcbab327aaebcb49ccd5c831accb0ebada6f2ef117cdf6e7fc"
+    }
+  },
+  "rawEvidenceRoot": "/private/tmp/media-server-completion-fix-xrnps5qx",
+  "rawLogs": {
+    "collection-final.log": {
+      "bytes": 4940,
+      "sha256": "00eb300ba559f2da6cc40038530db890ddb8273f7ed84b586ce969c3c3cd75b0"
+    },
+    "red.log": {
+      "bytes": 682,
+      "sha256": "ce7dcfb3b026af08ebac8993a17a6e853c4132408c869572c34efce59d924893"
+    },
+    "linked-build.log": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "structure-focused.log": {
+      "bytes": 218,
+      "sha256": "33bb996e36f61a9b2e78efdf73d003e16b53dad6ee8012225778cdec005e6846"
+    },
+    "collection-green.log": {
+      "bytes": 3760,
+      "sha256": "70465540fd567d3546f295d279da864c9471b371a768b3a2bc173278f16144cc"
+    },
+    "incremental-build.log": {
+      "bytes": 787,
+      "sha256": "c24e2fd903b06702f27ff873d27b5eadf661758b4a0e3c0ccdb22205e346f688"
+    },
+    "focused.log": {
+      "bytes": 3022,
+      "sha256": "7b9be77093a82ce32707d1e1e066446250fa5b551a202bcd55770cf3dc0b129f"
+    },
+    "green/receipt-0-1-late.log": {
+      "bytes": 426,
+      "sha256": "b80529cb66a504cf1566c5426d776f525ff5be4a2010ceec05a8b36fdaf1d24c"
+    },
+    "green/receipt-0-1-cap.log": {
+      "bytes": 588481,
+      "sha256": "43847804d55f53838c036e04f448217d6de9ce4be76b6941be6a6f9e6bc65c9d"
+    },
+    "green/receipt-0-1-normal.log": {
+      "bytes": 379,
+      "sha256": "d811cfe20e6ec92c72a78ef4cad3ae8a3000a7af57bdff90f0613893a973d702"
+    },
+    "green/receipt-0-1-missing.log": {
+      "bytes": 275,
+      "sha256": "4cb00a25e44cbf6fb9a8004ffce1098f6cc7222685768f7a3b2cd35c76f28112"
+    },
+    "green/receipt-1-0-missing.log": {
+      "bytes": 406,
+      "sha256": "82f74c362cea97ac0dcf38050235d10452c6aae698c7402beb0b74d46b76dc6a"
+    },
+    "green/receipt-1-0-short.log": {
+      "bytes": 366,
+      "sha256": "c5ac82dad1241430f6509a0e274ba7bd59276df6674dd2c29d63e626f1d61e92"
+    },
+    "green/receipt-1-0-exception.log": {
+      "bytes": 504,
+      "sha256": "e0d053d105e5d3a9a7339497695cb281fe35bbc24ccff935306760750c023424"
+    },
+    "green/receipt-1-0-cap.log": {
+      "bytes": 588635,
+      "sha256": "1fc73e66e5b9f77efa678d9d11a7928fc7541d9c3358fe2e0eb4503b9dd3e67e"
+    },
+    "green/receipt-0-1-bytes.log": {
+      "bytes": 237,
+      "sha256": "259ecd7b6dc4fe9be8a5b81babf95a0e3c744e4b297cab69227a716246f957c8"
+    },
+    "green/receipt-0-1-flush.log": {
+      "bytes": 381,
+      "sha256": "2501f61e8b6695a70d24af843e8e2f68c8c49229ac476b3339d18800a15e0f91"
+    },
+    "green/receipt-1-0-flush.log": {
+      "bytes": 508,
+      "sha256": "298c1410e30f7c2cf9162baf1ee09c6d178d4b08f3c5ee09a69479fd3d33c67a"
+    },
+    "green/receipt-1-0-bytes.log": {
+      "bytes": 361,
+      "sha256": "1edb5bb92d4266dcd85649ee25311a02e90f6fd31d9edb98e102ff2c9e799fe3"
+    },
+    "green/receipt-1-0-normal.log": {
+      "bytes": 512,
+      "sha256": "b60e27bec7cbf6bfa885d217f4a00aaebff4e634fe22572f25e447f2a06f8058"
+    },
+    "green/receipt-0-1-short.log": {
+      "bytes": 238,
+      "sha256": "36b2f3ac4bcc5d60cac7cfbe8cc61d02cb14a8fe87acb286266d189d2ac2a4aa"
+    },
+    "green/receipt-1-0-late.log": {
+      "bytes": 554,
+      "sha256": "2ef3e5b77a0f7b33229e25fbc31a823c65e4fc3a2fc9a1db0f70f55002b1a808"
+    },
+    "green/receipt-1-0-abnormal.log": {
+      "bytes": 509,
+      "sha256": "13545572518a43b47a4694175b61fc3d8c5e94df47c6fdc27041bd7ed5b55a10"
+    },
+    "green/receipt-0-1-exception.log": {
+      "bytes": 380,
+      "sha256": "c5e8a427424f679848d4b7b1c7c9ae00363b7250d980ae4ba38ef696e461a5c4"
+    },
+    "green/receipt-0-1-abnormal.log": {
+      "bytes": 380,
+      "sha256": "cf325624a95b9e8237f7a33606b11ba045108973e066e570d606b3d6352cd6dc"
+    },
+    "final-green/receipt-0-1-late.log": {
+      "bytes": 426,
+      "sha256": "0169f4a91da693806beeba4088e37cb2210380054765b322e6947dfd545c025a"
+    },
+    "final-green/linked-0-0-abnormal.log": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "final-green/receipt-0-1-cap.log": {
+      "bytes": 588324,
+      "sha256": "feadfd627246585828f05079ddd210f35015c11cedb832f7529c1fa164cc6216"
+    },
+    "final-green/receipt-0-1-normal.log": {
+      "bytes": 379,
+      "sha256": "2784bdd252a6c304732fd0bd484a92f4ae44c9fc305a49c91bdbc2a4824f7406"
+    },
+    "final-green/receipt-0-1-missing.log": {
+      "bytes": 273,
+      "sha256": "7c3ff31a26f9d5009e1eff9b0e4b0236bc7c236c64a75d862cb5577a964b80fd"
+    },
+    "final-green/linked-1-0-abnormal.log": {
+      "bytes": 706,
+      "sha256": "0c0413746576f0b4f9f79a5f79aae92358b026594a5afa04f7d770297aad6937"
+    },
+    "final-green/linked-0-1-abnormal.log": {
+      "bytes": 572,
+      "sha256": "53cb869bb75b73cd34726423df7cabdb971d5c657f398b3c31adc874de250df2"
+    },
+    "final-green/linked-0-0-normal.log": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "final-green/receipt-1-0-missing.log": {
+      "bytes": 407,
+      "sha256": "0d583c16dde5d4c880c491fb139d2e6e004b78505bca9c10dfd2e24aa7328219"
+    },
+    "final-green/receipt-1-0-short.log": {
+      "bytes": 364,
+      "sha256": "be3cb4eb820b4da6eeb5da27c67df818b52aa6fa9920fdf3021505da88f818e8"
+    },
+    "final-green/receipt-1-0-exception.log": {
+      "bytes": 509,
+      "sha256": "2840ea3d1fa5c83e9bcb9afe99e2a26271f8b3420742c318b1de47189b228604"
+    },
+    "final-green/linked-1-0-normal.log": {
+      "bytes": 705,
+      "sha256": "1eae2b636be03147e54371766aac24ee2673b4c1469a5f94aaf60cba4efb32c4"
+    },
+    "final-green/receipt-1-0-cap.log": {
+      "bytes": 589197,
+      "sha256": "2fdaa2a72b14765474d22fbc8f91c8c17ef1b536e434eb6217aaaa91fcaf2d2f"
+    },
+    "final-green/linked-0-0-missing.log": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "final-green/receipt-0-1-bytes.log": {
+      "bytes": 237,
+      "sha256": "259ecd7b6dc4fe9be8a5b81babf95a0e3c744e4b297cab69227a716246f957c8"
+    },
+    "final-green/receipt-0-1-flush.log": {
+      "bytes": 377,
+      "sha256": "7b5a888e0af2b036e0c57c79870776110c93f3bc14a1cc8e6cba416e49296931"
+    },
+    "final-green/receipt-1-0-flush.log": {
+      "bytes": 510,
+      "sha256": "d2cf53faccc3acb757a452797f887d8be58fe00cb8f7f7022d15d80053f8454b"
+    },
+    "final-green/receipt-1-0-bytes.log": {
+      "bytes": 361,
+      "sha256": "4c3f6bc818491b5c8fb7b9b1db2e6fa3f137ac697608a3bc62c0c5adfe4a4a06"
+    },
+    "final-green/linked-1-0-missing.log": {
+      "bytes": 600,
+      "sha256": "d7ad3c129a57f841dcc57677f288dedb841af92fa4b22cd0f7f7f8fefc848e6c"
+    },
+    "final-green/receipt-1-0-normal.log": {
+      "bytes": 510,
+      "sha256": "7268e6046691a832e60c3cfef83b3714416db1f32dcc6bbf63fbf9c9fa46281b"
+    },
+    "final-green/receipt-0-1-short.log": {
+      "bytes": 238,
+      "sha256": "a7dc85632aa63c18504e041f8ee9a3ac46c6612fdcb894190be89126c849b31f"
+    },
+    "final-green/receipt-1-0-late.log": {
+      "bytes": 557,
+      "sha256": "d48aeb4fd761dfbe1c590558df20567c2bede40f2d4f9b6857b515092510c56e"
+    },
+    "final-green/linked-0-1-missing.log": {
+      "bytes": 467,
+      "sha256": "52b3e65b71486548ec7c8309e31dd50342bafbd879c92e06dfe350fd72b17c4e"
+    },
+    "final-green/receipt-1-0-abnormal.log": {
+      "bytes": 509,
+      "sha256": "3a5ba47941e6505bf451e76499f5522a05e88721f80242cc15119c1a82e5ab93"
+    },
+    "final-green/linked-0-1-normal.log": {
+      "bytes": 572,
+      "sha256": "39f0eaa4df833605bf3edf6ec7aae3b050b1ab646570dd87209cdd4d90dbd47a"
+    },
+    "final-green/receipt-0-1-exception.log": {
+      "bytes": 378,
+      "sha256": "8b105f3b30ce4abb30129c5a9cc4b277469470e80ecb68c2c8fc0ae30db594a3"
+    },
+    "final-green/receipt-0-1-abnormal.log": {
+      "bytes": 380,
+      "sha256": "f05e28e67a22070d4ec1c7db29da1208133c2bc49085db6ceaeef1874bfecbcf"
+    },
+    "red/receipt-0-1-normal.log": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  },
+  "red": {
+    "command": "R141_ROOT=<owned>/red node scripts/internal/recording_completion_collection.test.mjs",
+    "observed": "0/1/normal expected captured, actual incomplete; original header emitted no completion output",
+    "expectedAssertionFailure": true,
+    "nodeExit": 1,
+    "outerShellExit": 0,
+    "outerShellNote": "trailing log display returned zero; not used as test status"
+  },
+  "focused": {
+    "command": "node --test scripts/internal/recording_completion_trace.test.mjs scripts/internal/recording_completion_contract.test.mjs scripts/internal/recording_accumulated_cost.test.mjs",
+    "exit": 0,
+    "tests": 34,
+    "failures": 0
+  },
+  "finalCollection": {
+    "command": "R141_ROOT=<owned>/final-green COMPLETION_LINKED_BINARY=<owned>/receipt-linked node scripts/internal/recording_completion_collection.test.mjs",
+    "exit": 0,
+    "result": {
+      "status": "PASS",
+      "splitPositions": 447,
+      "negativeCases": 34,
+      "native": [
+        {
+          "latency": "0",
+          "completionFlag": "1",
+          "mode": "normal",
+          "status": "captured",
+          "rows": 2,
+          "bytes": 275,
+          "receipt": {
+            "v": 1,
+            "rows": 2,
+            "bytes": 275,
+            "lost": false,
+            "writeError": false,
+            "complete": true
+          },
+          "wireBytes": 379
+        },
+        {
+          "latency": "0",
+          "completionFlag": "1",
+          "mode": "exception",
+          "status": "incomplete",
+          "code": "completion-receipt-loss",
+          "rows": 2,
+          "bytes": 274,
+          "receipt": {
+            "v": 1,
+            "rows": 2,
+            "bytes": 274,
+            "lost": true,
+            "writeError": false,
+            "complete": false
+          },
+          "wireBytes": 378
+        },
+        {
+          "latency": "0",
+          "completionFlag": "1",
+          "mode": "short",
+          "status": "incomplete",
+          "code": "Unexpected non-whitespace character after JSON at position 112 (line 1 column 113)",
+          "rows": 0,
+          "bytes": 0,
+          "receipt": null,
+          "wireBytes": 238
+        },
+        {
+          "latency": "0",
+          "completionFlag": "1",
+          "mode": "flush",
+          "status": "incomplete",
+          "code": "completion-receipt-loss",
+          "rows": 2,
+          "bytes": 273,
+          "receipt": {
+            "v": 1,
+            "rows": 2,
+            "bytes": 273,
+            "lost": false,
+            "writeError": true,
+            "complete": false
+          },
+          "wireBytes": 377
+        },
+        {
+          "latency": "0",
+          "completionFlag": "1",
+          "mode": "cap",
+          "status": "incomplete",
+          "code": "completion-loss",
+          "rows": 4095,
+          "bytes": 588081,
+          "receipt": null,
+          "wireBytes": 588324
+        },
+        {
+          "latency": "0",
+          "completionFlag": "1",
+          "mode": "bytes",
+          "status": "incomplete",
+          "code": "completion-loss",
+          "rows": 0,
+          "bytes": 0,
+          "receipt": null,
+          "wireBytes": 237
+        },
+        {
+          "latency": "0",
+          "completionFlag": "1",
+          "mode": "abnormal",
+          "status": "incomplete",
+          "code": "completion-receipt-loss",
+          "rows": 2,
+          "bytes": 275,
+          "receipt": {
+            "v": 1,
+            "rows": 2,
+            "bytes": 275,
+            "lost": false,
+            "writeError": false,
+            "complete": false
+          },
+          "wireBytes": 380
+        },
+        {
+          "latency": "0",
+          "completionFlag": "1",
+          "mode": "late",
+          "status": "incomplete",
+          "code": "completion-after-end",
+          "rows": 2,
+          "bytes": 275,
+          "receipt": {
+            "v": 1,
+            "rows": 2,
+            "bytes": 275,
+            "lost": false,
+            "writeError": false,
+            "complete": true
+          },
+          "wireBytes": 426
+        },
+        {
+          "latency": "0",
+          "completionFlag": "1",
+          "mode": "missing",
+          "status": "incomplete",
+          "code": "completion-receipt-missing",
+          "rows": 2,
+          "bytes": 273,
+          "receipt": null,
+          "wireBytes": 273
+        },
+        {
+          "latency": "1",
+          "completionFlag": "0",
+          "mode": "normal",
+          "status": "captured",
+          "rows": 2,
+          "bytes": 282,
+          "receipt": {
+            "v": 1,
+            "rows": 2,
+            "bytes": 282,
+            "lost": false,
+            "writeError": false,
+            "complete": true
+          },
+          "wireBytes": 386
+        },
+        {
+          "latency": "1",
+          "completionFlag": "0",
+          "mode": "exception",
+          "status": "incomplete",
+          "code": "completion-receipt-loss",
+          "rows": 2,
+          "bytes": 282,
+          "receipt": {
+            "v": 1,
+            "rows": 2,
+            "bytes": 282,
+            "lost": true,
+            "writeError": false,
+            "complete": false
+          },
+          "wireBytes": 386
+        },
+        {
+          "latency": "1",
+          "completionFlag": "0",
+          "mode": "short",
+          "status": "incomplete",
+          "code": "Unexpected non-whitespace character after JSON at position 115 (line 1 column 116)",
+          "rows": 0,
+          "bytes": 0,
+          "receipt": null,
+          "wireBytes": 241
+        },
+        {
+          "latency": "1",
+          "completionFlag": "0",
+          "mode": "flush",
+          "status": "incomplete",
+          "code": "completion-receipt-loss",
+          "rows": 2,
+          "bytes": 282,
+          "receipt": {
+            "v": 1,
+            "rows": 2,
+            "bytes": 282,
+            "lost": false,
+            "writeError": true,
+            "complete": false
+          },
+          "wireBytes": 386
+        },
+        {
+          "latency": "1",
+          "completionFlag": "0",
+          "mode": "cap",
+          "status": "incomplete",
+          "code": "completion-loss",
+          "rows": 4095,
+          "bytes": 588831,
+          "receipt": null,
+          "wireBytes": 589074
+        },
+        {
+          "latency": "1",
+          "completionFlag": "0",
+          "mode": "bytes",
+          "status": "incomplete",
+          "code": "completion-loss",
+          "rows": 0,
+          "bytes": 0,
+          "receipt": null,
+          "wireBytes": 237
+        },
+        {
+          "latency": "1",
+          "completionFlag": "0",
+          "mode": "abnormal",
+          "status": "incomplete",
+          "code": "completion-receipt-loss",
+          "rows": 2,
+          "bytes": 280,
+          "receipt": {
+            "v": 1,
+            "rows": 2,
+            "bytes": 280,
+            "lost": false,
+            "writeError": false,
+            "complete": false
+          },
+          "wireBytes": 385
+        },
+        {
+          "latency": "1",
+          "completionFlag": "0",
+          "mode": "late",
+          "status": "incomplete",
+          "code": "completion-after-end",
+          "rows": 2,
+          "bytes": 280,
+          "receipt": {
+            "v": 1,
+            "rows": 2,
+            "bytes": 280,
+            "lost": false,
+            "writeError": false,
+            "complete": true
+          },
+          "wireBytes": 431
+        },
+        {
+          "latency": "1",
+          "completionFlag": "0",
+          "mode": "missing",
+          "status": "incomplete",
+          "code": "completion-receipt-missing",
+          "rows": 2,
+          "bytes": 281,
+          "receipt": null,
+          "wireBytes": 281
+        },
+        {
+          "linked": true,
+          "latency": "0",
+          "completionFlag": "1",
+          "mode": "normal",
+          "status": "captured",
+          "rows": 3,
+          "bytes": 468,
+          "receipt": {
+            "v": 1,
+            "rows": 3,
+            "bytes": 468,
+            "lost": false,
+            "writeError": false,
+            "complete": true
+          }
+        },
+        {
+          "linked": true,
+          "latency": "0",
+          "completionFlag": "1",
+          "mode": "abnormal",
+          "status": "incomplete",
+          "code": "completion-receipt-loss",
+          "rows": 3,
+          "bytes": 467,
+          "receipt": {
+            "v": 1,
+            "rows": 3,
+            "bytes": 467,
+            "lost": false,
+            "writeError": false,
+            "complete": false
+          }
+        },
+        {
+          "linked": true,
+          "latency": "0",
+          "completionFlag": "1",
+          "mode": "missing",
+          "status": "incomplete",
+          "code": "completion-receipt-missing",
+          "rows": 3,
+          "bytes": 467,
+          "receipt": null
+        },
+        {
+          "linked": true,
+          "latency": "1",
+          "completionFlag": "0",
+          "mode": "normal",
+          "status": "captured",
+          "rows": 3,
+          "bytes": 474,
+          "receipt": {
+            "v": 1,
+            "rows": 3,
+            "bytes": 474,
+            "lost": false,
+            "writeError": false,
+            "complete": true
+          }
+        },
+        {
+          "linked": true,
+          "latency": "1",
+          "completionFlag": "0",
+          "mode": "abnormal",
+          "status": "incomplete",
+          "code": "completion-receipt-loss",
+          "rows": 3,
+          "bytes": 474,
+          "receipt": {
+            "v": 1,
+            "rows": 3,
+            "bytes": 474,
+            "lost": false,
+            "writeError": false,
+            "complete": false
+          }
+        },
+        {
+          "linked": true,
+          "latency": "1",
+          "completionFlag": "0",
+          "mode": "missing",
+          "status": "incomplete",
+          "code": "completion-receipt-missing",
+          "rows": 3,
+          "bytes": 474,
+          "receipt": null
+        }
+      ],
+      "productRuns": 0,
+      "receiptTransportIsNotShutdownOrJournalProof": true
+    }
+  },
+  "build": {
+    "target": "media_server",
+    "method": "existing CMake incremental build; affected runtime members and main recompiled",
+    "exit": 0,
+    "productExecuted": false,
+    "linkedCommand": [
+      "/usr/bin/c++",
+      "-DRECORDING_COMPLETION_LINKED=1",
+      "/Users/dhseo/Workspace/mediaServer/scripts/internal/recording_completion_receipt_smoke.cpp",
+      "-DGST_USE_UNSTABLE_API=1",
+      "-DMEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND=1",
+      "-DMEDIA_SERVER_ENABLE_YOUTUBE_SOURCE=0",
+      "-DMEDIA_SERVER_USE_GSTREAMER=1",
+      "-DMEDIA_SERVER_USE_LIBSODIUM=1",
+      "-DMEDIA_SERVER_USE_ONNXRUNTIME=1",
+      "-DMEDIA_SERVER_USE_OPENSSL=1",
+      "-DMEDIA_SERVER_USE_PANGOCAIRO=1",
+      "-DMEDIA_SERVER_USE_SIGLIP2=1",
+      "-DMEDIA_SERVER_USE_SQLITE3=1",
+      "-I/Users/dhseo/Workspace/mediaServer/include",
+      "-I/opt/homebrew/include/onnxruntime",
+      "-I/Users/dhseo/Workspace/mediaServer/third_party/v430-embedding/sentencepiece/include",
+      "-isystem",
+      "/opt/homebrew/Cellar/gstreamer/1.28.1/include/gstreamer-1.0",
+      "-isystem",
+      "/opt/homebrew/Cellar/glib/2.86.4/include/gio-unix-2.0",
+      "-isystem",
+      "/opt/homebrew/Cellar/orc/0.4.42/include/orc-0.4",
+      "-isystem",
+      "/opt/homebrew/Cellar/glib/2.86.4/include",
+      "-isystem",
+      "/Library/Developer/CommandLineTools/SDKs/MacOSX26.sdk/usr/include/ffi",
+      "-isystem",
+      "/opt/homebrew/Cellar/glib/2.86.4/include/glib-2.0",
+      "-isystem",
+      "/opt/homebrew/Cellar/glib/2.86.4/lib/glib-2.0/include",
+      "-isystem",
+      "/opt/homebrew/opt/gettext/include",
+      "-isystem",
+      "/opt/homebrew/Cellar/pcre2/10.47_1/include",
+      "-isystem",
+      "/opt/homebrew/Cellar/pango/1.57.0_2/include/pango-1.0",
+      "-isystem",
+      "/opt/homebrew/Cellar/cairo/1.18.4/include/cairo",
+      "-isystem",
+      "/opt/homebrew/Cellar/libxext/1.3.7/include",
+      "-isystem",
+      "/opt/homebrew/Cellar/xorgproto/2025.1/include",
+      "-isystem",
+      "/opt/homebrew/Cellar/libxrender/0.9.12/include",
+      "-isystem",
+      "/opt/homebrew/Cellar/libx11/1.8.13/include",
+      "-isystem",
+      "/opt/homebrew/Cellar/libxcb/1.17.0/include",
+      "-isystem",
+      "/opt/homebrew/Cellar/libxau/1.0.12/include",
+      "-isystem",
+      "/opt/homebrew/Cellar/libxdmcp/1.1.5/include",
+      "-isystem",
+      "/opt/homebrew/Cellar/pixman/0.46.4/include/pixman-1",
+      "-isystem",
+      "/opt/homebrew/Cellar/fribidi/1.0.16/include/fribidi",
+      "-isystem",
+      "/opt/homebrew/Cellar/libthai/0.1.30/include",
+      "-isystem",
+      "/opt/homebrew/Cellar/libdatrie/0.2.14/include",
+      "-isystem",
+      "/opt/homebrew/Cellar/fontconfig/2.17.1/include",
+      "-isystem",
+      "/opt/homebrew/Cellar/harfbuzz/13.1.1/include/harfbuzz",
+      "-isystem",
+      "/opt/homebrew/opt/freetype/include/freetype2",
+      "-isystem",
+      "/opt/homebrew/opt/libpng/include/libpng16",
+      "-isystem",
+      "/opt/homebrew/opt/graphite2/include",
+      "-isystem",
+      "/opt/homebrew/Cellar/libsodium/1.0.21/include",
+      "-isystem",
+      "/opt/homebrew/Cellar/openssl@3/3.6.2/include",
+      "-std=c++17",
+      "-arch",
+      "arm64",
+      "-I/Users/dhseo/Workspace/mediaServer/scripts/internal",
+      "/Users/dhseo/Workspace/mediaServer/build-gst-onnx/libmedia_server_runtime.a",
+      "/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib/libz.tbd",
+      "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstrtspserver-1.0.dylib",
+      "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstapp-1.0.dylib",
+      "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstwebrtc-1.0.dylib",
+      "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstsdp-1.0.dylib",
+      "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstpbutils-1.0.dylib",
+      "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstaudio-1.0.dylib",
+      "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstvideo-1.0.dylib",
+      "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstbase-1.0.dylib",
+      "/opt/homebrew/Cellar/gstreamer/1.28.1/lib/libgstreamer-1.0.dylib",
+      "/opt/homebrew/Cellar/pango/1.57.0_2/lib/libpangocairo-1.0.dylib",
+      "/opt/homebrew/Cellar/pango/1.57.0_2/lib/libpango-1.0.dylib",
+      "/opt/homebrew/Cellar/cairo/1.18.4/lib/libcairo.dylib",
+      "/opt/homebrew/Cellar/harfbuzz/13.1.1/lib/libharfbuzz.dylib",
+      "/opt/homebrew/Cellar/glib/2.86.4/lib/libgobject-2.0.dylib",
+      "/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib/libsqlite3.tbd",
+      "/opt/homebrew/Cellar/libsodium/1.0.21/lib/libsodium.dylib",
+      "/opt/homebrew/Cellar/openssl@3/3.6.2/lib/libssl.dylib",
+      "/opt/homebrew/Cellar/openssl@3/3.6.2/lib/libcrypto.dylib",
+      "/opt/homebrew/lib/libonnxruntime.dylib",
+      "/Users/dhseo/Workspace/mediaServer/third_party/v430-embedding/sentencepiece/lib/libsentencepiece.a",
+      "/opt/homebrew/Cellar/glib/2.86.4/lib/libglib-2.0.dylib",
+      "/opt/homebrew/opt/gettext/lib/libintl.dylib",
+      "-o",
+      "/private/tmp/media-server-completion-fix-xrnps5qx/receipt-linked"
+    ],
+    "linkedBuildExit": 0
+  },
+  "structureFocused": {
+    "command": "node --test --test-name-pattern='C1 moved completion diagnostics' scripts/internal/structure_owner_classification.test.mjs",
+    "exit": 0,
+    "tests": 1
+  },
+  "unchanged": [
+    "scripts/internal/recording_completion_collection.mjs",
+    "include/recording/recording_latency_trace.h",
+    "scripts/internal/v450_recording_a_mixed.mjs",
+    "scripts/internal/recording_longrun_progress.mjs",
+    "src/main.cpp"
+  ],
+  "limits": {
+    "completionEvidenceBytes": 2097152,
+    "processLogBytes": 4194304,
+    "receiptReservedAreaUnchanged": true
+  },
+  "limitations": [
+    "No HTTP, product server, representative or longrun executed.",
+    "Native request=1 is explicitly assigned test TLS, not HTTP correlation evidence; default request=0 remains supported.",
+    "Actual Evidence producer invoked directly; workload-specific Evidence event completeness is not established.",
+    "Focused transport receipt is not a storage shutdown or Journal proof."
+  ],
+  "independentReview": {
+    "result": "PASS",
+    "requestedModel": "gpt-6-astra",
+    "requestedEffort": "xhigh",
+    "toolAcceptedModel": "gpt-6-astra",
+    "toolAcceptedEffort": "xhigh",
+    "actualRuntimeModel": "UNKNOWN",
+    "actualRuntimeEffort": "UNKNOWN",
+    "readOnly": true,
+    "findings": [],
+    "scope": "Latest product/test diff, actual RED/GREEN and linked runtime logs; binding results separately checked by main."
+  },
+  "git": {
+    "stage": false,
+    "commit": false,
+    "push": false,
+    "head": "833fbe391abe88e5108f2551dfe0870b857f4dfb"
+  },
+  "binaryBefore": {
+    "productSha256": "894b1599e2399865ba97cbe88b58b5d424c30e6a941d549d57bb45caf8d894f0",
+    "runtimeSha256": "cfba42f09cb7b047c73f56a03f7951bfa91e47260e84f208a5c2142f4e3bb163"
+  },
+  "sourceDefinitionBinding": {
+    "producer": {
+      "command": "node scripts/internal/verify_v390_review4_feature_semantic_source_audit.mjs --apply-approved-manifest",
+      "exit": 0,
+      "rawLog": {
+        "bytes": 12812,
+        "sha256": "d044f8ac77f4e3e0a7ee0672c9d63381151b9f522393a0aa536f910913ef258f"
+      },
+      "summary": "51 PASS / 0 FAIL; semantic manifest change only inventorySha256"
+    },
+    "readback": {
+      "command": "node scripts/internal/verify_feature_implementation_evidence.mjs",
+      "exit": 0,
+      "rawLog": {
+        "bytes": 1141,
+        "sha256": "f004e8a145e0b287322992e5f2f9c356c12a495834505e9ea79a414fd1f6b6f7"
+      },
+      "summary": "validationErrors=0; review4GlobalErrors=0; negatives15/15"
+    },
+    "coverage": {
+      "command": "node scripts/internal/verify_feature_inventory_coverage.mjs",
+      "exit": 0,
+      "rawLog": {
+        "bytes": 604,
+        "sha256": "f3dd9d2ec3cd35ce7a806a391b6918dddd2c2377ca3039afa624f484985f9bce"
+      },
+      "summary": "986 covered; missing0; PASS9/FAIL0"
+    }
+  },
+  "modelRuntime": {
+    "actualRuntimeModel": "UNKNOWN",
+    "actualRuntimeEffort": "UNKNOWN"
+  },
+  "preservation": {
+    "kind": "single local result with raw log hashes; no remote preservation attempted",
+    "rawLogsRetained": true,
+    "originalAndSummaryAreDifferentBytes": true
+  },
+  "selectedRawOutput": {
+    "red.log": "node:internal/modules/run_main:107\n    triggerUncaughtException(\n    ^\n\nAssertionError [ERR_ASSERTION]: 0/1/normal\n+ actual - expected\n\n+ 'incomplete'\n- 'captured'\n\n    at file:///Users/dhseo/Workspace/mediaServer/scripts/internal/recording_completion_collection.test.mjs:51:40\n    at ModuleJob.run (node:internal/modules/esm/module_job:413:25)\n    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:660:26)\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:101:5) {\n  generatedMessage: false,\n  code: 'ERR_ASSERTION',\n  actual: 'incomplete',\n  expected: 'captured',\n  operator: 'strictEqual',\n  diff: 'simple'\n}\n\nNode.js v24.13.0\n",
+    "focused.log": "✔ fixed selection, no visual, no outcome-dependent replacement (0.5825ms)\n✔ parallel search before server; streams and split chunks (0.513209ms)\n✔ early diagnostic goal needs initial/middle/late, two slow Structured and actual counts (0.306625ms)\n✔ duplicate fails sticky during append (0.45675ms)\n✔ bad-id fails sticky during append (0.126958ms)\n✔ class fails sticky during append (0.137ms)\n✔ order fails sticky during append (0.069ms)\n✔ loss fails sticky during append (0.558875ms)\n✔ send fails sticky during append (0.075834ms)\n✔ phase-cap fails sticky during append (0.115875ms)\n✔ missing-phase fails sticky during append (0.062458ms)\n✔ counter-overflow fails sticky during append (0.08675ms)\n✔ wrong-search fails sticky during append (0.054834ms)\n✔ missing/partial/malformed/cap and explicit loss (0.142208ms)\n✔ client timeout/duplicate start and nested parent rejection (0.316ms)\n{\"role\":\"R165-forced-loss\",\"pid\":10855,\"detectionToSignalMs\":0.011874999999996305,\"groupAbsent\":true}\n✔ actual owned child loss immediately initiates TERM; group absent (24.401125ms)\n✔ generated child explicitly enables completion while global latency remains off (55.987458ms)\n✔ R146 actual R145 217B row and terminal receipt: both consumers accept (1.115792ms)\n✔ R146 fixed preparation labels, background/foreground contexts; identity is not request (0.36625ms)\n✔ R146 timeline Media/Overlap/Sort/Page: source-defined payload with or without outer request scope (0.291917ms)\n✔ R146 existing point1..9 and timeline15 rules preserved; loss remains explicit non-success (0.498708ms)\n✔ R146 invalid identity, context, payload, clock and schema rejected by both (0.822291ms)\n✔ R146 malformed/partial/UTF8 and row caps remain fail closed (17.567916ms)\n✔ R146 terminal receipt missing, mismatch, late row and process log overflow rejected (0.215375ms)\n[cleanup] {\"root\":\"/private/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media-server-completion-RPL7Mn\",\"bytes\":64696,\"removed\":true}\n✔ LP22-T01 trace off and invalid environment emit nothing (240.277542ms)\n✔ completion explicit flag emits Point with a valid clock/context independently (5.128583ms)\n✔ LP22-T02 trace hashes canary identity and rejects unknown raw fields (4.829125ms)\n✔ LP22-T02 trace count and byte caps emit one explicit loss (16.675416ms)\n✔ LP22-T03 partial lines and malformed clocks fail closed (3.831041ms)\n✔ LP26-O13 진행 중 snapshot은 완결된 행만 반환하고 finish는 부분 행을 거부 (0.136416ms)\n✔ LP22-T03 delayed emission retains event chronology across four references (0.31375ms)\n✔ LP22-T04 invalid durable transitions and missing observation remain distinct (0.068208ms)\n✔ R110-P01 bounded projection stages distinguish full/event and reject unknown stage or payload (0.557ms)\n✔ R110-P01 memo counts have zero duration and bounded exclusions (0.09875ms)\nℹ tests 34\nℹ suites 0\nℹ pass 34\nℹ fail 0\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 650.254084\n",
+    "incremental-build.log": "[  0%] Building CXX object CMakeFiles/media_server_runtime.dir/src/recording/evidence_package_store.cpp.o\n[  1%] Building CXX object CMakeFiles/media_server_runtime.dir/src/recording/recording_catalog.cpp.o\n[  2%] Building CXX object CMakeFiles/media_server_runtime.dir/src/recording/recording_read_service.cpp.o\n[  2%] Building CXX object CMakeFiles/media_server_runtime.dir/src/recording/recording_timeline_projection.cpp.o\n[  3%] Building CXX object CMakeFiles/media_server_runtime.dir/src/recording/recording_derived_event_worker.cpp.o\n[  4%] Linking CXX static library libmedia_server_runtime.a\n[ 99%] Built target media_server_runtime\n[100%] Building CXX object CMakeFiles/media_server.dir/src/main.cpp.o\n[100%] Linking CXX executable media_server\n[100%] Built target media_server\n",
+    "structure-focused.log": "✔ C1 moved completion diagnostics retain opt-in, bounds, redaction and failure isolation (0.734375ms)\nℹ tests 1\nℹ suites 0\nℹ pass 1\nℹ fail 0\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 41.762416\n",
+    "final-green/linked-0-1-normal.log": "[recording-completion] {\"v\":1,\"event\":10,\"begin\":\"1\",\"end\":\"167\",\"thread\":1,\"request\":1,\"reference\":null,\"job\":null,\"n\":3,\"x\":2,\"y\":0}\n[recording-completion] {\"v\":1,\"event\":10,\"begin\":\"10167\",\"end\":\"10167\",\"thread\":1,\"request\":1,\"reference\":null,\"job\":null,\"n\":3,\"x\":0,\"y\":0}\n[recording-evidence] {\"stage\":\"none\",\"first\":\"none\",\"exception\":0,\"builder\":\"none\",\"http\":\"evidence-create-failed\",\"published\":0,\"checked\":0,\"current\":0,\"captureRevision\":0,\"checkRevision\":0}\n[recording-completion-end] {\"v\":1,\"rows\":3,\"bytes\":468,\"lost\":false,\"writeError\":false,\"complete\":true}\n"
+  },
+  "cleanup": {
+    "ownedBinaryArtifacts": [
+      {
+        "path": "/private/tmp/media-server-completion-fix-xrnps5qx/receipt-linked",
+        "bytes": 15620384,
+        "sha256": "a84407c74cd2b8bcbab327aaebcb49ccd5c831accb0ebada6f2ef117cdf6e7fc"
+      },
+      {
+        "path": "/private/tmp/media-server-completion-fix-xrnps5qx/red/receipt-smoke",
+        "bytes": 902768,
+        "sha256": "031afe9b3e273fe04570463aaaeab4c98edaeea4889ad1183808032a4414e0de"
+      },
+      {
+        "path": "/private/tmp/media-server-completion-fix-xrnps5qx/green/receipt-smoke",
+        "bytes": 903472,
+        "sha256": "70d0f3a47316ad45f94da4cb305d775269b2de280efb05d2dba3a4079da5b515"
+      },
+      {
+        "path": "/private/tmp/media-server-completion-fix-xrnps5qx/final-green/receipt-smoke",
+        "bytes": 903472,
+        "sha256": "1eaff8de1db99f1ddc2ed174a28cbb79365cbf675d1c4376a43e963a4ae30344"
+      }
+    ],
+    "rawEvidenceRetained": true,
+    "nativeChildExits": "synchronous child exits asserted by focused tests; forced-loss child group absence asserted",
+    "globalProcessInventory": "UNAVAILABLE: sandbox denied read-only ps; not used as evidence",
+    "httpServersStarted": 0,
+    "productRuns": 0,
+    "storageRuntimeOpened": false,
+    "ownedBinaryArtifactsRemoved": true
+  }
+}

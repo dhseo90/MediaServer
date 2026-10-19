@@ -7,6 +7,14 @@
 #endif
 
 namespace recording::completion {
+// Completion shares the existing wire budget, not the global lock-trace switch.
+inline bool Enabled() noexcept {
+    static const bool explicit_enabled=[] {
+        const char* p=std::getenv("MEDIA_SERVER_VERIFY_RECORDING_COMPLETION_TRACE");
+        return p&&std::strcmp(p,"1")==0;
+    }();
+    return latency::Enabled()||explicit_enabled;
+}
 enum class Event : unsigned { Submitted=1, Queued=2, Started=3, Admitted=4, Ended=5,
     Ready=6, Committed=7, Complete=8, Failed=9, Media=10, Overlap=11, Sort=12, Page=13, Loss=14, Timeline=15 };
 inline std::mutex output_mu;
@@ -44,7 +52,7 @@ inline void Write(const char* text,std::size_t size) noexcept {
 // composition root가 반환하고 모든 local 소비자가 파괴된 뒤 main에서 한 번 호출한다.
 // 기능 결과/Stop 순서를 바꾸지 않으며 abnormal return은 complete=false다.
 inline void FinishReceipt(bool normal) noexcept {
-    if(!latency::Enabled())return;
+    if(!Enabled())return;
     try {
         std::lock_guard lock(output_mu);
         if(ended.exchange(true))return;
@@ -78,7 +86,7 @@ inline bool Hash(const std::string& value,char (&out)[67]) noexcept {
 }
 inline void Emit(Event event,std::uint64_t begin,std::uint64_t end,const std::string& reference={},
                  const std::string& job={},std::uint64_t n=0,std::uint64_t x=0,std::uint64_t y=0) noexcept {
-    if(!latency::Enabled())return;
+    if(!Enabled())return;
     try {
         char ref[67]{},id[67]{},text[512];
         const bool valid=Hash(reference,ref)&&Hash(job,id)&&end>=begin;
@@ -102,9 +110,9 @@ inline void Emit(Event event,std::uint64_t begin,std::uint64_t end,const std::st
         }
     }
 }
-inline std::uint64_t Now() noexcept {return latency::Enabled()?latency::Now():0;}
+inline std::uint64_t Now() noexcept {return Enabled()?latency::Now():0;}
 inline void Point(Event event,const std::string& reference,const std::string& job={},std::uint64_t n=0) noexcept {
-    if(!latency::Enabled())return;
+    if(!Enabled())return;
     const auto at=Now();
     Emit(event,at,at,reference,job,n);
 }
