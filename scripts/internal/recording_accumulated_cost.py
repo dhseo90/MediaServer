@@ -6,7 +6,7 @@ from recording_http_cost_overlay import replace
 REPO=Path(__file__).resolve().parents[2]
 SCRIPTS=REPO/'scripts/internal'
 def sha(p):return hashlib.sha256(p.read_bytes()).hexdigest()
-def generate(out):
+def generate(out, attribution=False):
     out.mkdir(mode=0o700)
     probe=(SCRIPTS/'recording_http_cost_probe.h').read_text()
     probe=replace(probe,'return id==10||id==11?1:id==12||id==13?2:id==60?3:id>=20&&id<60?4:id>=61?5:6;','return id%3==0?3:1;')
@@ -90,6 +90,7 @@ def generate(out):
     s=replace(s,'diagnosticCompleted:failed===0&&!!phaseResult', "diagnosticCompleted:performanceDiagnose?final.searchPerformance.status==='PASS':failed===0&&!!phaseResult")
     s=replace(s,'process.exitCode=failed||latencyPassed!==true?1:0', "process.exitCode=performanceDiagnose?(final.searchPerformance.status==='PASS'?0:1):failed||latencyPassed!==true?1:0")
     s="import {selection,aSelection,costCollector,assertSearchPerformanceCapacity,searchPerformanceResult} from "+json.dumps(str(SCRIPTS/'recording_accumulated_cost.mjs'))+";\nlet selectedBatchOrdinal=0,selectedFailureReported=false,latencyPassed=null,selectedBound=null;const selectedTrace=costCollector(),performanceCompletion=[],performanceLogs=[];\n"+s
+    if attribution:s=attribution_overlay(out,binding,s)
     (out/'mixed.mjs').write_text(s)
     wrapper=(SCRIPTS/'verify_v450_recording_a_mixed.sh').read_text()
     wrapper=replace(wrapper,'observer_driver="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"','observer_driver='+shlex.quote(str(SCRIPTS)))
@@ -102,8 +103,52 @@ def generate(out):
     (out/'binding.json').write_text(json.dumps(binding,indent=2)+'\n')
     return binding
 
+def attribution_overlay(out,binding,mixed):
+    # Explicit generator opt-in, no change to ordinary or selected-only workloads.
+    for original in binding:
+        p=out/Path(original).name;s=p.read_text()
+        if p.name=='recording_search_application_service.cpp':
+            s=replace(s,'r154::Search selected(diagnostic);','r154::Search selected(diagnostic);r171::Search failure_request(diagnostic);')
+        elif p.name=='webrtc_http_server.cpp':
+            s=replace(s,'r154::header_count=0;','r154::header_count=0;r171::headers=0;')
+            s=replace(s,'r154::HeaderSeen(key);','r154::HeaderSeen(key);r171::HeaderSeen(key);')
+        else:
+            s=replace(s,'r154::Server selected_request(selected_id,selected_accept);',
+                '''r154::Server selected_request(selected_id,selected_accept);
+                const unsigned failure_id=request_opt?r171::Identity(HeaderValue(*request_opt,"x-r171-id")):0;
+                if(r171::Enabled()&&request_opt){const auto q=ParseQueryString(request_opt->query);const auto c=q.find("channelIds");
+                    const bool general=request_opt->method=="GET"&&request_opt->path=="/ops/api/recordings/search"&&c!=q.end()&&c->second=="9101";
+                    if(general!=bool(failure_id))r154::Lose(177);}
+                r171::Server failure_request(failure_id);''')
+            s=replace(s,'selected_request.handler=r154::Tick();','failure_request.handler=r154::Tick();selected_request.handler=r154::Tick();')
+            s=replace(s,'selected_request.prepared=r154::Tick();','failure_request.prepared=r154::Tick();failure_request.status=response.status;selected_request.prepared=r154::Tick();')
+            s=replace(s,'selected_request.sendBegin=r154::Tick();','failure_request.status=response.status;failure_request.send_begin=r154::Tick();selected_request.sendBegin=r154::Tick();')
+            s=replace(s,'selected_request.sent=sent;','selected_request.sent=sent;failure_request.send_end=r154::Tick();failure_request.sent=sent;')
+            s=replace(s,'selected_request.End();','failure_request.End();selected_request.End();')
+        p.write_text(s);binding[original]['overlay']=sha(p)
+    mixed=replace(mixed,'costCollector,assertSearchPerformanceCapacity','costCollector,failureCollector,attributionError,assertSearchPerformanceCapacity')
+    mixed=replace(mixed,'const selectedTrace=costCollector(),','let failureOrdinal=0;const failureTrace=failureCollector();const selectedTrace=costCollector(),')
+    mixed=replace(mixed,'VERIFY_RECORDING_COMPLETION_TRACE:1','VERIFY_RECORDING_COMPLETION_TRACE:1,VERIFY_SEARCH_ATTRIBUTION:1')
+    mixed=replace(mixed,"if(selectedId)selectedTrace.start(selectedId);",'''if(selectedId)selectedTrace.start(selectedId);
+ const failureId=method==='GET'&&route.split('?')[0]==='/ops/api/recordings/search'&&new URLSearchParams(route.split('?')[1]).get('channelIds')==='9101'?++failureOrdinal:0;
+ if(failureId)failureTrace.start(failureId);let failureTiming=null,failureBody=null,selectedClientFailure=null;
+ try {''')
+    mixed=replace(mixed,"report:value=>{console.log('[mixed-http-timing] '","report:value=>{failureTiming=value;console.log('[mixed-http-timing] '")
+    mixed=replace(mixed,'selectedTrace.client(row);','try{selectedTrace.client(row);}catch(error){selectedClientFailure=error;}')
+    mixed=replace(mixed,"headers:{Cookie:app.cookie,...(selectedId?", "headers:{Cookie:app.cookie,...(failureId?{'X-R171-ID':String(failureId)}:{}),...(selectedId?")
+    mixed=replace(mixed,'return {...result,elapsedMs:performance.now()-started};', '''failureBody=result.bytes;return {...result,elapsedMs:performance.now()-started};
+ } finally {if(failureId){if(!failureTiming)throw Error('attribution-client-missing-timing');
+ const t=failureTiming;const row={id:failureId,loss:false,status:t.status,phase:t.phase,outcome:t.outcome,headerReceived:t.headerElapsedMs!==null,totalElapsedMs:t.totalElapsedMs,bytes:t.bytes,reason:attributionError(failureBody)};
+ process.stdout.write(failureTrace.client(row));}if(selectedClientFailure)throw selectedClientFailure;}
+''')
+    mixed=replace(mixed,"selectedTrace.append(chunk,stream===child.stdout?0:1);if(selectedTrace.failure())", "selectedTrace.append(chunk,stream===child.stdout?0:1);failureTrace.append(chunk,stream===child.stdout?0:1);if(selectedTrace.failure()||failureTrace.failure())")
+    mixed=replace(mixed,'JSON.stringify(selectedTrace.failure())','JSON.stringify(selectedTrace.failure()??failureTrace.failure())')
+    mixed=replace(mixed,"function budget(){if(selectedTrace.failure())", "function budget(){if(failureTrace.failure())throw Error(failureTrace.failure().code);if(selectedTrace.failure())")
+    mixed=replace(mixed,'};if(performanceDiagnose){try{selectedBound=', '''};try{final.failureAttribution=failureTrace.complete();}catch{final.failureAttribution={status:'incomplete',firstFailure:failureTrace.failure(),requests:failureTrace.snapshot()};failed++;final.failed=failed;}if(performanceDiagnose){try{selectedBound=''')
+    return mixed
+
 def build(parent):
-    out=parent/'overlay';binding=generate(out);b=REPO/'build-gst-onnx';flags={}
+    out=parent/'overlay';binding=generate(out,'--failure-attribution' in sys.argv);b=REPO/'build-gst-onnx';flags={}
     for line in (b/'CMakeFiles/media_server_runtime.dir/flags.make').read_text().splitlines():
         if ' = ' in line:
             k,v=line.split(' = ',1);flags[k]=shlex.split(v)
@@ -128,6 +173,8 @@ def build(parent):
     native=(SCRIPTS/'recording_accumulated_http_smoke.cpp').read_text()
     native=replace(native,'+"Connection: close\\r\\n"','+(id==10?"X-R154-ID: 1\\r\\n":"")+"Connection: close\\r\\n"')
     native=replace(native,'return {wire.substr(end+4),ms};','''if(id==10)std::cout<<"[R165-client] {\\\"id\\\":1,\\\"loss\\\":false,\\\"status\\\":"<<status<<",\\\"outcome\\\":\\\"ok\\\",\\\"phase\\\":\\\"complete\\\",\\\"bytes\\\":"<<wire.size()<<",\\\"totalElapsedMs\\\":"<<static_cast<long long>(ms+0.5)<<"}\\n";return {wire.substr(end+4),ms};''')
+    if '--failure-attribution' in sys.argv:native=native.replace('X-R154-ID: 1\\r\\n','X-R154-ID: 1\\r\\nX-R171-ID: 1\\r\\n')
+    if '--failure-attribution' in sys.argv:native=replace(native,'X-R171-ID: 1\\r\\n":"")','X-R171-ID: 1\\r\\n":id==1?"X-R171-ID: 2\\r\\n":"")')
     (out/'recording_accumulated_http_smoke.cpp').write_text(native)
     (out/'selected-focused.cpp').write_text((SCRIPTS/'recording_accumulated_cost_smoke.cpp').read_text())
     focused_cmd=[*common,'-I'+str(REPO/'src/ingress'),str(out/'selected-focused.cpp'),*objects,str(b/'libmedia_server_runtime.a'),*link[link.index('libmedia_server_runtime.a')+1:],'-Wl,-map,'+str(parent/'focused.map'),'-o',str(parent/'selected-focused')]

@@ -26,6 +26,9 @@ struct WorkScope {Work previous;explicit WorkScope(Work work):previous(holder_wo
 inline bool HolderEnabled() noexcept {static const bool yes=[] {const char* p=std::getenv("MEDIA_SERVER_VERIFY_CATALOG_HOLDER_TRACE");return p&&std::strcmp(p,"1")==0;}();return yes;}
 // R107 opt-in elapsed subcosts, not CPU time: Journal wait, managed authority,
 // identity lookup, cold mutation read/parse. Nested authority is inclusive.
+// Owned request attribution enables numeric decode costs without enabling Lock/Holder output.
+inline bool SearchAttributionEnabled() noexcept {static const bool yes=[] {const char* p=std::getenv("MEDIA_SERVER_VERIFY_SEARCH_ATTRIBUTION");return p&&std::strcmp(p,"1")==0;}();return yes;}
+inline bool DecodeCostEnabled() noexcept {return HolderEnabled()||SearchAttributionEnabled();}
 inline bool SubcostEnabled() noexcept {static const bool yes=[] {const char* p=std::getenv("MEDIA_SERVER_VERIFY_CATALOG_SUBCOSTS");return p&&std::strcmp(p,"1")==0;}();return yes;}
 inline thread_local std::array<std::uint64_t,4> journal_subcost{};
 struct JournalSubcost {
@@ -42,7 +45,7 @@ inline thread_local std::uint64_t history_node_reads=0; // opt-in logical authen
 inline thread_local std::array<std::uint64_t,12> catalog_row_cost{};
 struct CatalogRowCost {
     unsigned group;std::uint64_t begin;bool active;
-    explicit CatalogRowCost(unsigned index) noexcept:group(index),begin(SubcostEnabled()?Now():0),active(SubcostEnabled()){}
+    explicit CatalogRowCost(unsigned index) noexcept:group(index),begin((SubcostEnabled()||SearchAttributionEnabled())?Now():0),active(SubcostEnabled()||SearchAttributionEnabled()){}
     ~CatalogRowCost() noexcept {if(active){++catalog_row_cost[group*2];catalog_row_cost[group*2+1]+=Now()-begin;}}
 };
 inline thread_local std::array<std::uint64_t,4> holder_counts{}; // binding checks, cold link calls, visited rows, Journal ReadAt requested bytes

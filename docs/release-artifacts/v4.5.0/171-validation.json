@@ -1,0 +1,669 @@
+{
+  "task": "R171",
+  "verdict": "DIAGNOSTIC_COVERAGE_READY",
+  "scope": "Opt-in bounded diagnostic implementation and focused qualification only",
+  "head": "75d0b2610a5720379f2800001c7d5d524ea39c5c",
+  "branch": "v4.5.0",
+  "models": {
+    "main": {
+      "actualRuntimeModel": "UNKNOWN",
+      "actualRuntimeEffort": "UNKNOWN"
+    },
+    "independent": {
+      "requested": "gpt-6-astra / xhigh",
+      "toolAccepted": "gpt-6-astra / xhigh",
+      "actualRuntimeModel": "UNKNOWN",
+      "actualRuntimeEffort": "UNKNOWN"
+    }
+  },
+  "sourceSha256": {
+    "docs/project-feature-test-inventory.md": "7b5a87a427b3fd3596e68cbdfabfb417442563429a3550cfb6a02daa35726ef4",
+    "include/recording/recording_latency_trace.h": "39c686aaa9b9b74df606ee6522c3ae96b79a7d6512d47385e7931ff275ad6336",
+    "include/recording/recording_retained_rows.h": "1bc556603764d3b3c71ca181706afaa490624ae95c977d8cdcb142b00342033e",
+    "include/recording/recording_search_diagnostic.h": "eb593c2dac3d70098f87e08fec7c3fc728cf1b864fd8e2cd93294b52423bb4ab",
+    "scripts/internal/recording_accumulated_cost.mjs": "d5513d32dd26ad08dfaf6818e4b3fe8ed047f11d92c6b7b0c138758da84bfdfe",
+    "scripts/internal/recording_accumulated_cost.py": "044e5d4e7fb82c54558a4b66291f0e84f1c574c1e05de44eef259945333aca19",
+    "scripts/internal/recording_accumulated_cost.test.mjs": "bc3b37cb7d93270fefd244ffd51c3ceada03d5fb4fd860e224fb67de22cef062",
+    "scripts/internal/recording_http_cost_parser_smoke.cpp": "922031185c91ee4c341042868759ba614cbd010a3dff8f0375c57b5cc15f477b",
+    "scripts/internal/recording_http_cost_probe.h": "82d2ce6b64a1fdc0fcac1ea2ddd9bab183b28f2fd3b2963dd19f083c0f720e38",
+    "scripts/internal/recording_search_generation_smoke.cpp": "6289b7606d77731f9c3206fd13d8a5d0b5d946886f556d05371fae830203eb79",
+    "scripts/internal/recording_search_scope_smoke.cpp": "31720a817cd5daa98832f0cb6cb340fc81e5fbf81d6bdfc3417a3187c214f7a2",
+    "src/recording/recording_search_source.cpp": "ef92ce11e662a43dba5af9f320395403e4a414defb20b898390a45cb110c7902",
+    "test/fixtures/project_feature_implementation_evidence.json": "5972df4f9c9604a63fa48244b5f61049b693d3e7603c3d52b5432873fa4b7309"
+  },
+  "sourceSetSha256": "2c5093f0723ae0d7098c798f3d4150b23395a217f32a661b04918d951ef3d67e",
+  "binarySha256": {
+    "product": "63253cbef4441415ee38074b0f4a0ab894667777b499a64ba52d530fc84059a1",
+    "runtime": "723ef2a7a6b58410a456623cdb82aa7ff19ab37d067d11a27fe110e13d7abd6c"
+  },
+  "baselineBinding": {
+    "path": "/private/tmp/media-server-r171-qaf_knej/baseline.json",
+    "sha256": "2a726bea6ebef6ef41bd0fdc004fb9e061e632a3a2df692c3d2c314eb6b81864"
+  },
+  "linkage": {
+    "media_server": {
+      "binarySha256": "9f60113bc369378d84ede1e88b43a85906c6f4de206819de21ffa141942cd50f",
+      "principalSymbolCounts": {
+        "RecordingApplicationService6Search": 1,
+        "ReadHttpRequest": 1
+      },
+      "mapSha256": "05e081dcf4c5ab2b7f8eee947d141792aa85e456ed6020d7ef1c09525a2afc77",
+      "originalMembersExcluded": {
+        "recording_search_application_service.cpp": true,
+        "webrtc_http_server.cpp": true,
+        "webrtc_http_server_runtime.cpp": true
+      },
+      "executed": false
+    },
+    "selected-focused": {
+      "binarySha256": "cfe92f016541ce83a4a5766887b8304f91be80ead2a12a1f9430f06c349524b3",
+      "principalSymbolCounts": {
+        "RecordingApplicationService6Search": 1,
+        "ReadHttpRequest": 1
+      },
+      "mapSha256": "26f61b1e32552981fa3b4304f3e59832f3320c908054ef9c9e5f0fd74c55b3f9",
+      "originalMembersExcluded": {
+        "recording_search_application_service.cpp": true,
+        "webrtc_http_server.cpp": true,
+        "webrtc_http_server_runtime.cpp": true
+      },
+      "executed": false
+    },
+    "parser": {
+      "binarySha256": "98e2f12d9c2066d4c9312a1f20bcac16122a508133197f9ddad9bf1e5ab802e4",
+      "principalSymbolCounts": {
+        "ReadHttpRequest": 1
+      },
+      "mapSha256": null,
+      "originalMembersExcluded": {},
+      "executed": true
+    },
+    "scope": {
+      "binarySha256": "1f9dc46e8da8438a96d2f15489bf0a386dc98e35863e3d48fded24693d442b0e",
+      "principalSymbolCounts": {
+        "RecordingApplicationService6Search": 1
+      },
+      "mapSha256": "7b1ee910bdfa1d91542aa15e4f01b90e58decae1087462528f0fbe370ba3786c",
+      "originalMembersExcluded": {
+        "recording_search_source.cpp": true,
+        "recording_search_reader.cpp": true
+      },
+      "executed": true
+    },
+    "generation": {
+      "binarySha256": "663f5a8b70803e06fdf19ed6c499e95d2ac53cbdf552e4ae9cef0afd01833bf6",
+      "principalSymbolCounts": {},
+      "mapSha256": "7d7b74f061e456ffe2ca4f856f55d80a566aed5fb68e3d48475b149a4e7d12cf",
+      "originalMembersExcluded": {
+        "recording_search_source.cpp": true,
+        "recording_search_reader.cpp": true
+      },
+      "executed": true
+    },
+    "overlaySources": {
+      "mixed.mjs": "a3db0b60300574cf785d76f5fb345f6929fea7af705a088fea3dffa3881d088a",
+      "recording_search_application_service.cpp": "b6c76e5078ad65bdb5774b0c8824000ab28c651c0fcecf7730792e8a3bf1341f",
+      "selected-focused.cpp": "97554423a516231cd4f7e50aab434ea08a773bf18a06d795975597fbae8f798e",
+      "wrapper.sh": "ea4eed3b212f0ef3992b96a959da7a1990404105bf33a05d4ab35f9e75bb383f",
+      "recording_http_cost_probe.h": "39d22b7c3766a0b3549732a101c0b6033d6674ea5e3c809e1c0541a5d0a7364a",
+      "webrtc_http_server.cpp": "2ef2f8638674c2aeb319631af2f80063018024d5fb5a06522b9fc7a259fe7926",
+      "webrtc_http_server_runtime.cpp": "b08fe1c2701044400f2e5da4e46c9b85e220280dcb1595a7205838cbe1b02189",
+      "parser.cpp": "fe54b97532c56084441c806ecba7c699fecf06e96ad68c9e1ee7ef631f05cd45",
+      "recording_accumulated_http_smoke.cpp": "1147ac999b17fe654317657f997428e6f60f1a114d6d1daf81c2ff4891c6690b"
+    }
+  },
+  "tests": {
+    "javascript": {
+      "pass": 32,
+      "fail": 0
+    },
+    "actualParserSocketpair": {
+      "pass": 23,
+      "fail": 0
+    },
+    "nativeScopeOff": {
+      "pass": 36,
+      "fail": 0,
+      "reuseBoundary": "prior binary; final fixture edits only attribution ON branch"
+    },
+    "nativeScopeOn": {
+      "pass": 37,
+      "fail": 0
+    },
+    "nativeGenerationOn": {
+      "pass": 31,
+      "fail": 0,
+      "additionalLateCapture13": true
+    },
+    "nativeReadback": "captured; actual native Search/Capture records, synthetic client and HTTP envelope; NOT actual HTTP transport qualification",
+    "definitionProducer": {
+      "pass": 51,
+      "fail": 0
+    },
+    "definitionReadback": {
+      "validationErrors": 0,
+      "negativeFixtures": "15/15",
+      "notRuntimeEvidence": true
+    },
+    "v450Coverage": "PASS",
+    "gitDiffCheck": "PASS"
+  },
+  "failuresAndCorrections": [
+    {
+      "kind": "actual focused generation failure, NOT expected TDD RED",
+      "observed": "initial JS run27 PASS/3 FAIL; R171 seen[id-1] expression collided with old generator exact replacement",
+      "correction": "use seen.at(id-1); final JS32 PASS",
+      "originalOutput": "tool transcript; not copied into a new raw file"
+    },
+    {
+      "kind": "actual native focused oracle failure, NOT expected TDD RED",
+      "log": "scope-on.log",
+      "exit": 1,
+      "groupAbsent": true,
+      "cause": "resident Store fixture cannot satisfy cold raw-cut counters",
+      "correction": "move cold Capture check to existing generation fixture; same real product path"
+    },
+    {
+      "kind": "actual native focused oracle failure, NOT expected TDD RED",
+      "log": "generation-on-corrected.log",
+      "exit": 1,
+      "groupAbsent": true,
+      "cause": "fixture did not guarantee verified decode cache enabled, so required hit>0 was invalid",
+      "correction": "preserve observed hit0; require hits<=calls and actual cold read/outside duration"
+    }
+  ],
+  "nativeObserved": {
+    "lateCapture": {
+      "id": 213,
+      "status": 200,
+      "attempts": 1,
+      "captures": [
+        [
+          1,
+          0,
+          0,
+          1800459608326916,
+          1800460125335416,
+          1,
+          1,
+          840,
+          29000,
+          516903834,
+          1,
+          0,
+          107750,
+          18500,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0,
+          true
+        ]
+      ]
+    },
+    "application503": "3 attempts, source-changed reasons/revisions, unchanged rejection counter1->1",
+    "applicationSuccess": "2 attempts; third Capture is Playback validation, not a third retry"
+  },
+  "counterSchema": [
+    "ordinal",
+    "parentCaptureOrdinal0ForRoot",
+    "attempt0Based",
+    "beginNs",
+    "endNs",
+    "processedV2Rows",
+    "cutRows",
+    "rawBytes",
+    "cutReadNs",
+    "outsideNs",
+    "segmentDecodeCalls",
+    "segmentDecodeHits",
+    "segmentParseNs",
+    "catalogRowApiElapsedNs",
+    "sharedV2Projections",
+    "materializedV2Projections",
+    "capturedRevision",
+    "currentRevision",
+    "sharedRejectionsBefore",
+    "sharedRejectionsAfter",
+    "complete"
+  ],
+  "measurementLimits": [
+    "fixed Capture6 is output capacity, not actual maximum calls",
+    "all per-Capture counters/durations inclusive, nested parent/child must not be added",
+    "raw API elapsed is not physical IO or pure lock wait",
+    "shared rejection snapshots may include concurrent requests; not request-exclusive",
+    "source captures can also occur under WithPlayback; use same-process phases and attempt/parent",
+    "slow hook delays test record selection only; not a product benchmark",
+    "cache hit0 retained exactly; no inferred hit",
+    "OFF adds fixed diagnostic struct storage but no new output; overhead not benchmarked"
+  ],
+  "bounds": {
+    "ids": 512,
+    "detailRecords": 24,
+    "capturesPerSearch": 6,
+    "searchPhases": 40,
+    "slowCaptureNs": 500000000,
+    "slowSearchNs": 2000000000,
+    "serverBytes": 524288,
+    "serverReservedLossBytes": 192,
+    "serverLineBufferBytes": 16384,
+    "clientBytes": 262144,
+    "clientLineBytes": 512,
+    "completionEvidenceBytes": 2097152,
+    "completionRows": 4095,
+    "processLogBytes": 4194304,
+    "overflow": "sticky explicit loss, stop; never successful sampling",
+    "representativeCapacity": "CAPACITY_UNPROVEN"
+  },
+  "independentReview": {
+    "status": "PASS",
+    "agent": "/root/r171_review",
+    "readOnly": true,
+    "initialFindings": [
+      "model-build/model-delta allowlist",
+      "actual search-capacity-exceeded public error",
+      "client/server/Search status match",
+      "native unauth helper general ID"
+    ],
+    "allCorrected": true,
+    "final": "No remaining concrete defect; focused-only DIAGNOSTIC_COVERAGE_READY qualified; actual HTTP/representative run NOT_RUN"
+  },
+  "evidence": {
+    "scope-off-execution.json": {
+      "path": "/private/tmp/media-server-r171-qaf_knej/qualified/scope-off-execution.json",
+      "bytes": 504,
+      "sha256": "972c970315d75cf9699f6bb9363ccf49810cc65a2b95c000afc4daebab6c0e6f"
+    },
+    "scope-on-execution.json": {
+      "path": "/private/tmp/media-server-r171-qaf_knej/qualified/scope-on-execution.json",
+      "bytes": 504,
+      "sha256": "951d109bbe81cebcb8ce1dd1f21569a3f916ca1cd1500236b03093ef8f1c867b"
+    },
+    "generation-on-final-execution.json": {
+      "path": "/private/tmp/media-server-r171-qaf_knej/qualified/generation-on-final-execution.json",
+      "bytes": 526,
+      "sha256": "ca34aefd52e9c217943bdbf25e81646c091eb1cf32197b29aed030fc417f18c1"
+    },
+    "generation-on-corrected-execution.json": {
+      "path": "/private/tmp/media-server-r171-qaf_knej/qualified/generation-on-corrected-execution.json",
+      "bytes": 536,
+      "sha256": "d388c1b92dfaea752b8dd09866989b9c77e3aac3a9d1046d2d00f2f05fa318c4"
+    },
+    "scope-on-final-execution.json": {
+      "path": "/private/tmp/media-server-r171-qaf_knej/qualified/scope-on-final-execution.json",
+      "bytes": 510,
+      "sha256": "6c5b79d52419788ff2368960941108c867f1f25d8a4c7f2bddbe5e9de0341d86"
+    },
+    "parser-results.json": {
+      "path": "/private/tmp/media-server-r171-qaf_knej/qualified/parser-results.json",
+      "bytes": 2507,
+      "sha256": "5f6d99b0dbc89f6e40975f37e849f99acfcd761b681ab6f5bb186f670353dcce"
+    },
+    "native-readback.json": {
+      "path": "/private/tmp/media-server-r171-qaf_knej/qualified/native-readback.json",
+      "bytes": 4607,
+      "sha256": "e9c42be13057d52e67360c75839057cd029638522345916580ea56ef5356f157"
+    },
+    "js-final.log": {
+      "path": "/private/tmp/media-server-r171-qaf_knej/qualified/js-final.log",
+      "bytes": 2788,
+      "sha256": "059503c6cf15c0e764f93fba327cdc403785685f034f48ddeaaf32f3d84ca6c7"
+    },
+    "definition-readback.json": {
+      "path": "/private/tmp/media-server-r171-qaf_knej/qualified/definition-readback.json",
+      "bytes": 2030,
+      "sha256": "36b99ac969c4e5fbc7174cce77ba96cbb2c8eb4c61eacbaecfbcced1a3ecf46a"
+    },
+    "definition-coverage.log": {
+      "path": "/private/tmp/media-server-r171-qaf_knej/qualified/definition-coverage.log",
+      "bytes": 2580,
+      "sha256": "5642da1616a41b090bccf77afb53b618a9739da501e63fad2806dd879f6f6c5a"
+    },
+    "definition-producer.log": {
+      "path": "/private/tmp/media-server-r171-qaf_knej/qualified/definition-producer.log",
+      "bytes": 12812,
+      "sha256": "d044f8ac77f4e3e0a7ee0672c9d63381151b9f522393a0aa536f910913ef258f"
+    },
+    "definition-readback.log": {
+      "path": "/private/tmp/media-server-r171-qaf_knej/qualified/definition-readback.log",
+      "bytes": 1141,
+      "sha256": "f004e8a145e0b287322992e5f2f9c356c12a495834505e9ea79a414fd1f6b6f7"
+    },
+    "final-linkage.json": {
+      "path": "/private/tmp/media-server-r171-qaf_knej/qualified/final-linkage.json",
+      "bytes": 2989,
+      "sha256": "65a4da67a12ec97cb4badf05c10e7879d0b146c9867291d67b9a06df1ce10f5f"
+    },
+    "cleanup.json": {
+      "path": "/private/tmp/media-server-r171-qaf_knej/qualified/cleanup.json",
+      "bytes": 8366,
+      "sha256": "151e7b3f2bc0e5a6f6ecddc4ca17995bf612a9e78e931468b4c6f73c4fc55303"
+    },
+    "scope-corrected-build.log": {
+      "path": "/private/tmp/media-server-r171-qaf_knej/qualified/scope-corrected-build.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "scope-on-final.log": {
+      "path": "/private/tmp/media-server-r171-qaf_knej/qualified/scope-on-final.log",
+      "bytes": 6273,
+      "sha256": "5e634a6e9273dc07c30c563164742ad65674eca1b895e1e1a933565672fd93e5"
+    },
+    "scope-build.log": {
+      "path": "/private/tmp/media-server-r171-qaf_knej/qualified/scope-build.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "scope-on.log": {
+      "path": "/private/tmp/media-server-r171-qaf_knej/qualified/scope-on.log",
+      "bytes": 5044,
+      "sha256": "a612b10a1273f12cd28e30e9e35e15a53f612b118d51444ff0848398a1fc8d8c"
+    },
+    "scope-off.log": {
+      "path": "/private/tmp/media-server-r171-qaf_knej/qualified/scope-off.log",
+      "bytes": 2832,
+      "sha256": "65db56470a0bcbd0dd8f1737703a4ccdbe74036a7ced92cc3a7b9b7f6cb2da40"
+    },
+    "generation-on-final.log": {
+      "path": "/private/tmp/media-server-r171-qaf_knej/qualified/generation-on-final.log",
+      "bytes": 10366,
+      "sha256": "443abde35f46220bc3973b5bfb447e847446830ed66f3e38be3ca54272b619d1"
+    },
+    "generation-counter-correction-build.log": {
+      "path": "/private/tmp/media-server-r171-qaf_knej/qualified/generation-counter-correction-build.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "generation-on-corrected.log": {
+      "path": "/private/tmp/media-server-r171-qaf_knej/qualified/generation-on-corrected.log",
+      "bytes": 8498,
+      "sha256": "fb409d10aae2d2202e136de4923e9f99fa7ec09e64ad57367f8d0b68e505ea18"
+    },
+    "generation-corrected-build.log": {
+      "path": "/private/tmp/media-server-r171-qaf_knej/qualified/generation-corrected-build.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "r171-capture-loss.log": {
+      "path": "/private/tmp/media-server-r171-qaf_knej/qualified/r171-capture-loss.log",
+      "bytes": 648,
+      "sha256": "1fc1cdf0614d7ea24c6c112b04bcd2b08fce3bb73506934abfea0ca2c1667c64"
+    },
+    "r171-mixed.log": {
+      "path": "/private/tmp/media-server-r171-qaf_knej/qualified/r171-mixed.log",
+      "bytes": 678,
+      "sha256": "587b7728c9a386017fc3885358aa59ec766dc5fb45cb786a36c5fa951213f52e"
+    },
+    "r171-range.log": {
+      "path": "/private/tmp/media-server-r171-qaf_knej/qualified/r171-range.log",
+      "bytes": 82,
+      "sha256": "118806fec42d08546c27174a5465601e2d662e5f527ed30ac26316be69baaab0"
+    },
+    "r171-duplicate.log": {
+      "path": "/private/tmp/media-server-r171-qaf_knej/qualified/r171-duplicate.log",
+      "bytes": 86,
+      "sha256": "c023c807c4a71df40dffb86f5f9d18c18da491d07f4ddb6ec328991c5185b892"
+    },
+    "r171-zero.log": {
+      "path": "/private/tmp/media-server-r171-qaf_knej/qualified/r171-zero.log",
+      "bytes": 81,
+      "sha256": "6e3347ca9c4ddd882a5203e9411e16018e5887326620e0af0aa5e36b0d4145b9"
+    },
+    "r171-off.log": {
+      "path": "/private/tmp/media-server-r171-qaf_knej/qualified/r171-off.log",
+      "bytes": 33,
+      "sha256": "815d892dfcc9b814fac6f3ac92f430a45b1040d55163b2234b3983c520f3ca7a"
+    },
+    "r171-byte-cap.log": {
+      "path": "/private/tmp/media-server-r171-qaf_knej/qualified/r171-byte-cap.log",
+      "bytes": 85,
+      "sha256": "1705957c410b1eb347e73f20001262a98960bf237d628b2fc877f132be628765"
+    },
+    "r171-upper.log": {
+      "path": "/private/tmp/media-server-r171-qaf_knej/qualified/r171-upper.log",
+      "bytes": 678,
+      "sha256": "ec56bd96d3416fb29c64b2c07561f14780324b4927c595afa487b096062042cb"
+    },
+    "r171-text.log": {
+      "path": "/private/tmp/media-server-r171-qaf_knej/qualified/r171-text.log",
+      "bytes": 81,
+      "sha256": "4163868df8802429fdd0915fefd05863138170925a7201e961b28c26c63a1942"
+    },
+    "r171-lower.log": {
+      "path": "/private/tmp/media-server-r171-qaf_knej/qualified/r171-lower.log",
+      "bytes": 678,
+      "sha256": "f716271c16748847c2ad80d3401d0c7ffc4d86130b3eab2ad0da26fff4fbdfd3"
+    }
+  },
+  "cleanup": {
+    "ownedRoot": "/private/tmp/media-server-r171-qaf_knej",
+    "owner": 501,
+    "initialSafetyCheck": "stopped before mutation on owned GStreamer cache symlinks; then verified links and external target identity",
+    "ownedCacheSymlinksUnlinked": 554,
+    "externalTargetsUnchanged": true,
+    "rawLogsPreserved": true,
+    "maps": [
+      {
+        "path": "/private/tmp/media-server-r171-qaf_knej/scope.map",
+        "sha256": "8bd53f3baa74e8e319109c9741cca4e80f5edfad62a5ef3e5ccfb5390a8129fe",
+        "bytes": 11437693,
+        "preservedPath": "/private/tmp/media-server-r171-qaf_knej/scope.map.gz",
+        "preservedSha256": "66e98940be57d4c7c927571f954561401c12dab4282172176c2b21a557f00626",
+        "preservedBytes": 1074979
+      },
+      {
+        "path": "/private/tmp/media-server-r171-qaf_knej/link.map",
+        "sha256": "0186eb833d1bdeb05d523bc9c31928f3a956397c79846d9178f29c900f6e6cac",
+        "bytes": 23857028,
+        "preservedPath": "/private/tmp/media-server-r171-qaf_knej/link.map.gz",
+        "preservedSha256": "63d99e8880b16905da7055d6f4e6898b14002ab5415461b5ff636a0d867418f3",
+        "preservedBytes": 2328934
+      },
+      {
+        "path": "/private/tmp/media-server-r171-qaf_knej/focused.map",
+        "sha256": "58e95acc28d8ef9d044c1517831356a7cc62fe268cfe1643d4159956861e6c2a",
+        "bytes": 22752232,
+        "preservedPath": "/private/tmp/media-server-r171-qaf_knej/focused.map.gz",
+        "preservedSha256": "f1b24566b77813b6cd991fd3b6f86c046b7c8d655f428b683b947d3560ff40f7",
+        "preservedBytes": 2219939
+      },
+      {
+        "path": "/private/tmp/media-server-r171-qaf_knej/final/link.map",
+        "sha256": "b69ce91c009bf7dc75ba6c156d50b3274092ae4d95bbfd473784cd94194adf9c",
+        "bytes": 23857100,
+        "preservedPath": "/private/tmp/media-server-r171-qaf_knej/final/link.map.gz",
+        "preservedSha256": "31f09ff928616b1211d1cc9bf9b3df01698a3884e1dfc907962da48656f54110",
+        "preservedBytes": 2329068
+      },
+      {
+        "path": "/private/tmp/media-server-r171-qaf_knej/final/focused.map",
+        "sha256": "3de38ad5717eb1503ba15855d229c8d06049008c5bd9d39c17caf1ba1f491f39",
+        "bytes": 22752320,
+        "preservedPath": "/private/tmp/media-server-r171-qaf_knej/final/focused.map.gz",
+        "preservedSha256": "ff033d976f3c55d96fc4432489256588933b6fa2e0f71df41867d6cc4469cea9",
+        "preservedBytes": 2219803
+      },
+      {
+        "path": "/private/tmp/media-server-r171-qaf_knej/qualified/generation.map",
+        "sha256": "7d7b74f061e456ffe2ca4f856f55d80a566aed5fb68e3d48475b149a4e7d12cf",
+        "bytes": 10894381,
+        "preservedPath": "/private/tmp/media-server-r171-qaf_knej/qualified/generation.map.gz",
+        "preservedSha256": "b423279a3ceaadad4877416ca5a5e74b042e05339a6acd17757260cf1b45863f",
+        "preservedBytes": 1014366
+      },
+      {
+        "path": "/private/tmp/media-server-r171-qaf_knej/qualified/scope.map",
+        "sha256": "7b1ee910bdfa1d91542aa15e4f01b90e58decae1087462528f0fbe370ba3786c",
+        "bytes": 11433358,
+        "preservedPath": "/private/tmp/media-server-r171-qaf_knej/qualified/scope.map.gz",
+        "preservedSha256": "3d85e71eb453c25b09c0789aee55ab3725c7fa2ba759be4305beb029f57e1563",
+        "preservedBytes": 1074765
+      },
+      {
+        "path": "/private/tmp/media-server-r171-qaf_knej/qualified/link.map",
+        "sha256": "05e081dcf4c5ab2b7f8eee947d141792aa85e456ed6020d7ef1c09525a2afc77",
+        "bytes": 23857116,
+        "preservedPath": "/private/tmp/media-server-r171-qaf_knej/qualified/link.map.gz",
+        "preservedSha256": "81b6951b02b47df762d7295f24e59d77e96c39a3acb11a3220ab900f066ded56",
+        "preservedBytes": 2329098
+      },
+      {
+        "path": "/private/tmp/media-server-r171-qaf_knej/qualified/focused.map",
+        "sha256": "26f61b1e32552981fa3b4304f3e59832f3320c908054ef9c9e5f0fd74c55b3f9",
+        "bytes": 22752398,
+        "preservedPath": "/private/tmp/media-server-r171-qaf_knej/qualified/focused.map.gz",
+        "preservedSha256": "889dbbdb2ef868f64fc73d12d23529d6fba039bd613e8f0a4f85fc4c77b29a51",
+        "preservedBytes": 2219978
+      }
+    ],
+    "removed": [
+      {
+        "path": "/private/tmp/media-server-r171-qaf_knej/media_server",
+        "bytes": 38224784,
+        "sha256": "2c62166b0af2e552c9df69814f531cc400fd20ae4238b0369aa866412249b23e"
+      },
+      {
+        "path": "/private/tmp/media-server-r171-qaf_knej/selected-focused",
+        "bytes": 36679392,
+        "sha256": "c1573b408370d59d5f06f30388f3a220e67c55460b44d9d41964cae5335f18c4"
+      },
+      {
+        "path": "/private/tmp/media-server-r171-qaf_knej/parser",
+        "bytes": 35329784,
+        "sha256": "72dbb02eaa11922b96d63c5f73f3365d3646c204df01d87c9032aae8a5af259c"
+      },
+      {
+        "path": "/private/tmp/media-server-r171-qaf_knej/scope",
+        "bytes": 17472008,
+        "sha256": "19d4bf5fe5d349c06bc27ae7da6532bbe43023280cb33dafef237c3a86bf60f3"
+      },
+      {
+        "path": "/private/tmp/media-server-r171-qaf_knej/overlay/recording_search_application_service.cpp.o",
+        "bytes": 391848
+      },
+      {
+        "path": "/private/tmp/media-server-r171-qaf_knej/overlay/webrtc_http_server_runtime.cpp.o",
+        "bytes": 2026312
+      },
+      {
+        "path": "/private/tmp/media-server-r171-qaf_knej/overlay/webrtc_http_server.cpp.o",
+        "bytes": 1989768
+      },
+      {
+        "path": "/private/tmp/media-server-r171-qaf_knej/final/media_server",
+        "bytes": 38224784,
+        "sha256": "1911e5db490c869d71113944007ff636268883988c3433cf8dddff38dcdd3092"
+      },
+      {
+        "path": "/private/tmp/media-server-r171-qaf_knej/final/selected-focused",
+        "bytes": 36679392,
+        "sha256": "10723dd366a1c051aa46e2478964bf4c720b8098f69584cd00339eb8522fa3bf"
+      },
+      {
+        "path": "/private/tmp/media-server-r171-qaf_knej/final/parser",
+        "bytes": 35329784,
+        "sha256": "68225014e703cfb7ab32115763d6693f2bc7cbe3a7759f6c6bb2028be674717c"
+      },
+      {
+        "path": "/private/tmp/media-server-r171-qaf_knej/final/overlay/recording_search_application_service.cpp.o",
+        "bytes": 392024
+      },
+      {
+        "path": "/private/tmp/media-server-r171-qaf_knej/final/overlay/webrtc_http_server_runtime.cpp.o",
+        "bytes": 2026392
+      },
+      {
+        "path": "/private/tmp/media-server-r171-qaf_knej/final/overlay/webrtc_http_server.cpp.o",
+        "bytes": 1989768
+      },
+      {
+        "path": "/private/tmp/media-server-r171-qaf_knej/qualified/media_server",
+        "bytes": 38224784,
+        "sha256": "9f60113bc369378d84ede1e88b43a85906c6f4de206819de21ffa141942cd50f"
+      },
+      {
+        "path": "/private/tmp/media-server-r171-qaf_knej/qualified/selected-focused",
+        "bytes": 36679392,
+        "sha256": "cfe92f016541ce83a4a5766887b8304f91be80ead2a12a1f9430f06c349524b3"
+      },
+      {
+        "path": "/private/tmp/media-server-r171-qaf_knej/qualified/parser",
+        "bytes": 35329784,
+        "sha256": "98e2f12d9c2066d4c9312a1f20bcac16122a508133197f9ddad9bf1e5ab802e4"
+      },
+      {
+        "path": "/private/tmp/media-server-r171-qaf_knej/qualified/scope",
+        "bytes": 17468328,
+        "sha256": "1f9dc46e8da8438a96d2f15489bf0a386dc98e35863e3d48fded24693d442b0e"
+      },
+      {
+        "path": "/private/tmp/media-server-r171-qaf_knej/qualified/generation",
+        "bytes": 16604232,
+        "sha256": "663f5a8b70803e06fdf19ed6c499e95d2ac53cbdf552e4ae9cef0afd01833bf6"
+      },
+      {
+        "path": "/private/tmp/media-server-r171-qaf_knej/qualified/overlay/recording_search_application_service.cpp.o",
+        "bytes": 392072
+      },
+      {
+        "path": "/private/tmp/media-server-r171-qaf_knej/qualified/overlay/webrtc_http_server_runtime.cpp.o",
+        "bytes": 2026544
+      },
+      {
+        "path": "/private/tmp/media-server-r171-qaf_knej/qualified/overlay/webrtc_http_server.cpp.o",
+        "bytes": 1989768
+      },
+      {
+        "path": "/private/tmp/media-server-r171-qaf_knej/qualified/scope-off",
+        "absent": true
+      },
+      {
+        "path": "/private/tmp/media-server-r171-qaf_knej/qualified/scope-on",
+        "absent": true
+      },
+      {
+        "path": "/private/tmp/media-server-r171-qaf_knej/qualified/scope-on-final",
+        "absent": true
+      },
+      {
+        "path": "/private/tmp/media-server-r171-qaf_knej/qualified/generation-on-corrected",
+        "absent": true
+      },
+      {
+        "path": "/private/tmp/media-server-r171-qaf_knej/qualified/generation-on-final",
+        "absent": true
+      },
+      {
+        "path": "/private/tmp/media-server-r171-qaf_knej/qualified/parser-run",
+        "absent": true
+      }
+    ],
+    "productServerRuns": 0,
+    "longRuns": 0,
+    "portListenersCreated": 0
+  },
+  "notRun": [
+    "product HTTP server",
+    "selected-focused real server binary",
+    "20/30/45/120-minute workload",
+    "benchmark",
+    "Git stage/commit/push"
+  ],
+  "unresolved": [
+    "R170 actual503 internal reason UNKNOWN",
+    "R170 header timeout server phase UNKNOWN",
+    "representative output capacity UNKNOWN",
+    "diagnostic overhead not quantified"
+  ],
+  "historical": {
+    "R149": "FAIL",
+    "R165": "FAIL",
+    "R166": "FAIL",
+    "R169": "PRODUCT_WORK_REDUCED",
+    "MemoryP0": "HOLD",
+    "Readiness120": "HOLD",
+    "Release": "HOLD"
+  }
+}

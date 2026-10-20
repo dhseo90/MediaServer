@@ -151,3 +151,62 @@ test('actual generated search mode keeps workload, old gates, environment and ea
   const blocked=spawnSync('bash',[path.join(out,'wrapper.sh'),'--search-performance-diagnostic'],{encoding:'utf8',timeout:10000,env:{PATH:process.env.PATH}});assert.notEqual(blocked.status,0);assert.match(blocked.stderr,/CAPACITY_UNPROVEN/);assert.doesNotMatch(blocked.stderr,/owned parent run required/);assert.deepEqual(fs.readdirSync(root),['overlay']);
  }finally{fs.rmSync(root,{recursive:true});assert(!fs.existsSync(root));}
 });
+
+import {failureCollector,attributionError} from './recording_accumulated_cost.mjs';
+const fw=(kind,r)=>Buffer.from(`[R171-${kind}] ${JSON.stringify(r)}\n`);
+const fc=id=>({id,loss:false,status:503,phase:'complete',outcome:'ok',headerReceived:true,totalElapsedMs:3886,bytes:40,reason:'recording-search-unavailable'});
+const fsrv=id=>({id,loss:false,dispatch:10,handler:20,prepared:900,sendBegin:910,sendEnd:920,end:930,status:503,sent:true});
+const fq=id=>({id,loss:false,begin:30,end:890,diagnosticStatus:503,exception:'none',rejections:[0,0],detail:true,attempts:[{stage:'validate-source',reason:'search-source-changed',captured:7,current:8,authority:true},{stage:'validate-source',reason:'search-source-changed',captured:8,current:9,authority:true}],captures:[[1,0,0,40,300,8,8,900,100,120,8,7,10,110,7,1,7,7,0,0,true],[2,0,1,350,700,9,9,1000,110,200,9,8,10,120,8,1,8,8,0,0,true]],phases:[['Capture',40,301],['Capture',350,701]]});
+function feed(c,id=1,q=fq(id)){c.start(id);c.append(fw('dispatch',{id,at:10,loss:false}),1);c.append(fw('search-enter',{id,at:30,loss:false}),1);c.append(fw('search',q),1);c.append(fw('server',fsrv(id)),1);c.client(fc(id));}
+test('R171 separate IDs preserve selected contract and two Capture attempts',()=>{
+ const c=failureCollector(),selected=costCollector();selected.start(1);selected.client(client(1));selected.append(wire('search',search(1)),1);selected.append(wire('server',server(1)),1);feed(c);
+ assert.equal(selected.complete().search.length,1);const r=c.complete();assert.equal(r.requests[0].search.captures.length,2);assert.deepEqual(r.requests[0].search.captures.map(x=>x[2]),[0,1]);assert.equal(r.requests[0].client.reason,'recording-search-unavailable');
+ const safe=attributionError(Buffer.from('{"error":"recording-search-unavailable"}'));assert.equal(safe,'recording-search-unavailable');assert.equal(attributionError(Buffer.from('{"error":"token /private/secret"}')),'UNKNOWN');
+});
+test('R171 header timeout never invents server entry or cause; terminal missing fails closed',()=>{
+ const c=failureCollector();c.start(1);c.client({...fc(1),status:null,phase:'header',outcome:'timeout',headerReceived:false,bytes:0,totalElapsedMs:5003,reason:'UNKNOWN'});
+ assert.equal(c.snapshot()[0].internalCause,'UNKNOWN');assert.equal(c.snapshot()[0].dispatchObserved,false);assert.throws(()=>c.complete(),/missing-terminal/);
+});
+test('R171 async split records and bounded normal success',()=>{
+ const c=failureCollector();c.start(2);c.start(1);
+ for(const id of [1,2]){c.append(fw('dispatch',{id,at:10,loss:false}),1);const q={...fq(id),detail:false,phases:[],captures:[],diagnosticStatus:200};c.append(fw('search-enter',{id,at:30,loss:false}),1);const bytes=fw('search',q);c.append(bytes.subarray(0,13),1);c.append(bytes.subarray(13),1);c.client({...fc(id),status:200,reason:'UNKNOWN'});c.append(fw('server',{...fsrv(id),status:200}),1);}
+ assert.equal(c.complete().details,0);
+});
+test('R171 malformed duplicate ID wrong shape nested reversal and cost loss are sticky',()=>{
+ for(const mutate of [q=>q.id=0,q=>q.id=2,q=>q.loss=true,q=>q.captures[1][2]=3,q=>q.captures[0][4]=1,q=>q.captures[0][8]=1000,q=>q.captures[0][10]=2**64,q=>q.captures[1][1]=1,q=>q.attempts[0].reason='/secret',q=>q.phases[0][1]=0]){
+  const c=failureCollector();c.start(1);const q=fq(1);mutate(q);c.append(fw('search',q),1);assert(c.failure());const first=c.failure();c.append(fw('search',fq(1)),1);assert.equal(c.failure(),first);
+ }
+ for(const b of [Buffer.from('[R171-search] bad\n'),Buffer.from('[R171-search] '+'x'.repeat(16384)+'\n')]){const c=failureCollector();c.append(b,1);assert(c.failure());}
+ const partial=failureCollector();partial.append(Buffer.from('[R171-search] {'),1);assert.throws(()=>partial.complete(),/tail/);
+ const c=failureCollector();feed(c);c.append(fw('search',fq(1)),1);assert(c.failure());
+ const starts=failureCollector();starts.start(1);assert.throws(()=>starts.start(1));assert.throws(()=>failureCollector().start(513));
+});
+test('R171 detail budget is explicit loss, never silently drops late slow captures',()=>{
+ const c=failureCollector();for(let id=1;id<=24;id++)feed(c,id);assert.equal(c.complete().details,24);
+ c.start(25);c.append(fw('search',fq(25)),1);assert.match(c.failure().code,/detail-cap/);
+});
+test('R171 actual generated overlay opt-in keeps old default and capacity guard',()=>{
+ const root=fs.mkdtempSync(path.join(os.tmpdir(),'media-server-r171-generator-'));
+ try{
+  for(const enabled of [false,true]){const out=path.join(root,enabled?'on':'off');const r=spawnSync('python3',['-B','-c',"import sys;from pathlib import Path;sys.path.insert(0,'scripts/internal');from recording_accumulated_cost import generate;generate(Path(sys.argv[1]),sys.argv[2]=='1')",out,enabled?'1':'0'],{encoding:'utf8',timeout:10000});assert.equal(r.status,0,r.stderr);
+   const mixed=fs.readFileSync(path.join(out,'mixed.mjs'),'utf8');assert.equal(spawnSync(process.execPath,['--check',path.join(out,'mixed.mjs')],{encoding:'utf8'}).status,0);
+   assert.equal(mixed.includes('VERIFY_SEARCH_ATTRIBUTION:1'),enabled);assert.equal(mixed.includes('X-R171-ID'),enabled);assert(mixed.includes('AbortSignal.timeout(5000)'));assert(mixed.includes('if(performanceDiagnose)assertSearchPerformanceCapacity();'));assert(mixed.includes('VERIFY_RECORDING_LATENCY_TRACE:0,VERIFY_RECORDING_COMPLETION_TRACE:1'));
+   const source=fs.readFileSync(path.join(out,'recording_search_application_service.cpp'),'utf8');assert.equal(source.includes('r171::Search failure_request(diagnostic)'),enabled);
+   if(enabled){assert(mixed.includes('failureTrace.append(chunk'));assert(mixed.includes('final.failureAttribution=failureTrace.complete()'));assert(mixed.includes("++failureOrdinal:0"));assert(mixed.includes("'X-R154-ID'"));}
+  }
+ }finally{fs.rmSync(root,{recursive:true});assert(!fs.existsSync(root));}
+});
+
+test('R171 actual capacity code/model stages and observed status must agree',()=>{
+ assert.equal(attributionError(Buffer.from('{"error":"search-capacity-exceeded"}')),'search-capacity-exceeded');
+ for(const stage of ['model-build','model-delta']){const c=failureCollector(),q=fq(1);q.attempts[0].stage=stage;q.attempts[0].reason='search-capacity-exceeded';feed(c,1,q);assert.equal(c.complete().status,'captured');}
+ const c=failureCollector();c.start(1);c.append(fw('dispatch',{id:1,at:10,loss:false}),1);c.append(fw('search-enter',{id:1,at:30,loss:false}),1);c.append(fw('search',fq(1)),1);c.append(fw('server',{...fsrv(1),status:200}),1);c.client(fc(1));assert.throws(()=>c.complete(),/http-status/);
+});
+
+test('R171 live collector rejects invalid ID and signals owned child before continued work',async()=>{
+ const child=spawn(process.execPath,['-e',`process.stdout.write('[R171-dispatch] {"id":0,"at":1,"loss":false}\\n');setInterval(()=>process.stdout.write('continued\\n'),1000);`],{detached:true,stdio:['ignore','pipe','pipe']});
+ const c=failureCollector();let detected=null,signalled=null,raw='';
+ child.stdout.on('data',b=>{raw+=b.toString();c.append(b,0);if(c.failure()&&detected===null){detected=performance.now();process.kill(-child.pid,'SIGTERM');signalled=performance.now();}});
+ const timeout=setTimeout(()=>process.kill(-child.pid,'SIGKILL'),3000);
+ try{const [code,signal]=await once(child,'exit');assert.equal(code,null);assert.equal(signal,'SIGTERM');assert.ok(signalled-detected<100);assert.doesNotMatch(raw,/continued/);assert.throws(()=>process.kill(-child.pid,0),e=>e.code==='ESRCH');console.log(JSON.stringify({role:'R171-invalid-ID',pid:child.pid,detectionToSignalMs:signalled-detected,groupAbsent:true}));}finally{clearTimeout(timeout);}
+});

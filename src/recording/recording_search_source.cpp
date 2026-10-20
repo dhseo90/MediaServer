@@ -17,13 +17,35 @@ namespace {
 // Counts are per capture, not the whole HTTP request or a CPU-time estimate.
 struct OptionalCaptureCapacity {};
 struct CaptureCost {
-    bool enabled=latency::SubcostEnabled(),complete=false;
+    bool attribution=latency::SearchAttributionEnabled()&&SearchDiagnostic::active;
+    bool enabled=latency::SubcostEnabled()||attribution,complete=false;
+    SearchDiagnostic* diagnostic=attribution?SearchDiagnostic::active:nullptr;
+    unsigned slot=0,parent=0;
+    std::uint64_t shared=0,materialized=0,captured=0,current=0;
+    std::array<std::uint64_t,12> raw=latency::catalog_row_cost;
+    CaptureCost() {
+        if(!diagnostic)return;
+        parent=diagnostic->capture_parent;
+        if(diagnostic->capture_count==diagnostic->captures.size()){diagnostic->capture_loss=true;return;}
+        slot=++diagnostic->capture_count;diagnostic->capture_parent=slot;
+        auto& c=diagnostic->captures[slot-1];c.begin=SearchDiagnostic::Tick();c.attempt=diagnostic->attempt;c.parent=parent;
+        c.rejected_before=diagnostic->resources?diagnostic->resources->rejected():0;
+    }
     std::uint64_t rows=0,excluded=0,memo=0,reused=0,begin=enabled?latency::Now():0;
     std::uint64_t vector_hint=0,growths=0,relocated=0;
     std::uint64_t cut_rows=0,raw_bytes=0,cut_charge=0,read_ns=0,outside_ns=0;
     std::array<std::uint64_t,4> decode=latency::segment_decode_cost;
     ~CaptureCost() {
-        if(!enabled)return;
+        if(diagnostic&&slot){
+            auto& c=diagnostic->captures[slot-1];c.end=SearchDiagnostic::Tick();c.rows=rows;c.cut_rows=cut_rows;
+            c.raw_bytes=raw_bytes;c.read_ns=read_ns;c.outside_ns=outside_ns;
+            c.decode_calls=latency::segment_decode_cost[0]-decode[0];c.decode_hits=latency::segment_decode_cost[1]-decode[1];
+            c.parse_ns=latency::segment_decode_cost[2]-decode[2];
+            for(unsigned i=1;i<raw.size();i+=2)c.raw_read_ns+=latency::catalog_row_cost[i]-raw[i];
+            c.shared=shared;c.materialized=materialized;c.captured=captured;c.current=current;c.complete=complete;
+            c.rejected_after=diagnostic->resources?diagnostic->resources->rejected():0;diagnostic->capture_parent=parent;
+        }
+        if(!latency::SubcostEnabled())return;
         static std::atomic<unsigned> records{0};if(records.fetch_add(1)>=12)return;
         char line[1024];const int n=std::snprintf(line,sizeof(line),
             "[search-capture-cost] {\"rows\":%llu,\"excluded\":%llu,\"memoExcluded\":%llu,\"reusedSegments\":%llu,\"decodeCalls\":%llu,\"decodeHits\":%llu,\"parseNs\":%llu,\"elapsedNs\":%llu,\"cutRows\":%llu,\"rawBytes\":%llu,\"cutCharge\":%llu,\"cutReadNs\":%llu,\"outsideNs\":%llu,\"vectorHint\":%llu,\"vectorGrowths\":%llu,\"relocatedDocuments\":%llu,\"complete\":%s}\n",
@@ -139,6 +161,7 @@ bool RecordingCatalog::CaptureSearchSourceImpl(const std::vector<std::string>& c
         auto temporary=limits.residency->Reserve(temporary_bound,SearchModelResidency::Category::Preparation);
         if(!temporary){SearchCapacityReject("shared-temporary",0,temporary_bound);return Fail(error,"search-capacity-exceeded");}
         batch.catalog_instance = search_instance_;batch.resolution_revision = source_snapshot_revision_;
+        costs.captured=batch.resolution_revision;costs.current=source_snapshot_revision_;
         batch.delta.source_instance = SearchSourceIdentity(search_instance_, channels);
         if(!include_observations)batch.delta.source_instance="recordings:"+batch.delta.source_instance;
         batch.delta.revision = source_snapshot_revision_;
@@ -363,7 +386,7 @@ bool RecordingCatalog::CaptureSearchSourceImpl(const std::vector<std::string>& c
                            old->event_ids.empty()&&old->zone_ids.empty()&&old->rule_ids.empty()&&old->event_facts.empty()) {
                             if(batch.delta.upserts.size()+batch.shared_documents_.size()>=limits.max_documents)return false;
                             auto next=bytes;if(!AccountOwnedSearchDocument(*old,&next,limits.max_bytes))return false;
-                            batch.shared_documents_.push_back(std::move(old));bytes=next;
+                            batch.shared_documents_.push_back(std::move(old));bytes=next;if(costs.attribution)++costs.shared;
 #ifdef RECORDING_SEARCH_TESTING
                             ++search_projection_work_test[2];
 #endif
@@ -373,6 +396,7 @@ bool RecordingCatalog::CaptureSearchSourceImpl(const std::vector<std::string>& c
 #ifdef RECORDING_SEARCH_TESTING
                     ++search_projection_work_test[1];
 #endif
+                    if(costs.attribution)++costs.materialized;
                     SearchDocument d;d.id="s2:"+Key(id)+Key(m?m->mapping_id:"");d.channel_id=s.channel_id;d.segment_id=id;
                     d.source_id=s.source_id;d.store_id=s.store_id;d.media_epoch_id=s.media_epoch_id;d.stream_epoch_id=s.media_epoch_id;d.media_end_pts=m?m->end_pts:s.media_end_pts;d.media_pts=m?m->start_pts:s.media_start_pts;
                     d.time_base_num=s.time_base_num;d.time_base_den=s.time_base_den;d.unavailable_reason=State(lifecycle);
@@ -501,6 +525,7 @@ bool RecordingCatalog::CaptureSearchSourceImpl(const std::vector<std::string>& c
             std::vector<std::shared_ptr<const SearchDocument>>{}.swap(batch.shared_documents_);
             batch.sharing_memory_={};
         }
+        costs.current=source_snapshot_revision_;
         *result=std::move(batch);costs.complete=true;if(error)error->clear();return true;
     } catch(const OptionalCaptureCapacity&) {
         prior_capture=SearchSourceBatch{};

@@ -7,6 +7,31 @@
 #include "recording/recording_search_reader.h"
 #include "recording/recording_identity_shard.h"
 #include <unistd.h>
+#ifdef RECORDING_SEARCH_ATTRIBUTION_TESTING
+#include "recording_http_cost_probe.h"
+#include <thread>
+// Existing managed fixture and real Capture; synthetic HTTP envelope is explicitly a probe unit.
+static void AttributionCapture(recording::RecordingCatalog& catalog) {
+    recording::RecordingReadService reader(catalog);recording::RecordingSearchReader search(catalog,reader);
+    std::string error;
+    for(unsigned i=1;i<=13;++i){
+        r171::Server envelope(200+i);envelope.handler=r154::Tick();
+        {
+            recording::SearchDiagnostic d(catalog.SearchResidency().get());r171::Search trace(d);
+            if(i==13)recording::search_outside_raw_cut_test=[] {std::this_thread::sleep_for(std::chrono::milliseconds(510));};
+            std::shared_ptr<const recording::RecordingSearchModel> model;
+            const bool ok=search.Refresh({"channel"},{},&model,&error,{},false);
+            recording::search_outside_raw_cut_test={};d.status=ok?200:503;
+            if(!ok||d.capture_count!=1||d.capture_loss||!d.captures[0].complete||!d.captures[0].cut_rows||!d.captures[0].decode_calls)throw std::runtime_error("R171 actual Capture counters");
+            const auto& c=d.captures[0];
+            if(i==13&&(c.end-c.begin<500000000||c.outside_ns<500000000||c.decode_hits>c.decode_calls||!c.read_ns||!c.raw_read_ns))throw std::runtime_error("R171 late slow Capture boundary");
+        }
+        envelope.status=200;envelope.prepared=r154::Tick();envelope.send_begin=r154::Tick();envelope.send_end=r154::Tick();envelope.sent=true;
+    }
+    if(recording::latency::Enabled()||recording::latency::HolderEnabled()||r154::loss)throw std::runtime_error("R171 forbidden trace/loss");
+    std::cout<<"[pass] R171 actual cold Capture13 slow, actual decode counters, global/holder off\n";
+}
+#endif
 namespace recording {
 struct RecordingGenerationRequestProofProbe {
     static bool DamageCurrentRaw(RecordingCatalog& catalog) {
@@ -50,6 +75,9 @@ int main(int argc,char** argv) {
             options.enable_v2_storage=true;options.enable_generation_writes=true;
             RecordingCatalog catalog(journal,options);Need(catalog.Open(&error));
             RecordingReadService read(catalog);RecordingSearchReader search(catalog,read);
+#ifdef RECORDING_SEARCH_ATTRIBUTION_TESTING
+            if(phase==0&&r171::Enabled())AttributionCapture(catalog);
+#endif
             if(phase==0) {
                 auto r=input.job.intent.reference;r.kind="observation";r.reference_id="obs-reference";r.owner_id="obs";r.request.reset();
                 Need(catalog.PutReferencedObservation(SearchObservation(r),r,&error));

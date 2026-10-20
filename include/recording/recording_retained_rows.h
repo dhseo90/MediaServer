@@ -407,9 +407,9 @@ private:
         const auto& decoded=decoded_store_?decoded_store_:store_;
         if constexpr(std::is_same_v<T,RecordingSegmentV2>){
             if(kind_=="segment-v2"){
-                if(latency::HolderEnabled())++latency::segment_decode_cost[0];
+                if(latency::DecodeCostEnabled())++latency::segment_decode_cost[0];
                 if(auto prior=decoded->VerifiedSegmentDecode(id,value.bytes)){
-                    if(latency::HolderEnabled())++latency::segment_decode_cost[1];
+                    if(latency::DecodeCostEnabled())++latency::segment_decode_cost[1];
                     return const_iterator(this,std::static_pointer_cast<const Pair>(std::move(prior)));
                 }
             }
@@ -419,7 +419,7 @@ private:
         if(!ticket)throw RecordingResourceUnavailable();
         auto shaped=std::move(*ticket);auto* work=&shaped;
         T parsed;std::string error;
-        const bool trace_decode=std::is_same_v<T,RecordingSegmentV2>&&latency::HolderEnabled();
+        const bool trace_decode=std::is_same_v<T,RecordingSegmentV2>&&latency::DecodeCostEnabled();
         const auto parse_begin=trace_decode?latency::Now():0;
         std::string canonical_bytes;
         const bool parsed_ok=[&] {

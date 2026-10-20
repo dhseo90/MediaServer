@@ -5,6 +5,9 @@
 #include "recording/recording_search_diagnostic.h"
 #include <future>
 #include <thread>
+#ifdef RECORDING_SEARCH_ATTRIBUTION_TESTING
+#include "recording_http_cost_probe.h"
+#endif
 int main(int argc,char** argv) {
     if(argc!=2)return 2;
     gst_init(nullptr,nullptr);int pass=0,fail=0;
@@ -118,7 +121,13 @@ int main(int argc,char** argv) {
         check(after_delete.status==200&&deletion_captures==1&&Field(Json(after_delete.body),"unplacedCount")==Field(Json(before.body),"unplacedCount"),"unrelated actual deletion retains selected membership without retry");
         // Every attempt gets a new relevant candidate. Exactly the existing three attempts, no retry widening.
         unsigned relevant=0;recording::search_after_capture_test=[&]{if(!store.catalog.PutObservationV2(observation("relevant-"+std::to_string(++relevant)),&error))throw std::runtime_error("fixture mutation failed");};
+#ifdef RECORDING_SEARCH_ATTRIBUTION_TESTING
+        r171::Server rejected_envelope(91);rejected_envelope.handler=r154::Tick();
+#endif
         const auto rejected=app.Search(query,"owner","scope",auth);recording::search_after_capture_test={};
+#ifdef RECORDING_SEARCH_ATTRIBUTION_TESTING
+        rejected_envelope.status=rejected.status;rejected_envelope.prepared=r154::Tick();rejected_envelope.send_begin=r154::Tick();rejected_envelope.send_end=r154::Tick();rejected_envelope.sent=true;rejected_envelope.End();
+#endif
         check(relevant==3&&rejected.status==503&&rejected.body=="{\"error\":\"recording-search-unavailable\"}","related candidate additions exhaust exactly three attempts fail closed");
         const auto refreshed=app.Search(query,"owner","scope",auth);
         check(refreshed.status==200&&std::stoull(Field(Json(refreshed.body),"unplacedCount"))==std::stoull(Field(Json(before.body),"unplacedCount"))+3,"fresh search includes every related addition");
@@ -179,6 +188,15 @@ int main(int argc,char** argv) {
         bool authorized=true;recording::search_after_capture_test=[&]{authorized=false;};
         check(app.Search(query,"owner","scope",[&](const auto&){return authorized;}).status==403,"authority revoked during preparation not published");recording::search_after_capture_test={};
         check(app.Search(query,"owner","scope",auth).status==200,"failure path releases request owners and resumes");
+#ifdef RECORDING_SEARCH_ATTRIBUTION_TESTING
+        if(r171::Enabled()){
+        unsigned changes=0;recording::search_after_capture_test=[&]{if(++changes==1){std::this_thread::sleep_for(std::chrono::milliseconds(2010));if(!store.catalog.PutObservationV2(observation("r171-one-retry"),&error))throw std::runtime_error("R171 mutation");}};
+        r171::Server retry_envelope(92);retry_envelope.handler=r154::Tick();
+        const auto two_attempt=app.Search(query,"owner","scope",auth);recording::search_after_capture_test={};
+        retry_envelope.status=two_attempt.status;retry_envelope.prepared=r154::Tick();retry_envelope.send_begin=r154::Tick();retry_envelope.send_end=r154::Tick();retry_envelope.sent=true;retry_envelope.End();
+        check(changes==2&&two_attempt.status==200,"R171 actual two attempts same request");
+        }
+#endif
     }catch(const std::exception& e){recording::search_after_capture_test={};std::cerr<<e.what()<<'\n';++fail;}
     std::cout<<"[search-scope] pass="<<pass<<" fail="<<fail<<std::endl;return fail?1:0;
 }

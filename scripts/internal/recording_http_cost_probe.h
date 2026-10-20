@@ -68,3 +68,47 @@ struct Client {
  ~Client(){char b[768];auto c=connects[id-1];const int n=std::snprintf(b,sizeof(b),"[R154-client] {\"id\":%u,\"class\":%u,\"begin\":%llu,\"connectBegin\":%llu,\"connectEnd\":%llu,\"sendBegin\":%llu,\"sendEnd\":%llu,\"header\":%llu,\"receiveEnd\":%llu,\"end\":%llu,\"status\":%d,\"error\":%d,\"bytes\":%zu,\"loss\":%s}\n",id,Class(id),(unsigned long long)begin,(unsigned long long)c[0],(unsigned long long)c[1],(unsigned long long)sendBegin,(unsigned long long)sendEnd,(unsigned long long)o.headerNs,(unsigned long long)o.receiveEndNs,(unsigned long long)Tick(),o.status,o.error,o.bytes,loss?"true":"false");if(n>0&&n<int(sizeof(b)))Write(b,n);else Lose(6);}
 };
 }
+
+// R171: same owned overlay/sink, separate correlation domain. No product API trust.
+namespace r171 {
+using U=std::uint64_t;
+inline bool Enabled(){return recording::latency::SearchAttributionEnabled();}
+inline constexpr unsigned RequestCap=512,DetailCap=24;
+inline constexpr std::size_t ByteCap=512*1024;
+inline std::array<std::atomic<bool>,RequestCap> seen{};
+inline std::atomic<unsigned> details{0};
+inline std::size_t bytes=0;
+inline thread_local unsigned headers=0;
+inline void HeaderSeen(const std::string& key){if(!Enabled())return;constexpr char name[]="x-r171-id";if(key.size()!=sizeof(name)-1)return;for(unsigned i=0;i<key.size();++i){char c=key[i];if(c>='A'&&c<='Z')c+=32;if(c!=name[i])return;}if(headers<2)++headers;}
+inline unsigned Identity(const std::string& value){if(!Enabled())return 0;if(value.empty()&&!headers)return 0;unsigned id=0;if(headers!=1||value.empty()||value.size()>3){r154::Lose(171);return 0;}for(char c:value){if(c<'0'||c>'9'){r154::Lose(171);return 0;}id=id*10+c-'0';}if(!id||id>RequestCap){r154::Lose(171);return 0;}return id;}
+inline void Write(const char* b,int n,std::size_t capacity){bool failed=n<=0||std::size_t(n)>=capacity;
+ {std::lock_guard<std::mutex> lock(r154::output_mutex);if(!failed){if(bytes>ByteCap-192||std::size_t(n)>ByteCap-192-bytes)failed=true;else{bytes+=n;failed=std::fwrite(b,1,n,stderr)!=std::size_t(n)||std::fflush(stderr)!=0;}}}
+ if(failed)r154::Lose(172);
+}
+struct Server;
+inline thread_local Server* active=nullptr;
+struct Server {
+ unsigned id=0;Server* prior;U dispatch=0,handler=0,prepared=0,send_begin=0,send_end=0;int status=0;bool sent=false,ended=false;
+ explicit Server(unsigned value):id(Enabled()?value:0),prior(active){if(id>RequestCap){r154::Lose(171);id=0;}if(id&&seen.at(id-1).exchange(true)){r154::Lose(173);id=0;}active=id?this:nullptr;if(!id)return;dispatch=r154::Tick();char b[192];const int n=std::snprintf(b,sizeof(b),"[R171-dispatch] {\"id\":%u,\"at\":%llu,\"loss\":false}\n",id,(unsigned long long)dispatch);Write(b,n,sizeof(b));}
+ ~Server(){End();}
+ void End(){if(ended)return;ended=true;active=prior;if(!id)return;char b[512];const int n=std::snprintf(b,sizeof(b),"[R171-server] {\"id\":%u,\"dispatch\":%llu,\"handler\":%llu,\"prepared\":%llu,\"sendBegin\":%llu,\"sendEnd\":%llu,\"end\":%llu,\"status\":%d,\"sent\":%s,\"loss\":%s}\n",id,(unsigned long long)dispatch,(unsigned long long)handler,(unsigned long long)prepared,(unsigned long long)send_begin,(unsigned long long)send_end,(unsigned long long)r154::Tick(),status,sent?"true":"false",r154::loss?"true":"false");Write(b,n,sizeof(b));}
+};
+struct Search {
+ recording::SearchDiagnostic& d;unsigned id=0,prior_id;U begin=0;
+ explicit Search(recording::SearchDiagnostic& value):d(value),id(active?active->id:0),prior_id(d.id){if(!id)return;begin=r154::Tick();if(!d.id){d.id=id;d.entered=begin;}char b[192];const int n=std::snprintf(b,sizeof(b),"[R171-search-enter] {\"id\":%u,\"at\":%llu,\"loss\":false}\n",id,(unsigned long long)begin);Write(b,n,sizeof(b));}
+ ~Search(){if(!id)return;const auto end=r154::Tick();bool detail=d.status>=400||end-begin>=2000000000ULL;
+  for(unsigned i=0;i<d.capture_count;++i)detail=detail||d.captures[i].end-d.captures[i].begin>=500000000ULL;
+  if(d.cost_loss||d.capture_loss||d.attempt>=3)r154::Lose(174);
+  char b[16384];int n=std::snprintf(b,sizeof(b),"[R171-search] {\"id\":%u,\"begin\":%llu,\"end\":%llu,\"diagnosticStatus\":%d,\"exception\":\"%s\",\"rejections\":[%llu,%llu],\"detail\":%s,\"loss\":%s,\"attempts\":[",id,(unsigned long long)begin,(unsigned long long)end,d.status,d.exception,(unsigned long long)d.rejection_start,(unsigned long long)(d.resources?d.resources->rejected():0),detail?"true":"false",r154::loss?"true":"false");
+  if(detail&&details.fetch_add(1)>=DetailCap){r154::Lose(175);d.id=prior_id;return;}
+  for(unsigned i=0;i<=d.attempt&&i<3&&n>0&&n<int(sizeof(b));++i){const auto& a=d.attempts[i];n+=std::snprintf(b+n,sizeof(b)-n,"%s{\"stage\":\"%s\",\"reason\":\"%s\",\"captured\":%llu,\"current\":%llu,\"authority\":%s}",i?",":"",a.stage,a.reason,(unsigned long long)a.captured,(unsigned long long)a.current,a.authority?"true":"false");}
+  if(n>0&&n<int(sizeof(b)))n+=std::snprintf(b+n,sizeof(b)-n,"],\"captures\":[");
+  for(unsigned i=0;detail&&i<d.capture_count&&n>0&&n<int(sizeof(b));++i){const auto& c=d.captures[i];n+=std::snprintf(b+n,sizeof(b)-n,"%s[%u,%u,%u,%llu,%llu,%llu,%llu,%llu,%llu,%llu,%llu,%llu,%llu,%llu,%llu,%llu,%llu,%llu,%llu,%llu,%s]",i?",":"",i+1,c.parent,c.attempt,(unsigned long long)c.begin,(unsigned long long)c.end,(unsigned long long)c.rows,(unsigned long long)c.cut_rows,(unsigned long long)c.raw_bytes,(unsigned long long)c.read_ns,(unsigned long long)c.outside_ns,(unsigned long long)c.decode_calls,(unsigned long long)c.decode_hits,(unsigned long long)c.parse_ns,(unsigned long long)c.raw_read_ns,(unsigned long long)c.shared,(unsigned long long)c.materialized,(unsigned long long)c.captured,(unsigned long long)c.current,(unsigned long long)c.rejected_before,(unsigned long long)c.rejected_after,c.complete?"true":"false");}
+  if(n>0&&n<int(sizeof(b)))n+=std::snprintf(b+n,sizeof(b)-n,"],\"phases\":[");
+  for(unsigned i=0;detail&&i<d.cost_count&&n>0&&n<int(sizeof(b));++i){const auto& c=d.costs[i];n+=std::snprintf(b+n,sizeof(b)-n,"%s[\"%s\",%llu,%llu]",i?",":"",c.name,(unsigned long long)c.begin,(unsigned long long)c.end);}
+  if(n>0&&n+4<int(sizeof(b))){std::memcpy(b+n,"]}\n",3);Write(b,n+3,sizeof(b));}else r154::Lose(176);
+  // Suppress the old unselected destructor output, preserve the selected 1..15 contract.
+  d.id=prior_id;
+ }
+};
+}

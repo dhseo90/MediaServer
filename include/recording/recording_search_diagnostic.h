@@ -43,6 +43,12 @@ inline void SearchCapacityReject(const char* condition,std::size_t before,std::s
 struct SearchDiagnostic {
     struct Attempt {const char* stage="start";const char* reason="none";std::uint64_t instance=0,current_instance=0,captured=0,current=0,documents=0,references=0;bool rebuild=false,authority=false;};
     std::array<Attempt,3> attempts{};
+    // No output/allocation here. Owned overlays publish bounded terminal records after unlock.
+    struct Capture {std::uint64_t begin=0,end=0,rows=0,cut_rows=0,raw_bytes=0,read_ns=0,outside_ns=0,
+        decode_calls=0,decode_hits=0,parse_ns=0,raw_read_ns=0,shared=0,materialized=0,captured=0,current=0,rejected_before=0,rejected_after=0;
+        unsigned attempt=0,parent=0;bool complete=false;};
+    std::array<Capture,6> captures{};unsigned capture_count=0,capture_parent=0;bool capture_loss=false;
+
     struct Cost {const char* name;std::uint64_t begin,end;};
     std::array<Cost,40> costs{};unsigned cost_count=0;bool cost_loss=false;
     static inline std::atomic<unsigned> sequence{0};
