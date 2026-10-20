@@ -43,3 +43,26 @@ export function costCollector(){
   ready(channels){return Array.from({length:9},(_,i)=>i+1).every(id=>started.has(id))&&Object.values(records).every(m=>m.size===started.size)&&[...records.client.values()].filter(r=>r.id%3!==0&&r.totalElapsedMs>=2000).length>=2&&['9101','9201'].every(k=>channels[k].finalized>=600);}
  };
 }
+
+// 검색 전용 결과는 장시간/삭제/메모리/릴리즈 적격성을 부여하지 않는다.
+export function assertSearchPerformanceCapacity(){
+ // 요청당 출력 크기는 bounded지만 background/retry/runtime 출력 총량은 미입증.
+ // 환경변수나 CLI override로 우회하지 않는다. 새 용량 근거 검토 전에는 실행 금지.
+ throw Error('CAPACITY_UNPROVEN: background/retry completion and total runtime output');
+}
+export function searchPerformanceResult({final,trace,completion,logsCaptured,batches}){
+ const omitted={retentionDeletion:'NOT_RUN',retentionPostDeletionStability:'NOT_RUN',memoryP0:'NOT_RUN',readiness120:'NOT_RUN',releaseQualification:'NOT_RUN'};
+ const m=final.evidenceLoad,a=final.aLoad, channels=final.phase?.channels;
+ const progression=['9101','9201'].every(id=>Number.isSafeInteger(channels?.[id]?.finalized)&&channels[id].finalized>0);
+ const latencies=m?.searchLatencyMs;
+ const timing=Array.isArray(latencies)&&latencies.length>0&&latencies.every(n=>Number.isFinite(n)&&n>=0)&&latencies.length===m.searchSuccess;
+ const ordered=timing?[...latencies].sort((a,b)=>a-b):[];
+ const p95=ordered.at(Math.ceil(ordered.length*.95)-1)??null,max=ordered.at(-1)??null;
+ const latency=timing?(p95<=2000&&max<=5000?'PASS':'FAIL'):'INCOMPLETE';
+ const bound=['client','server','search'].every(kind=>Array.isArray(trace?.[kind])&&trace[kind].length===15&&new Set(trace[kind].map(r=>r.id)).size===15&&trace[kind].every(r=>Number.isInteger(r.id)&&r.id>=1&&r.id<=15&&r.loss===false));
+ const collection=Array.isArray(completion)&&completion.length===final.processCount&&completion.length>0&&completion.every(c=>c.status==='captured')&&logsCaptured===true;
+ const workload=Number.isSafeInteger(batches)&&batches>0&&m?.searchSuccessByClient?.length===4&&m.searchSuccessByClient.every(n=>Number.isSafeInteger(n)&&n>0)&&m.searchSuccessByClient.reduce((a,b)=>a+b,0)===m.searchSuccess&&Number.isSafeInteger(m.searchUnavailable)&&m.searchUnavailable>=0&&m.searchSuccess+m.searchUnavailable===batches*4&&m.cycles>0&&m.createComplete>0&&m.visualResults>0&&m.visualCreated>0&&m.windows?.length===3&&m.windows.every(w=>['structured','visual','evidence','visualEvidence'].every(k=>w[k]>0))&&a?.completed?.some(r=>r.state==='completed'&&r.label?.startsWith('main-'));
+ const complete=timing&&bound&&collection&&workload&&final.verifiedDurationMs>=1800000;
+ const status=!complete?'INCOMPLETE':final.failed!==0||!progression||latency==='FAIL'||final.processesClosed!==true||final.udpClosed!==true?'FAIL':'PASS';
+ return {...omitted,status,recordingProgression:progression?'PASS':'FAIL',latency:{status:latency,count:ordered.length,p95,max,limitP95:2000,limitMax:5000},requestCompleteness:workload?'PASS':'INCOMPLETE',selectedCorrelation:bound?'PASS':'INCOMPLETE',completionCollection:collection?'PASS':'INCOMPLETE',outputBudget:'CAPACITY_UNPROVEN'};
+}

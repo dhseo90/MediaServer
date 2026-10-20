@@ -1,0 +1,171 @@
+{
+  "result": "PERFORMANCE_CONTRACT_CAPACITY_BLOCKED",
+  "baselineHead": "c72f5901c5b5e723d6a206378496e7118ee9fb89",
+  "mode": "--search-performance-diagnostic",
+  "entry": "recording_accumulated_cost.py generated owned wrapper.sh/mixed.mjs only; ordinary mixed wrapper unchanged",
+  "sourceSha256": {
+    "scripts/internal/recording_longrun_progress.mjs": "8512b58680fbc76d7e45582d90cc471c11dabb8ef129505e04fa7d6e004016ce",
+    "scripts/internal/recording_accumulated_cost.py": "03742cde7418ceeff314dfa682c37a7a9bbdee00166de471014776e380ba36cf",
+    "scripts/internal/recording_accumulated_cost.mjs": "b7d6f3df7dfa80fa2d15a3c36587b204790cebac3b9dd6a731093ea5bec44d1c",
+    "scripts/internal/recording_accumulated_cost.test.mjs": "53f62020064580e4346e805aadee271f953538631d4edff9ee455154d16a7d70",
+    "docs/project-feature-test-inventory.md": "1278bdef6f1cdb77528ba2b58ef3eb9ae58331eace2f0e257461bcaac7948479",
+    "test/fixtures/project_feature_implementation_evidence.json": "aadc2752110fb1bd65556e0aa36c85961b99a785e193ae4ab87ad8cda87bc004"
+  },
+  "unchangedBinarySha256": {
+    "build-gst-onnx/media_server": "76f48e51100a086610068b53d0e35e534012873ddf5aeafd71bd2db9a97b81ed",
+    "build-gst-onnx/libmedia_server_runtime.a": "3f39ce79070c000f0cb4baed18ab0b3103c44f9279faad21255ea0ff27cf2786"
+  },
+  "contract": {
+    "oldModes": "state/frame/120 require deletion; contention/memory/startup retain existing semantics",
+    "profile": "continuous-r114",
+    "workload": "unchanged Structured2 + Visual2, Evidence, A, authenticated requests and writer",
+    "observationMs": 1800000,
+    "existingInnerDeadlineMs": 1870000,
+    "httpTimeoutMs": 5000,
+    "latency": {
+      "population": "existing successful general search HTTP requests",
+      "p95MaxMs": 2000,
+      "maxMs": 5000,
+      "missing": "INCOMPLETE",
+      "exceeded": "FAIL"
+    },
+    "selectedCorrelation": "all 15 unique IDs in each validated client/server/search map; final collector complete() after shutdown; missing/loss/partial -> INCOMPLETE",
+    "recordingProgression": "both 9101 and 9201 finalized > 0 plus existing continuity/status/journal checks",
+    "notRun": [
+      "retentionDeletion",
+      "retentionPostDeletionStability",
+      "memoryP0",
+      "readiness120",
+      "releaseQualification"
+    ],
+    "completion": "unchanged completionCollection, latency OFF/completion ON; captured receipt and process-log completeness required",
+    "noEarlySuccessBreak": true,
+    "executionGuard": "CAPACITY_UNPROVEN rejected before wrapper setup/build and generated runner artifact/root/port/process side effects; no override"
+  },
+  "capacity": {
+    "status": "CAPACITY_UNPROVEN",
+    "sharedRows": 4095,
+    "sharedBytes": 2097152,
+    "processLogBytes": 4194304,
+    "reservedBytes": 512,
+    "reservedPurpose": "loss <=164, receipt <=256, after-end <=64; unchanged",
+    "producers": [
+      {
+        "producer": "FinishTimelineWithContext",
+        "perInvocation": "4 events on normal completed path",
+        "rowMaxBytes": 511,
+        "wholeWorkloadCount": "UNPROVEN; includes search playback/channel/retry calls, not only direct Timeline HTTP"
+      },
+      {
+        "producer": "RequestMedia destructor / TracePreparationCompleted",
+        "perInvocation": "1 Media event",
+        "rowMaxBytes": 511,
+        "wholeWorkloadCount": "UNPROVEN; visual request and background index-build; requested rebuild can wake periodic worker early"
+      },
+      {
+        "producer": "Derived worker/Catalog transitions",
+        "perInvocation": "1 event at each executed Submitted/Queued/Started/Admitted/Ended/Ready/Committed/Complete/Failed call site",
+        "rowMaxBytes": 511,
+        "wholeWorkloadCount": "UNPROVEN; branch/retry/job lifecycle count not bounded here"
+      },
+      {
+        "producer": "TraceEvidenceFailure",
+        "perInvocation": "1 diagnostic row when failure trace emits",
+        "rowMaxBytes": 767,
+        "wholeWorkloadCount": "UNPROVEN; failure/retry invocation count not established"
+      },
+      {
+        "producer": "other GStreamer/runtime output",
+        "rowMaxBytes": null,
+        "wholeWorkloadCount": "UNPROVEN"
+      }
+    ],
+    "historicalLogs": "R165/R166 Completion OFF bytes are not a Completion ON bound; short real-process PASS is not representative capacity proof"
+  },
+  "focused": {
+    "expectedRed": {
+      "command": "node --test --test-name-pattern='search performance preparation|search performance result contract' scripts/internal/recording_accumulated_cost.test.mjs",
+      "exit": 1,
+      "failed": 2,
+      "observations": [
+        "mixed-mode rejects unimplemented mode",
+        "AssertionError undefined != function for unimplemented result contract"
+      ]
+    },
+    "actualFailure": {
+      "command": "node --test scripts/internal/recording_accumulated_cost.test.mjs",
+      "exit": 1,
+      "passed": 23,
+      "failed": 1,
+      "firstError": "SyntaxError: Identifier 'stateDiagnose' has already been declared",
+      "cause": "test VM redeclared setup in same context",
+      "correction": "execute only gate in already initialized VM; no runner contract relaxation",
+      "classification": "actual test harness failure, not expected RED"
+    },
+    "correctionCheck": {
+      "command": "node --test --test-name-pattern='actual generated search mode' scripts/internal/recording_accumulated_cost.test.mjs",
+      "exit": 0,
+      "passed": 1
+    },
+    "final": [
+      {
+        "command": "node --test scripts/internal/recording_accumulated_cost.test.mjs",
+        "exit": 0,
+        "passed": 24,
+        "failed": 0,
+        "durationMs": 361.325166,
+        "forcedLossChild": {
+          "pid": 15462,
+          "detectionToSignalMs": 0.010500000000000398,
+          "signal": "SIGTERM",
+          "groupAbsent": true
+        }
+      },
+      {
+        "command": "node scripts/internal/recording_longrun_progress.test.mjs",
+        "exit": 0,
+        "passed": 82,
+        "failed": 0
+      }
+    ],
+    "boundaries": "real existing collector on deterministic rows; actual generated JS/shell syntax, VM mode/gates/environment/workload and checkpoint/exit; wrapper capacity guard executed before any product setup; no product/network/media run",
+    "definitionBinding": {
+      "producer": "PASS (51/0; approved manifest applied)",
+      "readback": "PASS; 986 rows; validationErrors=0; review4GlobalErrors=0; negative fixtures15/15; definition binding only, not product execution evidence",
+      "coverage": "PASS; 986/986 covered; missing0; checks9/9"
+    },
+    "finalStatusConsistencyCorrection": {
+      "change": "new-mode diagnosticCompleted follows final searchPerformance PASS; original mode expression unchanged",
+      "command": "node --test --test-name-pattern='generated' scripts/internal/recording_accumulated_cost.test.mjs",
+      "exit": 0,
+      "passed": 2,
+      "failed": 0,
+      "durationMs": 197.701917,
+      "previousEvidence": "non-generated contracts and longrun-progress results remain valid; no unrelated rerun"
+    }
+  },
+  "independentReview": {
+    "result": "PASS",
+    "scope": "read-only diff/consumers and provided focused outcomes; no independent test execution",
+    "requestedModel": "gpt-6-astra",
+    "requestedEffort": "xhigh",
+    "toolAcceptedModel": "gpt-6-astra",
+    "toolAcceptedEffort": "xhigh",
+    "actualRuntimeModel": "UNKNOWN",
+    "actualRuntimeEffort": "UNKNOWN",
+    "findings": [],
+    "finalStatusFollowup": "PASS; final diagnosticCompleted/exit/checkpoint connection reviewed read-only; original mode unchanged"
+  },
+  "execution": {
+    "productStarts": 0,
+    "httpServers": 0,
+    "longruns": 0,
+    "nativeBuilds": 0,
+    "gitStageCommitPush": false
+  },
+  "cleanup": "owned generator test roots removed and absence asserted; forced-loss child group absent; no user data cleanup",
+  "historicalStatus": "R169 PRODUCT_WORK_REDUCED; completion real-process PASS; R149/R165/R166 FAIL; Memory P0/Readiness120/Release HOLD unchanged",
+  "nextRun": "NOT_AUTHORIZED and capacity blocked; no representative execution performed",
+  "finalHead": "c72f5901c5b5e723d6a206378496e7118ee9fb89",
+  "git": "unstaged scoped changes only; no stage/commit/push; historical results unchanged"
+}

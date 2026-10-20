@@ -76,11 +76,28 @@ def generate(out):
     s=replace(s,"status:failed?'FAIL':'PASS',exit:failed?1:0", "diagnosticCompleted:failed===0&&!!phaseResult,latencyPassed,status:failed||latencyPassed!==true?'FAIL':'PASS',exit:failed||latencyPassed!==true?1:0")
     s=replace(s,'process.exitCode=failed?1:0','process.exitCode=failed||latencyPassed!==true?1:0')
     s=replace(s,'}catch(error){failed++;if(error.workspaceDecision)',"}catch(error){failed++;if(!selectedFailureReported){selectedFailureReported=true;console.error('[R165-first-failure] '+JSON.stringify({code:selectedTrace.failure()?.code??'functional-failure',atMs:performance.now()}));}if(error.workspaceDecision)")
-    s="import {selection,aSelection,costCollector} from "+json.dumps(str(SCRIPTS/'recording_accumulated_cost.mjs'))+";\nlet selectedBatchOrdinal=0,selectedFailureReported=false,latencyPassed=null;const selectedTrace=costCollector();\n"+s
+    # Explicit search-only mode exists only in this selected, instrumented overlay.
+    # The original mixed runner and all historical diagnostic modes are unchanged.
+    s=replace(s,"const stateDiagnose=args.length===1&&args[0]==='--state-diagnostic';", "const performanceDiagnose=args.length===1&&args[0]==='--search-performance-diagnostic';\nif(performanceDiagnose)assertSearchPerformanceCapacity();\nconst stateDiagnose=performanceDiagnose||(args.length===1&&args[0]==='--state-diagnostic');")
+    s=replace(s,'memoryObservationMode(args)',"memoryObservationMode(performanceDiagnose?['--state-diagnostic']:args)")
+    s=replace(s,'if(!aLoad.active&&selectedTrace.ready','if(!performanceDiagnose&&!aLoad.active&&selectedTrace.ready')
+    s=replace(s,'const bound=selectedTrace.complete();','const bound=selectedTrace.complete();selectedBound=bound;')
+    s=replace(s,'const completion=app.completionTrace.finish();','const completion=app.completionTrace.finish();performanceCompletion.push(completion);')
+    s=replace(s,'if(!processLogCaptureComplete(app,Buffer.byteLength(text)))', 'performanceLogs.push(processLogCaptureComplete(app,Buffer.byteLength(text)));if(!processLogCaptureComplete(app,Buffer.byteLength(text)))')
+    s=replace(s,"mode:true?'r165-selected-accumulated-diagnostic'", "mode:performanceDiagnose?'v450-search-performance-diagnostic':true?'r165-selected-accumulated-diagnostic'")
+    s=replace(s,'};artifacts.checkpoint({...final,', "};if(performanceDiagnose){try{selectedBound=selectedTrace.complete();}catch{selectedBound=null;}}if(performanceDiagnose)final.searchPerformance=searchPerformanceResult({final,trace:selectedTrace.failure()?null:selectedBound,completion:performanceCompletion,logsCaptured:performanceLogs.length===processes.length&&performanceLogs.every(Boolean),batches:selectedBatchOrdinal});artifacts.checkpoint({...final,")
+    s=replace(s,"status:failed||latencyPassed!==true?'FAIL':'PASS',exit:failed||latencyPassed!==true?1:0", "status:performanceDiagnose?final.searchPerformance.status:failed||latencyPassed!==true?'FAIL':'PASS',exit:performanceDiagnose?(final.searchPerformance.status==='PASS'?0:1):failed||latencyPassed!==true?1:0")
+    s=replace(s,'diagnosticCompleted:failed===0&&!!phaseResult', "diagnosticCompleted:performanceDiagnose?final.searchPerformance.status==='PASS':failed===0&&!!phaseResult")
+    s=replace(s,'process.exitCode=failed||latencyPassed!==true?1:0', "process.exitCode=performanceDiagnose?(final.searchPerformance.status==='PASS'?0:1):failed||latencyPassed!==true?1:0")
+    s="import {selection,aSelection,costCollector,assertSearchPerformanceCapacity,searchPerformanceResult} from "+json.dumps(str(SCRIPTS/'recording_accumulated_cost.mjs'))+";\nlet selectedBatchOrdinal=0,selectedFailureReported=false,latencyPassed=null,selectedBound=null;const selectedTrace=costCollector(),performanceCompletion=[],performanceLogs=[];\n"+s
     (out/'mixed.mjs').write_text(s)
     wrapper=(SCRIPTS/'verify_v450_recording_a_mixed.sh').read_text()
     wrapper=replace(wrapper,'observer_driver="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"','observer_driver='+shlex.quote(str(SCRIPTS)))
     wrapper=replace(wrapper,'node "$observer_driver/v450_recording_a_mixed.mjs"', 'node '+shlex.quote(str(out/'mixed.mjs')))
+    wrapper=replace(wrapper,'  --memory-attribution-diagnostic|','  --search-performance-diagnostic|--memory-attribution-diagnostic|')
+    # Reject capacity-unqualified execution before root creation/build/port ownership.
+    guard="import {assertSearchPerformanceCapacity} from "+json.dumps(str(SCRIPTS/'recording_accumulated_cost.mjs'))+";assertSearchPerformanceCapacity();"
+    wrapper=replace(wrapper,'esac\n','esac\nif [[ "$*" == --search-performance-diagnostic ]]; then\n  node --input-type=module -e '+shlex.quote(guard)+' || exit $?\nfi\n')
     (out/'wrapper.sh').write_text(wrapper)
     (out/'binding.json').write_text(json.dumps(binding,indent=2)+'\n')
     return binding
