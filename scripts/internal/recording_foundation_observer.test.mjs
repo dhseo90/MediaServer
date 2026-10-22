@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import {FoundationObserver,collectProcess,observationCompleted} from './recording_foundation_observer.mjs';
+import {FoundationObserver,collectProcess,observationCompleted,newLaunchIdentity,captureLaunchIdentity,assertLaunchMetrics} from './recording_foundation_observer.mjs';
 const start=Date.now(),root=fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(),'s09-observer-'))),observers=[];
 let passed=0,failed=0;
 const row=(id,type='segment_finalized',entity='e')=>JSON.stringify({schema:'media-server.recording-mutation.v1',mutationId:id,mutationType:type,entityId:entity,occurredAtMs:1,payload:{}})+'\n';
@@ -40,6 +40,40 @@ try{
     assert.equal(saved.collectorDiagnostic.measurement.anonymousFileBytes,null);assert.equal(saved.primary,'observer-collector-unavailable');
   });
   const fdScope={scope:'complete-round-sequential-v1',complete:true,startIdentity:'macos:1:2',startedAt:1,completedAt:2,roundStartedAt:1,roundCompletedAt:2,rounds:1,capacityRetries:0,closedRetries:0,detailCalls:1,failures:[]};
+  const launchIdentity=()=>newLaunchIdentity({launchId:'00000000-0000-4000-8000-000000000001',launchIndex:1,phase:'initial',pid:123,spawnObservedAt:'2026-10-22T00:00:00.000Z',logFile:'server-1.private.log'});
+  const identityMetric={...metric(123),fdObservation:fdScope};
+  const captureOptions={collect:async()=>identityMetric,isRunning:()=>true,write:(file,bytes)=>({file,bytes:Buffer.byteLength(bytes),sha256:'mock'}),now:()=> '2026-10-22T00:00:01.000Z'};
+  for(const startIdentity of ['macos:1:2','linux:987654'])await check(`IDENTITY-F01 native ${startIdentity} value preserved`,async()=>{
+    const i=launchIdentity(),m={...identityMetric,startIdentity,fdObservation:{...fdScope,startIdentity}};
+    await captureLaunchIdentity(i,{...captureOptions,collect:async()=>m});assert.equal(i.startIdentity,startIdentity);assert.notEqual(i.startIdentity,i.spawnObservedAt);assertLaunchMetrics(i,m);
+  });
+  for(const [name,change,code] of [['PID',{pid:124},'pid-mismatch'],['null',{startIdentity:null},'value-invalid'],['invalid',{startIdentity:'2026-10-22'},'value-invalid'],['FD',{fdObservation:{...fdScope,complete:false}},'fd-incomplete'],['invalid metrics',{valid:false},'metrics-invalid']])await check(`IDENTITY-F01 ${name} rejected and failure persisted`,async()=>{
+    const i=launchIdentity();let saved;
+    await assert.rejects(()=>captureLaunchIdentity(i,{...captureOptions,collect:async()=>({...identityMetric,...change}),write:(file,bytes)=>{saved=JSON.parse(bytes);return {file};}}),new RegExp(code));
+    assert.equal(saved.status,'failed');assert.equal(saved.startIdentity,null);assert.equal(saved.error,'identity-'+code);
+  });
+  await check('IDENTITY-F01 same launch changed identity is sticky',async()=>{
+    const i=launchIdentity();await captureLaunchIdentity(i,captureOptions);
+    assert.throws(()=>assertLaunchMetrics(i,{...identityMetric,startIdentity:'macos:2:3'}),/identity-changed/);
+    assertLaunchMetrics(i,identityMetric);assert.equal(i.bindingError,'identity-changed');
+  });
+  for(const [name,diagnostic,code] of [['permission',{spawnCode:'EPERM'},'permission'],['timeout',{killed:true,signal:'SIGKILL'},'timeout'],['collector',{exitCode:1},'collector-error']])await check(`IDENTITY-F01 ${name} fixed error`,async()=>{
+    const i=launchIdentity();await assert.rejects(()=>captureLaunchIdentity(i,{...captureOptions,collect:async()=>{const e=Error('private-detail');e.collectorDiagnostic=diagnostic;throw e;}}),new RegExp('identity-'+code));
+    assert.equal(i.error,'identity-'+code);assert(!JSON.stringify(i).includes('private-detail'));
+  });
+  await check('IDENTITY-F01 process exits during collection',async()=>{
+    let running=true;const i=launchIdentity();await assert.rejects(()=>captureLaunchIdentity(i,{...captureOptions,isRunning:()=>running,collect:async()=>{running=false;return identityMetric;}}),/identity-process-exited/);assert.equal(i.status,'failed');
+  });
+  await check('IDENTITY-F01 artifact error never becomes collected success',async()=>{
+    const i=launchIdentity();await assert.rejects(()=>captureLaunchIdentity(i,{...captureOptions,write:()=>{throw Error('ENOSPC');}}),/identity-artifact-write-failed/);assert.equal(i.artifactError,'identity-artifact-write-failed');assert.equal(i.artifact,undefined);
+  });
+  await check('IDENTITY-F01 bounded native FD failure receipt survives capture failure',async()=>{
+    const receipt={...fdScope,complete:false,failures:[{fd:7,listedType:1,returned:-1,errno:1,nextType:0,at:2}]};let saved;
+    const i=launchIdentity();await assert.rejects(()=>captureLaunchIdentity(i,{...captureOptions,
+      collect:async()=>{const e=Error('private-detail');e.collectorDiagnostic={exitCode:1,stdoutBytes:333,secret:'private-detail',measurement:{pid:123,startIdentity:'macos:1:2',fdObservation:receipt}};throw e;},
+      write:(file,bytes)=>{saved=JSON.parse(bytes);assert(Buffer.byteLength(bytes)<=4096);return {file};}}),/identity-fd-incomplete/);
+    assert.deepEqual(saved.collectionFailure.fdObservation,receipt);assert.equal(saved.collectionFailure.observedPid,123);assert.equal(saved.collectionFailure.exitCode,1);assert(!JSON.stringify(saved).includes('private-detail'));
+  });
   await check('R149-Prep bounded delayed complete sample accepted by real consumer',async()=>{
     const file=path.join(root,'collector-delay.js'),value={...metric(123),fdObservation:fdScope};
     fs.writeFileSync(file,`#!${process.execPath}\nsetTimeout(()=>console.log(${JSON.stringify(JSON.stringify(value))}),250);\n`,{mode:0o700});
@@ -102,7 +136,7 @@ try{
   await check('OBS04 complete observation predicate positive',async()=>assert.equal(observationCompleted(complete),true));
   for(const [name,change] of [['failure',{failed:1}],['process-unclosed',{processesClosed:false}],['no-final',{final:null}],['error',{error:'failure'}],['disabled',{enabled:false}]])
     await check(`OBS04 ${name} completion rejected`,async()=>assert.equal(observationCompleted({...complete,...change}),false));
-}catch(e){if(!failed){failed++;console.log('[fail] fixture setup');}}
+}catch(e){console.error(e.stack);if(!failed){failed++;console.log('[fail] fixture setup');}}
 finally{
   for(const o of observers){try{await o.pause();o.close(false);}catch{failed++;}}
   function bytes(p){const s=fs.lstatSync(p);return s.isDirectory()?fs.readdirSync(p).reduce((n,x)=>n+bytes(path.join(p,x)),0):s.size;}

@@ -196,7 +196,7 @@ check('R98 named profiles retain protection and derive continuous Q from E/H/P',
 try{await (async()=>{
  const sourceFn=mixedSource.slice(mixedSource.indexOf('function source(id)'),mixedSource.indexOf('async function drain('));
  const profile=mixedRecordingProfile('continuous-r98');let registry={sources:['9101','9201'].map(sourceId=>({sourceId,recording:mixedRecordingSettings(profile.name,1,true)}))};
- const c=vm.createContext({fixtureProfile:profile,mixedRecordingSettings,nextRecordingSettings,assertMixedRecordingRegistry,check:ok=>assert(ok),
+ const c=vm.createContext({stateDiagnose:false,fixtureProfile:profile,mixedRecordingSettings,nextRecordingSettings,assertMixedRecordingRegistry,check:ok=>assert(ok),
   request:async(_app,method,route,body)=>{if(method==='GET')return structuredClone(registry);const row=registry.sources.find(r=>r.sourceId===body.sourceId);row.recording=structuredClone(body.recording);return {source:structuredClone(row)};}});
  vm.runInContext(sourceFn,c);
  for(const id of ['9101','9201'])assert.equal(vm.runInContext(`source('${id}').recording.continuousMaxBytes`,c),profile.continuousMaxBytes);
@@ -216,7 +216,7 @@ console.log(`[final-summary] passed=${passed} failed=${failed}`);if(failed)proce
 try{await(async()=>{
  const fn=mixedSource.slice(mixedSource.indexOf('async function drain('),mixedSource.indexOf('async function sample('));
  let sizeBytes='36864',consumed=0;
- const c=vm.createContext({fixtureProfile:mixedRecordingProfile('continuous-r98'),observer:{pollAsync:async()=>({rows:[{segment:{continuous:true,channel:'9101',sizeBytes}}],backlog:false})},progress:{consume(){consumed++;return [];}}});
+ const c=vm.createContext({stateDiagnose:false,fixtureProfile:mixedRecordingProfile('continuous-r98'),observer:{pollAsync:async()=>({rows:[{segment:{continuous:true,channel:'9101',sizeBytes}}],backlog:false})},progress:{consume(){consumed++;return [];}}});
  vm.runInContext(fn,c);await vm.runInContext('drain(1)',c);assert.equal(consumed,1);
  for(sizeBytes of ['36865','37606']){await assert.rejects(vm.runInContext('drain(2)',c),/mixed-fixture-segment-bound/);assert.equal(consumed,1);}
 })();passed++;console.log('[pass] R98 actual drain rejects output beyond fixed envelope before progress');}catch(error){failed++;console.log('[fail] R98 actual drain: '+error.message);}
@@ -283,13 +283,13 @@ try{await(async()=>{
  const profile=mixedRecordingProfile('continuous-r114');
  const fn=mixedSource.slice(mixedSource.indexOf('function source(id)'),mixedSource.indexOf('async function drain('));
  let registry={sources:['9101','9201'].map(sourceId=>({sourceId,recording:mixedRecordingSettings(profile.name,1,true)}))};
- const context=vm.createContext({fixtureProfile:profile,mixedRecordingSettings,nextRecordingSettings,assertMixedRecordingRegistry,check:ok=>assert(ok),request:async(_app,method,route,body)=>{if(method==='GET')return structuredClone(registry);const row=registry.sources.find(r=>r.sourceId===body.sourceId);row.recording=structuredClone(body.recording);return {source:structuredClone(row)};}});
+ const context=vm.createContext({stateDiagnose:false,fixtureProfile:profile,mixedRecordingSettings,nextRecordingSettings,assertMixedRecordingRegistry,check:ok=>assert(ok),request:async(_app,method,route,body)=>{if(method==='GET')return structuredClone(registry);const row=registry.sources.find(r=>r.sourceId===body.sourceId);row.recording=structuredClone(body.recording);return {source:structuredClone(row)};}});
  vm.runInContext(fn,context);assert.equal(vm.runInContext("source('9101').recording.continuousMaxBytes",context),profile.continuousMaxBytes);
  await vm.runInContext('settings({},false)',context);registry=JSON.parse(JSON.stringify(registry));assertMixedRecordingRegistry(registry,profile.name,false);
  await vm.runInContext('settings({},true)',context);assertMixedRecordingRegistry(registry,profile.name,true);
  registry.sources[0].recording.continuousMaxBytes=87*1024*1024;assert.throws(()=>assertMixedRecordingRegistry(registry,profile.name,true));
  const drain=mixedSource.slice(mixedSource.indexOf('async function drain('),mixedSource.indexOf('async function sample('));
- let sizeBytes='71237',consumed=0;const c=vm.createContext({fixtureProfile:profile,observer:{pollAsync:async()=>({rows:[{segment:{continuous:true,channel:'9201',sizeBytes}}],backlog:false})},progress:{consume(){consumed++;return [];}}});
+ let sizeBytes='71237',consumed=0;const c=vm.createContext({stateDiagnose:false,fixtureProfile:profile,observer:{pollAsync:async()=>({rows:[{segment:{continuous:true,channel:'9201',sizeBytes}}],backlog:false})},progress:{consume(){consumed++;return [];}}});
  vm.runInContext(drain,c);await vm.runInContext('drain(1)',c);assert.equal(consumed,1);
  sizeBytes='71238';await assert.rejects(vm.runInContext('drain(2)',c),/mixed-fixture-segment-bound/);assert.equal(consumed,1);
 })();passed++;console.log('[pass] R114 actual initialization/reactivation/restart and output boundary');}catch(e){failed++;console.log('[fail] R114 '+e.message);}
@@ -303,3 +303,180 @@ if(process.argv[2])check('R114 fixed original input and codec/sample mutations f
  }
 });
 console.log(`[R114-input-summary] passed=${passed} failed=${failed}`);if(failed)process.exitCode=1;
+
+
+// MEDIA-012-ACTIVE-HISTORY-F01: compact V2 rows and the actual driver boundary only;
+// no product, native helper, fixture generation or network calls.
+const {CurrentLongrunProgress,CurrentObservationBudget,CurrentRecordingObserver}=await import('./recording_current_observer.mjs');
+const v2=(id,channel='9101',order='1',sizeBytes='8')=>({type:'segment_v2_bound_finalized',entity:id,occurredAtMs:'-100',mediaRelpath:`private/${id}.mp4`,
+  segment:{id,channel,order,sizeBytes,continuous:true,sha256:'a'.repeat(64),metadataHash:'b'.repeat(64),storeHash:'c'.repeat(64),knownMappings:1,unknownMappings:0}});
+const pending=id=>({type:'segment_v2_state',entity:id,state:'deletion-pending',occurredAtMs:'-90'});
+const removed=id=>({type:'segment_v2_deleted',entity:id,segment:{metadataHash:'b'.repeat(64)},occurredAtMs:'-80'});
+const tracked=(budget)=>new CurrentLongrunProgress(0,['9101','9201'],budget,{observeActiveHistory:true});
+const receipt=(count,at,more={})=>({mutationCount:count,generation:'1',rotations:0,busy:false,backlog:false,partialBytes:0,drainStartedAt:at,drainCompletedAt:at+.5,...more});
+function feed(p,rows,at,more={}){return p.consume(rows,at,receipt(p.activeHistory.consumedRows+rows.length,at,more));}
+const channel=(p,id='9101')=>p.activeHistorySnapshot().channels[id];
+check('AH01 zero deletion preserves observed scope and finalized growth',()=>{
+ const p=tracked();feed(p,[v2('a')],1);feed(p,[v2('b','9101','2','13')],2);
+ const c=channel(p);assert.deepEqual(c.observedFinalized,{count:2,bytes:'21'});assert.deepEqual(c.finalized,c.observedFinalized);
+ assert.deepEqual(c.pending,{count:0,bytes:'0'});assert.deepEqual(c.deleted,{count:0,bytes:'0'});
+ assert.equal(c.observedHistoryRecords,2);assert.equal(c.deletionObservation,'NO_DELETION_OBSERVED');assert.equal(c.firstDeletedObservedAt,null);
+ const s=p.activeHistorySnapshot();assert.equal(s.scope,'observed-drained-v2-prefix');assert.equal(s.coverage.status,'COMPLETE_DRAINED_PREFIX');
+ for(const k of ['fixedActiveStability','productActive','lifetimeOverlap','wholeHeapPeak','sqliteVmMemory'])assert.equal(s[k],'NOT_PROVEN');
+});
+check('AH02 pending remains owned state; deleted retains History and physical return path',()=>{
+ const p=tracked();feed(p,[v2('a')],1);const old=p.status(1);feed(p,[pending('a')],2);
+ assert.deepEqual(channel(p).finalized,{count:0,bytes:'0'});assert.deepEqual(channel(p).pending,{count:1,bytes:'8'});assert.equal(channel(p).deleted.count,0);
+ assert.equal(channel(p).firstPendingObservedAt,2.5);assert.equal(channel(p).firstDeletedObservedAt,null);
+ assert.deepEqual(feed(p,[removed('a')],3),[{id:'a',mediaRelpath:'private/a.mp4'}]);
+ const c=channel(p);assert.deepEqual(c.pending,{count:0,bytes:'0'});assert.deepEqual(c.deleted,{count:1,bytes:'8'});assert.equal(c.observedHistoryRecords,1);
+ assert.equal(c.firstDeletedObservedAt,3.5);assert.equal(c.lastTransitionObservedAt,3.5);assert.equal(p.records.get('a').state,'deleted');
+ const after=p.status(3);assert.equal(after.records,old.records);assert.equal(after.logicalBytes,old.logicalBytes);assert.equal(after.channels['9101'].finalized,1);
+ assert.equal(c.deletionObservation,'DELETION_OBSERVED');
+});
+check('AH03 later finalize and independent channels retain cumulative bytes',()=>{
+ const p=tracked();feed(p,[v2('a'),v2('b','9201','1','17')],1);feed(p,[pending('a'),removed('a')],2);
+ feed(p,[v2('c','9101','2','29')],3);feed(p,[pending('c'),removed('c'),v2('d','9101','3','31')],4);
+ const a=channel(p),b=channel(p,'9201');assert.deepEqual(a.observedFinalized,{count:3,bytes:'68'});assert.deepEqual(a.finalized,{count:1,bytes:'31'});
+ assert.deepEqual(a.deleted,{count:2,bytes:'37'});assert.deepEqual(a.finalizedAfterFirstDeleted,{count:2,bytes:'60'});
+ assert.equal(a.firstPendingObservedAt,2.5);assert.equal(a.firstDeletedObservedAt,2.5);assert.equal(a.observedHistoryRecords,3);
+ assert.deepEqual(b.finalized,{count:1,bytes:'17'});assert.equal(b.deletionObservation,'NO_DELETION_OBSERVED');
+ assert.equal(p.activeHistorySnapshot().fixedActiveStability,'NOT_PROVEN'); // count stayed one; bytes grew
+});
+for(const [name,setup,bad] of [
+ ['duplicate-finalized',p=>feed(p,[v2('a')],1),v2('a')],
+ ['duplicate-pending',p=>feed(p,[v2('a'),pending('a')],1),pending('a')],
+ ['delete-before-pending',p=>feed(p,[v2('a')],1),removed('a')],
+ ['duplicate-deleted',p=>feed(p,[v2('a'),pending('a'),removed('a')],1),removed('a')],
+ ['pending-after-deleted',p=>feed(p,[v2('a'),pending('a'),removed('a')],1),pending('a')],
+ ['wrong-state',p=>feed(p,[v2('a')],1),{...pending('a'),state:'finalized'}],
+ ['wrong-metadata',p=>feed(p,[v2('a'),pending('a')],1),{...removed('a'),segment:{metadataHash:'d'.repeat(64)}}],
+ ['regressed-order',p=>feed(p,[v2('a','9101','2')],1),v2('b')],
+])check('AH04 reject '+name+' without aggregate change and latch incomplete',()=>{
+ const p=tracked();setup(p);const before=channel(p);assert.throws(()=>feed(p,[bad],2));assert.deepEqual(channel(p),before);
+ assert(p.activeHistorySnapshot().coverage.issues.includes('MUTATION_REJECTED'));
+ assert.throws(()=>feed(p,[v2('valid','9201')],3),/active-history-rejected/);
+});
+check('AH05 uint64 media and totals beyond uint64 retain exact decimal values',()=>{
+ const p=tracked();feed(p,[v2('a','9101','1','18446744073709551615'),v2('b','9101','2','18446744073709551615')],1);
+ assert.equal(channel(p).observedFinalized.bytes,'36893488147419103230');
+ feed(p,[pending('a'),removed('a')],2);assert.equal(channel(p).finalized.bytes,'18446744073709551615');
+ assert.equal(channel(p).deleted.bytes,'18446744073709551615');assert.doesNotThrow(()=>JSON.stringify(p.activeHistorySnapshot()));
+ const q=tracked();feed(q,[v2('x','9101','1','9007199254740993')],1);assert.equal(channel(q).finalized.bytes,'9007199254740993');
+});
+for(const bytes of ['18446744073709551616','99999999999999999999','0','-1','01','1.5',9007199254740992,8n])
+ check('AH06 invalid or overflowing media bytes '+String(bytes),()=>{const p=tracked();assert.throws(()=>feed(p,[v2('a','9101','1',bytes)],1));assert.equal(p.records.size,0);assert.equal(channel(p).observedFinalized.count,0);});
+check('AH07 failed shared budget does not commit aggregate or record',()=>{
+ const budget=new CurrentObservationBudget({maxIds:1,maxBytes:33554432}),p=tracked(budget);feed(p,[v2('a')],1);const before=channel(p);
+ assert.throws(()=>feed(p,[v2('b','9101','2')],2),/combined-cap/);assert.deepEqual(channel(p),before);assert.equal(p.records.size,1);assert.equal(budget.ids,1);
+});
+check('AH08 missing prefix receipt remains incomplete after a later receipt',()=>{
+ const p=tracked();p.consume([v2('a')],1);feed(p,[],2);assert(p.activeHistorySnapshot().coverage.issues.includes('DRAIN_RECEIPT_MISSING'));
+ assert.equal(channel(p).lastTransitionObservedAt,null);
+});
+check('AH09 count gap and unmatched lifecycle cannot become complete',()=>{
+ for(const run of [p=>feed(p,[v2('a')],1,{mutationCount:2}),p=>feed(p,[pending('unknown')],1)]){
+  const p=tracked();run(p);feed(p,[],2);assert.equal(p.activeHistorySnapshot().coverage.status,'INCOMPLETE');
+ }
+});
+for(const [key,value,issue] of [['partialBytes',7,'PARTIAL_TAIL'],['backlog',true,'PREFIX_BACKLOG'],['busy',true,'OBSERVER_BUSY'],['generation',null,'GENERATION_UNOBSERVED']])
+ check('AH10 '+issue+' is not a complete drain; later valid prefix may complete',()=>{
+  const p=tracked();feed(p,[],1,{[key]:value});assert(p.activeHistorySnapshot().coverage.issues.includes(issue));feed(p,[],2);
+  assert.equal(p.activeHistorySnapshot().coverage.status,'COMPLETE_DRAINED_PREFIX');assert.equal(p.activeHistorySnapshot().fixedActiveStability,'NOT_PROVEN');
+ });
+check('AH11 malformed count, clock, generation and regression fail coverage',()=>{
+ for(const change of [{mutationCount:NaN},{mutationCount:Number.MAX_SAFE_INTEGER+1},{partialBytes:-1},{backlog:undefined},{drainStartedAt:-1},{drainCompletedAt:0},{generation:1},{rotations:Infinity}]){
+  const p=tracked();feed(p,[],1,change);assert.equal(p.activeHistorySnapshot().coverage.status,'INCOMPLETE');
+ }
+ const p=tracked();feed(p,[],1,{generation:'3',rotations:2});feed(p,[],2,{generation:'2',rotations:1});assert(p.activeHistorySnapshot().coverage.issues.includes('DRAIN_REGRESSION'));
+});
+check('AH12 snapshot is detached, private fields excluded, no whole Map scan',()=>{
+ const p=tracked();feed(p,[v2('secret-id')],1);
+ for(const method of ['values','entries','forEach',Symbol.iterator])p.records[method]=()=>{throw Error('full-map-scan');};
+ feed(p,[pending('secret-id')],2);const s=p.activeHistorySnapshot();s.channels['9101'].pending.count=42;s.coverage.drain.mutationCount=42;
+ assert.equal(channel(p).pending.count,1);assert.equal(p.activeHistorySnapshot().coverage.drain.mutationCount,2);
+ assert(!JSON.stringify(p.activeHistorySnapshot()).includes('secret'));assert(!JSON.stringify(p.activeHistorySnapshot()).includes('private/'));
+});
+check('AH13 independent full-state oracle matches every increment',()=>{
+ const p=tracked(),oracle=new Map();let time=1,order=0;
+ for(let i=0;i<40;i++){
+  const id='oracle-'+i,ch=i%2?'9201':'9101',bytes=BigInt(i+1)*9007199254740993n;
+  const batches=[[v2(id,ch,String(++order),String(bytes))],...(i%3?[[pending(id)]]:[]),...(i%3===2?[[removed(id)]]:[])];
+  for(const rows of batches){
+   feed(p,rows,time++);
+   for(const r of rows){if(r.type==='segment_v2_bound_finalized')oracle.set(r.entity,{ch,bytes,state:'finalized'});else oracle.get(r.entity).state=r.type==='segment_v2_state'?'pending':'deleted';}
+   for(const channelId of ['9101','9201']){
+    const all=[...oracle.values()].filter(v=>v.ch===channelId),c=channel(p,channelId);
+    for(const state of ['finalized','pending','deleted']){const selected=all.filter(v=>v.state===state);assert.deepEqual(c[state],{count:selected.length,bytes:String(selected.reduce((n,v)=>n+v.bytes,0n))});}
+    assert.deepEqual(c.observedFinalized,{count:all.length,bytes:String(all.reduce((n,v)=>n+v.bytes,0n))});assert.equal(c.observedHistoryRecords,all.length);
+   }
+  }
+ }
+});
+check('AH14 opt-out keeps legacy status, limits, stall and shared records semantics',()=>{
+ const legacy=new CurrentLongrunProgress(0),observed=tracked();const rows=[v2('a'),pending('a'),removed('a'),v2('b','9201')];
+ legacy.consume(rows,1);feed(observed,rows,1);assert.deepEqual(observed.status(1),legacy.status(1));assert.equal(legacy.activeHistorySnapshot(),null);
+ assert.deepEqual([...observed.records],[...legacy.records]);assert.throws(()=>observed.status(30002),/finalize-stall/);
+ const q=tracked();assert.throws(()=>q.finish(1),/longrun-incomplete/);
+});
+check('AH15 malformed native prefix still rejects before aggregate acceptance',()=>{
+ const observer=new CurrentRecordingObserver('/not-used','/must-not-run');
+ assert.throws(()=>observer.acceptGeneration({busy:false,generation:'1',storeHash:'c'.repeat(64),prefix:[],rows:[{}],backlog:false,partialBytes:0,consumedOffset:0}),/observer-native-output-invalid/);
+});
+
+async function ahAsync(name,fn){try{await fn();passed++;console.log('[pass] '+name);}catch(e){failed++;console.log('[fail] '+name+': '+e.stack);}}
+function sampleBoundary(stateDiagnose,{short=false,memoryObserve=stateDiagnose}={}){
+ let clock=10;const logs=[],calls={metrics:0,poll:0,root:0,cadence:0,cpu:0,step:0,admit:0};
+ const progress=new CurrentLongrunProgress(0,['9101','9201'],undefined,{observeActiveHistory:stateDiagnose});
+ const observer={prefix:[],generation:'1',budget:{ids:0,bytes:0},async pollAsync(){calls.poll++;return {rows:[],mutationCount:0,typeCounts:{},identityBytes:0,rotations:0,partialBytes:0,backlog:false,busy:false};}};
+ const metric={valid:true,error:null,pid:42,startIdentity:'linux:10',sampledAt:100,rssBytes:1024,threadCount:2,fdCount:4,footprintBytes:1024,anonymousFileBytes:0,anonymousAllocatedBytes:0,anonymousFiles:0,fdObservation:{complete:true}};
+ const context=vm.createContext({stateDiagnose,short,memoryObserve,progress,observer,performance:{now:()=>++clock},process:{hrtime:{bigint:()=>BigInt(++clock)*1000000n}},
+  fixtureProfile:mixedRecordingProfile('continuous-r114'),root:'/never-read',collector:'/never-executed',path,samples:[],observationStart:0,start:0,workspace:null,
+  console:{log:s=>logs.push(s)},collectProcess:async()=>{calls.metrics++;return {...metric};},
+  spawnSync:(cmd)=>{assert.equal(cmd,'ps');calls.cpu++;return {status:0,stdout:'42 1 0\n'};},
+  currentResourceTrace:()=>({seq:7,ram:256}),rootDiagnostic:()=>{calls.root++;return {variableBytes:0,totalBytes:0};},
+  assertSampleStep:()=>calls.step++,assertLaunchMetrics:()=>{},memoryAttributionSnapshot:()=>({receivedNs:12,sample:{pid:42,phase:'sample',sampleStartNs:1,sampleEndNs:10}}),
+  admitWorkspaceSnapshot:()=>calls.admit++,cadence:()=>calls.cadence++,check:ok=>assert(ok),
+  workspaceFailure:{capture(){throw Error('unexpected-workspace-failure');}}});
+ vm.runInContext(mixedSource.slice(mixedSource.indexOf('async function drain('),mixedSource.indexOf('function fileHash(')),context);
+ return {context,logs,calls,progress,observer,app:{child:{pid:42},identity:{startIdentity:'linux:10'},resourceTrace:{receivedAt:0},identitySampleIndexes:[]}};
+}
+for(const mode of ['state','memory','contention','prepare','120','frame'])await ahAsync('AH16 actual sample/drain boundary '+mode,async()=>{
+ const b=sampleBoundary(mode==='state',{short:mode==='prepare',memoryObserve:['state','memory'].includes(mode)});b.context.app=b.app;
+ await vm.runInContext('sample(app)',b.context);
+ assert.deepEqual(b.calls,{metrics:1,poll:1,root:1,cadence:1,cpu:1,step:1,admit:1});assert.equal(b.context.samples.length,1);
+ const observation=JSON.parse(b.logs.find(s=>s.startsWith('[current-observation] ')).slice('[current-observation] '.length));
+ assert.equal(Object.hasOwn(observation,'activeHistory'),mode==='state');assert.equal(observation.resourceTrendPass,false);
+ const mem=b.logs.find(s=>s.startsWith('[memory-attribution-cycle] '));
+ if(mode==='state'){
+  const a=observation.activeHistory,m=JSON.parse(mem.slice('[memory-attribution-cycle] '.length));
+  assert.equal(a.sampleIndex,1);assert.equal(m.sampleIndex,1);assert.equal(a.sampleStartNs,m.sampleStartNs);assert.equal(a.processCapturedNs,m.processCapturedNs);
+  assert(a.metricsCompletedAt<=a.drainStartedAt);assert(a.coverage.drain.drainStartedAt>=a.drainStartedAt);assert(a.coverage.drain.drainCompletedAt<=a.drainCompletedAt);
+  assert.equal(a.productOwnerSeq,observation.productOwner.seq);assert.equal(a.coverage.drain.generation,'1');assert.equal(a.atomic,false);
+ }else if(mem)assert.equal(Object.hasOwn(JSON.parse(mem.slice('[memory-attribution-cycle] '.length)),'sampleIndex'),false);
+});
+await ahAsync('AH17 actual multi-page drain is observed once per existing page; no added poll',async()=>{
+ const b=sampleBoundary(true);let n=0;
+ b.observer.pollAsync=async()=>{n++;return {rows:n===1?[v2('a')]:[],mutationCount:1,rotations:1,partialBytes:0,backlog:n===1,busy:false};};
+ b.observer.generation='7';await vm.runInContext('drain(1)',b.context);assert.equal(n,2);
+ assert.equal(channel(b.progress).observedFinalized.count,1);assert.equal(b.progress.activeHistorySnapshot().coverage.status,'COMPLETE_DRAINED_PREFIX');
+ assert.equal(b.progress.activeHistorySnapshot().coverage.drain.generation,'7');assert.equal(b.progress.activeHistorySnapshot().coverage.drain.rotations,1);
+});
+await ahAsync('AH18 native drain failure preserves first error and invalidates coverage',async()=>{
+ const b=sampleBoundary(true);b.observer.pollAsync=async()=>{throw Error('observer-checkpoint-prefix-mismatch');};
+ await assert.rejects(vm.runInContext('drain(1)',b.context),/observer-checkpoint-prefix-mismatch/);
+ assert(b.progress.activeHistorySnapshot().coverage.issues.includes('DRAIN_FAILED'));
+});
+check('AH19 state-only constructor/report wiring and original observation order retained',()=>{
+ assert(mixedSource.includes("new CurrentLongrunProgress(begin,['9101','9201'],observationBudget,{observeActiveHistory:stateDiagnose})"));
+ assert(mixedSource.includes('...(stateDiagnose?{activeHistory:progress?.activeHistorySnapshot()??null}:{})'));
+ assert(mixedSource.includes("await sample(first);await request(first,'GET','/ops/api/recordings/status',undefined,true);\n    await evidenceLoad(first);await aLoad.tick(first);cadence();"));
+ assert(mixedSource.includes('const sleepMs=nextSampleDelay(samples.at(-1).phaseAt,performance.now(),begin+duration);'));
+ assert(mixedSource.includes('if(!memoryDiagnose)check(orderedLatencies.at(Math.ceil(orderedLatencies.length*.95)-1)<=2000&&orderedLatencies.at(-1)<=5000'));
+});
+check('AH20 bounded aggregate size independent of History payload count',()=>{
+ const p=tracked();for(let i=0;i<300;i++)feed(p,[v2('private-'+i,i%2?'9101':'9201',String(i+1),'18446744073709551615')],i+1);
+ const bytes=Buffer.byteLength(JSON.stringify(p.activeHistorySnapshot()));assert(bytes<4096); // encoding envelope, not a product/memory gate
+ console.log('[active-history-encoding] '+JSON.stringify({records:p.records.size,channels:2,snapshotBytes:bytes,fullMapScans:0,actual45MinuteCapacity:'NOT_PROVEN'}));
+});
+console.log(`[ACTIVE-HISTORY-summary] passed=${passed} failed=${failed}`);if(failed)process.exitCode=1;

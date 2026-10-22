@@ -1,6 +1,7 @@
 // 파일 용도: 관측 집계만 제공한다. catalog 수용/fsync/메모리 누수 판정이 아니다.
 import fs from 'node:fs';
 import path from 'node:path';
+import crypto from 'node:crypto';
 import {execFile} from 'node:child_process';
 import {RecordingJournalReader} from './recording_journal_reader.mjs';
 const types=['segment_finalized','event_link_created','observation_put','observation_v2_put','deletion_requested','deletion_completed','corruption_detected'];
@@ -41,6 +42,100 @@ export function collectProcess(binary,pid) {
       resolve(parsed);
     });
   });
+}
+// 준비 실행의 launch 증거. spawn 관측 시각은 OS identity가 아니며 정규 시계열 표본에도 넣지 않는다.
+const identityPattern=/^(macos:[1-9]\d{0,19}:\d{1,6}|linux:[1-9]\d{0,19})$/;
+const identityCodes=new Set(['identity-process-exited','identity-health-failed','identity-pid-mismatch','identity-value-invalid',
+  'identity-changed','identity-fd-incomplete','identity-metrics-invalid','identity-permission','identity-timeout','identity-collector-error']);
+export function newLaunchIdentity({launchId,launchIndex,phase,pid,spawnObservedAt,logFile}) {
+  return {schema:'recording-launch-identity-v1',launchId,launchIndex,phase,pid:pid??null,spawnObservedAt,logFile,
+    startIdentity:null,identitySource:null,identityCapturedAt:null,status:'pending',error:null};
+}
+function identityError(error) {
+  if(identityCodes.has(error?.message))return error.message;
+  const d=error?.collectorDiagnostic;
+  if(['EACCES','EPERM'].includes(d?.spawnCode))return 'identity-permission';
+  if(d?.killed&&d?.signal==='SIGKILL')return 'identity-timeout';
+  if(d?.measurement?.fdObservation&&!completeFdObservation(d.measurement))return 'identity-fd-incomplete';
+  return 'identity-collector-error';
+}
+function validateLaunchMetrics(identity,metrics) {
+  if(!Number.isSafeInteger(identity.pid)||identity.pid<=0||identity.pid>2147483647||metrics?.pid!==identity.pid)throw Error('identity-pid-mismatch');
+  if(typeof metrics.startIdentity!=='string'||!identityPattern.test(metrics.startIdentity))throw Error('identity-value-invalid');
+  if(identity.startIdentity!==null&&identity.startIdentity!==metrics.startIdentity)throw Error('identity-changed');
+  if(metrics.valid!==true||metrics.error!==null)throw Error('identity-metrics-invalid');
+  if(!completeFdObservation(metrics))throw Error('identity-fd-incomplete');
+}
+export function assertLaunchMetrics(identity,metrics) {
+  try{if(identity?.status!=='captured')throw Error('identity-value-invalid');validateLaunchMetrics(identity,metrics);}
+  catch(error){recordLaunchMetricsFailure(identity,error);throw error;}
+}
+export function recordLaunchMetricsFailure(identity,error){if(identity)identity.bindingError??=identityError(error);}
+function preserveLaunchIdentity(identity,write) {
+  try{
+    const bytes=JSON.stringify(identity)+'\n';if(Buffer.byteLength(bytes)>4096)throw Error('identity-artifact-limit');
+    identity.artifact=write(`process-identity-${identity.launchIndex}.json`,bytes);
+  }catch{identity.artifactError='identity-artifact-write-failed';throw Error(identity.artifactError);}
+}
+export function failLaunchIdentity(identity,code,write) {
+  identity.status='failed';identity.error=identityCodes.has(code)?code:'identity-collector-error';
+  preserveLaunchIdentity(identity,write);
+}
+export async function captureLaunchIdentity(identity,{collect,isRunning,write,now=()=>new Date().toISOString()}) {
+  let metrics=null;
+  try{
+    if(!isRunning())throw Error('identity-process-exited');
+    metrics=await collect(identity.pid);
+    if(!isRunning())throw Error('identity-process-exited');
+    validateLaunchMetrics(identity,metrics);
+    identity.startIdentity=metrics.startIdentity;
+    identity.identitySource=metrics.startIdentity.startsWith('macos:')?'recording_process_metrics:PROC_PIDTBSDINFO':'recording_process_metrics:proc-stat-field-22';
+    identity.identityCapturedAt=now();identity.status='captured';identity.fdObservation=fdObservation(metrics.fdObservation);
+  }catch(error){
+    identity.status='failed';identity.error=identityError(error);
+    const d=error?.collectorDiagnostic,m=metrics??d?.measurement;
+    identity.collectionFailure={exitCode:Number.isInteger(d?.exitCode)?d.exitCode:null,
+      spawnCode:['EPERM','EACCES','ENOENT','ERR_CHILD_PROCESS_STDIO_MAXBUFFER'].includes(d?.spawnCode)?d.spawnCode:null,
+      signal:['SIGKILL','SIGTERM'].includes(d?.signal)?d.signal:null,killed:d?.killed===true,
+      stdoutBytes:Number.isSafeInteger(d?.stdoutBytes)&&d.stdoutBytes>=0?d.stdoutBytes:null,
+      observedPid:Number.isSafeInteger(m?.pid)?m.pid:null,
+      observedStartIdentity:typeof m?.startIdentity==='string'&&identityPattern.test(m.startIdentity)?m.startIdentity:null,
+      fdObservation:fdObservation(m?.fdObservation)};
+  }
+  preserveLaunchIdentity(identity,write);
+  if(identity.status!=='captured')throw Error(identity.error);
+  return identity;
+}
+// 종료 후 원본 artifact 재조회와 launch별 로그/수집/cleanup 결속. 실패는 기존 기능 PASS와 별도다.
+export function launchIdentityCoverage(entries,outputDir) {
+  const ids=new Set(),indices=new Set(),osIdentities=new Set();
+  const launches=entries.map(entry=>{
+    const i=entry.identity;let error=null;
+    try{
+      if(!i||i.status!=='captured'||i.error||i.artifactError||i.bindingError)throw Error(i?.artifactError||i?.bindingError||i?.error||'identity-missing');
+      if(!/^[a-f0-9-]{36}$/.test(i.launchId)||!Number.isSafeInteger(i.launchIndex)||i.launchIndex<1||
+        !['initial','disabled-restart','reactivated-restart'].includes(i.phase)||!Number.isFinite(Date.parse(i.spawnObservedAt))||!Number.isFinite(Date.parse(i.identityCapturedAt)))throw Error('identity-metadata-invalid');
+      validateLaunchMetrics(i,{pid:i.pid,startIdentity:i.startIdentity,valid:true,error:null,fdObservation:i.fdObservation});
+      const key=`${i.pid}/${i.startIdentity}`;
+      if(ids.has(i.launchId)||indices.has(i.launchIndex)||osIdentities.has(key))throw Error('identity-duplicate');
+      ids.add(i.launchId);indices.add(i.launchIndex);osIdentities.add(key);
+      const a=i.artifact;if(!a||a.file!==`process-identity-${i.launchIndex}.json`||a.bytes>4096)throw Error('identity-artifact-invalid');
+      const fd=fs.openSync(path.join(outputDir,a.file),fs.constants.O_RDONLY|fs.constants.O_NOFOLLOW);
+      try{
+        const stat=fs.fstatSync(fd);if(!stat.isFile()||stat.nlink!==1||stat.uid!==process.getuid()||stat.size!==a.bytes||stat.size>4096)throw Error('identity-artifact-invalid');
+        const bytes=fs.readFileSync(fd);
+        if(crypto.createHash('sha256').update(bytes).digest('hex')!==a.sha256)throw Error('identity-artifact-changed');
+        const saved=JSON.parse(bytes);const {artifact,artifactError,bindingError,...expected}=i;
+        if(JSON.stringify(saved)!==JSON.stringify(expected))throw Error('identity-artifact-binding');
+      }finally{fs.closeSync(fd);}
+      if(entry.log?.file!==i.logFile||!entry.log.complete||!/^[a-f0-9]{64}$/.test(entry.log.sha256)||
+        entry.completion?.status!=='captured'||entry.resource?.status!=='captured'||entry.resource.final?.pid!==i.pid)throw Error('identity-output-binding');
+      if(entry.cleanup?.pid!==i.pid||entry.cleanup.normalShutdownPass!==true||entry.cleanup.archiveSafe!==true)throw Error('identity-cleanup-incomplete');
+    }catch(e){error=/^identity-[a-z-]+$/.test(e.message)?e.message:'identity-evidence-unavailable';}
+    return {...entry,status:error?'FAIL':'PASS',error};
+  });
+  return {schema:'recording-launch-identity-coverage-v1',status:launches.length>0&&launches.every(x=>x.status==='PASS')?'PASS':'FAIL',
+    generated:entries.length,captured:entries.filter(e=>e.identity?.status==='captured').length,launches};
 }
 export class FoundationObserver {
   constructor({root,file,collect,maxIds=100000,maxIdBytes=33554432}) {

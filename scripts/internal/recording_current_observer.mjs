@@ -94,6 +94,92 @@ export function summarizeFixtureGeneration(result,{elapsedMs,outputBytes=null}){
       resource:/no space left|resource unavailable|resource temporarily unavailable/i.test(stderr),
       macosService:/Connection Invalid|com\.apple\.hiservices-xpcservice|LSNotification/i.test(stderr)},rawBodyPublished:false};
 }
+// LP26-O07: --prepare retention 생성에만 사용. 제품 실행 시간과 증거 쓰기 시간을 분리한다.
+// 원 pipe 바이트가 아니라 spawnSync(encoding:utf8)가 반환한 문자열의 정제된 표현이다.
+const fixtureEvidenceCode=error=>['ETIMEDOUT','ENOENT','EACCES','EPERM','ENOBUFS','EIO','ENOSPC','EEXIST','ELOOP'].includes(error?.code)?error.code:'UNKNOWN';
+function fixtureEvidenceText(value,root,repo){
+  return value.replaceAll(root,'[owned-root]').replaceAll(repo,'[repo]')
+    .replace(/(?:https?|rtsp|rtsps|stun|turn):\/\/\S+/gi,'[url]')
+    .replace(/\$argon2\S+/g,'[password-hash]')
+    .replace(/(?:authorization|proxy-authorization|cookie|set-cookie)\s*[:=][^\r\n]*/gi,'[credential-line]')
+    .replace(/\b(?:[\w-]*(?:password|token|secret|api[_-]?key)[\w-]*)\s*[:=]\s*(?:"[^"\r\n]*"|'[^'\r\n]*'|[^\s;,]+)/gi,'[credential]')
+    .replace(/\/(?:Users|private|tmp|var|home|Volumes)\/[^\s"'<>]+/g,'[private-path]')
+    .replace(/[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]/g,'[control]');
+}
+function verifyFixtureArtifact(artifacts,item){
+  const fd=fs.openSync(path.join(artifacts.outputDir,item.file),fs.constants.O_RDONLY|fs.constants.O_NOFOLLOW);
+  try{
+    const stat=fs.fstatSync(fd);
+    need(stat.isFile()&&stat.nlink===1&&stat.uid===process.getuid()&&(stat.mode&0o777)===0o600&&stat.size===item.bytes,'fixture-artifact-metadata');
+    const bytes=Buffer.alloc(item.bytes);let offset=0;
+    while(offset<bytes.length){const n=fs.readSync(fd,bytes,offset,bytes.length-offset,null);need(n>0,'fixture-artifact-partial');offset+=n;}
+    need(fs.readSync(fd,Buffer.alloc(1),0,1,null)===0&&crypto.createHash('sha256').update(bytes).digest('hex')===item.sha256,'fixture-artifact-sha');
+  }finally{fs.closeSync(fd);}
+}
+export function captureRetentionFixture({command,argv,options,root,repo,output,artifacts,admit,
+  run=spawnSync,lstat=fs.lstatSync,verify=verifyFixtureArtifact,now=()=>performance.now(),wall=()=>new Date().toISOString()}){
+  const id='retention-fixture-1',evidence={id,cleanupCorrelation:id,fixtureState:'NOT_RUN',fixtureFailure:null,
+    collection:'NOT_OBSERVED',artifactState:'PENDING',errors:[],artifacts:{},evidenceIoMs:0,rawBodyPublished:false};
+  const clean=text=>fixtureEvidenceText(text,root,repo);
+  const save=(kind,text,limit=16384)=>{
+    const start=now();let stage='write';
+    try{
+      const bytes=Buffer.byteLength(text);need(bytes<=limit,'fixture-artifact-cap');admit(bytes);
+      const item=artifacts.write(`${id}.${kind}`,text);stage='verify';
+      need(item.file===`${id}.${kind}`&&item.bytes===bytes&&item.sha256===crypto.createHash('sha256').update(text).digest('hex'),'fixture-artifact-receipt');
+      verify(artifacts,item);evidence.artifacts[kind]=item;return true;
+    }catch(error){evidence.errors.push({artifact:kind,stage,code:fixtureEvidenceCode(error)});return false;}
+    finally{evidence.evidenceIoMs+=now()-start;}
+  };
+  const envKeys=['TMPDIR','HOME','GST_PLUGIN_PATH','GST_PLUGIN_SYSTEM_PATH','GST_PLUGIN_SCANNER','GST_REGISTRY','GST_REGISTRY_1_0',
+    'GST_PLUGIN_PATH_1_0','GST_PLUGIN_SYSTEM_PATH_1_0','GST_PLUGIN_SCANNER_1_0','MEDIA_SERVER_GST_CACHE_DIR','MEDIA_SERVER_GST_PLUGIN_PROFILE','DYLD_LIBRARY_PATH','LD_LIBRARY_PATH','LANG','LC_ALL'];
+  const intent={schema:'retention-fixture-intent-v1',id,cleanupCorrelation:id,stage:'prepare-retention-fixture',
+    command:clean(command),argv:argv.map(clean),cwd:clean(options.cwd??process.cwd()),
+    environment:Object.fromEntries(envKeys.filter(k=>typeof options.env?.[k]==='string').map(k=>[k,clean(options.env[k])])),
+    output:clean(output),timeoutMs:options.timeout,maxBuffer:options.maxBuffer,encoding:options.encoding,
+    observedBeforeAt:wall(),pathRepresentation:'redacted; owned-root/repo placeholders',returnEvidence:'NOT_YET_OBSERVED'};
+  need(options.timeout===30000&&options.maxBuffer===65536&&options.encoding==='utf8','fixture-execution-contract');
+  if(!save('intent.json',JSON.stringify(intent)+'\n')){
+    evidence.artifactState='FAIL';return {result:null,elapsedMs:null,evidence,ok:false};
+  }
+  let result,returned=true;const invokedAt=wall(),start=now();
+  try{result=run(command,argv,options);}catch(error){returned=false;result={error,status:null,signal:null,stdout:null,stderr:null};}
+  const elapsedMs=Math.round(now()-start),returnedAt=wall();
+  const summary=summarizeFixtureGeneration(result,{elapsedMs});
+  const pid=Number.isInteger(result?.pid)&&result.pid>0?result.pid:null;
+  let file={exists:null,type:null,symlink:null,nlink:null,bytes:null,lstatError:null};
+  try{const stat=lstat(output);file={exists:true,type:stat.isSymbolicLink()?'symlink':stat.isFile()?'regular':stat.isDirectory()?'directory':'other',
+    symlink:stat.isSymbolicLink(),nlink:stat.nlink,bytes:stat.size,lstatError:null};}
+  catch(error){file.exists=error?.code==='ENOENT'?false:null;file.lstatError=fixtureEvidenceCode(error);}
+  const outputBytes=file.type==='regular'&&!file.symlink&&file.nlink===1?file.bytes:null;
+  evidence.fixtureFailure=result?.error?fixtureEvidenceCode(result.error):!returned||!result?'RETURN_UNAVAILABLE':
+    result.signal?'SIGNALLED':result.status!==0?'NONZERO_EXIT':outputBytes===null||outputBytes<=0||outputBytes>=96*1024*1024?'OUTPUT_INVALID':null;
+  evidence.fixtureState=evidence.fixtureFailure?'FAIL':'PASS';
+  const streams={};
+  for(const name of ['stdout','stderr']){
+    const value=result?.[name],available=typeof value==='string',original=available?value:'',sanitized=clean(original);
+    const originalBytes=Buffer.byteLength(original),encoded=Buffer.from(sanitized,'utf8');let end=Math.min(encoded.length,65536);
+    // UTF-8 codepoint를 쪼개지 않는다. 원본 decoding의 U+FFFD는 복구하지 않는다.
+    while(end<encoded.length&&end>0&&(encoded[end]&0xc0)===0x80)end--;
+    const text=encoded.subarray(0,end).toString('utf8'),truncated=end<encoded.length;
+    streams[name]={available,returnedUtf8Bytes:available?originalBytes:null,recordedBytes:Buffer.byteLength(text),
+      redacted:sanitized!==original,truncated,incomplete:!available||truncated||originalBytes>65536||!!result?.error||!!result?.signal,
+      replacementCharacter:original.includes('\ufffd'),representation:'sanitized spawnSync UTF-8 string re-encoded as UTF-8; not original pipe bytes',
+      sha256:crypto.createHash('sha256').update(text).digest('hex')};
+    save(`${name}.txt`,text,65536);
+  }
+  evidence.collection=Object.values(streams).some(s=>s.incomplete)?'INCOMPLETE':'CAPTURED';
+  evidence.pid=pid;evidence.pidMeaning='spawnSync returned child PID; not OS start identity';evidence.returned=returned;
+  evidence.elapsedMs=elapsedMs;evidence.summary={...summary,outputBytes};evidence.output=file;evidence.streams=streams;
+  const receipt={schema:'retention-fixture-return-v1',...evidence,invokedAt,returnedAt,
+    status:summary.status,signal:summary.signal,errorCode:summary.errorCode,
+    errorDetail:result?.error?{code:fixtureEvidenceCode(result.error),messageOmitted:true}:null,
+    artifactState:evidence.errors.length?'FAIL':'CAPTURED',cleanupState:'PENDING_EXISTING_RUNNER_FINALLY',
+    evidenceIoMsMeaning:'completed artifact write/verify only; excludes this receipt and later cleanup'};
+  save('receipt.json',JSON.stringify(receipt)+'\n');
+  evidence.artifactState=evidence.errors.length?'FAIL':'CAPTURED';
+  return {result,elapsedMs,outputBytes,evidence,ok:evidence.fixtureState==='PASS'&&evidence.collection==='CAPTURED'&&evidence.artifactState==='CAPTURED'};
+}
 // 고정 범주만 내보낸다. 파일명/경로/본문은 비민감 관측 결과에 포함하지 않는다.
 export function measureCurrentRoot(root,{sqlitePages=false,lstat=fs.lstatSync,recordingTop='recordings'}={}){
   managedTop(recordingTop);
@@ -377,12 +463,67 @@ export class CurrentRecordingObserver {
 }
 const integer=x=>typeof x==='string'&&/^(0|[1-9]\d{0,19})$/.test(x);
 export class CurrentLongrunProgress {
-  constructor(now,channels=['9101','9201'],budget=new CurrentObservationBudget()){need(Number.isFinite(now)&&now>=0,'progress-clock');this.budget=budget;this.start=now;this.last=now;this.records=new Map();this.bytes=0;
-    this.channels=Object.fromEntries(channels.map(id=>[id,{finalized:0,deleted:0,lastAt:now,order:'0',store:null,knownMappings:0,unknownMappings:0}]));}
+  constructor(now,channels=['9101','9201'],budget=new CurrentObservationBudget(),{observeActiveHistory=false}={}){need(Number.isFinite(now)&&now>=0,'progress-clock');this.budget=budget;this.start=now;this.last=now;this.records=new Map();this.bytes=0;
+    this.channels=Object.fromEntries(channels.map(id=>[id,{finalized:0,deleted:0,lastAt:now,order:'0',store:null,knownMappings:0,unknownMappings:0}]));
+    // Opt-in Harness counters only. Do not scan or duplicate the retained History Map.
+    this.activeHistory=observeActiveHistory?{consumedRows:0,issues:new Set(),drain:null,channels:Object.fromEntries(channels.map(id=>[id,{
+      observedFinalized:{count:0,bytes:0n},finalized:{count:0,bytes:0n},pending:{count:0,bytes:0n},deleted:{count:0,bytes:0n},
+      finalizedAfterFirstDeleted:{count:0,bytes:0n},firstPendingObservedAt:null,firstDeletedObservedAt:null,lastTransitionObservedAt:null}]))}:null;
+  }
+  nextObservedState(channel,transition,bytes,observedAt){
+    if(!this.activeHistory)return null;
+    need(bytes>0n&&bytes<=18446744073709551615n,'longrun-media-byte-range');
+    const next=structuredClone(this.activeHistory.channels[channel]);
+    const add=(key,sign)=>{next[key].count+=sign;next[key].bytes+=BigInt(sign)*bytes;};
+    if(transition==='finalized'){add('observedFinalized',1);add('finalized',1);if(next.deleted.count)add('finalizedAfterFirstDeleted',1);}
+    else if(transition==='pending'){add('finalized',-1);add('pending',1);if(next.pending.count+next.deleted.count===1)next.firstPendingObservedAt=observedAt;}
+    else{add('pending',-1);add('deleted',1);if(next.deleted.count===1)next.firstDeletedObservedAt=observedAt;}
+    next.lastTransitionObservedAt=observedAt;
+    for(const key of ['observedFinalized','finalized','pending','deleted','finalizedAfterFirstDeleted'])
+      need(Number.isSafeInteger(next[key].count)&&next[key].count>=0&&next[key].count<=100000&&next[key].bytes>=0n,'longrun-active-history-range');
+    need(next.finalized.count+next.pending.count+next.deleted.count===next.observedFinalized.count&&
+      next.finalized.bytes+next.pending.bytes+next.deleted.bytes===next.observedFinalized.bytes,'longrun-active-history-balance');
+    return next;
+  }
+  acceptObservedDrain(rowCount,receipt,now){
+    const a=this.activeHistory;if(!a)return;
+    a.consumedRows+=rowCount;
+    if(!Number.isSafeInteger(a.consumedRows)||a.consumedRows>100000)a.issues.add('PREFIX_COUNT_RANGE');
+    if(!receipt){a.issues.add('DRAIN_RECEIPT_MISSING');a.drain=null;return;}
+    const {mutationCount,generation,rotations,busy,backlog,partialBytes,drainStartedAt,drainCompletedAt}=receipt;
+    if(!Number.isSafeInteger(mutationCount)||mutationCount<0||!Number.isSafeInteger(rotations)||rotations<0||
+      !Number.isSafeInteger(partialBytes)||partialBytes<0||typeof busy!=='boolean'||typeof backlog!=='boolean'||
+      !Number.isFinite(drainStartedAt)||drainStartedAt<now||!Number.isFinite(drainCompletedAt)||drainCompletedAt<drainStartedAt||busy&&rowCount!==0||
+      generation!==null&&!(typeof generation==='string'&&/^[1-9]\d{0,19}$/.test(generation))){
+      a.issues.add('DRAIN_RECEIPT_INVALID');a.drain=null;return;
+    }
+    if(mutationCount!==a.consumedRows)a.issues.add('PREFIX_COUNT_MISMATCH');
+    if(a.drain&&(drainStartedAt<a.drain.drainCompletedAt||rotations<a.drain.rotations||
+      a.drain.generation!==null&&generation!==null&&BigInt(generation)<BigInt(a.drain.generation)))a.issues.add('DRAIN_REGRESSION');
+    a.drain={mutationCount,generation,rotations,busy,backlog,partialBytes,drainStartedAt,drainCompletedAt};
+  }
+  invalidateActiveHistory(){this.activeHistory?.issues.add('DRAIN_FAILED');}
+  activeHistorySnapshot(){
+    const a=this.activeHistory;if(!a)return null;
+    const issues=[...a.issues],d=a.drain;
+    if(!d)issues.push('NO_DRAIN_RECEIPT');
+    else{if(d.busy)issues.push('OBSERVER_BUSY');if(d.backlog)issues.push('PREFIX_BACKLOG');if(d.partialBytes)issues.push('PARTIAL_TAIL');if(d.generation===null)issues.push('GENERATION_UNOBSERVED');}
+    return {scope:'observed-drained-v2-prefix',byteEncoding:'decimal-string',clock:'harness-performance-ms',atomic:false,
+      coverage:{status:issues.length?'INCOMPLETE':'COMPLETE_DRAINED_PREFIX',issues,consumedRows:a.consumedRows,drain:d?{...d}:null},
+      channels:Object.fromEntries(Object.entries(a.channels).map(([id,c])=>[id,{
+        ...Object.fromEntries(['observedFinalized','finalized','pending','deleted','finalizedAfterFirstDeleted'].map(key=>[key,{count:c[key].count,bytes:c[key].bytes.toString()}])),
+        observedHistoryRecords:c.observedFinalized.count,firstPendingObservedAt:c.firstPendingObservedAt,firstDeletedObservedAt:c.firstDeletedObservedAt,
+        lastTransitionObservedAt:c.lastTransitionObservedAt,deletionObservation:c.deleted.count?'DELETION_OBSERVED':'NO_DELETION_OBSERVED'}])),
+      fixedActiveStability:'NOT_PROVEN',productActive:'NOT_PROVEN',lifetimeOverlap:'NOT_PROVEN',wholeHeapPeak:'NOT_PROVEN',sqliteVmMemory:'NOT_PROVEN'};
+  }
   status(now){need(Number.isFinite(now)&&now>=this.last,'progress-clock');this.last=now;
     if(!this.suspended)for(const c of Object.values(this.channels))need(now-c.lastAt<=30000,'longrun-finalize-stall');
     return {elapsedMs:now-this.start,channels:structuredClone(this.channels),records:this.records.size,logicalBytes:this.bytes};}
-  consume(rows,now){this.status(now);const deleted=[];
+  consume(rows,now,receipt){const deleted=[];
+    const observedAt=receipt&&Number.isFinite(receipt.drainCompletedAt)&&receipt.drainCompletedAt>=now?receipt.drainCompletedAt:null;
+    try{
+    this.status(now);
+    if(this.activeHistory?.issues.has('MUTATION_REJECTED'))throw Error('longrun-active-history-rejected');
     for(const row of rows){
       if(['segment_v2_finalized','segment_v2_bound_finalized'].includes(row.type)){
         const s=row.segment,c=this.channels[s?.channel];if(!c||s.continuous!==true)continue;
@@ -391,19 +532,27 @@ export class CurrentLongrunProgress {
         need(c.store===null||c.store===s.storeHash,'longrun-store-changed');
         need(typeof row.mediaRelpath==='string'&&row.mediaRelpath.length>0&&!path.isAbsolute(row.mediaRelpath)&&
           row.mediaRelpath.split('/').every(p=>p!==''&&p!=='.'&&p!=='..'),'longrun-media-path');
+        const next=this.activeHistory?this.nextObservedState(s.channel,'finalized',BigInt(s.sizeBytes),observedAt):null;
         const bytes=Buffer.byteLength(JSON.stringify(s))+Buffer.byteLength(row.mediaRelpath);
         need(this.records.size<100000&&this.bytes+bytes<=33554432,'longrun-id-limit');this.budget.reserve(1,bytes);this.bytes+=bytes;
         this.records.set(s.id,{...s,mediaRelpath:row.mediaRelpath,state:'finalized'});
         c.order=s.order;c.store=s.storeHash;c.finalized++;c.lastAt=now;c.knownMappings+=s.knownMappings;c.unknownMappings+=s.unknownMappings;
+        if(next)this.activeHistory.channels[s.channel]=next;
       }else if(row.type==='segment_v2_state'){
-        const prior=this.records.get(row.entity);if(!prior)continue;
-        need(row.state==='deletion-pending'&&prior.state==='finalized','longrun-state-transition');prior.state=row.state;
+        const prior=this.records.get(row.entity);if(!prior){this.activeHistory?.issues.add('UNMATCHED_STATE_ROW');continue;}
+        need(row.state==='deletion-pending'&&prior.state==='finalized','longrun-state-transition');
+        const next=this.activeHistory?this.nextObservedState(prior.channel,'pending',BigInt(prior.sizeBytes),observedAt):null;
+        prior.state=row.state;if(next)this.activeHistory.channels[prior.channel]=next;
       }else if(row.type==='segment_v2_deleted'){
-        const prior=this.records.get(row.entity);if(!prior)continue;
+        const prior=this.records.get(row.entity);if(!prior){this.activeHistory?.issues.add('UNMATCHED_STATE_ROW');continue;}
         need(prior.state==='deletion-pending'&&prior.metadataHash===row.segment?.metadataHash,'longrun-delete-transition');
+        const next=this.activeHistory?this.nextObservedState(prior.channel,'deleted',BigInt(prior.sizeBytes),observedAt):null;
         prior.state='deleted';this.channels[prior.channel].deleted++;deleted.push({id:row.entity,mediaRelpath:prior.mediaRelpath});
+        if(next)this.activeHistory.channels[prior.channel]=next;
       }
-    }return deleted;
+    }
+    this.acceptObservedDrain(rows.length,receipt,now);return deleted;
+    }catch(error){this.activeHistory?.issues.add('MUTATION_REJECTED');throw error;}
   }
   setActive(now,active){need(Number.isFinite(now)&&now>=this.last&&typeof active==='boolean','progress-clock');this.last=now;this.suspended=!active;this.wasPaused=true;for(const c of Object.values(this.channels))c.lastAt=now;}
   finish(now){const result=this.status(now);need(!this.wasPaused&&result.elapsedMs>=7200000&&Object.values(this.channels).every(c=>c.finalized>0&&c.deleted>0),'longrun-incomplete');return result;}

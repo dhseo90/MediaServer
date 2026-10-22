@@ -13,8 +13,8 @@ import os from 'node:os';
 import dgram from 'node:dgram';
 import {spawn,spawnSync} from 'node:child_process';
 import {fileURLToPath} from 'node:url';
-import {CurrentRecordingObserver,CurrentLongrunProgress,CurrentObservationBudget,summarizeCurrentSamples,closedJournalComplete,disabledChannelsExact,measureCurrentRootStable,summarizeFixtureGeneration,freezeCurrentWorkspace,measureCurrentWorkspace,createWorkspaceFailureCapture,admitWorkspaceSnapshot,workspaceAnonymousBytes,runCurrentRecovery} from "./recording_current_observer.mjs";
-import {collectProcess} from "./recording_foundation_observer.mjs";
+import {CurrentRecordingObserver,CurrentLongrunProgress,CurrentObservationBudget,summarizeCurrentSamples,closedJournalComplete,disabledChannelsExact,measureCurrentRootStable,summarizeFixtureGeneration,captureRetentionFixture,freezeCurrentWorkspace,measureCurrentWorkspace,createWorkspaceFailureCapture,admitWorkspaceSnapshot,workspaceAnonymousBytes,runCurrentRecovery} from "./recording_current_observer.mjs";
+import {collectProcess,newLaunchIdentity,captureLaunchIdentity,failLaunchIdentity,assertLaunchMetrics,recordLaunchMetricsFailure,launchIdentityCoverage} from "./recording_foundation_observer.mjs";
 import {mixedPreparationContract,mixedRecordingProfile,mixedRecordingSettings,assertMixedRecordingRegistry,assertMixedFixtureInput,visualRequestSummary,searchFailureSummary,visualPhaseSummary,parseLongrunArgs,sampleContinuity,nextRecordingSettings,mediaAbsent,assertSampleStep,summarizeAvailableSamples,slowTraceSummary,nextSampleDelay,frameTraceSummary,captureBoundedProcessLog,processLogCaptureComplete,assertMixedFrameTraceMode} from "./recording_longrun_progress.mjs";
 import {measuredHttpResponse,createRecordingStatusCapture,recordingStateSummary} from "./recording_current_app_helpers.mjs";
 import {reservePort,stopServer,assertPortClosed,bootstrapRecordingUiAuth,createUiAuthPasswords} from "./verify_v410_recording_ui_contract.mjs";
@@ -42,13 +42,13 @@ const statusCapture=createRecordingStatusCapture(artifacts.outputDir,{admit:byte
  const storage=storageNow(),last=statusAdmissionMetrics;
  if(!last){const error=Error('workspace-status-measurement-missing');workspaceFailure.capture(error,{kind:'status-write-admission'});throw error;}
  admitWorkspaceSnapshot({storage,baseline:workspace??{fixedBytes:0,capBytes:448*1024*1024},
-  metrics:last??null,expectedPid:last.expectedPid,additionalBytes:bytes,
+  metrics:last??null,expectedPid:last.expectedPid,...(short?{expectedStart:last.expectedStart}:{}),additionalBytes:bytes,
   context:{kind:'status-write-admission',sampleIndex:samples.length,metricsCoverage:'status request collection; sequential with filesystem scan',productOwner:last?.productOwner??null}},workspaceFailure);
 }});
 let aLoad=null,auth=null,seedInfo=null;const passwords=createUiAuthPasswords();
 const start=performance.now(),deadline=start+(short?180000:contentionDiagnose?1080000:stateDiagnose?2880000:diagnose?780000:7380000),processes=[],samples=[],ports=[];
 const native=path.join(root,'normalize'),collector=path.join(root,'process-metrics');
-let workspace=null;
+let workspace=null,fixtureGenerationEvidence=null;
 // 부모의 새 로그/receipt도 가변 비용이다. 복구 copy만 기존 별도 C 예산으로 센다.
 function storageNow(copy=null){const measuredAt=performance.now();try{
   const storage=workspace?measureCurrentWorkspace(root,workspace,copy):measureCurrentRootStable(root);
@@ -95,8 +95,8 @@ async function request(app,method,route,body,observeStatus=false){const begin=pe
     request:()=>fetch(app.base+route,{method,redirect:'error',signal:AbortSignal.timeout(4000),headers:{...(app.cookie?{Cookie:app.cookie}:{}),...(body?{'Content-Type':'application/json'}:{})},body:body?JSON.stringify(body):undefined})});
   if(response.status!==200&&response.status!==201){console.log('[http-failed-response] '+JSON.stringify({method,route,status:response.status,body:response.bytes.toString()}));throw Error('http-status-'+response.status);}
   if(observeStatus){const receivedAt=performance.now(),metricBegin=receivedAt;let metricError=null;statusAdmissionMetrics=null;
-    try{statusAdmissionMetrics={...await collectProcess(collector,app.child.pid),expectedPid:app.child.pid,measurementStartedAt:metricBegin,measurementCompletedAt:performance.now(),productOwner:{...currentResourceTrace(app.resourceTrace),receivedAt:app.resourceTrace.receivedAt}};workspaceAnonymousBytes(statusAdmissionMetrics,app.child.pid);}
-    catch(error){workspaceFailure.capture(error,{kind:'status-metrics',pid:app.child.pid,measurementStartedAt:metricBegin,failedAt:performance.now()});metricError=error;}
+    try{statusAdmissionMetrics={...await collectProcess(collector,app.child.pid),expectedPid:app.child.pid,measurementStartedAt:metricBegin,measurementCompletedAt:performance.now(),productOwner:{...currentResourceTrace(app.resourceTrace),receivedAt:app.resourceTrace.receivedAt}};if(short){assertLaunchMetrics(app.identity,statusAdmissionMetrics);statusAdmissionMetrics.expectedStart=app.identity.startIdentity;app.identityStatusSamples++;}workspaceAnonymousBytes(statusAdmissionMetrics,app.child.pid);}
+    catch(error){if(short)recordLaunchMetricsFailure(app.identity,error);workspaceFailure.capture(error,{kind:'status-metrics',pid:app.child.pid,measurementStartedAt:metricBegin,failedAt:performance.now()});metricError=error;}
     const judged=statusCapture.inspect(response,{startedAt:begin,receivedAt});
     console.log('[recording-status-judgment] '+JSON.stringify(judged.summary));
     if(!judged.summary.passed)console.log('[recording-status-failure] '+JSON.stringify(statusCapture.failure()));
@@ -163,13 +163,19 @@ async function evidenceLoad(app){
 async function launch(stun,requiresFrameTrace=true){const http=await reservePort(),rtsp=await reservePort();ports.push(http,rtsp);
   const childEnv=environment(http,rtsp,stun);assertMixedFrameTraceMode(childEnv,frameTraceMode);
   const child=spawn(path.join(repo,'server.sh'),['foreground'],{cwd:repo,env:childEnv,stdio:['ignore','pipe','pipe']});
+  const spawnObservedAt=short?new Date().toISOString():null;
   console.log('[decoder-trace-settings] '+JSON.stringify({pid:child.pid,generatedMode:childEnv.MEDIA_SERVER_VERIFY_FRAME_TRACE,expectedMode:frameTraceMode,observationMs:duration}));
-  const log=path.join(root,`server-${processes.length+1}.private.log`),logFd=fs.openSync(log,'wx',0o600);
-  const app={child,http,rtsp,base:`http://127.0.0.1:${http}`,bytes:0,log,logFd,requiresFrameTrace,completionTrace:completionCollection(),memoryTrace:memoryAttributionCollector(child.pid,{strict:stateDiagnose}),resourceTrace:resourceTraceCollector(child.pid)};processes.push(app);
+  const log=path.join(root,`server-${processes.length+1}.private.log`);
+  const app={child,http,rtsp,base:`http://127.0.0.1:${http}`,bytes:0,log,logFd:null,requiresFrameTrace,completionTrace:completionCollection(),memoryTrace:memoryAttributionCollector(child.pid,{strict:stateDiagnose}),resourceTrace:resourceTraceCollector(child.pid)};processes.push(app);
   app.cleanup=createProcessCleanup({child,ports:[{kind:'http',port:http},{kind:'rtsp',port:rtsp}],stopServer,assertPortClosed});
   child.on('error',()=>{app.error=true;});child.on('close',()=>{app.closed=true;});
+  app.logFd=fs.openSync(log,'wx',0o600);
   for(const stream of [child.stdout,child.stderr])stream.on('data',chunk=>{captureBoundedProcessLog(app,chunk,bytes=>fs.writeSync(app.logFd,bytes),()=>child.kill('SIGTERM'));app.completionTrace.append(chunk,stream===child.stdout?'stdout':'stderr');if(stream===child.stderr){collectResourceTrace(app.resourceTrace,chunk);if(memoryObserve)collectMemoryAttribution(app.memoryTrace,chunk);}if(app.completionTrace.error||app.resourceTrace.error||(memoryObserve&&app.memoryTrace.error))child.kill('SIGTERM');});
-  await until(async()=>{if(app.closed||app.error)throw Error('server-start-failed');try{return !!await request(app,'GET','/health');}catch{return false;}});
+  if(short){app.identity=newLaunchIdentity({launchId:crypto.randomUUID(),launchIndex:processes.length,phase:['initial','disabled-restart','reactivated-restart'][processes.length-1],pid:child.pid,spawnObservedAt,logFile:path.basename(log)});app.identityStatusSamples=0;app.identitySampleIndexes=[];}
+  try{await until(async()=>{if(app.closed||app.error)throw Error('server-start-failed');try{return !!await request(app,'GET','/health');}catch{return false;}});}
+  catch(error){if(short){try{failLaunchIdentity(app.identity,app.closed||app.error?'identity-process-exited':'identity-health-failed',artifacts.write);}catch{console.log('[fail] identity-artifact-write-failed');}}throw error;}
+  if(short)await captureLaunchIdentity(app.identity,{collect:pid=>collectProcess(collector,pid),
+    isRunning:()=>!app.closed&&!app.error&&child.exitCode===null&&child.signalCode===null,write:artifacts.write});
   if(!auth)auth=await bootstrapRecordingUiAuth(app.base,passwords);
   else{const response=await fetch(app.base+'/login',{method:'POST',body:new URLSearchParams({username:'admin',password:passwords[0]}),redirect:'manual',signal:AbortSignal.timeout(5000)});check(response.status===302,'A restart authenticated login');auth.cookies[0]=response.headers.getSetCookie().map(v=>v.split(';',1)[0]).join('; ');await response.arrayBuffer();}
   app.cookie=auth.cookies[0];assertLocalIceConfig(await request(app,'GET','/webrtc/config'),stun);check(true,'LP26-O05 isolated server healthy');return app;
@@ -180,22 +186,36 @@ function source(id){return {sourceId:id,displayName:`S11 recording ${id}`,kind:'
 async function settings(app,enabled){const registry=await request(app,'GET','/ops/api/sources');for(const id of ['9101','9201']){const body=source(id);body.recording=nextRecordingSettings(registry,id,enabled,fixtureProfile.name);
   const r=await request(app,'PUT','/ops/api/sources/'+id,body);check(r.source?.recording?.enabled===enabled&&r.source.recording.revision===body.recording.revision,'LP26-O05 setting '+id+' '+enabled);}
   assertMixedRecordingRegistry(await request(app,'GET','/ops/api/sources'),fixtureProfile.name,enabled);}
-async function drain(now){let result;for(let i=0;i<128;i++){result=await observer.pollAsync();for(const row of result.rows)if(row.segment?.continuous&&['9101','9201'].includes(row.segment.channel)&&BigInt(row.segment.sizeBytes)>BigInt(fixtureProfile.segmentBytes))throw Error('mixed-fixture-segment-bound');for(const d of progress.consume(result.rows,now)){const file=path.resolve(root,'recordings',d.mediaRelpath);check(file.startsWith(path.join(root,'recordings')+path.sep)&&mediaAbsent(()=>fs.lstatSync(file)),'LP26-O03 deleted media absent');}if(!result.backlog)return result;}throw Error('observer-backlog-cap');}
+async function drain(now){
+  try{let result;for(let i=0;i<128;i++){
+    const drainStartedAt=stateDiagnose?performance.now():null;
+    result=await observer.pollAsync();
+    const receipt=stateDiagnose?{mutationCount:result.mutationCount,generation:observer.generation??null,rotations:result.rotations,
+      busy:result.busy===true,backlog:result.backlog,partialBytes:result.partialBytes,drainStartedAt,drainCompletedAt:performance.now()}:undefined;
+    for(const row of result.rows)if(row.segment?.continuous&&['9101','9201'].includes(row.segment.channel)&&BigInt(row.segment.sizeBytes)>BigInt(fixtureProfile.segmentBytes))throw Error('mixed-fixture-segment-bound');
+    for(const d of progress.consume(result.rows,now,receipt)){const file=path.resolve(root,'recordings',d.mediaRelpath);check(file.startsWith(path.join(root,'recordings')+path.sep)&&mediaAbsent(()=>fs.lstatSync(file)),'LP26-O03 deleted media absent');}
+    if(!result.backlog)return result;
+  }throw Error('observer-backlog-cap');
+  }catch(error){if(stateDiagnose)progress.invalidateActiveHistory();throw error;}
+}
 async function sample(app){const sampleStartNs=Number(process.hrtime.bigint());const begin=performance.now();let metricsMs=null,drainMs=null,storageMs=null;
-  try{const m=await collectProcess(collector,app.child.pid);const processCapturedNs=Number(process.hrtime.bigint());metricsMs=performance.now()-begin;if(m.valid!==true||m.error!==null)throw Error('process-metrics-invalid');check(m.rssBytes<=4*1024**3,'V440 peak RSS budget');const phaseAt=performance.now();
+  try{const m=await collectProcess(collector,app.child.pid);const processCapturedNs=Number(process.hrtime.bigint());metricsMs=performance.now()-begin;if(short)assertLaunchMetrics(app.identity,m);if(m.valid!==true||m.error!==null)throw Error('process-metrics-invalid');check(m.rssBytes<=4*1024**3,'V440 peak RSS budget');const phaseAt=performance.now();
   if(samples.length>=10000)throw Error('sample-cap');const cpu=spawnSync('ps',['-axo','pid=,ppid=,pcpu='],{encoding:'utf8',timeout:3000,maxBuffer:1024*1024});if(cpu.status!==0)throw Error('cpu-observation');const rows=cpu.stdout.trim().split('\n').map(x=>x.trim().split(/\s+/).map(Number)),own=rows.find(x=>x[0]===app.child.pid);if(!own||!Number.isFinite(own[2]))throw Error('cpu-observation');const children=new Set();let more=true;while(more){more=false;for(const row of rows)if((row[1]===app.child.pid||children.has(row[1]))&&!children.has(row[0])){children.add(row[0]);more=true;}}const previous=samples.at(-1),point={...m,cpuPercent:own[2],childPids:[...children],footprintBytes:m.footprintBytes,productOwner:{...currentResourceTrace(app.resourceTrace),receivedAt:app.resourceTrace.receivedAt},measurementStartedAt:begin,measurementCompletedAt:begin+metricsMs,phaseAt,mutationCount:observer.prefix.length};samples.push(point);
   assertSampleStep(previous,point,observationStart,app.child.pid);
+  if(short)app.identitySampleIndexes.push(samples.length-1);
   const drainStart=performance.now();let r;try{r=await drain(phaseAt);point.mutationCount=r.mutationCount;}finally{drainMs=performance.now()-drainStart;}
   const storageStart=performance.now();try{const storage=rootDiagnostic('sample');
-    if(memoryObserve)console.log('[memory-attribution-cycle] '+JSON.stringify({sampleStartNs,owner:memoryAttributionSnapshot(app.memoryTrace),processCapturedNs,sampleEndNs:Number(process.hrtime.bigint()),metrics:m,workspace:{variableBytes:storage.variableBytes,totalBytes:storage.totalBytes},mutationCount:r.mutationCount,typeCounts:r.typeCounts}));
+    if(memoryObserve)console.log('[memory-attribution-cycle] '+JSON.stringify({...(stateDiagnose?{sampleIndex:samples.length}:{}),sampleStartNs,owner:memoryAttributionSnapshot(app.memoryTrace),processCapturedNs,sampleEndNs:Number(process.hrtime.bigint()),metrics:m,workspace:{variableBytes:storage.variableBytes,totalBytes:storage.totalBytes},mutationCount:r.mutationCount,typeCounts:r.typeCounts}));
     admitWorkspaceSnapshot({storage,baseline:workspace??{fixedBytes:0,capBytes:448*1024*1024},metrics:point,
-      expectedPid:app.child.pid,expectedStart:previous?.pid===app.child.pid?previous.startIdentity:null,
+      expectedPid:app.child.pid,expectedStart:short?app.identity.startIdentity:previous?.pid===app.child.pid?previous.startIdentity:null,
       context:{kind:'sample',sampleIndex:samples.length,runStartedAt:start,drainStartedAt:drainStart,drainCompletedAt:storageStart,productOwner:point.productOwner}},workspaceFailure);
   }finally{storageMs=performance.now()-storageStart;}
   console.log('[current-observation] '+JSON.stringify({pid:m.pid,startIdentity:m.startIdentity,sampledAt:m.sampledAt,phaseAt,rssBytes:m.rssBytes,threadCount:m.threadCount,fdCount:m.fdCount,cpuPercent:point.cpuPercent,childPids:point.childPids,footprintBytes:m.footprintBytes,footprintState:m.footprintBytes===null?"not-measured":"proc-pid-rusage",anonymousFileBytes:m.anonymousFileBytes,anonymousAllocatedBytes:m.anonymousAllocatedBytes,anonymousFiles:m.anonymousFiles,fdObservation:m.fdObservation,productOwner:point.productOwner,
     mutationCount:r.mutationCount,typeCounts:r.typeCounts,identityBytes:r.identityBytes,combinedLogicalIds:observer.budget.ids,combinedLogicalBytes:observer.budget.bytes,
-    rotations:r.rotations,partialBytes:r.partialBytes,progress:progress.status(phaseAt),resourceTrendPass:false}));cadence();return r;
-  }catch(error){if(/collector|process-metrics|anonymous|sample-identity/.test(error.message))workspaceFailure.capture(error,{kind:'sample-collection',pid:app.child.pid,sampleIndex:samples.length,measurementStartedAt:begin,failedAt:performance.now()});throw error;}finally{console.log('[sample-timing] '+JSON.stringify({sampleIndex:samples.length,metricsMs,drainMs,storageMs,totalMs:performance.now()-begin}));}
+    rotations:r.rotations,partialBytes:r.partialBytes,progress:progress.status(phaseAt),resourceTrendPass:false,
+    ...(stateDiagnose?{activeHistory:{...progress.activeHistorySnapshot(),sampleIndex:samples.length,sampleStartNs,processCapturedNs,
+      metricsStartedAt:begin,metricsCompletedAt:begin+metricsMs,drainStartedAt:drainStart,drainCompletedAt:storageStart,productOwnerSeq:point.productOwner.seq}}:{})}));cadence();return r;
+  }catch(error){if(/collector|process-metrics|anonymous|sample-identity/.test(error.message)||(short&&/^identity-/.test(error.message))){if(short)recordLaunchMetricsFailure(app.identity,error);workspaceFailure.capture(error,{kind:'sample-collection',pid:app.child.pid,sampleIndex:samples.length,measurementStartedAt:begin,failedAt:performance.now()});}throw error;}finally{console.log('[sample-timing] '+JSON.stringify({sampleIndex:samples.length,metricsMs,drainMs,storageMs,totalMs:performance.now()-begin}));}
 }
 function fileHash(file){const h=crypto.createHash('sha256'),fd=fs.openSync(file,fs.constants.O_RDONLY|fs.constants.O_NOFOLLOW);try{const chunk=Buffer.alloc(65536);let n;while((n=fs.readSync(fd,chunk,0,chunk.length,null)))h.update(chunk.subarray(0,n));return h.digest('hex');}finally{fs.closeSync(fd);}}
 function snapshotEnvironment(){const env={PATH:process.env.PATH,MEDIA_SERVER_ARCHIVE_PHASE_TRACE:'1'},allowed=['GST_REGISTRY','GST_REGISTRY_1_0','GST_PLUGIN_PATH','GST_PLUGIN_PATH_1_0','GST_PLUGIN_SYSTEM_PATH','GST_PLUGIN_SYSTEM_PATH_1_0','GST_PLUGIN_SCANNER','GST_PLUGIN_SCANNER_1_0','DYLD_LIBRARY_PATH','DYLD_FALLBACK_LIBRARY_PATH','MEDIA_SERVER_GST_CACHE_DIR','MEDIA_SERVER_GST_PLUGIN_PROFILE'];for(const key of allowed)if(typeof process.env[key]==='string')env[key]=process.env[key];return env;}
@@ -288,10 +308,19 @@ try{
   runReviewSeed({...seedOptions,root:path.join(root,'recordings'),mode:'--confirmed-seed'});
   seedInfo=JSON.parse(fs.readFileSync(path.join(root,'recordings/confirmed-seed.json')));
   const seededMedia=[];function collectSeeded(dir){for(const entry of fs.readdirSync(dir,{withFileTypes:true})){const file=path.join(dir,entry.name);if(entry.isDirectory())collectSeeded(file);else if(entry.isFile()&&entry.name.endsWith('.mp4'))seededMedia.push(file);}}collectSeeded(path.join(root,'recordings'));check(seededMedia.length===1,'A one original seeded media');fs.copyFileSync(seededMedia[0],path.join(root,'input/a-seed.mp4'),fs.constants.COPYFILE_EXCL);
-  const generationStart=performance.now();
-  const generated=spawnSync('gst-launch-1.0',['-q','-e','videotestsrc','num-buffers=120','pattern=ball','!','video/x-raw,format=I420,width=160,height=90,framerate=30/1','!','x264enc','tune=zerolatency','speed-preset=ultrafast','pass=quant','quantizer=0','key-int-max=30','!','h264parse','!','mp4mux','!','filesink',`location=${path.join(root,'input/retention.mp4')}`],{encoding:'utf8',timeout:30000,maxBuffer:65536,env:{...process.env,TMPDIR:path.join(root,'tmp')}});
+  const generationStart=performance.now();let generationElapsedMs=null;
+  const generate=(command,argv,options)=>{
+    if(!short)return spawnSync(command,argv,options);
+    const capture=captureRetentionFixture({command,argv,options,root,repo,output:path.join(root,'input/retention.mp4'),artifacts,
+      admit:additionalBytes=>admitWorkspaceSnapshot({storage:storageNow(),baseline:workspace??{fixedBytes:0,capBytes:448*1024*1024},
+        additionalBytes,context:{kind:'fixture-evidence-write'}},workspaceFailure)});
+    fixtureGenerationEvidence={...capture.evidence,ok:capture.ok};generationElapsedMs=capture.elapsedMs;
+    return capture.result??{status:null,signal:null,stdout:null,stderr:null};
+  };
+  const generated=generate('gst-launch-1.0',['-q','-e','videotestsrc','num-buffers=120','pattern=ball','!','video/x-raw,format=I420,width=160,height=90,framerate=30/1','!','x264enc','tune=zerolatency','speed-preset=ultrafast','pass=quant','quantizer=0','key-int-max=30','!','h264parse','!','mp4mux','!','filesink',`location=${path.join(root,'input/retention.mp4')}`],{encoding:'utf8',timeout:30000,maxBuffer:65536,env:{...process.env,TMPDIR:path.join(root,'tmp')}});
   let generatedBytes=null;try{const s=fs.lstatSync(path.join(root,'input/retention.mp4'));if(s.isFile()&&s.nlink===1)generatedBytes=s.size;}catch{}
-  console.log('[fixture-generation] '+JSON.stringify(summarizeFixtureGeneration(generated,{elapsedMs:Math.round(performance.now()-generationStart),outputBytes:generatedBytes})));
+  console.log('[fixture-generation] '+JSON.stringify(summarizeFixtureGeneration(generated,{elapsedMs:short?generationElapsedMs:Math.round(performance.now()-generationStart),outputBytes:generatedBytes})));
+  if(short){console.log('[fixture-evidence] '+JSON.stringify(fixtureGenerationEvidence));if(!fixtureGenerationEvidence.ok)throw Error(fixtureGenerationEvidence.fixtureFailure??'fixture-evidence-failed');}
   check(generated.status===0&&!generated.error&&!generated.signal&&generatedBytes!==null&&generatedBytes>0&&generatedBytes<96*1024*1024,'LP26-O05 original bounded retention fixture');
   console.log('[fixture-input] '+JSON.stringify(assertMixedFixtureInput(fs.readFileSync(path.join(root,'input/retention.mp4')),fixtureProfile.name)));
   budget();
@@ -313,7 +342,7 @@ try{
     console.log('[channel-readiness] '+JSON.stringify(rows.map(c=>c?{channelId:c.channelId,enabled:c.enabled,active:c.active,storageBlocked:c.storageBlocked}:null)));
     if(rows.some(c=>c?.storageBlocked))throw Error('recording-readiness-blocked');return rows.every(c=>c?.enabled&&c.active);});
   aLoad=new MixedALoad({root,seedInfo,request:evidenceFetch,check,budget});
-  const begin=performance.now(),observationBudget=new CurrentObservationBudget();observationStart=begin;nextEvidence=begin;progress=new CurrentLongrunProgress(begin,['9101','9201'],observationBudget);observer=new CurrentRecordingObserver(path.join(root,'recordings'),native,observationBudget);
+  const begin=performance.now(),observationBudget=new CurrentObservationBudget();observationStart=begin;nextEvidence=begin;progress=new CurrentLongrunProgress(begin,['9101','9201'],observationBudget,{observeActiveHistory:stateDiagnose});observer=new CurrentRecordingObserver(path.join(root,'recordings'),native,observationBudget);
   aLoad.start(begin,duration);
   while(performance.now()-begin<duration){
     await sample(first);await request(first,'GET','/ops/api/recordings/status',undefined,true);
@@ -349,11 +378,14 @@ finally{
   for(const app of processes){try{fs.closeSync(app.logFd);const text=fs.readFileSync(app.log,'utf8');const stateTrace=recordingStateSummary(text,app.requiresFrameTrace);console.log('[recording-state-summary] '+JSON.stringify(stateTrace));if(stateTrace.status==='incomplete')throw Error('recording-state-capture-incomplete');
     const categories=['file evidence unavailable','storageBlocked','shutdown','ERROR','WARNING'].map(code=>({code,count:text.split(code).length-1}));
     const blocked=fs.existsSync(path.join(root,'cleanup-blocked'));
-    console.log('[server-diagnostic] '+JSON.stringify({pid:app.child.pid,bytes:app.bytes,capturedBytes:Buffer.byteLength(text),sha256:fileHash(app.log),overflow:!!app.overflow,captureError:app.captureError??null,categories,rawBodyPublished:false,privateCaptureDisposition:blocked?'preserved-with-owned-root':'eligible-for-wrapper-cleanup'}));
+    const logSha256=fileHash(app.log);
+    console.log('[server-diagnostic] '+JSON.stringify({pid:app.child.pid,bytes:app.bytes,capturedBytes:Buffer.byteLength(text),sha256:logSha256,overflow:!!app.overflow,captureError:app.captureError??null,categories,rawBodyPublished:false,privateCaptureDisposition:blocked?'preserved-with-owned-root':'eligible-for-wrapper-cleanup'}));
+    if(short)app.identityLog={file:path.basename(app.log),bytes:Buffer.byteLength(text),sha256:logSha256,complete:processLogCaptureComplete(app,Buffer.byteLength(text))};
     if(!processLogCaptureComplete(app,Buffer.byteLength(text))){failed++;console.log('[fail] process-log-collection');}
     const completion=app.completionTrace.finish();console.log('[completion-collection-summary] '+JSON.stringify(completion));
+    if(short)app.identityCompletion=completion;
     if(completion.status!=='captured'){failed++;console.log('[fail] completion-evidence-collection');}
-    console.log('[resource-trace-summary] '+JSON.stringify(finishResourceTrace(app.resourceTrace)));
+    const resource=finishResourceTrace(app.resourceTrace);console.log('[resource-trace-summary] '+JSON.stringify(resource));if(short)app.identityResource=resource;
     if(memoryObserve)console.log('[memory-attribution-summary] '+JSON.stringify(finishMemoryAttribution(app.memoryTrace)));
     const searchFailure=searchFailureSummary(text,app.requiresFrameTrace);console.log('[search-failure-summary] '+JSON.stringify(searchFailure));
     if(searchFailure.status==='incomplete'){failed++;console.log('[fail] structured-failure-collection');}
@@ -368,8 +400,14 @@ finally{
   try{if(observer)await observer.closeAsync();}catch{failed++;try{fs.writeFileSync(path.join(root,'cleanup-blocked'),'observer transport cleanup unresolved\n',{mode:0o600});}catch{}}if(udp)try{await new Promise(r=>udp.close(r));udpClosed=true;}catch{failed++;}else udpClosed=true;
   if(!udpClosed||processes.some(p=>!p.result?.archiveSafe)){fs.writeFileSync(path.join(root,'cleanup-blocked'),'process or port safety unresolved\n',{mode:0o600});failed++;}
   try{workspaceFailure.close();}catch{failed++;console.log('[fail] workspace-evidence-close');}
+  const identityCoverage=short?launchIdentityCoverage(processes.map(app=>({identity:app.identity??null,log:app.identityLog??null,
+    completion:app.identityCompletion??null,resource:app.identityResource??null,sampleIndexes:app.identitySampleIndexes??[],
+    statusSamples:app.identityStatusSamples??0,cleanup:app.result??null})),artifacts.outputDir):null;
+  const resultFailed=failed>0||(short&&identityCoverage.status!=='PASS');
   const final={workspaceFailure:workspaceFailure.summary(),decoderTraceMode:frameTraceMode,preparationContract,mode:memoryDiagnose?'v450-memory-attribution-diagnostic':short?'v450-startup-preparation-v2':contentionDiagnose?'v450-contention-diagnostic':stateDiagnose?'v450-state-diagnostic':diagnose?'v450-frame-diagnostic':'v450-recording-search-evidence-A-mixed-120',passed,failed,elapsedMs:Math.round(performance.now()-start),verifiedDurationMs:phaseResult?.elapsedMs??null,
     longrunObservationCompleted:!short&&!diagnose&&failed===0&&!!phaseResult,shortPreparationPass:false,startupPreparationPass:short&&failed===0,cyclicRecoveryStatus:short?'not-run-in-this-process':null,contentionDiagnosticPass:contentionDiagnose&&failed===0&&!!phaseResult,memoryAttributionDiagnosticCompleted:memoryDiagnose&&failed===0&&!!phaseResult,frameDiagnosticPass:diagnose&&!memoryDiagnose&&!stateDiagnose&&!contentionDiagnose&&failed===0&&!!phaseResult,stateDiagnosticPass:stateDiagnose&&failed===0&&!!phaseResult,fixtureProfile,resourceTrendPass:false,reviewRequired:true,uiFulltestPass:false,
     recordingStatusFailure:statusCapture.failure(),evidenceLoad:mixed,aLoad:aLoad?.report()??null,phase:phaseResult??null,resources:summary??null,processCount:processes.length,processesClosed:processes.every(p=>p.result?.normalShutdownPass),udpClosed,
-    footprintState:samples.every(s=>Number.isSafeInteger(s.footprintBytes))?'proc-pid-rusage':'partially-or-not-measured',cpu:{maxPercent:samples.length?Math.max(...samples.map(s=>s.cpuPercent)):null},tokenStart:null,tokenEnd:null,tokenConsumed:null,tokenSource:'전용 집계 없음'};artifacts.checkpoint({...final,status:failed?'FAIL':'PASS',exit:failed?1:0});console.log(JSON.stringify(final));process.exitCode=failed?1:0;
+    ...(stateDiagnose?{activeHistory:progress?.activeHistorySnapshot()??null}:{}),
+    ...(short?{fixtureGenerationEvidence,processIdentityEvidencePass:identityCoverage.status==='PASS',identityCoverage}:{}),
+    footprintState:samples.every(s=>Number.isSafeInteger(s.footprintBytes))?'proc-pid-rusage':'partially-or-not-measured',cpu:{maxPercent:samples.length?Math.max(...samples.map(s=>s.cpuPercent)):null},tokenStart:null,tokenEnd:null,tokenConsumed:null,tokenSource:'전용 집계 없음'};try{artifacts.checkpoint({...final,status:resultFailed?'FAIL':'PASS',exit:resultFailed?1:0});}catch(error){if(short){console.log('[fail] report-artifact-write-failed');console.log(JSON.stringify(final));}throw error;}console.log(JSON.stringify(final));process.exitCode=resultFailed?1:0;
 }
