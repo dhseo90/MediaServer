@@ -7,6 +7,7 @@
 #include "recording/recording_runtime_composition.h"
 #include "recording/recording_file_evidence.h"
 #include "recording/recording_search_reader.h"
+#include "recording/recording_search_snapshots.h"
 #include "recording/evidence_package_builder.h"
 #include <fcntl.h>
 #include <sys/stat.h>
@@ -16,6 +17,9 @@
 #include "recording_writer_decode_oracle.h"
 #include "recording_mixed_profile.h"
 #include "recording/visual_frame_decoder.h"
+#include "recording/recording_visual_source.h"
+#include "recording/recording_generation_manifest.h"
+#include "recording/recording_generation_active.h"
 #include <gst/app/gstappsink.h>
 #include <gst/gst.h>
 #include <algorithm>
@@ -25,6 +29,7 @@
 #include <limits>
 #include <stdexcept>
 #include <set>
+#include <sstream>
 
 namespace {
 int passes=0, failures=0;
@@ -398,6 +403,29 @@ int MixedTransitions(const std::filesystem::path& root,const std::filesystem::pa
 
 }
 int main(int argc,char** argv) {
+    if(argc==3&&(std::string(argv[2])=="--lifetime-prepare"||std::string(argv[2])=="--lifetime-observe"||std::string(argv[2])=="--lifetime-reopen")){
+        // isolation removes MEDIA_SERVER_*; set before the first diagnostic/owner.
+        if(setenv("MEDIA_SERVER_VERIFY_MEMORY_ATTRIBUTION","1",1)||setenv("MEDIA_SERVER_VERIFY_MEMORY_COMPACT","1",1))return 1;
+        gst_init(nullptr,nullptr);
+        try{const std::filesystem::path root(argv[1]);const std::string mode(argv[2]);Encoded input;
+            if(mode!="--lifetime-reopen"){
+                const auto dir=root/(mode=="--lifetime-prepare"?"lifetime-input-a":"lifetime-input-b");
+                R99Need(std::filesystem::create_directory(dir),"lifetime-input-directory");std::filesystem::permissions(dir,std::filesystem::perms::owner_all);
+                input=mode=="--lifetime-prepare"?MixedInput(dir):MixedInput(dir,root/"lifetime-input-a/mixed-input.mp4");
+            }
+            return NativeLifetime(root,mode,std::move(input));
+        }catch(const std::exception& e){std::cerr<<"[lifetime-failure] "<<e.what()<<std::endl;return 1;}
+    }
+    if(argc==3&&(std::string(argv[2])=="--retention-live"||std::string(argv[2])=="--retention-reopen"||std::string(argv[2])=="--retention-history-live"||std::string(argv[2])=="--retention-history-reopen")){
+        if(setenv("MEDIA_SERVER_VERIFY_MEMORY_ATTRIBUTION","1",1)||setenv("MEDIA_SERVER_VERIFY_MEMORY_COMPACT","1",1))return 1;
+        gst_init(nullptr,nullptr);
+        try{const std::filesystem::path root(argv[1]);const std::string mode(argv[2]);Encoded input;
+            if(mode=="--retention-live"||mode=="--retention-history-live"){const auto dir=root/"retention-input";R99Need(std::filesystem::create_directory(dir),"retention-input-directory");std::filesystem::permissions(dir,std::filesystem::perms::owner_all);input=MixedInput(dir);}
+            return NativeRetention(root,mode,std::move(input));
+        }catch(const std::exception& e){std::cerr<<"[retention-failure] "<<e.what()<<std::endl;return 1;}
+    }
+    if(argc==3&&std::string(argv[2])=="--state-preseed"){gst_init(nullptr,nullptr);try{return StatePreseed(argv[1],MixedInput(argv[1]));}catch(const std::exception& e){std::cerr<<"[preseed-failure] "<<e.what()<<std::endl;return 1;}}
+    if(argc==3&&std::string(argv[2])=="--state-preseed-reopen"){gst_init(nullptr,nullptr);try{return StatePreseedReopen(argv[1]);}catch(const std::exception& e){std::cerr<<"[preseed-failure] "<<e.what()<<std::endl;return 1;}}
     if(argc==4&&std::string(argv[2])=="--mixed-transitions"){gst_init(nullptr,nullptr);try{return MixedTransitions(argv[1],argv[3]);}catch(const std::exception& e){std::cerr<<"[R114-failure] "<<e.what()<<std::endl;return 1;}}
     if(argc==3&&std::string(argv[2])=="--mixed-generation-reopen"){gst_init(nullptr,nullptr);try{return MixedGenerationReopen(argv[1]);}catch(const std::exception& e){std::cerr<<"[R99-failure] "<<e.what()<<std::endl;return 1;}}
     if(argc==3&&std::string(argv[2])=="--mixed-generation"){gst_init(nullptr,nullptr);try{return MixedFixtureBound(argv[1],false,true);}catch(const std::exception& e){std::cerr<<"[R99-failure] "<<e.what()<<std::endl;return 1;}}
