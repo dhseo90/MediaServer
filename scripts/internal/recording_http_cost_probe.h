@@ -9,6 +9,7 @@
 #include <limits>
 #include <mutex>
 #include <cstring>
+#include <unistd.h>
 #include "recording/recording_search_diagnostic.h"
 namespace r154 {
 using U=std::uint64_t;
@@ -73,6 +74,12 @@ struct Client {
 namespace r171 {
 using U=std::uint64_t;
 inline bool Enabled(){return recording::latency::SearchAttributionEnabled();}
+// Only the owned generator may enable v2; legacy R171 keeps mandatory detail loss.
+#ifdef MEDIA_SERVER_VERIFY_MANDATORY_LEDGER
+inline constexpr bool MandatoryLedger=true;
+#else
+inline constexpr bool MandatoryLedger=false;
+#endif
 inline constexpr unsigned RequestCap=512,DetailCap=24;
 inline constexpr std::size_t ByteCap=512*1024;
 inline std::array<std::atomic<bool>,RequestCap> seen{};
@@ -85,18 +92,68 @@ inline void Write(const char* b,int n,std::size_t capacity){bool failed=n<=0||st
  {std::lock_guard<std::mutex> lock(r154::output_mutex);if(!failed){if(bytes>ByteCap-192||std::size_t(n)>ByteCap-192-bytes)failed=true;else{bytes+=n;failed=std::fwrite(b,1,n,stderr)!=std::size_t(n)||std::fflush(stderr)!=0;}}}
  if(failed)r154::Lose(172);
 }
+// Partition the unchanged 512KiB sink. Optional detail cannot consume terminal space.
+inline std::size_t ledgerMandatoryBytes=0,ledgerDetailBytes=0;
+inline constexpr std::size_t LedgerMandatoryCap=384*1024,LedgerDetailCap=128*1024;
+inline bool LedgerWrite(const char* b,int n,std::size_t capacity,bool detail=false){
+ bool failed=n<=0||std::size_t(n)>=capacity;
+ {std::lock_guard<std::mutex> lock(r154::output_mutex);
+  if(!detail&&!failed){if(std::size_t(n)>LedgerMandatoryCap-192-ledgerMandatoryBytes)failed=true;else ledgerMandatoryBytes+=n;}
+  if(!failed)failed=std::fwrite(b,1,n,stderr)!=std::size_t(n)||std::fflush(stderr)!=0;
+ }
+ if(failed)r154::Lose(172);return !failed;
+}
+inline const char* LedgerDetail(unsigned ordinal,int n,std::size_t capacity){
+ if(n<=0||std::size_t(n)>=capacity){r154::Lose(176);return "error";}
+ if(ordinal>DetailCap)return "detail-cap";
+ std::lock_guard<std::mutex> lock(r154::output_mutex);
+ if(std::size_t(n)>LedgerDetailCap-ledgerDetailBytes)return "detail-byte-budget";
+ ledgerDetailBytes+=n;return "captured";
+}
+inline void LedgerSearch(recording::SearchDiagnostic& d,unsigned id,U begin,U end){
+ bool eligible=d.status>=400||end-begin>=2000000000ULL;
+ for(unsigned i=0;i<d.capture_count;++i)eligible=eligible||d.captures[i].end-d.captures[i].begin>=500000000ULL;
+ if(d.cost_loss||d.capture_loss||d.attempt>=3)r154::Lose(174);
+ // These are same-clock phase durations, not HTTP/client clock differences.
+ char wait[32]="null",hold[32]="null";
+ for(const char* name:{"preparation-wait","preparation-hold"}){
+  U total=0;bool found=false;
+  for(unsigned i=0;i<d.cost_count;++i){const auto& c=d.costs[i];if(std::strcmp(c.name,name))continue;
+   if(c.end<c.begin||total>std::numeric_limits<U>::max()-(c.end-c.begin)){r154::Lose(174);continue;}
+   total+=c.end-c.begin;found=true;}
+  if(found)std::snprintf(std::strcmp(name,"preparation-wait")==0?wait:hold,32,"%llu",(unsigned long long)total);
+ }
+ const unsigned ordinal=eligible?details.fetch_add(1)+1:0;
+ char detail[16384];int dn=0;const char* state="not-selected";
+ if(eligible){
+  dn=std::snprintf(detail,sizeof(detail),"[R171-detail] {\"v\":2,\"pid\":%ld,\"id\":%u,\"captures\":[",(long)getpid(),id);
+  for(unsigned i=0;i<d.capture_count&&dn>0&&dn<int(sizeof(detail));++i){const auto& c=d.captures[i];dn+=std::snprintf(detail+dn,sizeof(detail)-dn,"%s[%u,%u,%u,%llu,%llu,%llu,%llu,%llu,%llu,%llu,%llu,%llu,%llu,%llu,%llu,%llu,%llu,%llu,%llu,%llu,%s]",i?",":"",i+1,c.parent,c.attempt,(unsigned long long)c.begin,(unsigned long long)c.end,(unsigned long long)c.rows,(unsigned long long)c.cut_rows,(unsigned long long)c.raw_bytes,(unsigned long long)c.read_ns,(unsigned long long)c.outside_ns,(unsigned long long)c.decode_calls,(unsigned long long)c.decode_hits,(unsigned long long)c.parse_ns,(unsigned long long)c.raw_read_ns,(unsigned long long)c.shared,(unsigned long long)c.materialized,(unsigned long long)c.captured,(unsigned long long)c.current,(unsigned long long)c.rejected_before,(unsigned long long)c.rejected_after,c.complete?"true":"false");}
+  if(dn>0&&dn<int(sizeof(detail)))dn+=std::snprintf(detail+dn,sizeof(detail)-dn,"],\"phases\":[");
+  for(unsigned i=0;i<d.cost_count&&dn>0&&dn<int(sizeof(detail));++i){const auto& c=d.costs[i];dn+=std::snprintf(detail+dn,sizeof(detail)-dn,"%s[\"%s\",%llu,%llu]",i?",":"",c.name,(unsigned long long)c.begin,(unsigned long long)c.end);}
+
+  if(dn>0&&dn+4<int(sizeof(detail))){std::memcpy(detail+dn,"]}\n",3);dn+=3;}else dn=-1;
+  state=LedgerDetail(ordinal,dn,sizeof(detail));
+ }
+ char b[2048];int n=std::snprintf(b,sizeof(b),"[R171-search] {\"v\":2,\"pid\":%ld,\"id\":%u,\"begin\":%llu,\"end\":%llu,\"diagnosticStatus\":%d,\"exception\":\"%s\",\"rejections\":[%llu,%llu],\"loss\":%s,\"retry\":%u,\"waitNs\":%s,\"holdNs\":%s,\"detailEligible\":%s,\"detailOrdinal\":%u,\"detailState\":\"%s\",\"attempts\":[",(long)getpid(),id,(unsigned long long)begin,(unsigned long long)end,d.status,d.exception,(unsigned long long)d.rejection_start,(unsigned long long)(d.resources?d.resources->rejected():0),r154::loss?"true":"false",d.attempt,wait,hold,eligible?"true":"false",ordinal,state);
+ for(unsigned i=0;i<=d.attempt&&i<3&&n>0&&n<int(sizeof(b));++i){const auto& a=d.attempts[i];n+=std::snprintf(b+n,sizeof(b)-n,"%s{\"stage\":\"%s\",\"reason\":\"%s\",\"captured\":%llu,\"current\":%llu,\"authority\":%s}",i?",":"",a.stage,a.reason,(unsigned long long)a.captured,(unsigned long long)a.current,a.authority?"true":"false");}
+ if(n>0&&n+4<int(sizeof(b))){std::memcpy(b+n,"]}\n",3);n+=3;}else n=-1;
+ // Mandatory terminal is written before the optional detail. Write errors stay fatal.
+ if(LedgerWrite(b,n,sizeof(b))&&std::strcmp(state,"captured")==0)LedgerWrite(detail,dn,sizeof(detail),true);
+}
 struct Server;
 inline thread_local Server* active=nullptr;
 struct Server {
  unsigned id=0;Server* prior;U dispatch=0,handler=0,prepared=0,send_begin=0,send_end=0;int status=0;bool sent=false,ended=false;
- explicit Server(unsigned value):id(Enabled()?value:0),prior(active){if(id>RequestCap){r154::Lose(171);id=0;}if(id&&seen.at(id-1).exchange(true)){r154::Lose(173);id=0;}active=id?this:nullptr;if(!id)return;dispatch=r154::Tick();char b[192];const int n=std::snprintf(b,sizeof(b),"[R171-dispatch] {\"id\":%u,\"at\":%llu,\"loss\":false}\n",id,(unsigned long long)dispatch);Write(b,n,sizeof(b));}
+ explicit Server(unsigned value):id(Enabled()?value:0),prior(active){if(id>RequestCap){r154::Lose(171);id=0;}if(id&&seen.at(id-1).exchange(true)){r154::Lose(173);id=0;}active=id?this:nullptr;if(!id)return;dispatch=r154::Tick();if(MandatoryLedger)return;char b[192];const int n=std::snprintf(b,sizeof(b),"[R171-dispatch] {\"id\":%u,\"at\":%llu,\"loss\":false}\n",id,(unsigned long long)dispatch);Write(b,n,sizeof(b));}
  ~Server(){End();}
- void End(){if(ended)return;ended=true;active=prior;if(!id)return;char b[512];const int n=std::snprintf(b,sizeof(b),"[R171-server] {\"id\":%u,\"dispatch\":%llu,\"handler\":%llu,\"prepared\":%llu,\"sendBegin\":%llu,\"sendEnd\":%llu,\"end\":%llu,\"status\":%d,\"sent\":%s,\"loss\":%s}\n",id,(unsigned long long)dispatch,(unsigned long long)handler,(unsigned long long)prepared,(unsigned long long)send_begin,(unsigned long long)send_end,(unsigned long long)r154::Tick(),status,sent?"true":"false",r154::loss?"true":"false");Write(b,n,sizeof(b));}
+ void End(){if(ended)return;ended=true;active=prior;if(!id)return;
+  if(MandatoryLedger){char b[512];const int n=std::snprintf(b,sizeof(b),"[R171-server] {\"v\":2,\"pid\":%ld,\"id\":%u,\"dispatch\":%llu,\"handler\":%llu,\"prepared\":%llu,\"sendBegin\":%llu,\"sendEnd\":%llu,\"end\":%llu,\"status\":%d,\"sent\":%s,\"loss\":%s}\n",(long)getpid(),id,(unsigned long long)dispatch,(unsigned long long)handler,(unsigned long long)prepared,(unsigned long long)send_begin,(unsigned long long)send_end,(unsigned long long)r154::Tick(),status,sent?"true":"false",r154::loss?"true":"false");LedgerWrite(b,n,sizeof(b));return;}
+  char b[512];const int n=std::snprintf(b,sizeof(b),"[R171-server] {\"id\":%u,\"dispatch\":%llu,\"handler\":%llu,\"prepared\":%llu,\"sendBegin\":%llu,\"sendEnd\":%llu,\"end\":%llu,\"status\":%d,\"sent\":%s,\"loss\":%s}\n",id,(unsigned long long)dispatch,(unsigned long long)handler,(unsigned long long)prepared,(unsigned long long)send_begin,(unsigned long long)send_end,(unsigned long long)r154::Tick(),status,sent?"true":"false",r154::loss?"true":"false");Write(b,n,sizeof(b));}
 };
 struct Search {
  recording::SearchDiagnostic& d;unsigned id=0,prior_id;U begin=0;
- explicit Search(recording::SearchDiagnostic& value):d(value),id(active?active->id:0),prior_id(d.id){if(!id)return;begin=r154::Tick();if(!d.id){d.id=id;d.entered=begin;}char b[192];const int n=std::snprintf(b,sizeof(b),"[R171-search-enter] {\"id\":%u,\"at\":%llu,\"loss\":false}\n",id,(unsigned long long)begin);Write(b,n,sizeof(b));}
- ~Search(){if(!id)return;const auto end=r154::Tick();bool detail=d.status>=400||end-begin>=2000000000ULL;
+ explicit Search(recording::SearchDiagnostic& value):d(value),id(active?active->id:0),prior_id(d.id){if(!id)return;begin=r154::Tick();if(!d.id){d.id=id;d.entered=begin;}if(MandatoryLedger)return;char b[192];const int n=std::snprintf(b,sizeof(b),"[R171-search-enter] {\"id\":%u,\"at\":%llu,\"loss\":false}\n",id,(unsigned long long)begin);Write(b,n,sizeof(b));}
+ ~Search(){if(!id)return;const auto end=r154::Tick();if(MandatoryLedger){LedgerSearch(d,id,begin,end);d.id=prior_id;return;}bool detail=d.status>=400||end-begin>=2000000000ULL;
   for(unsigned i=0;i<d.capture_count;++i)detail=detail||d.captures[i].end-d.captures[i].begin>=500000000ULL;
   if(d.cost_loss||d.capture_loss||d.attempt>=3)r154::Lose(174);
   char b[16384];int n=std::snprintf(b,sizeof(b),"[R171-search] {\"id\":%u,\"begin\":%llu,\"end\":%llu,\"diagnosticStatus\":%d,\"exception\":\"%s\",\"rejections\":[%llu,%llu],\"detail\":%s,\"loss\":%s,\"attempts\":[",id,(unsigned long long)begin,(unsigned long long)end,d.status,d.exception,(unsigned long long)d.rejection_start,(unsigned long long)(d.resources?d.resources->rejected():0),detail?"true":"false",r154::loss?"true":"false");
