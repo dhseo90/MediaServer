@@ -2241,10 +2241,38 @@ S10-SW12의 test-only `scripts/internal/recording_journal_fd_probe.h`는 journal
 | S10-M03 | mapping 미디어 전수·중복·인접성 검증 | 해당 contracts/catalog/finalize focused | 비대상 | 비대상 | 비대상 | 비대상: UI 없어야 정상 |
 | S10-M04 | strict 형식·정수·metadata 상한 | 해당 contracts/catalog/finalize focused | 비대상 | 비대상 | 비대상 | 비대상: UI 없어야 정상 |
 | S10-M05 | 기존 V1 golden 불변 | 해당 contracts/catalog/finalize focused | 비대상 | 비대상 | 비대상 | 비대상: UI 없어야 정상 |
+| S10-M10 | V2 scalar/mapping 직접 문자열 출력의 영속 canonical 바이트 동등성 | `recording_contract_smoke.cpp` / 기존 contracts focused | 비대상 | 비대상 | 비대상 | 비대상: 내부 직렬화 |
+| S10-M11 | V2 serializer 단독 비용의 변경 전/후 비교 | `recording_contract_smoke.cpp --v2-benchmark <입력 corpus>` opt-in | 비대상 | 비대상 | 비대상 | 비대상: 내부 직렬화 |
 | S10-M06 | 영속 예약과 finalize 결박 | 해당 contracts/catalog/finalize focused | 비대상 | 비대상 | 비대상 | 비대상: UI 없어야 정상 |
 | S10-M07 | journal/SQLite/JSONL 재시작 동등성 | 해당 contracts/catalog/finalize focused | 비대상 | 비대상 | 비대상 | 비대상: UI 없어야 정상 |
 | S10-M08 | ready 재시작과 멱등 정리 | 해당 contracts/catalog/finalize focused | 비대상 | 비대상 | 비대상 | 비대상: UI 없어야 정상 |
 | S10-M09 | 삭제·ID/매핑/경로 충돌 원본 보존 | 해당 contracts/catalog/finalize focused | 비대상 | 비대상 | 비대상 | 비대상: UI 없어야 정상 |
+
+S10-M10은 변경 전 소스의 전체 출력 corpus와 독립 literal을 기준으로 ASCII/빈 문자열,
+quote·backslash·slash·모든 control byte·NUL·UTF-8/원바이트, scalar/mapping 필드 순서,
+숫자/nullable/codec, mapping 0/1/복수/256/257 및 1MiB 직전/경계/초과를 대조한다.
+serializer가 출력할 수 있는 도메인 무효 입력과 validator/parser의 거부를 구분하고 실패 output 보존도 검사한다.
+선택 인자 `--v2-corpus <새 파일>`은 전체 바이트·validity·parse 결과를 배타 생성한 길이-prefix corpus에 남긴다.
+기존 소스로 먼저 확보한 corpus를 수정된 소스로 덮어쓰거나 새 결과로 기대값을 만들지 않는다.
+직접 컴파일한 변경 소스의 링크 결속을 확인하며 Quote/Escape·codec·parser/validation·1MiB·admission은 불변이다.
+classic locale만 직접 출력하고 nonclassic은 기존 Quote 경로를 유지하며, 특수 숫자 grouping locale의 바이트와 거부 결과도 대조한다.
+Writer/Journal/Recovery의 영속 바이트 의존성을 검토하되 실행하지 않은 소비자 통합은 NOT_TESTED다.
+Focused 동등성은 검색 p95·혼합 처리량·제품 메모리 PASS가 아니다.
+
+S10-M11은 기존 Golden에서 고정한 scalar 중심, mapping 0/1/3/256, escape/UTF-8와
+보존된 실제 V2 segment의 크기 중앙값 표본을 사용한다. mapping 0은 serializer 전용 무효 도메인이며
+정상 parser 통과로 승격하지 않는다. 나머지는 측정 전에 canonical parse·입력 검증을 통과해야 한다.
+입력은 길이-prefix (이름, parse 입력, 독립 기대 바이트) 7쌍으로 고정하고 1MiB 필드 상한,
+정확한 이름·순서·EOF를 확인한다. 20회 warmup 후 각 400회(256 mappings는 100회)를 측정한다.
+steady clock의 각 Serialize 호출만 측정하며 parse·입력 생성·검증·파일 I/O·출력·반환 문자열 소멸은 제외한다.
+모든 warmup/측정 반환값의 길이·FNV-1a64와 전체 바이트를 기대값과 대조하며 저장 corpus는 SHA256으로 결속한다.
+기존 default/Golden assertion은 그대로 유지한다. 입력 손상·바이트/hash 불일치·불완전 출력은 실패다.
+HEAD 소스와 현재 소스를 같은 compiler/옵션/locale로 직접 컴파일하고 Runtime Archive는 사용하지 않는다.
+외부 기존 감독으로 6쌍의 독립 프로세스를 B/C, C/B 교차 실행하며 단일 최솟값 대신 round별 중앙값,
+평균·p95·범위와 대응 개선율을 보존한다. 순서·반복 누락, source/link 불일치, 감독·시간·출력·공간·cleanup 실패는
+유효한 측정이 아니다. 기존 감독 한도 180초/1GiB RSS/512MiB workspace/2MiB 출력을 유지한다.
+실제 실행 전에는 성능 미측정이며 clock 오버헤드·CPU 부하·hash 검증의 cache 영향·classic locale 제한을 명시한다.
+할당 횟수와 전체 Search 개선량은 별도 계측 없이 추정하지 않는다. Golden/영속 회귀·Search gate를 대체하지 않는다.
 
 ## S10-3B 저장 계층 순서 예약
 
@@ -5059,6 +5087,8 @@ R97-A02는 미선택 대체 후보의 unlink/authority 하드 오류를 거부�
 - V450-MEM101-S04: startup/visual 공통 확정 ID 목록은 인증된 같은 Catalog cut의 이미 읽은 행과 빈 namespace를 재사용한다. 비어 있지 않은 retired/tombstone/state 조회와 V1·정렬·pending/삭제 거부를 유지한다. source/output 독립 fixture ID와 append/checkpoint/pending 전후, 활성16·과거0/32/128 대조를 수행한다. 경로·채널·hold 필터를 새로 추가하지 않는다.
 
 - V450-MEM101-S05: retention이 활성화한 segment-v2 파싱 재사용은 기존640MiB owner 안의 최대16MiB cache다. 매 호출의 인증 raw 읽기·순회·coverage는 유지하며 정확한 현재 bytes가 같은 경우만 typed row를 공유한다. cache miss/퇴거/큰 row는 원래 cold decode, 부재·변조·Finish 뒤에는 cache fallback이 없다. 같은 ID 변경, 작은 시험 예산 퇴거, reader 보유, Finish 해제와 같은 크기 node 변조를 기존 request-proof에서 검증하고 최종 병행/자원 결과를 별도로 확인한다. 다른 namespace·예약·보호·실제 용량 재판정은 유지한다.
+
+- V450-MEM101-S06: retained V2 Decode 한 호출이 소유한 불변 raw의 성공한 SHA-256만 호출 국소 private 값으로 재사용한다. 공개 raw API·저장 인증·strict parse·canonical equality·currentness·16MiB/LRU·MemoryOwner→cache 잠금 순서·Finish/reader 수명은 유지한다. `recording_generation_request_proof_smoke.cpp`의 opt-in `--retained-digest`는 test-only EVP 전달 계측으로 원본 헤더 cold miss 3회/3L, 변경 헤더 1회/L 및 hit 1회/L을 독립 기대값과 대조한다(L=실제 raw bytes). 서로 다른 행/동일 길이 변경·비정규 canonical·mapping/잘린 행·저장 checksum 손상·source revision·퇴거·Finish 중 등록 거부와 최종 owner 반환을 검증한다. digest 실패는 성공 값으로 재사용하지 않으며 오류 행을 cache에 등록하지 않는다. OpenSSL-off는 기존 미지원 history 경계 및 strict retained Decode fallback을 별도 확인한다. 기존 default request-proof 실행은 유지한다. 이 단기 focused는 제품 UI/30분/120분·Search 성능·Memory P0 PASS의 대체가 아니다. 필수 실행 감독 미확보 시 실행하지 않고 NOT_TESTED로 남긴다.
 
 - R101-C02: 배경 병행의 3개 요청 파동과 6개 확정 뒤, 기존 전체180/630초 안에서 실제 새 generation 게시를 확인한 후 Stop한다. 게시 완료 대기는 요청 지연 표본/추가 warmup이 아니다. 관측한 첫 degraded는 별도로 보존하고 기존 worker 주기의 실제 다음 완성 게시를 확인하며, 실패 attempt를 성공으로 바꾸지 않는다. stopped·누락·부모 deadline은 실패다. 최종 generation gate는 유지하고 이전의 조기 Stop 실행을 소급 PASS로 바꾸지 않는다.
 

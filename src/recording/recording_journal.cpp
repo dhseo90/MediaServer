@@ -995,7 +995,7 @@ std::string RawHash(std::string_view text) {
 }
 // Unlike the archive receipt identity, a source-read cache comparison binds
 // every SameOwnedEnvelope field, including the actual schema and enum value.
-std::string SourceReadEnvelopeIdentity(const RecordingMutationV1& mutation) {
+[[maybe_unused]] std::string SourceReadEnvelopeIdentity(const RecordingMutationV1& mutation) {
 #if MEDIA_SERVER_USE_OPENSSL
     // Private ephemeral proof, never a persisted identity. Hash every exact
     // envelope field with a length prefix; avoid escaping/copying the already

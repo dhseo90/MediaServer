@@ -11,6 +11,7 @@
 #include <cstdlib>
 #include <iomanip>
 #include <limits>
+#include <locale>
 #include <sstream>
 #include <string_view>
 #include <unordered_set>
@@ -811,26 +812,58 @@ bool SameRecordingSegmentV2Content(const RecordingSegmentV2& a,const RecordingSe
 
 std::string SerializeRecordingSegmentV2(const RecordingSegmentV2& v) {
     std::ostringstream out;
-    out << "{\"schema\":" << Quote(v.schema) << ",\"segment_id\":" << Quote(v.segment_id)
-        << ",\"source_id\":" << Quote(v.source_id) << ",\"channel_id\":" << Quote(v.channel_id)
-        << ",\"store_id\":" << Quote(v.store_id) << ",\"order_request_id\":" << Quote(v.order_request_id)
-        << ",\"media_epoch_id\":" << Quote(v.media_epoch_id) << ",\"order_sequence\":" << v.order_sequence
+    const auto quote=[&out](const std::string& value)->std::ostream& {
+        // Escape's legacy hex formatting uses the global numeric locale. Keep
+        // that path outside classic locale; never change the outer stream flags.
+        if(std::locale()!=std::locale::classic())return out<<Quote(value);
+        static constexpr char hex[]="0123456789abcdef";
+        out.put('"');
+        for(const unsigned char ch:value) {
+            switch(ch) {
+                case '"': out<<"\\\"";break;
+                case '\\': out<<"\\\\";break;
+                case '\b': out<<"\\b";break;
+                case '\f': out<<"\\f";break;
+                case '\n': out<<"\\n";break;
+                case '\r': out<<"\\r";break;
+                case '\t': out<<"\\t";break;
+                default:
+                    if(ch<0x20){const char escaped[]{'\\','u','0','0',hex[ch>>4],hex[ch&15]};out.write(escaped,6);}
+                    else out.put(static_cast<char>(ch));
+            }
+        }
+        return out.put('"');
+    };
+    out << "{\"schema\":";
+    quote(v.schema) << ",\"segment_id\":";
+    quote(v.segment_id) << ",\"source_id\":";
+    quote(v.source_id) << ",\"channel_id\":";
+    quote(v.channel_id) << ",\"store_id\":";
+    quote(v.store_id) << ",\"order_request_id\":";
+    quote(v.order_request_id) << ",\"media_epoch_id\":";
+    quote(v.media_epoch_id) << ",\"order_sequence\":" << v.order_sequence
         << ",\"media_start_pts\":" << v.media_start_pts << ",\"media_end_pts\":" << NullableInteger(v.media_end_pts)
         << ",\"time_base_num\":" << v.time_base_num << ",\"time_base_den\":" << v.time_base_den
-        << ",\"container\":" << Quote(v.container) << ",\"video_codecs\":" << SerializeStringArray(v.video_codecs)
+        << ",\"container\":";
+    quote(v.container) << ",\"video_codecs\":" << SerializeStringArray(v.video_codecs)
         << ",\"audio_codecs\":" << SerializeStringArray(v.audio_codecs)
-        << ",\"audio_omitted_reason\":" << Quote(v.audio_omitted_reason) << ",\"size_bytes\":" << v.size_bytes
-        << ",\"checksum_sha256\":" << Quote(v.checksum_sha256) << ",\"retention_class\":" << Quote(RetentionString(v.retention_class))
-        << ",\"lifecycle\":" << Quote(LifecycleString(v.lifecycle)) << ",\"pinned\":" << (v.pinned ? "true" : "false")
+        << ",\"audio_omitted_reason\":";
+    quote(v.audio_omitted_reason) << ",\"size_bytes\":" << v.size_bytes << ",\"checksum_sha256\":";
+    quote(v.checksum_sha256) << ",\"retention_class\":";
+    quote(RetentionString(v.retention_class)) << ",\"lifecycle\":";
+    quote(LifecycleString(v.lifecycle)) << ",\"pinned\":" << (v.pinned ? "true" : "false")
         << ",\"created_at_ms\":" << v.created_at_ms << ",\"finalized_at_ms\":" << v.finalized_at_ms << ",\"mappings\":[";
     for (std::size_t i=0; i<v.mappings.size(); ++i) {
         if (i) out << ',';
         const auto& m=v.mappings[i];
-        out << "{\"schema\":" << Quote(m.schema) << ",\"mapping_id\":" << Quote(m.mapping_id)
-            << ",\"start_pts\":" << m.start_pts << ",\"end_pts\":" << NullableInteger(m.end_pts)
-            << ",\"provenance\":" << Quote(m.provenance) << ",\"utc_start_ns\":" << NullableInteger(m.utc_start_ns)
+        out << "{\"schema\":";
+        quote(m.schema) << ",\"mapping_id\":";
+        quote(m.mapping_id) << ",\"start_pts\":" << m.start_pts << ",\"end_pts\":" << NullableInteger(m.end_pts)
+            << ",\"provenance\":";
+        quote(m.provenance) << ",\"utc_start_ns\":" << NullableInteger(m.utc_start_ns)
             << ",\"utc_end_ns\":" << NullableInteger(m.utc_end_ns) << ",\"uncertainty_ns\":" << NullableInteger(m.uncertainty_ns)
-            << ",\"reason\":" << Quote(m.reason) << '}';
+            << ",\"reason\":";
+        quote(m.reason) << '}';
         if (out.tellp() > static_cast<std::streamoff>(kSegmentV2JsonLimit)) return {};
     }
     out << "]}";

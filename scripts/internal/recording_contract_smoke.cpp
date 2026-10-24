@@ -4,15 +4,109 @@
 #include "recording/recording_store_port.h"
 
 #include <filesystem>
+#include <chrono>
 #include <fstream>
 #include <iostream>
+#include <limits>
+#include <locale>
 #include <string>
 #include <vector>
+#include <fcntl.h>
+#include <unistd.h>
 
 namespace {
 
 int failures = 0;
 int passes = 0;
+int corpus_fd = -1;
+
+// S10-M11 opt-in only. Expected bytes come from frozen evidence, never this serializer.
+int V2Benchmark(const std::filesystem::path& corpus) {
+    try {
+        using Clock=std::chrono::steady_clock;
+        static_assert(Clock::is_steady,"benchmark requires a monotonic clock");
+        if(std::locale()!=std::locale::classic())throw std::runtime_error("benchmark locale");
+        std::ifstream input(corpus,std::ios::binary);
+        if(!input)throw std::runtime_error("benchmark input missing");
+        const auto field=[&]() {
+            std::string length;
+            char ch=0;
+            while(input.get(ch)&&ch!='\n') {
+                if(ch<'0'||ch>'9'||length.size()>=7)throw std::runtime_error("benchmark field length");
+                length+=ch;
+            }
+            if(!input||length.empty())throw std::runtime_error("benchmark field header");
+            const auto bytes=std::stoull(length);
+            if(bytes>1048576)throw std::runtime_error("benchmark field cap");
+            std::string value(static_cast<std::size_t>(bytes),'\0');
+            if(!input.read(value.data(),static_cast<std::streamsize>(bytes)))throw std::runtime_error("benchmark short field");
+            return value;
+        };
+        const auto hash=[](const std::string& bytes) {
+            std::uint64_t value=14695981039346656037ULL;
+            for(unsigned char ch:bytes){value^=ch;value*=1099511628211ULL;}
+            return value;
+        };
+        struct Case {std::string name,expected;recording::RecordingSegmentV2 value;
+            std::uint64_t expected_hash;int iterations;std::vector<std::int64_t> ns;};
+        std::vector<Case> cases;
+        for(const auto* name:{"mapping-count-1","mapping-count-0","mapping-count-3","mapping-count-256",
+                              "text-2","text-6","retained-startup-median"}) {
+            Case item;item.name=field();
+            if(item.name!=name)throw std::runtime_error("benchmark case order");
+            const auto parse_input=field();item.expected=field();
+            std::string canonical,error;
+            if(!recording::ParseRecordingSegmentV2Canonical(parse_input,&item.value,&canonical,&error)||canonical!=parse_input)
+                throw std::runtime_error("benchmark canonical input: "+item.name);
+            // Mapping zero is intentionally serializer-only, not an accepted V2 domain value.
+            if(item.name=="mapping-count-0"){item.value.mappings.clear();item.value.media_end_pts=0;}
+            if(recording::ValidateRecordingSegmentV2(item.value,&error)!=(item.name!="mapping-count-0"))
+                throw std::runtime_error("benchmark domain: "+item.name);
+            item.expected_hash=hash(item.expected);item.iterations=item.name=="mapping-count-256"?100:400;
+            item.ns.reserve(static_cast<std::size_t>(item.iterations));cases.push_back(std::move(item));
+        }
+        if(input.peek()!=std::char_traits<char>::eof())throw std::runtime_error("benchmark extra input");
+        for(auto& item:cases) {
+            const auto verify=[&](const std::string& bytes) {
+                if(bytes.size()!=item.expected.size()||hash(bytes)!=item.expected_hash||bytes!=item.expected)
+                    throw std::runtime_error("benchmark byte/hash mismatch: "+item.name);
+            };
+            for(int i=0;i<20;++i)verify(recording::SerializeRecordingSegmentV2(item.value));
+            for(int i=0;i<item.iterations;++i) {
+                const auto begin=Clock::now();
+                const auto bytes=recording::SerializeRecordingSegmentV2(item.value);
+                const auto end=Clock::now();
+                verify(bytes); // Hash/full-byte comparison and output are outside the timed call.
+                item.ns.push_back(std::chrono::duration_cast<std::chrono::nanoseconds>(end-begin).count());
+            }
+        }
+        // No output until every case completes. Partial execution cannot look like a complete matrix.
+        for(const auto& item:cases) {
+            std::cout<<"{\"case\":\""<<item.name<<"\",\"pid\":"<<::getpid()
+                     <<",\"bytes\":"<<item.expected.size()<<",\"mappings\":"<<item.value.mappings.size()
+                     <<",\"fnv1a64\":\""<<item.expected_hash<<"\",\"warmup\":20,\"iterations\":"<<item.iterations
+                     <<",\"verifiedResults\":"<<item.iterations+20<<",\"ns\":[";
+            for(std::size_t i=0;i<item.ns.size();++i){if(i)std::cout<<',';std::cout<<item.ns[i];}
+            std::cout<<"]}\n";
+        }
+        return std::cout?0:1;
+    }catch(const std::exception& e){std::cerr<<"S10-M11 benchmark failed: "<<e.what()<<'\n';return 1;}
+}
+
+// Optional differential output, never an expected-value generator in this test.
+// Run against the frozen pre-change source first; compare complete files externally.
+void CorpusField(const std::string& value) {
+    if (corpus_fd < 0) return;
+    const auto length=std::to_string(value.size())+"\n";
+    for (const auto* field : {&length,&value}) {
+        std::size_t offset=0;
+        while(offset<field->size()) {
+            const auto n=::write(corpus_fd,field->data()+offset,field->size()-offset);
+            if(n<=0)throw std::runtime_error("canonical corpus write failed");
+            offset+=static_cast<std::size_t>(n);
+        }
+    }
+}
 
 void Expect(bool condition, const std::string& label) {
     if (condition) {
@@ -81,6 +175,86 @@ void ExpectCanonicalRoundTrip(const std::filesystem::path& path,
                    path.filename().string() + " canonical parity[" + std::to_string(index) + "]");
         }
     }
+}
+
+void V2SerializationCases(const recording::RecordingSegmentV2& base,const std::string& literal) {
+    using namespace recording;
+    const auto replace=[](std::string text,const std::string& from,const std::string& to) {
+        const auto at=text.find(from);
+        if(at==std::string::npos)throw std::runtime_error("canonical literal anchor missing");
+        text.replace(at,from.size(),to);return text;
+    };
+    const auto observe=[](const std::string& name,const RecordingSegmentV2& value) {
+        const auto bytes=SerializeRecordingSegmentV2(value);
+        std::string validation_error,parse_error,canonical="sentinel";
+        const bool valid=ValidateRecordingSegmentV2(value,&validation_error);
+        RecordingSegmentV2 parsed;parsed.segment_id="sentinel";
+        const bool accepted=ParseRecordingSegmentV2Canonical(bytes,&parsed,&canonical,&parse_error);
+        Expect(!accepted||(canonical==bytes&&SameRecordingSegmentV2Content(value,parsed)),"S10-M10 canonical content "+name);
+        Expect(accepted||(parsed.segment_id=="sentinel"&&canonical=="sentinel"),"S10-M10 failed output unchanged "+name);
+        for(const auto& field:{name,bytes,std::string(valid?"valid":"invalid"),validation_error,
+                              std::string(accepted?"accepted":"rejected"),parse_error,canonical})CorpusField(field);
+        return bytes;
+    };
+    std::string controls;
+    for(int i=0;i<32;++i)controls+=static_cast<char>(i);
+    const std::vector<std::pair<std::string,std::string>> text={
+        {"ASCII xyz 09","ASCII xyz 09"},{"",""},{"\"\\/",R"(\"\\/)"},
+        {"\b\f\n\r\t",R"(\b\f\n\r\t)"},
+        {controls,R"(\u0000\u0001\u0002\u0003\u0004\u0005\u0006\u0007\b\t\n\u000b\f\r\u000e\u000f\u0010\u0011\u0012\u0013\u0014\u0015\u0016\u0017\u0018\u0019\u001a\u001b\u001c\u001d\u001e\u001f)"},
+        {std::string("a\0b",3),R"(a\u0000b)"},{u8"한글 é 😀",u8"한글 é 😀"},
+        {std::string("\x7f\x80\xff",3),std::string("\x7f\x80\xff",3)}};
+    for(std::size_t i=0;i<text.size();++i) {
+        auto v=base;v.container=text[i].first;v.mappings[0].reason=text[i].first;
+        auto expected=replace(literal,"\"container\":\"mp4\"","\"container\":\""+text[i].second+"\"");
+        expected=replace(expected,"\"reason\":\"\"","\"reason\":\""+text[i].second+"\"");
+        Expect(observe("text-"+std::to_string(i),v)==expected,"S10-M10 independent full literal "+std::to_string(i));
+        std::string error;
+        Expect(ValidateRecordingSegmentV2(v,&error)==!text[i].first.empty(),"S10-M10 text domain validity "+std::to_string(i));
+    }
+    // Every byte at every mutable scalar/mapping string position. Invalid IDs,
+    // schema/checksum/provenance remain invalid; serializer alone is not validation.
+    std::string all_bytes;for(int i=0;i<256;++i)all_bytes+=static_cast<char>(i);
+    const std::vector<std::string RecordingSegmentV2Fields::*> fields={
+        &RecordingSegmentV2Fields::schema,&RecordingSegmentV2Fields::segment_id,
+        &RecordingSegmentV2Fields::source_id,&RecordingSegmentV2Fields::channel_id,
+        &RecordingSegmentV2Fields::store_id,&RecordingSegmentV2Fields::order_request_id,
+        &RecordingSegmentV2Fields::media_epoch_id,&RecordingSegmentV2Fields::container,
+        &RecordingSegmentV2Fields::audio_omitted_reason,&RecordingSegmentV2Fields::checksum_sha256};
+    for(std::size_t i=0;i<fields.size();++i){auto v=base;v.*fields[i]=all_bytes;observe("scalar-"+std::to_string(i),v);}
+    const std::vector<std::string RecordingUtcMappingV1::*> mapping_fields={
+        &RecordingUtcMappingV1::schema,&RecordingUtcMappingV1::mapping_id,
+        &RecordingUtcMappingV1::provenance,&RecordingUtcMappingV1::reason};
+    for(std::size_t i=0;i<mapping_fields.size();++i){auto v=base;v.mappings[0].*mapping_fields[i]=all_bytes;observe("mapping-field-"+std::to_string(i),v);}
+    for(int count:{0,1,3,256,257}) {
+        auto v=base;v.mappings.clear();v.media_end_pts=count;
+        for(int i=0;i<count;++i){auto m=base.mappings[0];m.mapping_id="m"+std::to_string(i);m.start_pts=i;m.end_pts=i+1;v.mappings.push_back(m);}
+        observe("mapping-count-"+std::to_string(count),v);std::string error;
+        Expect(ValidateRecordingSegmentV2(v,&error)==(count>0&&count<=256),"S10-M10 mapping count validity "+std::to_string(count));
+    }
+    auto v=base;v.media_end_pts.reset();auto& tail=v.mappings.back();tail.end_pts.reset();
+    tail.provenance="unknown";tail.utc_start_ns.reset();tail.utc_end_ns.reset();tail.uncertainty_ns.reset();tail.reason="no-time";
+    observe("nullable",v);
+    v=base;v.order_sequence=std::numeric_limits<std::int64_t>::max();v.created_at_ms=std::numeric_limits<std::int64_t>::min();
+    v.size_bytes=std::numeric_limits<std::uint64_t>::max();v.time_base_num=std::numeric_limits<std::int32_t>::max();v.pinned=true;
+    observe("numeric-extremes",v);
+    v=base;v.video_codecs={all_bytes,"h264"};v.audio_codecs={"",u8"音声"};observe("codecs",v);
+    for(auto retention:{RecordingRetentionClass::Continuous,RecordingRetentionClass::Event,RecordingRetentionClass::Unknown}){
+        v=base;v.retention_class=retention;observe("retention-"+std::to_string(static_cast<int>(retention)),v);}
+    v=base;v.lifecycle=RecordingLifecycle::Writing;observe("invalid-lifecycle",v);
+    for(std::size_t size:{1048575U,1048576U,1048577U,1048579U}) {
+        v=base;v.container=std::string(size-(literal.size()-3),'x');
+        const auto expected=size<=1048576?replace(literal,"\"container\":\"mp4\"","\"container\":\""+v.container+"\""):std::string{};
+        Expect(observe("size-"+std::to_string(size),v)==expected,"S10-M10 full size boundary "+std::to_string(size));
+        std::string error;Expect(ValidateRecordingSegmentV2(v,&error)==(size<=1048576),"S10-M10 size validity "+std::to_string(size));
+    }
+    // A non-classic numeric locale also affects the old Escape's hex formatting.
+    // Preserve it rather than silently forcing a new canonical representation.
+    struct Grouped final:std::numpunct<char>{char do_thousands_sep()const override{return '_';}
+        std::string do_grouping()const override{return "\1";}};
+    struct RestoreLocale{std::locale prior;~RestoreLocale(){std::locale::global(prior);}} restore;
+    std::locale::global(std::locale(std::locale::classic(),new Grouped));
+    v=base;v.container=std::string(1,'\x1b');observe("nonclassic-locale",v);
 }
 
 void V2Cases() {
@@ -161,14 +335,18 @@ void V2Cases() {
     for(const auto& item:invalid){parsed.segment_id="sentinel";Expect(!ParseRecordingSegmentV2(item.second,&parsed,&error)&&parsed.segment_id=="sentinel",
         "S10-M04 parser rejects and preserves output "+item.first);}
     Expect(!ParseRecordingSegmentV2(literal,nullptr,&error),"S10-M04 parser null output rejected");
+    V2SerializationCases(base,literal);
 }
 }  // namespace
 
 int main(int argc, char** argv) {
-    if (argc != 2) {
-        std::cerr << "usage: recording_contract_smoke <fixture-root>\n";
+    if(argc==3&&std::string(argv[1])=="--v2-benchmark")return V2Benchmark(argv[2]);
+    if (argc != 2 && !(argc==4 && std::string(argv[2])=="--v2-corpus")) {
+        std::cerr << "usage: recording_contract_smoke <fixture-root> [--v2-corpus <new-file>]\n";
         return 2;
     }
+    if(argc==4){corpus_fd=::open(argv[3],O_WRONLY|O_CREAT|O_EXCL,0600);
+        if(corpus_fd<0){std::cerr<<"corpus exclusive create failed\n";return 2;}}
     const std::filesystem::path root(argv[1]);
     std::string error;
 
@@ -293,6 +471,8 @@ int main(int argc, char** argv) {
     }
 
     V2Cases();
+    if(corpus_fd>=0){const bool synced=::fsync(corpus_fd)==0;const bool closed=::close(corpus_fd)==0;
+        corpus_fd=-1;Expect(synced&&closed,"S10-M10 corpus flushed and closed");}
     std::cout << "[verify-v410-recording-contracts] pass=" << passes
               << " fail=" << failures << '\n';
     return failures == 0 ? 0 : 1;

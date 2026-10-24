@@ -9,6 +9,43 @@
 #include <future>
 #include "recording/recording_read_service.h"
 #include "../../src/recording/recording_catalog_history.h"
+// Only the opt-in focused build redirects EVP_Digest. Product headers expose
+// neither counters nor digest injection. Every normal call still reaches EVP.
+#if defined(RECORDING_RETAINED_DIGEST_FOCUSED)
+#include <openssl/evp.h>
+#include <cstring>
+#ifndef EVP_Digest
+#error "retained digest focused build requires the EVP forwarding wrapper"
+#endif
+#undef EVP_Digest
+extern "C" int EVP_Digest(const void*,size_t,unsigned char*,unsigned int*,const EVP_MD*,ENGINE*);
+namespace {
+struct RetainedDigestWindow {
+    const std::string& expected;
+    const void* owned=nullptr;
+    std::size_t length=0,attempts=0,calls=0,bytes=0,successes=0,other_calls=0;
+    bool exact=true,fail_first=false,fail_all=false;
+    inline static thread_local RetainedDigestWindow* active=nullptr;
+    explicit RetainedDigestWindow(const std::string& raw):expected(raw){Need(!active);active=this;}
+    ~RetainedDigestWindow(){active=nullptr;}
+    static void Acquired(const RecordingColdRow& row){if(active){active->owned=row.bytes.data();active->length=row.bytes.size();}}
+};
+}
+extern "C" int RecordingRetainedDigestForTest(const void* data,size_t count,unsigned char* md,unsigned int* size,const EVP_MD* type,ENGINE* impl){
+    auto* measure=RetainedDigestWindow::active;
+    const bool target=measure&&data==measure->owned;
+    if(target){
+        ++measure->attempts;
+        measure->exact=measure->exact&&count==measure->length&&count==measure->expected.size()&&
+            std::memcmp(data,measure->expected.data(),count)==0&&EVP_MD_get_type(type)==NID_sha256;
+        if(measure->fail_all||(measure->fail_first&&measure->attempts==1))return 0; // explicit optional-cache failure case only
+        ++measure->calls;measure->bytes+=count;
+    }else if(measure)++measure->other_calls;
+    const int result=EVP_Digest(data,count,md,size,type,impl);
+    if(target&&result==1&&size&&*size==32)++measure->successes;
+    return result;
+}
+#endif
 namespace recording {
 struct RecordingGenerationRequestProofProbe {
     static void RetentionHook(std::function<void()> hook){RecordingCatalog::retention_prepared_hook_=std::move(hook);}
@@ -801,9 +838,135 @@ void ActiveProofCases(const std::filesystem::path& root){
 }
 #endif
 
+#if defined(RECORDING_RETAINED_DIGEST_FOCUSED)
+using DigestRows=RecordingRetainedRows<RecordingSegmentV2,ParseRecordingSegmentV2,SerializeRecordingSegmentV2>;
+// Same fixed V2 shape as contract smoke S10-M03; no media execution or new fixture input.
+RecordingSegmentV2 DigestInput(){
+    RecordingSegmentV2 s;s.segment_id="s";s.source_id="source";s.channel_id="channel";s.store_id="store";
+    s.order_request_id="request";s.media_epoch_id="epoch";s.order_sequence=9007199254740993LL;
+    s.media_end_pts=20;s.container="mp4";s.video_codecs={"h264"};s.audio_omitted_reason="none";
+    s.size_bytes=12;s.checksum_sha256=std::string(64,'a');s.created_at_ms=1;s.finalized_at_ms=2;
+    s.mappings={{"media-server.recording-utc-mapping.v1","a",0,10,"source-capture",9007199254740993LL,9007199254741003LL,0,""},
+                {"media-server.recording-utc-mapping.v1","b",10,20,"server-observation",9007199254740990LL,9007199254741000LL,2,""}};
+    Need(ValidateRecordingSegmentV2(s,&error));return s;
+}
+void DigestReport(const char* label,const RetainedDigestWindow& m,std::size_t expected){
+    std::cout<<"[digest] case="<<label<<" rawBytes="<<m.length<<" calls="<<m.calls<<" bytes="<<m.bytes
+             <<" attempts="<<m.attempts<<" successes="<<m.successes<<" otherCalls="<<m.other_calls<<" expected="<<expected<<'\n';
+    Check("V450-MEM101-S06",m.exact&&m.length==m.expected.size()&&m.calls==expected&&m.successes==expected&&m.bytes==expected*m.expected.size(),label);
+}
+#if MEDIA_SERVER_USE_OPENSSL && MEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND
+class DigestHistoryRows : public RecordingCatalogHistoryRows {
+public:
+    bool GetOwned(const std::string& kind,const std::string& id,RecordingColdRow* row,bool* found,std::string* detail)override{
+        const bool ok=RecordingCatalogHistoryRows::GetOwned(kind,id,row,found,detail);
+        if(ok&&*found)RetainedDigestWindow::Acquired(*row);
+        return ok;
+    }
+};
+void RetainedDigestCases(bool baseline){
+    const std::size_t cold_calls=baseline?3:1;
+    auto store=std::make_shared<DigestHistoryRows>();Need(store->Create(&error));
+    DigestRows rows;rows.Bind(store,"segment-v2");const auto segment=DigestInput();const auto raw=SerializeRecordingSegmentV2(segment);
+    rows.Set(segment.segment_id,segment);store->EnableVerifiedSegmentDecodeCache();
+    auto held=rows.end();
+    {RetainedDigestWindow m(raw);held=rows.find(segment.segment_id);
+     DigestReport("cold-authenticated",m,cold_calls);
+     Check("V450-MEM101-S06",m.other_calls>0&&SerializeRecordingSegmentV2(held->second)==raw&&store->ProbeDecodedBytes()>0,
+           "storage authentication remains separate; strict typed/canonical result and cache published");}
+    const auto charge=store->ProbeDecodedBytes();
+    std::cout<<"[digest-cache] bytes="<<charge<<'\n';
+    {RetainedDigestWindow m(raw);const auto hit=rows.find(segment.segment_id);DigestReport("hit",m,1);
+     Check("V450-MEM101-S06",&*hit==&*held&&store->ProbeDecodedBytes()==charge,"hit retains exact row and cache charge");}
+    auto changed=segment;changed.channel_id="channeL";const auto changed_raw=SerializeRecordingSegmentV2(changed);Need(changed_raw.size()==raw.size());
+    Need(store->Put("segment-v2",segment.segment_id,changed_raw,&error));
+    {RetainedDigestWindow m(changed_raw);const auto next=rows.find(segment.segment_id);DigestReport("same-length-new-bytes",m,cold_calls);
+     Check("V450-MEM101-S06",next->second.channel_id=="channeL"&&held->second.channel_id=="channel"&&&*next!=&*held,"same ID redecodes while old reader remains immutable");}
+    auto other=segment;other.segment_id="t";const auto other_raw=SerializeRecordingSegmentV2(other);rows.Set(other.segment_id,other);
+    {RetainedDigestWindow m(other_raw);const auto next=rows.find(other.segment_id);DigestReport("different-row",m,cold_calls);
+     Check("V450-MEM101-S06",next->second.segment_id=="t","digest never crosses row boundary");}
+    store->ForgetVerifiedSegmentDecode(segment.segment_id);
+    {RetainedDigestWindow m(changed_raw);(void)rows.find(segment.segment_id);DigestReport("evicted-redecode",m,cold_calls);}
+    // Failure injection is confined to the optional cache hash, after authenticated acquisition.
+    store->ClearVerifiedSegmentDecodeCache();
+    {RetainedDigestWindow m(changed_raw);m.fail_first=true;(void)rows.find(segment.segment_id);
+     DigestReport("first-hash-fails-retry",m,baseline?2:1);
+     Check("V450-MEM101-S06",m.attempts==(baseline?3U:2U)&&store->ProbeDecodedBytes()>0,"failed attempt is not memoized as proof");}
+    store->ClearVerifiedSegmentDecodeCache();
+    {RetainedDigestWindow m(changed_raw);m.fail_all=true;const auto row=rows.find(segment.segment_id);DigestReport("hash-unavailable-fallback",m,0);
+     Check("V450-MEM101-S06",m.attempts==3&&store->ProbeDecodedBytes()==0&&row->second.channel_id=="channeL","optional hash failure preserves strict decode without cache publication");}
+    // An authenticated but noncanonical row must reach retained equality rejection.
+    std::string spaced=raw;spaced.insert(1," ");RecordingSegmentV2 parsed;std::string canonical;
+    Need(ParseRecordingSegmentV2Canonical(spaced,&parsed,&canonical,&error)&&canonical==raw&&canonical!=spaced);
+    std::string mapping=raw;const auto at=mapping.find("\"start_pts\":0");Need(at!=std::string::npos);mapping.replace(at,13,"\"start_pts\":1");
+    std::string checksum=raw;const auto hash=checksum.find(std::string(64,'a'));Need(hash!=std::string::npos);checksum[hash]='z';
+    const std::vector<std::pair<std::string,std::string>> invalid={{"noncanonical",spaced},{"mapping",mapping},{"checksum-domain",checksum},{"truncated",raw.substr(0,raw.size()-1)},{"invalid-json",std::string(raw.size(),'x')}};
+    for(const auto& input:invalid){store->ClearVerifiedSegmentDecodeCache();Need(store->Put("segment-v2",segment.segment_id,input.second,&error));
+        bool rejected=false;std::string detail;
+        {RetainedDigestWindow m(input.second);try{(void)rows.find(segment.segment_id);}catch(const RecordingRetainedReadError& e){rejected=true;detail=e.what();}
+         DigestReport(input.first.c_str(),m,1);}
+        Check("V450-MEM101-S06",rejected&&detail.find("retained row canonical/domain mismatch:")==0&&store->ProbeDecodedBytes()==0,
+              (input.first+" retained cold Decode rejects without cache publication").c_str());}
+    held=rows.end();Need(store->Finish(&error));rows.clear();
+    Check("V450-MEM101-S06",store->MemoryOwner()->used()==0,"measured store final owner release");
+}
+#else
+// Only exercises the pre-existing strict Decode fallback without OpenSSL. This
+// does not authenticate persistent storage or claim unsupported history works.
+class DigestFallbackRows : public RecordingRetainedRowStore {
+    std::shared_ptr<SearchModelResidency> owner_=std::make_shared<SearchModelResidency>();
+public:
+    std::string raw;
+    bool GetOwned(const std::string&,const std::string&,RecordingColdRow* out,bool* found,std::string*)override{
+        auto charge=owner_->ReserveOwned(RecordingColdWorkspaceBytes(raw.size()),SearchModelResidency::Category::RetainedRaw);if(!charge)throw RecordingResourceUnavailable();
+        out->memory=std::move(*charge);out->bytes=raw;*found=true;RetainedDigestWindow::Acquired(*out);return true;
+    }
+    std::shared_ptr<SearchModelResidency> MemoryOwner()const override{return owner_;}
+    bool Get(const std::string&,const std::string&,std::string*,bool*,std::string*)override{return false;}
+    bool NextOwned(const std::string&,const std::string&,std::string*,RecordingColdRow*,bool*,std::string*)override{return false;}
+    bool Put(const std::string&,const std::string&,const std::string&,std::string*)override{return false;}
+    bool PutEventLink(const std::string&,const EventRecordingLinkV1&,std::string*)override{return false;}
+    bool Next(const std::string&,const std::string&,std::string*,std::string*,bool*,std::string*)override{return false;}
+    bool VisitOwned(const std::string&,const std::function<bool(const std::string&,RecordingColdRow&,std::string*)>&,std::string*)override{return false;}
+    bool Visit(const std::string&,const std::function<bool(const std::string&,const std::string&,std::string*)>&,std::string*)override{return false;}
+    std::uint64_t Count(const std::string&)const override{return 1;}
+};
+void RetainedDigestOffCases(){
+    RecordingCatalogHistoryRows unsupported;Check("V450-MEM101-S06",!unsupported.Create(&error)&&error=="catalog history unsupported","OpenSSL-off history remains unsupported");
+    auto store=std::make_shared<DigestFallbackRows>();const auto segment=DigestInput();store->raw=SerializeRecordingSegmentV2(segment);
+    DigestRows rows;rows.Bind(store,"segment-v2");store->EnableVerifiedSegmentDecodeCache();
+    {RetainedDigestWindow m(store->raw);const auto a=rows.find("s"),b=rows.find("s");DigestReport("openssl-off-strict-fallback",m,0);
+     Check("V450-MEM101-S06",&*a!=&*b&&SerializeRecordingSegmentV2(a->second)==store->raw&&store->ProbeDecodedBytes()==0,"feature-off no memoization; strict bytes preserved");}
+    store->raw.insert(1," ");bool rejected=false;try{(void)rows.find("s");}catch(const RecordingRetainedReadError&){rejected=true;}
+    Check("V450-MEM101-S06",rejected&&store->ProbeDecodedBytes()==0,"feature-off noncanonical cold row still rejected");
+    rows.clear();Check("V450-MEM101-S06",store->MemoryOwner()->used()==0,"feature-off owner returned");
+}
+#endif
+#endif
+
 int main(int argc,char** argv){
+    if(argc!=2&&argc!=3)return 2;
+#if defined(RECORDING_RETAINED_DIGEST_FOCUSED)
+    if(argc==3&&std::string(argv[2])!="--retained-digest"&&std::string(argv[2])!="--retained-digest-baseline")return 2;
+#else
     if(argc!=2)return 2;
+#endif
     try {const std::filesystem::path root=argv[1];std::filesystem::create_directories(root);
+#if defined(RECORDING_RETAINED_DIGEST_FOCUSED)
+        if(argc==3){
+            const int descriptors=OpenDescriptors();
+#if MEDIA_SERVER_USE_OPENSSL && MEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND
+            RetainedDigestCases(std::string(argv[2])=="--retained-digest-baseline");
+            VerifiedDecodeCases();DecodeRecencyCase();SearchChannelClassificationCases();
+            SourceReadCases(root/"source-read");SharedSourceReadCases(root/"shared-source-read");
+#else
+            if(std::string(argv[2])!="--retained-digest")return 2;
+            RetainedDigestOffCases();
+#endif
+            Check("V450-MEM101-S06",OpenDescriptors()==descriptors,"focused descriptors returned");
+            return failures?1:0;
+        }
+#endif
 #if MEDIA_SERVER_USE_OPENSSL && MEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND
         const auto normal=root/"normal";std::filesystem::create_directories(normal);
         CompleteFixture(normal);RecordingJournal j(Options(normal));Need(j.Open(&error));RecordingCatalog c(j,ReadOptions(normal));Need(c.Open(&error));
