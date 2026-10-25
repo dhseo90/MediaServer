@@ -7,7 +7,7 @@ import os from 'node:os';
 import path from 'node:path';
 import {spawnSync} from 'node:child_process';
 import {EARLY_STATE_INPUT as p,selectStateInputProfile,requireStateInputExecutable,stateInputArgs,stateInputProbeArgs,
-  validateStateInputMedia,stateInputCapacity,assessSyntheticStateWriterSegments,validateQualifiedStateInput,STATE_BINDING_SHA,assessQualifiedStateReview} from './recording_state_input_profile.mjs';
+  validateStateInputMedia,stateInputCapacity,assessSyntheticStateWriterSegments,validateQualifiedStateInput,STATE_BINDING_SHA,STATE_PRODUCT_SMOKE_SHA,assessQualifiedStateReview} from './recording_state_input_profile.mjs';
 import {workspaceBounds} from './recording_current_observer.mjs';
 import {mixedRecordingProfile} from './recording_longrun_progress.mjs';
 const sha=b=>crypto.createHash('sha256').update(b).digest('hex');
@@ -151,13 +151,24 @@ assert(replay===undefined||replay==='1','MEDIA_SERVER_STATE_BINDING_TEST must be
 test('qualified State binding: preserved real evidence and stale/missing assets', {skip:replay!=='1'},()=>{
   const env=process.env,binding=requireStateInputExecutable(p,env);
   assert.equal(binding.product,env.MEDIA_SERVER_STATE_PRODUCT);assert.equal(binding.runtime,env.MEDIA_SERVER_STATE_RUNTIME);
-  assert.equal(binding.sha256.product,'ed42ee3c55a3e48c2b30d564aa0397bf15c9acd5a89ad2145f1accc10546f4a8');
-  assert.equal(binding.sha256.runtime,'d9081c27bd5a0966e19719136b51b92433a3e67f79f4c56cbf70666f95a194b4');
-  assert(binding.matched>1500);assert.equal(Object.keys(binding.helpers).length,4);
+  const current=env.MEDIA_SERVER_STATE_PRODUCT_SMOKE!==undefined;
+  assert.equal(binding.sha256.product,current?'3f40e4b6530e9c89922d31004dd9c9b758cf338ec165989835aff9f5d042bddc':'ed42ee3c55a3e48c2b30d564aa0397bf15c9acd5a89ad2145f1accc10546f4a8');
+  assert.equal(binding.sha256.runtime,current?'da42acfb1d41fe4690a1440999d44a485591ee9c9b814ddb9c1e357b35c6bf83':'d9081c27bd5a0966e19719136b51b92433a3e67f79f4c56cbf70666f95a194b4');
+  assert(binding.matched>1500);assert.equal(Object.keys(binding.helpers).length,current?3:4);
   assert.equal(validateQualifiedStateInput(fs.readFileSync(binding.input)).bytes,120647);
   const dir=fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(),'media-server-state-binding-test-')));fs.chmodSync(dir,0o700);
   try{
     const changed=path.join(dir,'input.mp4');fs.writeFileSync(changed,Buffer.alloc(120647));
+    if(current){
+      assert.equal(binding.productSmokeSha256,STATE_PRODUCT_SMOKE_SHA.result);
+      assert.equal(binding.freshness.status,'PASS_TARGET_AWARE_PREFLIGHT');
+      for(const patch of [{MEDIA_SERVER_STATE_PRODUCT_SMOKE:''},{MEDIA_SERVER_STATE_PRODUCT_SMOKE:dir},
+        {MEDIA_SERVER_STATE_PRODUCT:'/private/tmp/media-server-limited-build-hStVHv/work/media_server'},
+        {MEDIA_SERVER_STATE_RUNTIME:'/private/tmp/media-server-limited-build-hStVHv/work/build/libmedia_server_runtime.a'},
+        {MEDIA_SERVER_STATE_PRODUCT_SMOKE:undefined}])assert.throws(()=>requireStateInputExecutable(p,{...env,...patch}));
+      fs.writeFileSync(path.join(dir,'result.json'),JSON.stringify({buildVerdict:'BUILD_LINK_VERIFIED'}));
+      assert.throws(()=>requireStateInputExecutable(p,{...env,MEDIA_SERVER_STATE_PRODUCT_SMOKE:dir}),/state-binding-sha/);
+    }
     for(const patch of [{MEDIA_SERVER_STATE_INPUT_MEDIA:changed},{MEDIA_SERVER_STATE_WRITER_REVIEW:dir},
       {MEDIA_SERVER_STATE_INPUT_MEDIA:path.join(dir,'absent')},{MEDIA_SERVER_STATE_PRODUCT:path.resolve('build-gst-onnx/media_server')},
       {MEDIA_SERVER_STATE_RUNTIME:path.resolve('build-gst-onnx/libmedia_server_runtime.a')}])assert.throws(()=>requireStateInputExecutable(p,{...env,...patch}));

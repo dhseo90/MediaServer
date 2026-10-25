@@ -4,6 +4,7 @@ import crypto from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
+import {execFileSync} from 'node:child_process';
 import {mixedRecordingProfile} from './recording_longrun_progress.mjs';
 
 export const EARLY_STATE_INPUT = Object.freeze({
@@ -32,6 +33,51 @@ export const STATE_BINDING_SHA=Object.freeze({
   reviewManifest:'d7e26c25a880005c6cde4d1edcc699bb7953ba7c47225ad73d2527afe4a0305c',
   originalManifest:'b168d7e12698529ab31e9b22f61676b49de39b37903008b4b1a58c8cf4bdb674',
 });
+// Writer 입력 적격성은 위 과거 실측에 유지하고, 실행 제품만 검증된 Build/Smoke에 결속한다.
+export const STATE_PRODUCT_SMOKE_SHA=Object.freeze({
+  product:'3f40e4b6530e9c89922d31004dd9c9b758cf338ec165989835aff9f5d042bddc',
+  runtime:'da42acfb1d41fe4690a1440999d44a485591ee9c9b814ddb9c1e357b35c6bf83',
+  result:'63fe3e5c8971bd3c5eceedc42ab445aa7b3e15d1941a326640dbf71d1d211b96',
+  source:'b2f10911c88126bc35db78f335a7d74c57b8538e3f98928266be5bcdfa21be33',
+  models:'7ef5ad7417ceaf245652bb92b6883e78498daf761918430987ca1617e6d82228',
+});
+function bindCurrentStateProduct(directory,product,runtime){
+  need(typeof directory==='string'&&path.isAbsolute(directory),'state-product-smoke-path');
+  const smoke=JSON.parse(boundFile(path.join(directory,'result.json'),STATE_PRODUCT_SMOKE_SHA.result));
+  need(smoke.buildVerdict==='BUILD_LINK_VERIFIED'&&smoke.integrationVerdict==='HTTP_ONLY_PASS_RETENTION_UNPROVEN'&&
+    smoke.actualExecution.launcherExit===0&&smoke.actualExecution.sourceBeginEndEqual===true,'state-product-smoke-status');
+  const artifacts=smoke.binding.artifacts;
+  need(product===artifacts.media_server.preserved&&runtime===artifacts['libmedia_server_runtime.a'].preserved,'state-product-smoke-selection');
+  boundFile(product,STATE_PRODUCT_SMOKE_SHA.product);boundFile(runtime,STATE_PRODUCT_SMOKE_SHA.runtime);
+  const repo=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../..');
+  const currentScripts=new Set(['docs/project-feature-test-inventory.md','scripts/internal/recording_accumulated_cost.test.mjs','scripts/internal/recording_state_input_profile.mjs','scripts/internal/recording_state_input_profile.test.mjs']);
+  const changed=execFileSync('git',['diff','--name-only',smoke.head,'--'],{cwd:repo,encoding:'utf8'}).trim().split('\n').filter(Boolean);
+  need(changed.every(p=>currentScripts.has(p)),'state-product-smoke-source-diff');
+  let matched=0;
+  for(const [manifest,digest] of [['source-manifest.json',STATE_PRODUCT_SMOKE_SHA.source],['model-sha256.json',STATE_PRODUCT_SMOKE_SHA.models]]){
+    for(const [relative,expected] of Object.entries(JSON.parse(boundFile(path.join(directory,manifest),digest)))){
+      if(currentScripts.has(relative))continue;
+      need(!path.isAbsolute(relative)&&!relative.split('/').includes('..'),'state-product-smoke-source-path');
+      need(sha(fs.readFileSync(path.join(repo,relative)))===expected,'state-source-asset-binding:'+relative);matched++;
+    }
+  }
+  for(const [file,digest] of Object.entries(smoke.binding.dynamicLibrariesSHA256))
+    need(sha(fs.readFileSync(file))===digest,'state-source-asset-binding:'+path.basename(file));
+  // 기존 읽기 전용 target-aware Guard를 실제 빌드 그래프에 적용한다. 복사 산출물도 같은 SHA여야 한다.
+  const freshness=JSON.parse(execFileSync('python3',[path.join(repo,'scripts/internal/recording_build_freshness.py'),
+    '--repo',repo,'--build',path.dirname(artifacts.media_server.source)],{encoding:'utf8',timeout:20000,maxBuffer:65536}));
+  need(freshness.status==='PASS_TARGET_AWARE_PREFLIGHT'&&freshness.graphSha256===smoke.freshness.graphSha256&&
+    freshness.targets.media_server.artifactSha256===STATE_PRODUCT_SMOKE_SHA.product&&
+    freshness.targets.media_server_runtime.artifactSha256===STATE_PRODUCT_SMOKE_SHA.runtime,'state-product-smoke-freshness');
+  const helpers={};
+  for(const name of ['normalize','process-metrics','review-seed']){
+    const entry=smoke.helpers[name];boundFile(entry.preservedPath,entry.sha256);
+    helpers[name]={path:entry.preservedPath,sha256:entry.sha256};
+  }
+  // State는 Snapshot/Recovery를 실행하지 않아 이미 삭제된 instrumentation 중간 소스가 필요 없다.
+  return {helpers,matched,sha256:{...STATE_BINDING_SHA,product:STATE_PRODUCT_SMOKE_SHA.product,runtime:STATE_PRODUCT_SMOKE_SHA.runtime},
+    productSmoke:directory,productSmokeSha256:STATE_PRODUCT_SMOKE_SHA.result,freshness};
+}
 export function validateQualifiedStateInput(bytes){
   need(Buffer.isBuffer(bytes)&&bytes.length===120647,'state-qualified-input-size');
   need(sha(bytes)===STATE_BINDING_SHA.input,'state-qualified-input-sha');
@@ -69,6 +115,12 @@ export function requireStateInputExecutable(profile,env=process.env){
   const parent=path.dirname(reviewDir),plan=JSON.parse(boundFile(path.join(parent,'plan.json'),STATE_BINDING_SHA.writerPlan));
   const reviewed=boundManifest(reviewDir,STATE_BINDING_SHA.reviewManifest);boundManifest(path.join(parent,'evidence'),STATE_BINDING_SHA.originalManifest);
   const review=JSON.parse(reviewed.get('result.json'));assessQualifiedStateReview(review);
+  if(env.MEDIA_SERVER_STATE_PRODUCT_SMOKE!==undefined){
+    need(plan.productSha===STATE_BINDING_SHA.product&&plan.inputSha===STATE_BINDING_SHA.input,'state-writer-plan-binding');
+    validateQualifiedStateInput(boundFile(input,STATE_BINDING_SHA.input));
+    return {profile:profile.name,input,product,runtime,writerReview:reviewDir,
+      ...bindCurrentStateProduct(env.MEDIA_SERVER_STATE_PRODUCT_SMOKE,product,runtime)};
+  }
   need(plan.product===product&&plan.productSha===STATE_BINDING_SHA.product&&plan.inputSha===STATE_BINDING_SHA.input,'state-product-plan-binding');
   validateQualifiedStateInput(boundFile(input,STATE_BINDING_SHA.input));
   boundFile(product,STATE_BINDING_SHA.product);boundFile(runtime,STATE_BINDING_SHA.runtime);
