@@ -1,6 +1,9 @@
 // State 입력 후보 전용. 입력 Decode와 실제 Writer Segment 적격성은 서로 다른 증거다.
 import assert from 'node:assert/strict';
 import crypto from 'node:crypto';
+import fs from 'node:fs';
+import path from 'node:path';
+import {fileURLToPath} from 'node:url';
 import {mixedRecordingProfile} from './recording_longrun_progress.mjs';
 
 export const EARLY_STATE_INPUT = Object.freeze({
@@ -20,9 +23,86 @@ export function selectStateInputProfile(args,name){
   need(name===EARLY_STATE_INPUT.name,'state-input-profile');
   return EARLY_STATE_INPUT;
 }
-export function requireStateInputExecutable(profile){
-  // 입력 생성 receipt를 Writer/Catalog 실측으로 승격하지 않는다. 후속 연결은 별도 승인.
-  if(profile)throw Error('state-input-writer-segments-not-qualified');
+// 승인된 실제 Writer Review의 immutable anchors. 합성 receipt는 이 경로에 사용하지 않는다.
+export const STATE_BINDING_SHA=Object.freeze({
+  input:'7c0109b496212b1e78a45e1e22d63f32247e70a903560306badeacb302cf5ee8',
+  product:'ed42ee3c55a3e48c2b30d564aa0397bf15c9acd5a89ad2145f1accc10546f4a8',
+  runtime:'d9081c27bd5a0966e19719136b51b92433a3e67f79f4c56cbf70666f95a194b4',
+  writerPlan:'402afa1c6925499e49fb4c735b8e6854449cf8781e633e1366b047ed17a4ccdd',
+  reviewManifest:'d7e26c25a880005c6cde4d1edcc699bb7953ba7c47225ad73d2527afe4a0305c',
+  originalManifest:'b168d7e12698529ab31e9b22f61676b49de39b37903008b4b1a58c8cf4bdb674',
+});
+export function validateQualifiedStateInput(bytes){
+  need(Buffer.isBuffer(bytes)&&bytes.length===120647,'state-qualified-input-size');
+  need(sha(bytes)===STATE_BINDING_SHA.input,'state-qualified-input-sha');
+  return {profile:EARLY_STATE_INPUT.name,bytes:bytes.length,sha256:sha(bytes),origin:'preserved-input; not regenerated'};
+}
+function boundFile(file,digest){
+  need(typeof file==='string'&&path.isAbsolute(file)&&fs.realpathSync(file)===file,'state-binding-path');
+  const st=fs.lstatSync(file);need(st.isFile()&&st.nlink===1&&st.uid===process.getuid(),'state-binding-file');
+  const bytes=fs.readFileSync(file);need(hash(digest)&&sha(bytes)===digest,'state-binding-sha:'+path.basename(file));return bytes;
+}
+function boundManifest(directory,expected){
+  const entries=new Map(),bytes=boundFile(path.join(directory,'SHA256SUMS'),expected);
+  for(const line of bytes.toString().trimEnd().split('\n')){
+    const m=/^([a-f0-9]{64})  (.+)$/.exec(line);need(m&&!path.isAbsolute(m[2])&&!m[2].split('/').includes('..')&&!entries.has(m[2]),'state-binding-manifest');
+    entries.set(m[2],boundFile(path.join(directory,m[2]),m[1]));
+  }
+  return entries;
+}
+export function assessQualifiedStateReview(review){
+  need(review?.status==='STATE_WRITER_SEGMENT_MEASUREMENT_PASS'&&review.productExit===0&&review.actualProductExecutions===1,'state-writer-review-status');
+  need(review.input?.sha256===STATE_BINDING_SHA.input&&review.input.bytes===120647&&review.maxBoundBytes===71237&&review.maxObservedSegmentBytes===64423,'state-writer-review-profile');
+  need(review.fileBindingCount===132&&review.normalTwoSecondCount===130&&review.pendingOrIncompleteCatalogSegments===0&&review.unmappedMediaFiles===0,'state-writer-review-coverage');
+  need(review.originalManifestSha256===STATE_BINDING_SHA.originalManifest,'state-writer-original-binding');
+  for(const id of ['9101','9201']){
+    const c=review.channels?.[id];need(c?.normalTwoSecond?.count===65&&c.normalTwoSecond.mean===3952839/65&&c.allFinalized.max===64423,'state-writer-channel-profile');
+  }
+  need(review.cleanup?.workAbsent===true&&review.cleanup.processGroupAbsent===true,'state-writer-cleanup');
+}
+export function requireStateInputExecutable(profile,env=process.env){
+  if(!profile)return null;
+  need(profile===EARLY_STATE_INPUT,'state-input-profile');
+  const reviewDir=env.MEDIA_SERVER_STATE_WRITER_REVIEW,input=env.MEDIA_SERVER_STATE_INPUT_MEDIA,
+    product=env.MEDIA_SERVER_STATE_PRODUCT,runtime=env.MEDIA_SERVER_STATE_RUNTIME;
+  need([reviewDir,input,product,runtime].every(p=>typeof p==='string'&&path.isAbsolute(p)),'state-input-evidence-required');
+  const parent=path.dirname(reviewDir),plan=JSON.parse(boundFile(path.join(parent,'plan.json'),STATE_BINDING_SHA.writerPlan));
+  const reviewed=boundManifest(reviewDir,STATE_BINDING_SHA.reviewManifest);boundManifest(path.join(parent,'evidence'),STATE_BINDING_SHA.originalManifest);
+  const review=JSON.parse(reviewed.get('result.json'));assessQualifiedStateReview(review);
+  need(plan.product===product&&plan.productSha===STATE_BINDING_SHA.product&&plan.inputSha===STATE_BINDING_SHA.input,'state-product-plan-binding');
+  validateQualifiedStateInput(boundFile(input,STATE_BINDING_SHA.input));
+  boundFile(product,STATE_BINDING_SHA.product);boundFile(runtime,STATE_BINDING_SHA.runtime);
+  need(plan.hashes[runtime]===STATE_BINDING_SHA.runtime,'state-runtime-plan-binding');
+  // 현재 실행 스크립트는 Supervisor의 clean HEAD/source receipt에 결속한다.
+  // 실측 뒤 수정한 비컴파일 소비자만 제외하고 C++/headers/Runtime/Helper/동적 의존성은 그대로 대조한다.
+  const repo=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../..');
+  const currentScripts=new Set(['docs/project-feature-test-inventory.md',...['recording_accumulated_cost.mjs','recording_accumulated_cost.py','recording_accumulated_cost.test.mjs','recording_current_observer.mjs','recording_current_fixture_generation.test.mjs','run_v450_recording_a_mixed.py','verify_v450_recording_a_mixed.sh','v450_recording_a_mixed.mjs','recording_state_input_profile.mjs','recording_state_input_profile.test.mjs'].map(n=>'scripts/internal/'+n)]);
+  let matched=0;
+  for(const [file,digest] of Object.entries(plan.hashes)){
+    if(currentScripts.has(path.relative(repo,file)))continue;
+    need(sha(fs.readFileSync(file))===digest,'state-source-asset-binding:'+path.basename(file));matched++;
+  }
+  const helpers={};
+  for(const name of ['normalize','process-metrics','review-seed','catalog-instrumented.cpp']){
+    const files=Object.keys(plan.hashes).filter(f=>f.includes('/artifacts/')&&path.basename(f)===name);need(files.length===1,'state-helper-binding');
+    boundFile(files[0],plan.hashes[files[0]]);helpers[name]={path:files[0],sha256:plan.hashes[files[0]]};
+  }
+  return {profile:profile.name,input,product,runtime,helpers,matched,sha256:STATE_BINDING_SHA,writerReview:reviewDir};
+}
+// 기존 Wrapper의 opt-in 자산 설치만 담당한다. 프로세스/미디어 생성·감독 기능은 없다.
+if(process.argv[1]&&path.resolve(process.argv[1])===fileURLToPath(import.meta.url)){
+  need(process.argv[2]==='--binding'||process.argv[2]==='--install-helpers','state-binding-command');
+  const binding=requireStateInputExecutable(selectStateInputProfile(['--state-diagnostic'],process.env.MEDIA_SERVER_STATE_INPUT_PROFILE));
+  need(binding,'state-binding-opt-in-required');
+  if(process.argv[2]==='--install-helpers'){
+    const root=process.argv[3];need(root&&path.isAbsolute(root)&&fs.realpathSync(root)===root,'state-helper-root');
+    const st=fs.lstatSync(root);need(st.isDirectory()&&st.uid===process.getuid()&&(st.mode&0o777)===0o700,'state-helper-root');
+    for(const [name,entry] of Object.entries(binding.helpers)){
+      const bytes=boundFile(entry.path,entry.sha256),target=path.join(root,name);
+      fs.writeFileSync(target,bytes,{flag:'wx',mode:name.endsWith('.cpp')?0o600:0o700});boundFile(target,entry.sha256);
+    }
+  }
+  console.log(JSON.stringify(binding));
 }
 export function stateInputArgs(output){
   need(typeof output==='string'&&output.startsWith('/')&&!output.includes('\0'),'state-input-output');

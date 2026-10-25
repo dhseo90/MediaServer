@@ -147,7 +147,7 @@ function mixedMock(t,{short=true,result=okResult,breakIntent=false}={}){
   const context={short,root:t.root,repo:t.repo,path,fs,process,performance:{now:()=>now},console:{log:()=>{}},artifacts:fakeArtifacts,
     captureRetentionFixture:args=>captureRetentionFixture({...args,run:spawnMock,now:()=>now}),spawnSync:spawnMock,
     workspace:null,workspaceFailure:{},storageNow:()=>({totalBytes:1}),admitWorkspaceSnapshot:()=>{},fixtureGenerationEvidence:null,
-    summarizeFixtureGeneration,check:(ok,label)=>assert(ok,label),assertMixedFixtureInput:()=>({mock:true}),fixtureProfile:{name:'continuous-r114'}};
+    stateExecution:null,summarizeFixtureGeneration,check:(ok,label)=>assert(ok,label),assertMixedFixtureInput:()=>({mock:true}),fixtureProfile:{name:'continuous-r114'}};
   let error=null;try{vm.runInNewContext(fixtureBlock,context);downstream++;}catch(e){error=e;}finally{cleanup++;}
   return {launches,downstream,cleanup,argvSeen,optionsSeen,evidence:context.fixtureGenerationEvidence,error};
 }

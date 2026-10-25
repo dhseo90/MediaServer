@@ -691,7 +691,7 @@ const capacityBinding={
  'scripts/internal/recording_http_cost_probe.h':'ad1eca0c1710c7605d1c0e9f8277ed2f77c92d50ba774f58ac5b9988ef6724b5',
  'scripts/internal/recording_accumulated_cost.mjs':'d4ceef8febef32f90862af5e8c190c9a41054de9ca688d48150d2cd7442ce277',
  'scripts/internal/recording_accumulated_cost.py':'306e5f708b65c3e3480d815f058a6c4239a20c55e04b7dd0dfe84a371adf55a1',
- 'scripts/internal/v450_recording_a_mixed.mjs':'7ce439f87374ac4866deb1e498f1c3a511bdf50dceafdc2214872d1205f613c5',
+ 'scripts/internal/v450_recording_a_mixed.mjs':'d1edb14c97afb83279a4d820d69c2f0d046ac58421cad202b541716dc91e9783',
  'include/recording/recording_search_diagnostic.h':'eb593c2dac3d70098f87e08fec7c3fc728cf1b864fd8e2cd93294b52423bb4ab',
  'src/ingress/recording_search_application_service.cpp':'61f0482fe8735afab055891cb46c14670332f3c12392293f875f0b1a565cc46e',
  'src/recording/recording_search_reader.cpp':'35097924a139438d70684afbbdffdd2a0a08e9983c9db059892b5a1d43f5bf12',
@@ -888,7 +888,7 @@ test('generated child explicitly enables completion while global latency remains
   const generated=fs.readFileSync(path.join(root,'overlay/mixed.mjs'),'utf8');
   const original=fs.readFileSync('scripts/internal/v450_recording_a_mixed.mjs','utf8');
   const environment=text=>text.slice(text.indexOf('function environment('),text.indexOf('async function request('));
-  const context={path,process:{env:{PATH:process.env.PATH,HOME:root,R165_BINARY:'/owned/instrumented'}},root,repo:process.cwd(),diagnose:true,stateDiagnose:true,short:false,frameTraceMode:'bounded',memoryObserve:true,memoryDiagnose:false,contentionDiagnose:false};
+  const context={stateExecution:null,path,process:{env:{PATH:process.env.PATH,HOME:root,R165_BINARY:'/owned/instrumented'}},root,repo:process.cwd(),diagnose:true,stateDiagnose:true,short:false,frameTraceMode:'bounded',memoryObserve:true,memoryDiagnose:false,contentionDiagnose:false};
   const actual=vm.runInNewContext('('+environment(generated)+')(1,2,3)',context);
   const before=vm.runInNewContext('('+environment(original)+')(1,2,3)',context);
   assert.equal(actual.MEDIA_SERVER_VERIFY_RECORDING_COMPLETION_TRACE,'1');
@@ -967,7 +967,7 @@ test('actual generated search mode keeps workload, old gates, environment and ea
   for(const [begin,end] of [['async function evidenceLoad(app){','async function launch('],['function environment(','async function request(']]){
    const actual=generated.slice(generated.indexOf(begin),generated.indexOf(end,generated.indexOf(begin)));
    if(begin.startsWith('async function evidenceLoad')){const before=original.slice(original.indexOf(begin),original.indexOf(end,original.indexOf(begin)));assert.equal(actual,before.replace("const all=await Promise.all(routes.map(route=>evidenceFetch(app,route)));","const selectedBatch=selectedBatchOrdinal++;const all=await Promise.all(routes.map((route,i)=>evidenceFetch(app,route,'GET',undefined,selection(selectedBatch,i))));"));}
-   else{const env=vm.runInNewContext('('+actual+')(1,2,3)',{path,process:{env:{PATH:process.env.PATH,HOME:root,R165_BINARY:'/owned/instrumented'}},root,repo:process.cwd(),diagnose:true,stateDiagnose:true,short:false,frameTraceMode:'bounded',memoryObserve:true,memoryDiagnose:false,contentionDiagnose:false});assert.equal(env.MEDIA_SERVER_VERIFY_RECORDING_LATENCY_TRACE,'0');assert.equal(env.MEDIA_SERVER_VERIFY_RECORDING_COMPLETION_TRACE,'1');}
+   else{const env=vm.runInNewContext('('+actual+')(1,2,3)',{stateExecution:null,path,process:{env:{PATH:process.env.PATH,HOME:root,R165_BINARY:'/owned/instrumented'}},root,repo:process.cwd(),diagnose:true,stateDiagnose:true,short:false,frameTraceMode:'bounded',memoryObserve:true,memoryDiagnose:false,contentionDiagnose:false});assert.equal(env.MEDIA_SERVER_VERIFY_RECORDING_LATENCY_TRACE,'0');assert.equal(env.MEDIA_SERVER_VERIFY_RECORDING_COMPLETION_TRACE,'1');}
   }
   const terminal=generated.slice(generated.indexOf('if(performanceDiagnose){try{selectedBound='),generated.lastIndexOf('\n}'));
   for(const mode of ['pass','latency','completion','correlation','partial']){
@@ -2653,7 +2653,7 @@ function producerVisualEnvelope(){return Array.from({length:121},()=>({cycle:pro
 const reportProducerBinding={
  'src/application/media_server_application.cpp':'d8eeebcfaffe92df43afac6212feb2071d098e497dbbaf0fb137ee6b84db05c5',
  "scripts/internal/v450_recording_a_load.mjs": "fcb30638d05d9899f081c5825fb76e61f0f462a479e9501179bcad8a57f6e31f",
- "scripts/internal/v450_recording_a_mixed.mjs": "7ce439f87374ac4866deb1e498f1c3a511bdf50dceafdc2214872d1205f613c5",
+ "scripts/internal/v450_recording_a_mixed.mjs": "d1edb14c97afb83279a4d820d69c2f0d046ac58421cad202b541716dc91e9783",
  "scripts/internal/recording_current_observer.mjs": "75ef4b8987c5583f8955db674de3cf4a9e23d8590cf3492df247f7a4d429aaf3",
  "scripts/internal/va_review_smoke.cpp": "992d43b0edc954414eff4ea44f38ddcb52580a2d5d87e402dde91dbcf47527df",
  "scripts/internal/va_review_confirmed_checks.h": "787409e75deec2f646ac7131c675bd58753f68cafb8c92082c9a2a6aaf7a8b7b",

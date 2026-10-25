@@ -674,6 +674,10 @@ def limited_entry(directory):
     return result['exit']
 
 
+def state_execution_binding(repo):
+    return json.loads(subprocess.check_output(['node', str(repo / 'scripts/internal/recording_state_input_profile.mjs'), '--binding'], cwd=repo, text=True, timeout=20))
+
+
 def source_binding(repo):
     names = subprocess.check_output(['git', 'ls-files', '-z', '--cached', '--others', '--exclude-standard'], cwd=repo).decode().split('\0')
     rows = []
@@ -682,12 +686,13 @@ def source_binding(repo):
             continue
         file = repo / name
         rows.append([name, hashlib.sha256(file.read_bytes()).hexdigest() if file.is_file() else 'missing'])
-    return {'head': subprocess.check_output(['git', 'rev-parse', 'HEAD'], cwd=repo, text=True).strip(),
+    state = state_execution_binding(repo) if os.environ.get('MEDIA_SERVER_STATE_INPUT_PROFILE') else None
+    return {**({'stateExecution': state} if state else {}), 'head': subprocess.check_output(['git', 'rev-parse', 'HEAD'], cwd=repo, text=True).strip(),
             'fixtureProfile': 'continuous-r114',
             'fixtureProfileSourceSha256': hashlib.sha256((repo / 'scripts/internal/recording_longrun_progress.mjs').read_bytes()).hexdigest(),
             'tree': subprocess.check_output(['git', 'rev-parse', 'HEAD^{tree}'], cwd=repo, text=True).strip(),
             'sourceSha256': hashlib.sha256(json.dumps(rows, separators=(',', ':')).encode()).hexdigest(),
-            'binarySha256': hashlib.sha256((repo / 'build-gst-onnx/media_server').read_bytes()).hexdigest()}
+            'binarySha256': hashlib.sha256((Path(state['product']) if state else repo / 'build-gst-onnx/media_server').read_bytes()).hexdigest()}
 
 
 def main():
@@ -696,6 +701,10 @@ def main():
     if len(sys.argv) != 3 or sys.argv[1] not in ('--memory-attribution-diagnostic', '--prepare', '--120', '--frame-diagnostic', '--state-diagnostic', '--contention-diagnostic'):
         raise SystemExit('usage: run_v450_recording_a_mixed.py --memory-attribution-diagnostic|--prepare|--120|--frame-diagnostic|--state-diagnostic|--contention-diagnostic /private/tmp/media-server-.../new-run')
     repo = Path(__file__).resolve().parents[2]
+    if os.environ.get('MEDIA_SERVER_STATE_INPUT_PROFILE') and sys.argv[1] != '--state-diagnostic':
+        raise SystemExit('state-input-mode')
+    if os.environ.get('MEDIA_SERVER_STATE_INPUT_PROFILE'):
+        state_execution_binding(repo)
     directory = Path(sys.argv[2])
     if not directory.is_absolute() or not str(directory).startswith('/private/tmp/media-server-') or directory.exists():
         raise SystemExit('new owned parent run required')

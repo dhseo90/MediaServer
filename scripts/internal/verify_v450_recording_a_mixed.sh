@@ -24,6 +24,9 @@ export MEDIA_SERVER_GST_CACHE_DIR="$observer_run/gst-cache" MEDIA_SERVER_GST_PLU
 export GST_REGISTRY="$observer_run/registry.bin" GST_REGISTRY_1_0="$observer_run/registry.bin"
 source "$observer_script/env_common.sh"
 media_server_apply_homebrew_gst_env
+if [[ "$*" = --state-diagnostic && -n "${MEDIA_SERVER_STATE_INPUT_PROFILE:-}" ]]; then
+  node "$observer_script/recording_state_input_profile.mjs" --install-helpers "$observer_run"
+else
 observer_build="$observer_repo/build-gst-onnx"
 python3 "$observer_script/recording_build_freshness.py" --repo "$observer_repo" --build "$observer_build"
 read -r -a observer_link < "$observer_build/CMakeFiles/media_server.dir/link.txt"
@@ -48,5 +51,6 @@ c++ -std=c++17 "$observer_script/recording_process_metrics.cpp" -o "$observer_ru
 "${CXX:-c++}" -std=c++17 -Wall -Wextra -Werror -pthread -I"$observer_repo/include" "${observer_flags[@]}" \
   -DMEDIA_SERVER_USE_GSTREAMER=1 -DMEDIA_SERVER_USE_OPENSSL=1 -DMEDIA_SERVER_USE_SQLITE3=1 \
   -DMEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND=1 "$observer_script/va_review_smoke.cpp" "${observer_libs[@]}" -o "$observer_run/review-seed"
+fi
 export MEDIA_SERVER_VA_REVIEW_FIXTURE_BIN="$observer_run/review-seed"
 node "$observer_driver/v450_recording_a_mixed.mjs" "$observer_run" "$@"

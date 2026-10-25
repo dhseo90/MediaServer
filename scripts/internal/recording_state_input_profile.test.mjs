@@ -1,10 +1,13 @@
-// 합성 정보만 사용한다. 미디어/Helper/제품/HTTP 실행 없음.
+// 기본 검사는 합성 정보, 명시 opt-in은 보존된 실측 파일을 읽는다. 제품/HTTP/미디어 생성 없음.
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import crypto from 'node:crypto';
+import os from 'node:os';
+import path from 'node:path';
+import {spawnSync} from 'node:child_process';
 import {EARLY_STATE_INPUT as p,selectStateInputProfile,requireStateInputExecutable,stateInputArgs,stateInputProbeArgs,
-  validateStateInputMedia,stateInputCapacity,assessSyntheticStateWriterSegments} from './recording_state_input_profile.mjs';
+  validateStateInputMedia,stateInputCapacity,assessSyntheticStateWriterSegments,validateQualifiedStateInput,STATE_BINDING_SHA,assessQualifiedStateReview} from './recording_state_input_profile.mjs';
 import {workspaceBounds} from './recording_current_observer.mjs';
 import {mixedRecordingProfile} from './recording_longrun_progress.mjs';
 const sha=b=>crypto.createHash('sha256').update(b).digest('hex');
@@ -21,8 +24,8 @@ test('default profile and fixed R114 quota/input contract unchanged',()=>{
   assert.equal(r.segmentBytes,71237);assert.equal(r.protectedFiles,643);assert.equal(r.M,260716);
   assert.equal(r.inputNormalizedSha256,'baebad5cad233243c4748f6bfec06fa5d2da7f06ae9b1475c9b20bfbfb04e2e7');
 });
-test('opt-in is state-only and always blocks unqualified product launch',()=>{
-  assert.equal(selectStateInputProfile(['--state-diagnostic'],p.name),p);assert.throws(()=>requireStateInputExecutable(p),/not-qualified/);
+test('opt-in is state-only and blocks missing real evidence',()=>{
+  assert.equal(selectStateInputProfile(['--state-diagnostic'],p.name),p);assert.throws(()=>requireStateInputExecutable(p,{}),/state-input-evidence-required/);
   assert.doesNotThrow(()=>requireStateInputExecutable(null));
   for(const args of [[],['--app-observe'],['--duration-minutes','120'],['--state-diagnostic','extra']])assert.throws(()=>selectStateInputProfile(args,p.name));
   assert.throws(()=>selectStateInputProfile(['--state-diagnostic'],'unknown'));
@@ -113,4 +116,57 @@ test('existing Driver body, duration and protection guard remain bound',()=>{
   assert.equal(sha(tail),'c1c9880437a77522ce3caa4384df048c01d9e837826e0a28e524a0de482eb12a');
   const retention=fs.readFileSync(new URL('../../src/recording/retention_coordinator.cpp',import.meta.url),'utf8');
   assert(retention.includes('!candidate.Pinned() && candidate.hold_count == 0'));
+});
+
+// 이 fixture는 Review의 의미 검사만 시험한다. 실행 적격성은 고정 SHA manifest 검증 후에만 부여된다.
+const qualifiedReview=()=>({status:'STATE_WRITER_SEGMENT_MEASUREMENT_PASS',productExit:0,actualProductExecutions:1,
+  input:{sha256:STATE_BINDING_SHA.input,bytes:120647},maxBoundBytes:71237,maxObservedSegmentBytes:64423,
+  fileBindingCount:132,normalTwoSecondCount:130,pendingOrIncompleteCatalogSegments:0,unmappedMediaFiles:0,
+  originalManifestSha256:STATE_BINDING_SHA.originalManifest,cleanup:{workAbsent:true,processGroupAbsent:true},
+  channels:Object.fromEntries(['9101','9201'].map(id=>[id,{normalTwoSecond:{count:65,mean:3952839/65},allFinalized:{max:64423}}]))});
+test('qualified input rejects size and SHA substitution',()=>{
+  for(const size of [67929,120646,120648])assert.throws(()=>validateQualifiedStateInput(Buffer.alloc(size)),/state-qualified-input-size/);
+  assert.throws(()=>validateQualifiedStateInput(Buffer.alloc(120647)),/state-qualified-input-sha/);
+});
+test('real review semantics cannot be replaced by synthetic receipt or incomplete measurement',()=>{
+  assert.doesNotThrow(()=>assessQualifiedStateReview(qualifiedReview()));
+  for(const change of [r=>r.status='VALIDATED',r=>r.productExit=1,r=>r.actualProductExecutions=0,
+    r=>r.input.bytes=67929,r=>r.input.sha256=inputSha,r=>r.maxObservedSegmentBytes=71238,
+    r=>r.pendingOrIncompleteCatalogSegments=1,r=>r.unmappedMediaFiles=1,r=>r.fileBindingCount=131,
+    r=>r.originalManifestSha256=inputSha,r=>delete r.channels['9201'],r=>r.channels['9101'].normalTwoSecond.count=64,
+    r=>r.cleanup.processGroupAbsent=false]){const r=qualifiedReview();change(r);assert.throws(()=>assessQualifiedStateReview(r));}
+});
+test('State consumer preserves duration, source guard, fixture branch and default build path',()=>{
+  const read=n=>fs.readFileSync(new URL('./'+n,import.meta.url),'utf8');
+  const driver=read('v450_recording_a_mixed.mjs'),supervisor=read('run_v450_recording_a_mixed.py'),wrapper=read('verify_v450_recording_a_mixed.sh');
+  for(const token of ['stateDiagnose?2700000','stateDiagnose?2880000','values.BIN_PATH=stateExecution.product','values.BUILD_DIR=path.dirname(stateExecution.runtime)',
+    'stateExecution?validateQualifiedStateInput','assertMixedFixtureInput','regenerated:false'])assert(driver.includes(token),token);
+  assert(supervisor.includes("2880 if sys.argv[1] == '--state-diagnostic'"));assert(supervisor.includes("2700 if sys.argv[1] == '--state-diagnostic'"));
+  assert(supervisor.includes("subprocess.check_output(['git', 'status', '--porcelain'], cwd=repo)"));
+  assert(supervisor.indexOf("raise SystemExit('commit source before long observation')")<supervisor.indexOf('directory.mkdir(mode=0o700)',supervisor.indexOf('def main():')));
+  assert(wrapper.includes('node "$observer_script/recording_state_input_profile.mjs" --install-helpers "$observer_run"\nelse\nobserver_build="$observer_repo/build-gst-onnx"'));
+});
+const replay=process.env.MEDIA_SERVER_STATE_BINDING_TEST;
+assert(replay===undefined||replay==='1','MEDIA_SERVER_STATE_BINDING_TEST must be unset or 1');
+test('qualified State binding: preserved real evidence and stale/missing assets', {skip:replay!=='1'},()=>{
+  const env=process.env,binding=requireStateInputExecutable(p,env);
+  assert.equal(binding.product,env.MEDIA_SERVER_STATE_PRODUCT);assert.equal(binding.runtime,env.MEDIA_SERVER_STATE_RUNTIME);
+  assert.equal(binding.sha256.product,'ed42ee3c55a3e48c2b30d564aa0397bf15c9acd5a89ad2145f1accc10546f4a8');
+  assert.equal(binding.sha256.runtime,'d9081c27bd5a0966e19719136b51b92433a3e67f79f4c56cbf70666f95a194b4');
+  assert(binding.matched>1500);assert.equal(Object.keys(binding.helpers).length,4);
+  assert.equal(validateQualifiedStateInput(fs.readFileSync(binding.input)).bytes,120647);
+  const dir=fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(),'media-server-state-binding-test-')));fs.chmodSync(dir,0o700);
+  try{
+    const changed=path.join(dir,'input.mp4');fs.writeFileSync(changed,Buffer.alloc(120647));
+    for(const patch of [{MEDIA_SERVER_STATE_INPUT_MEDIA:changed},{MEDIA_SERVER_STATE_WRITER_REVIEW:dir},
+      {MEDIA_SERVER_STATE_INPUT_MEDIA:path.join(dir,'absent')},{MEDIA_SERVER_STATE_PRODUCT:path.resolve('build-gst-onnx/media_server')},
+      {MEDIA_SERVER_STATE_RUNTIME:path.resolve('build-gst-onnx/libmedia_server_runtime.a')}])assert.throws(()=>requireStateInputExecutable(p,{...env,...patch}));
+    fs.copyFileSync(path.join(path.dirname(env.MEDIA_SERVER_STATE_WRITER_REVIEW),'plan.json'),path.join(dir,'plan.json'));
+    const review=path.join(dir,'review');fs.mkdirSync(review);fs.writeFileSync(path.join(review,'SHA256SUMS'),'invalid manifest');
+    assert.throws(()=>requireStateInputExecutable(p,{...env,MEDIA_SERVER_STATE_WRITER_REVIEW:review}),/state-binding-sha/);
+    const helpers=path.join(dir,'helpers');fs.mkdirSync(helpers,{mode:0o700});
+    const run=spawnSync(process.execPath,['scripts/internal/recording_state_input_profile.mjs','--install-helpers',helpers],{env,encoding:'utf8',timeout:20000});
+    assert.equal(run.status,0,run.stderr);
+    for(const [name,entry] of Object.entries(binding.helpers))assert.equal(sha(fs.readFileSync(path.join(helpers,name))),entry.sha256);
+  }finally{fs.rmSync(dir,{recursive:true});assert(!fs.existsSync(dir));}
 });
