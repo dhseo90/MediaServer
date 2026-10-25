@@ -21,10 +21,11 @@ LIMITED_PARENT_OUTPUT_BYTES = 2097152
 
 
 class LimitedParentCapture:
-    def __init__(self):
+    def __init__(self, *, official=False):
         self.observed=0;self.written=0;self.eof=False;self.first=None;self.capture_error=None
         self.failure_events={};self.carry=b'';self.skip_line=False;self.digest=hashlib.sha256()
         self.output=None;self.selector=None;self.pipe=None
+        self.official=official;self.shutdown=None
 
     def fail(self,code):
         row={'code':code,'at':utc_now(),'observedBytes':self.observed,'writtenBytes':self.written}
@@ -42,7 +43,10 @@ class LimitedParentCapture:
                 self.carry+=part[:max(0,8192-len(self.carry))]
                 if len(self.carry)>=8192:self.skip_line=True
             if part.endswith(b'\n'):
-                if self.carry.startswith((b'[R165-first-failure] ',b'[fail] current observation:')):self.fail('child-diagnostic')
+                if self.carry.startswith((b'[R165-first-failure] ',b'[fail] current observation:')):
+                    self.fail('child-diagnostic')
+                    if self.official:
+                        self.failure_events['child-diagnostic'].setdefault('diagnostic',self.carry.decode('utf-8',errors='replace'))
                 self.carry=b'';self.skip_line=False
         kept=data[:max(0,LIMITED_PARENT_OUTPUT_BYTES-self.written)]
         if kept and not self.capture_error:
@@ -73,6 +77,31 @@ class LimitedParentCapture:
             if self.pipe:self.pipe.close()
         except Exception:self.fail('parent-log-close')
 
+    def begin_shutdown(self):
+        if self.shutdown is None:
+            self.shutdown={'observedBytesAtStart':self.observed,'storedBytesAtStart':self.written}
+
+    def drain_step(self, deadline):
+        remaining=deadline-time.monotonic()
+        if self.pipe is not None and not self.eof and not self.capture_error and remaining>0:
+            self.read(min(0.1,remaining))
+        elif remaining>0:
+            time.sleep(min(0.1,remaining))
+
+    def finish_shutdown(self, child, cleanup, registered, deadline):
+        self.begin_shutdown()
+        while self.pipe is not None and not self.eof and not self.capture_error and time.monotonic()<deadline:
+            self.drain_step(deadline)
+        expired=time.monotonic()>=deadline
+        if not self.eof and not self.capture_error:self.fail('parent-drain-deadline' if expired else 'parent-eof-missing')
+        code=child.returncode if child is not None else None
+        self.shutdown.update(childExit=code if code is None or code>=0 else None,
+            childSignal=signal.Signals(-code).name if code is not None and code<0 else None,
+            additionalObservedBytes=self.observed-self.shutdown['observedBytesAtStart'],
+            additionalStoredBytes=self.written-self.shutdown['storedBytesAtStart'],
+            byteScope='since shutdown began, including output during owned-group termination',
+            deadlineExceeded=expired,cleanup=cleanup,registeredCleanup=registered)
+
     def preserve(self,log_path):
         errors=[];verified=False
         try:
@@ -89,9 +118,11 @@ class LimitedParentCapture:
         except Exception:self.fail('parent-log-readback');errors.append('parent-log-readback')
         result={'capBytes':LIMITED_PARENT_OUTPUT_BYTES,'observedBytes':self.observed,'storedBytes':self.written,
             'observedBytesCoverage':'complete-pipe' if self.eof else 'read-prefix-only; termination output may be unobserved',
-            'complete':self.eof and not self.first and verified,'eof':self.eof,'truncated':self.observed>self.written or not self.eof,
+            'complete':self.eof and not (self.capture_error if self.official else self.first) and verified,'eof':self.eof,'truncated':self.observed>self.written or not self.eof,
             'storedSha256':self.digest.hexdigest(),'readbackVerified':verified,'firstFailure':self.first,
             'failureEvents':list(self.failure_events.values()),'inFlightTerminals':'UNVERIFIED' if self.first or not self.eof else 'requires-ledger-verification'}
+        if self.official:result.update(shutdown=self.shutdown,outputLimitExceeded='parent-output-cap' in self.failure_events,
+            completenessScope='pipe bytes only; child exit and cleanup are independent')
         receipt=Path(log_path).with_name('parent-output-receipt.json')
         try:
             raw=(json.dumps(result,ensure_ascii=False,indent=2)+'\n').encode('utf-8')
@@ -120,7 +151,7 @@ def group_alive(group):
         return True
 
 
-def stop_created_group(child):
+def stop_created_group(child, *, capture=None, deadline=None):
     begin = time.monotonic()
     sent = []
     errors = []
@@ -135,12 +166,14 @@ def stop_created_group(child):
             break
         except PermissionError:
             errors.append({'signal': signal.Signals(number).name, 'error': 'PermissionError'})
-        deadline = time.monotonic() + grace
-        while time.monotonic() < deadline:
+        grace_end = time.monotonic() + grace
+        if deadline is not None:grace_end=min(grace_end,deadline)
+        while time.monotonic() < grace_end:
             child.poll()
             if not group_alive(child.pid):
                 break
-            time.sleep(0.1)
+            if capture:capture.drain_step(grace_end)
+            else:time.sleep(0.1)
     child.poll()
     return {'cleanupSignals': sent, 'processGroupAbsent': not group_alive(child.pid),
             'cleanupErrors': errors, 'cleanupOnlySeconds': time.monotonic() - begin}
@@ -166,7 +199,7 @@ def registered_groups(registry):
     return active
 
 
-def finish_registered_groups(registry):
+def finish_registered_groups(registry, *, capture=None, deadline=None):
     began = time.monotonic()
     try:
         groups = registered_groups(registry)
@@ -180,11 +213,13 @@ def finish_registered_groups(registry):
                     sent.append({'group': pid, 'signal': signal.Signals(number).name})
                 except ProcessLookupError:
                     pass
-            deadline = time.monotonic() + grace
-            while remaining and time.monotonic() < deadline:
+            grace_end = time.monotonic() + grace
+            if deadline is not None:grace_end=min(grace_end,deadline)
+            while remaining and time.monotonic() < grace_end:
                 remaining = {pid for pid in remaining if group_alive(pid)}
                 if remaining:
-                    time.sleep(0.1)
+                    if capture:capture.drain_step(grace_end)
+                    else:time.sleep(0.1)
         return {'registeredGroupsAbsent': not remaining, 'residualRegisteredGroups': residual,
                 'registeredGroupSignals': sent, 'registeredGroupCleanupSeconds': time.monotonic() - began}
     except Exception as error:
@@ -342,6 +377,8 @@ class LimitedPreparationBoundary:
 
 def run_owned(command, log_path, budget_seconds, cwd, env, started, registry=None, *, limited_capture=None, limited_boundary=None):
     # 별도 세션에서 만든 자기 작업 그룹만 종료한다. 한도 뒤의 정리는 PASS 시간을 늘리지 않는다.
+    if limited_capture and limited_capture.official and limited_boundary is not None:
+        raise ValueError('official-parent-boundary-conflict')
     interrupted = []
     previous = {sig: signal.signal(sig, lambda number, frame: interrupted.append(number))
                 for sig in (signal.SIGINT, signal.SIGTERM)}
@@ -349,6 +386,25 @@ def run_owned(command, log_path, budget_seconds, cwd, env, started, registry=Non
     timed_out = False
     child = None
     output = None
+    official=bool(limited_capture and limited_capture.official)
+    hard_deadline=begin+budget_seconds
+    def official_cleanup():
+        limited_capture.begin_shutdown()
+        options={'capture':limited_capture,'deadline':hard_deadline}
+        try:
+            cleanup=stop_created_group(child,**options) if child is not None else {'processGroupAbsent':True,'cleanupErrors':[]}
+        except Exception as error:
+            cleanup={'processGroupAbsent':False,'cleanupErrors':[{'error':type(error).__name__,'message':str(error)}]}
+        try:registered=finish_registered_groups(registry,**options)
+        except Exception as error:registered={'registeredGroupsAbsent':False,'registeredGroupErrorType':type(error).__name__}
+        limited_capture.finish_shutdown(child,cleanup,registered,hard_deadline)
+        return cleanup,registered
+    def official_receipt():
+        if not official:return {}
+        return {'parentFirstFailure':limited_capture.first,
+            'parentFailureEvents':list(limited_capture.failure_events.values()),
+            'parentEof':limited_capture.eof,'parentShutdown':limited_capture.shutdown,
+            'cleanupDeadlineExceeded':time.monotonic()>=hard_deadline}
     try:
         if limited_boundary:limited_boundary.sample('before-spawn')
         output=Path(log_path).open('xb' if limited_capture else 'x')
@@ -381,8 +437,10 @@ def run_owned(command, log_path, budget_seconds, cwd, env, started, registry=Non
             execution_elapsed = time.monotonic() - begin
             timed_out = timed_out or execution_elapsed > budget_seconds
             remaining_group = group_alive(child.pid)
-            cleanup = stop_created_group(child)
-            registered = finish_registered_groups(registry)
+            if official:cleanup,registered=official_cleanup()
+            else:
+                cleanup = stop_created_group(child)
+                registered = finish_registered_groups(registry)
             if limited_boundary:
                 # Preserve shutdown output after stopping; it remains in the
                 # same parent 2MiB budget and the same 300s lifetime.
@@ -396,19 +454,22 @@ def run_owned(command, log_path, budget_seconds, cwd, env, started, registry=Non
                       and not remaining_group and cleanup['processGroupAbsent']
                       and (not limited_boundary or not cleanup.get('cleanupErrors'))
                       and registered['registeredGroupsAbsent'] and not registered.get('residualRegisteredGroups', False)
+                      and (not official or (not cleanup.get('cleanupErrors') and time.monotonic()<hard_deadline))
                       and (limited_boundary.remaining(False)>0 if limited_boundary else elapsed<=budget_seconds))
             return {'status': 'PASS' if passed else 'FAIL', 'childExit': child.returncode,
                     'exit': 0 if passed else 124 if timed_out else 1,
                     'executionElapsedSeconds': execution_elapsed, 'elapsedSeconds': elapsed,
                     'timeoutSeconds': budget_seconds, 'timedOut': timed_out,
                     'interruptedSignals': interrupted, 'residualGroupAfterCommand': remaining_group,
-                    **cleanup, **registered,
+                    **cleanup, **registered, **official_receipt(),
                     'finishedAt': utc_now()}
     except Exception as error:
         if limited_boundary:limited_boundary.fail(str(error),'owned-supervision')
-        cleanup = stop_created_group(child) if child is not None else {
-            'cleanupSignals': [], 'processGroupAbsent': True, 'cleanupOnlySeconds': 0}
-        registered = finish_registered_groups(registry)
+        if official:cleanup,registered=official_cleanup()
+        else:
+            cleanup = stop_created_group(child) if child is not None else {
+                'cleanupSignals': [], 'processGroupAbsent': True, 'cleanupOnlySeconds': 0}
+            registered = finish_registered_groups(registry)
         if limited_boundary:
             try:
                 while limited_capture and limited_capture.pipe is not None and not limited_capture.eof and limited_boundary.remaining(False)>0:
@@ -419,7 +480,7 @@ def run_owned(command, log_path, budget_seconds, cwd, env, started, registry=Non
         return {'status': 'FAIL', 'exit': 1, 'errorType': type(error).__name__,
                 'childExit': child.returncode if child is not None else None,
                 'elapsedSeconds': time.monotonic() - begin, 'timeoutSeconds': budget_seconds,
-                'interruptedSignals': interrupted, **cleanup, **registered, 'finishedAt': utc_now()}
+                'interruptedSignals': interrupted, **cleanup, **registered, **official_receipt(), 'finishedAt': utc_now()}
     finally:
         if limited_capture:limited_capture.close()
         if limited_capture and output:output.close()
@@ -434,6 +495,78 @@ def save_final_record(receipt, record):
         record.update(status='FAIL', exit=1, receiptSaved=False, receiptErrorType=type(error).__name__)
     # 최종 receipt 실패도 호출자의 stdout 대체 기록에 실제 종료/정리 결과와 함께 남는다.
     return record
+
+
+# S03-only closeout helpers. No process launch on import; ordinary modes unchanged.
+OFFICIAL_CLOSEOUT_RESERVE = 6 * 1024 * 1024  # log copy 4MiB + ledger 1MiB + receipts/pending 1MiB
+OFFICIAL_WORKSPACE_CAP = 448 * 1024 * 1024
+OFFICIAL_RUN_DIRECTORY = 'media-server-current-observer-s03'
+
+
+def official_workspace(root, fixed=None, reserve=OFFICIAL_CLOSEOUT_RESERVE):
+    root=Path(root);work=root/'work';run_root=work/OFFICIAL_RUN_DIRECTORY;total=0
+    if type(reserve) is not int or not 0<=reserve<=OFFICIAL_CLOSEOUT_RESERVE:raise ValueError('official-reserve')
+    def scan(p):
+        nonlocal total
+        s=p.lstat()
+        if s.st_uid!=os.getuid():raise ValueError('official-workspace-owner')
+        if stat.S_ISLNK(s.st_mode):
+            if not p.is_relative_to(run_root/'gst-cache'):raise ValueError('official-workspace-symlink')
+            total+=s.st_size  # owned link bytes, never the shared plugin target
+        elif stat.S_ISDIR(s.st_mode):
+            if p.resolve()!=p:raise ValueError('official-workspace-path')
+            for child in p.iterdir():scan(child)
+        elif stat.S_ISREG(s.st_mode) and s.st_nlink==1:total+=s.st_size
+        else:raise ValueError('official-workspace-file')
+    scan(root)
+    fixed_bytes=0
+    if fixed is not None and work.exists():
+        names=['input/retention-9101.mp4','input/retention-9201.mp4','normalize','process-metrics','catalog-instrumented.cpp']
+        if fixed.get('root')!=str(run_root) or [x.get('name') for x in fixed.get('files',[])]!=names:raise ValueError('official-fixed-inputs')
+        for row in fixed['files']:
+            p=run_root/row['name'];s=p.lstat()
+            if not stat.S_ISREG(s.st_mode) or s.st_nlink!=1 or s.st_size!=row['size'] or hashlib.sha256(p.read_bytes()).hexdigest()!=row['sha256']:raise ValueError('official-fixed-sha')
+            fixed_bytes+=s.st_size
+        if fixed_bytes!=fixed.get('fixedBytes'):raise ValueError('official-fixed-total')
+    variable=total-fixed_bytes;copy_bytes=0  # official diagnose skips recovery/copy path
+    if variable<0 or variable+reserve>=OFFICIAL_WORKSPACE_CAP or copy_bytes>=OFFICIAL_WORKSPACE_CAP or total+reserve>=fixed_bytes+2*OFFICIAL_WORKSPACE_CAP:raise ValueError('official-final-workspace-cap')
+    return {'namedBytes':total,'fixedBytes':fixed_bytes,'variableBytes':variable,'copyBytes':copy_bytes,
+        'reservedAdditionalBytes':reserve,'variableCapBytes':OFFICIAL_WORKSPACE_CAP,
+        'coverage':'named bytes after owned groups stop; runtime anonymous bytes remain Driver native observations; not instantaneous peak'}
+
+
+def official_report_check(report, storage_failure=False):
+    if storage_failure:raise ValueError('official-report-storage-failure')
+    if report.get('status')!='PASS' or report.get('exit')!=0 or report.get('failed')!=0:raise ValueError('official-report-not-pass')
+    if report.get('processCount')!=1 or report.get('processesClosed') is not True or report.get('udpClosed') is not True:raise ValueError('official-process-closure')
+    if report.get('verifiedDurationMs',0)<1800000 or report.get('searchPerformance',{}).get('status')!='PASS':raise ValueError('official-performance-incomplete')
+    a=report.get('aLoad',{});load=report.get('evidenceLoad',{});ledger=report.get('failureAttribution',{})
+    if len(a.get('initialStore',{}).get('names',[]))>3 or len(a.get('schedule',[]))>45:raise ValueError('official-report-premise')
+    if load.get('searchSuccess',0)+load.get('searchUnavailable',0)>484 or ledger.get('status')!='captured':raise ValueError('official-ledger-incomplete')
+    workspace=report.get('workspaceFailure')
+    if not isinstance(workspace,dict) or workspace.get('status')!='no-workspace-failure' or workspace.get('collectionError') is not None or report.get('recordingStatusFailure'):raise ValueError('official-storage-failure')
+    return ledger
+
+
+def verify_official_completion(evidence):
+    evidence=Path(evidence)
+    def read(name):
+        p=evidence/name;s=p.lstat()
+        if not stat.S_ISREG(s.st_mode) or s.st_uid!=os.getuid() or s.st_nlink!=1 or s.st_size>32768:raise ValueError('official-final-receipt')
+        return p.read_bytes()
+    marker=json.loads(read('finalization-complete.json'));result=read('result.json');manifest=read('SHA256SUMS')
+    if marker.get('status')!='FINALIZATION_PASS' or marker.get('manifestVerified') is not True or marker.get('resultSha256')!=hashlib.sha256(result).hexdigest() or marker.get('manifestSha256')!=hashlib.sha256(manifest).hexdigest():raise ValueError('official-final-marker')
+    saved=json.loads(result)
+    if saved.get('proposedStatus')!='FINALIZATION_PASS' or saved.get('runId')!=marker.get('runId'):raise ValueError('official-final-result')
+    seen=set()
+    for line in manifest.decode().splitlines():
+        digest,name=line.split('  ',1);p=evidence/name
+        if name in seen or Path(name).is_absolute() or '..' in Path(name).parts or p.resolve()!=p:raise ValueError('official-manifest-path')
+        seen.add(name);s=p.lstat()
+        if not stat.S_ISREG(s.st_mode) or s.st_uid!=os.getuid() or s.st_nlink!=1 or hashlib.sha256(p.read_bytes()).hexdigest()!=digest:raise ValueError('official-manifest-sha')
+    actual={str(p.relative_to(evidence)) for p in evidence.rglob('*') if not p.is_dir()}
+    if actual!=seen|{'SHA256SUMS','finalization-complete.json'}:raise ValueError('official-manifest-coverage')
+    return {'status':'FINALIZATION_PASS','manifestEntries':len(seen),'markerVerified':True}
 
 
 def run_limited_owned(command, log_path, cwd, env, started, registry=None, *, boundary=None):

@@ -1,4 +1,5 @@
 import {completionCollection} from './recording_completion_collection.mjs';
+import {selectStateInputProfile,requireStateInputExecutable} from './recording_state_input_profile.mjs';
 import {memoryObservationMode,memoryAttributionCollector,collectMemoryAttribution,memoryAttributionSnapshot,finishMemoryAttribution} from './recording_memory_attribution.mjs';
 import {catalogHolderSummary} from './recording_latency_trace.mjs';
 import {resourceTraceCollector,collectResourceTrace,currentResourceTrace,finishResourceTrace} from './recording_resource_trace.mjs';
@@ -24,6 +25,8 @@ import {summarizeSpawnDiagnostic,validatedPhaseReceipt,snapshotTree,copyVerified
 import {removeDiagnosticRoot} from "./recording_failure_capture.mjs";
 const repo=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../..');
 const root=process.argv[2],args=process.argv.slice(3),short=args.length===1&&args[0]==='--app-observe';
+// 입력 생성 성공은 실제 Writer Segment 적격성이 아니다. 미검증 opt-in은 제품 시작 전에 거부한다.
+requireStateInputExecutable(selectStateInputProfile(args,process.env.MEDIA_SERVER_STATE_INPUT_PROFILE));
 const stateDiagnose=args.length===1&&args[0]==='--state-diagnostic';
 const contentionDiagnose=args.length===1&&args[0]==='--contention-diagnostic';
 const memoryDiagnose=args.length===1&&args[0]==='--memory-attribution-diagnostic';

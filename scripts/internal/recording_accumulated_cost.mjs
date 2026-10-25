@@ -45,10 +45,263 @@ export function costCollector(){
 }
 
 // 검색 전용 결과는 장시간/삭제/메모리/릴리즈 적격성을 부여하지 않는다.
-export function assertSearchPerformanceCapacity(){
- // 요청당 출력 크기는 bounded지만 background/retry/runtime 출력 총량은 미입증.
- // 환경변수나 CLI override로 우회하지 않는다. 새 용량 근거 검토 전에는 실행 금지.
- throw Error('CAPACITY_UNPROVEN: background/retry completion and total runtime output');
+export function assertSearchPerformanceCapacity(contract=null){
+ // Historical callers remain blocked. Only the SHA-bound official closeout
+ // package supplies this contract; it grants pre-run eligibility, not runtime FIT.
+ need(contract?.profile==='s03-official-closeout-v1','CAPACITY_UNPROVEN: official closeout binding required');
+ const expected={channels:3,initialReviews:3,aSlots:45,requests:484,batches:121,identities:1,
+  observationMs:1800000,driverMs:1870000,launcherSeconds:1900,parentBytes:2097152,
+  reportBytes:1048576,normalReportUpperBytes:993381,closeoutReserveBytes:6291456};
+ for(const [k,v] of Object.entries(expected))need(contract[k]===v,'CAPACITY_UNPROVEN: '+k);
+ need(contract.finalizerSha256==='af234c2f9d1003220f79800a965962f01b820927517226430522256e2a81b200','CAPACITY_UNPROVEN: finalizer');
+ for(const role of ['runner','supervisor','generator','consumer','finalizer','sourceBinding']){
+  const r=contract.files?.[role];need(r&&path.isAbsolute(r.path)&&/^[a-f0-9]{64}$/.test(r.sha256),'CAPACITY_UNPROVEN: file binding');
+  const s=fs.lstatSync(r.path);need(s.isFile()&&!s.isSymbolicLink()&&s.nlink===1&&s.uid===process.getuid(),'CAPACITY_UNPROVEN: file ownership');
+  need(crypto.createHash('sha256').update(fs.readFileSync(r.path)).digest('hex')===r.sha256,'CAPACITY_UNPROVEN: file sha');
+ }
+ need(contract.files.finalizer.sha256===contract.finalizerSha256,'CAPACITY_UNPROVEN: finalizer binding');
+ return {status:'PRE_RUN_READY',runtimeCapacity:'NOT_TESTED'};
+}
+// Official final report only. Keep every JSON value; wire ledgers and all
+// other checkpoint consumers retain their existing serialization contracts.
+export function checkpointSearchPerformanceReport(artifacts,report,firstFailure=null){
+ const verifiedWrite=(name,bytes)=>{
+  need(bytes.length<=1048576,'search-report-cap');
+  const receipt=artifacts.write(name,bytes),file=path.join(artifacts.outputDir,name),s=fs.lstatSync(file);
+  need(s.isFile()&&!s.isSymbolicLink()&&s.nlink===1&&s.uid===process.getuid()&&s.size===bytes.length,'search-report-file');
+  const saved=fs.readFileSync(file),sha256=crypto.createHash('sha256').update(saved).digest('hex');
+  need(saved.equals(bytes)&&receipt.bytes===saved.length&&receipt.sha256===sha256,'search-report-readback');return receipt;
+ };
+ let bytes;
+ try{
+  bytes=Buffer.from(JSON.stringify({...report,artifactRoot:artifacts.outputDir})+'\n');
+  return verifiedWrite('report.json',bytes);
+ }catch(error){
+  // This is failure evidence, never a smaller replacement report or success receipt.
+  // Keep original strings intact. A second cap/I/O failure is explicitly incomplete.
+  try{
+  const failure={status:'INCOMPLETE',reportComplete:false,reportBytes:bytes?.length??null,
+   reportSha256:bytes?crypto.createHash('sha256').update(bytes).digest('hex'):null,
+   reportStorageError:{name:error.name,message:error.message,code:error.code??null},firstFailure:firstFailure??report.firstFailure??null,
+   workspaceFailure:report.workspaceFailure??null,recordingStatusFailure:report.recordingStatusFailure??null,
+   ledgerFirstFailure:report.failureAttribution?.firstFailure??null,
+   aFailures:(report.aLoad?.schedule??[]).filter(row=>row.state==='failed'||row.error!==undefined)};
+   error.reportPreservation={status:'PRESERVED',receipt:verifiedWrite('report-storage-failure.json',Buffer.from(JSON.stringify(failure)+'\n'))};
+  }catch(preservationError){
+   error.reportPreservation={status:'EVIDENCE_INCOMPLETE',error:{name:preservationError.name,message:preservationError.message,code:preservationError.code??null}};
+  }
+  console.error('[report-storage-failure] '+JSON.stringify({status:error.reportPreservation.status,reportComplete:false}));
+  throw error;
+ }
+}
+// S03 only: four named observation producers, not a general stdout collector.
+export const officialObservationKinds=Object.freeze(['memory-attribution-cycle','current-observation','visual-query-observation','root-storage']);
+export const officialObservationLimits=Object.freeze({chunkBytes:1048576,chunks:64,metadataBytes:32768,records:32000});
+const observationKindCaps=[10000,10000,242,10008];
+const observationSchema='s03-observation-jsonl-v1';
+const observationDigest=bytes=>crypto.createHash('sha256').update(bytes).digest('hex');
+function observationRead(dir,name,cap,strict=true){
+ need(path.basename(name)===name&&fs.realpathSync(dir)===dir,'observation-path');
+ const root=fs.lstatSync(dir);need(root.isDirectory()&&root.uid===process.getuid()&&(root.mode&511)===448,'observation-root');
+ const file=path.join(dir,name),s=fs.lstatSync(file);
+ need(s.isFile()&&!s.isSymbolicLink()&&s.nlink===1&&s.uid===process.getuid()&&(s.mode&511)===384&&(strict?s.size<cap:s.size<=cap),'observation-file');
+ const fd=fs.openSync(file,fs.constants.O_RDONLY|fs.constants.O_NOFOLLOW);
+ try{const actual=fs.fstatSync(fd);need(actual.dev===s.dev&&actual.ino===s.ino&&actual.size===s.size&&actual.nlink===1,'observation-read-identity');
+  const bytes=fs.readFileSync(fd);need(bytes.length===s.size,'observation-read-size');return bytes;
+ }finally{fs.closeSync(fd);}
+}
+export function verifyOfficialObservationEvidence(dir,{allowPartial=false,record=null}={}){
+ const limits=officialObservationLimits,start=JSON.parse(observationRead(dir,'s03-observation-start.json',limits.metadataBytes,false));
+ need(start.schema===observationSchema&&JSON.stringify(start.kinds)===JSON.stringify(officialObservationKinds)&&JSON.stringify(start.limits)===JSON.stringify(limits),'observation-start');
+ const manifestBytes=observationRead(dir,'s03-observation-manifest.json',limits.metadataBytes,false),m=JSON.parse(manifestBytes);
+ need(m.schema===observationSchema&&['COMPLETE','PARTIAL'].includes(m.status)&&(allowPartial||m.status==='COMPLETE'),'observation-incomplete');
+ need(m.startSha256===observationDigest(observationRead(dir,'s03-observation-start.json',limits.metadataBytes,false)),'observation-start-sha');
+ need(Array.isArray(m.files)&&m.files.length<=limits.chunks,'observation-file-count');
+ const counts=[0,0,0,0],digest=crypto.createHash('sha256');let seq=0,total=0;
+ for(const [i,f] of m.files.entries()){
+  need(f.file===`s03-observation-${String(i).padStart(4,'0')}.jsonl`&&f.first===seq+1,'observation-file-order');
+  const bytes=observationRead(dir,f.file,limits.chunkBytes);need(bytes.length===f.bytes&&observationDigest(bytes)===f.sha256,'observation-file-sha');
+  need(bytes.length>0&&bytes.at(-1)===10,'observation-record-tail');digest.update(bytes);total+=bytes.length;
+  for(const line of bytes.toString('utf8').slice(0,-1).split('\n')){
+   const v=JSON.parse(line);need(Array.isArray(v)&&v.length===3&&v[0]===++seq&&Number.isInteger(v[1])&&v[1]>=0&&v[1]<4,'observation-sequence');
+   need(v[2]!==null&&typeof v[2]==='object'&&!Array.isArray(v[2]),'observation-value');
+   need(++counts[v[1]]<=observationKindCaps[v[1]]&&seq<=limits.records,'observation-count-cap');
+   if(record)record(officialObservationKinds[v[1]],v[2],v[0]);
+  }
+  need(seq===f.last,'observation-file-last');
+ }
+ const names=fs.readdirSync(dir).filter(n=>n.startsWith('s03-observation-')).sort();
+ need(JSON.stringify(names)===JSON.stringify(['s03-observation-start.json','s03-observation-manifest.json',...m.files.map(f=>f.file)].sort()),'observation-file-set');
+ need(m.storedRecords===seq&&JSON.stringify(m.storedCounts)===JSON.stringify(counts)&&m.dataBytes===total&&m.recordsSha256===digest.digest('hex'),'observation-summary');
+ need(Number.isSafeInteger(m.acceptedRecords)&&m.acceptedRecords>=seq&&m.acceptedRecords<=limits.records&&Number.isSafeInteger(m.dropped)&&m.dropped>=0,'observation-accepted-count');
+ if(m.status==='COMPLETE')need(m.acceptedRecords===seq&&m.dropped===0&&m.firstFailure===null&&m.observationFailure===null,'observation-complete');
+ return {file:'s03-observation-manifest.json',bytes:manifestBytes.length,sha256:observationDigest(manifestBytes),status:m.status,records:seq,counts,dataBytes:total};
+}
+export function createOfficialObservationEvidence(artifacts,{admit}={}){
+ need(typeof admit==='function','observation-admission-required');
+ const limits=officialObservationLimits,files=[],counts=[0,0,0,0],storedCounts=[0,0,0,0],digest=crypto.createHash('sha256');
+ let pending=[],pendingBytes=0,accepted=0,stored=0,total=0,dropped=0,first=null,firstRaised=false,writeFailed=false,closed=false;
+ const fail=e=>{first??={name:e.name,message:e.message,code:e.code??null};return e;};
+ const write=(name,bytes,cap,strict=false)=>{
+  need(strict?bytes.length<cap:bytes.length<=cap,'observation-write-cap');
+  admit(bytes.length+limits.metadataBytes);
+  try{const receipt=artifacts.write(name,bytes),saved=observationRead(artifacts.outputDir,name,cap,strict);
+   need(saved.equals(bytes)&&receipt.bytes===bytes.length&&receipt.sha256===observationDigest(bytes),'observation-write-readback');return receipt;
+  }catch(e){writeFailed=true;throw e;}
+ };
+ const start=Buffer.from(JSON.stringify({schema:observationSchema,kinds:officialObservationKinds,limits})+'\n');
+ // Retain the failed writer too: cleanup must not recreate/claim its start file.
+ try{write('s03-observation-start.json',start,limits.metadataBytes);}catch(e){fail(e);}
+ const flush=()=>{
+  if(!pending.length)return;need(files.length<limits.chunks,'observation-chunk-cap');
+  const bytes=Buffer.from(pending.map(p=>p.line).join('')),file=`s03-observation-${String(files.length).padStart(4,'0')}.jsonl`;
+  const receipt=write(file,bytes,limits.chunkBytes,true);
+  files.push({...receipt,first:stored+1,last:stored+pending.length});
+  for(const p of pending)storedCounts[p.kind]++;stored+=pending.length;total+=bytes.length;digest.update(bytes);pending=[];pendingBytes=0;
+ };
+ return {
+  failure:()=>first,
+  append(kind,value){
+   need(!closed,'observation-closed');if(first){dropped++;if(!firstRaised){firstRaised=true;throw Object.assign(Error(first.message),{code:first.code});}return false;}
+   try{
+    const k=officialObservationKinds.indexOf(kind);need(k>=0&&value!==null&&typeof value==='object'&&!Array.isArray(value),'observation-kind-value');
+    need(accepted<limits.records&&counts[k]<observationKindCaps[k],'observation-count-cap');
+    const line=JSON.stringify([accepted+1,k,value])+'\n',bytes=Buffer.byteLength(line);need(bytes<limits.chunkBytes,'observation-record-cap');
+    if(pendingBytes+bytes>=limits.chunkBytes)flush();need(files.length<limits.chunks,'observation-chunk-cap');
+    pending.push({line,kind:k});pendingBytes+=bytes;accepted++;counts[k]++;return true;
+   }catch(e){dropped++;firstRaised=true;throw fail(e);}
+  },
+  finish(complete,observationFailure=null){
+   need(!closed,'observation-closed');closed=true;
+   if(!writeFailed)try{flush();}catch(e){fail(e);}
+   const manifest={schema:observationSchema,status:complete&&!first&&!observationFailure?'COMPLETE':'PARTIAL',startSha256:observationDigest(start),
+    acceptedRecords:accepted,storedRecords:stored,storedCounts,dataBytes:total,dropped,recordsSha256:digest.digest('hex'),files,firstFailure:first,observationFailure};
+   let receipt;
+   try{write('s03-observation-manifest.json',Buffer.from(JSON.stringify(manifest)+'\n'),limits.metadataBytes);
+    receipt=verifyOfficialObservationEvidence(artifacts.outputDir,{allowPartial:manifest.status==='PARTIAL'});
+   }catch(e){if(first)throw Object.assign(Error(first.message),{code:first.code,preservationError:e.message});throw e;}
+   if(first)throw Object.assign(Error(first.message),{code:first.code,observationReceipt:receipt});return receipt;
+  }
+ };
+}
+// S03 common request() failure only. Search ledger IDs are not invented here.
+export const officialHttpBodyLimits=Object.freeze({bodyBytes:4194304,chunkBytes:1048575,chunks:5,metadataBytes:32768});
+export function verifyOfficialHttpErrorEvidence(dir,{allowPartial=false}={}){
+ const l=officialHttpBodyLimits,read=name=>observationRead(dir,name,l.metadataBytes,false);
+ const intentBytes=read('s03-http-error-intent.json'),intent=JSON.parse(intentBytes),m=JSON.parse(read('s03-http-error-receipt.json'));
+ need(intent.schema==='s03-http-body-v1'&&intent.kind==='control'&&intent.mandatoryRequestId===null&&/^control-[1-9][0-9]{0,15}$/.test(intent.requestId),'http-evidence-identity');
+ need(Number.isInteger(intent.status)&&intent.status>=100&&intent.status<=599&&intent.firstFailure===`http-status-${intent.status}`&&intent.stage==='response-status','http-evidence-status');
+ need(Number.isSafeInteger(intent.bodyBytes)&&intent.bodyBytes>=0&&intent.bodyBytes<=l.bodyBytes&&/^[a-f0-9]{64}$/.test(intent.bodySha256),'http-evidence-body-cap');
+ need(m.schema===intent.schema&&m.intentSha256===observationDigest(intentBytes)&&['COMPLETE','PARTIAL'].includes(m.status)&&(allowPartial||m.status==='COMPLETE'),'http-evidence-incomplete');
+ need(Array.isArray(m.chunks)&&m.chunks.length<=l.chunks&&Array.isArray(m.evidenceErrors),'http-evidence-chunk-cap');
+ const parts=[];let total=0;
+ for(const [i,c] of m.chunks.entries()){
+  need(c.file===`s03-http-body-${i}.bin`&&c.offset===total,'http-evidence-order');
+  const b=observationRead(dir,c.file,l.chunkBytes,false);
+  need(b.length>0&&b.length===c.bytes&&observationDigest(b)===c.sha256,'http-evidence-chunk-sha');parts.push(b);total+=b.length;
+ }
+ const names=fs.readdirSync(dir).filter(n=>n.startsWith('s03-http-body-')).sort();
+ need(JSON.stringify(names)===JSON.stringify(m.chunks.map(c=>c.file).sort()),'http-evidence-file-set');
+ const bytes=Buffer.concat(parts);
+ need(total===m.storedBytes&&total<=intent.bodyBytes&&m.firstFailure===intent.firstFailure,'http-evidence-summary');
+ if(m.status==='COMPLETE')need(total===intent.bodyBytes&&observationDigest(bytes)===intent.bodySha256&&m.evidenceErrors.length===0,'http-evidence-whole-sha');
+ return {intent,receipt:m,bytes};
+}
+export function preserveOfficialHttpError(artifacts,{bytes,status,requestId,method,route,admit}){
+ const l=officialHttpBodyLimits,error=Error(`http-status-${status}`),chunks=[],evidenceErrors=[];
+ let intent=null,storedBytes=0,complete=false;
+ const write=(name,data,cap)=>{need(data.length<=cap,'http-evidence-write-cap');admit(data.length+l.metadataBytes);
+  const r=artifacts.write(name,data),saved=observationRead(artifacts.outputDir,name,cap,false);
+  need(saved.equals(data)&&r.bytes===data.length&&r.sha256===observationDigest(data),'http-evidence-readback');return r;};
+ try{
+  need(typeof admit==='function'&&Buffer.isBuffer(bytes)&&bytes.length<=l.bodyBytes,'http-evidence-input-cap');
+  need(/^control-[1-9][0-9]{0,15}$/.test(requestId)&&['GET','POST','PUT','DELETE','HEAD','PATCH'].includes(method)&&typeof route==='string'&&Buffer.byteLength(route)<=4096,'http-evidence-request');
+  need(Number.isInteger(status)&&status>=100&&status<=599,'http-evidence-status');
+  const value={schema:'s03-http-body-v1',requestId,mandatoryRequestId:null,kind:'control',method,route,status,stage:'response-status',firstFailure:error.message,
+   bodyBytes:bytes.length,bodySha256:observationDigest(bytes),headers:'NOT_CAPTURED; existing request path does not persist headers'};
+  intent=write('s03-http-error-intent.json',Buffer.from(JSON.stringify(value)+'\n'),l.metadataBytes);
+  for(let offset=0;offset<bytes.length;offset+=l.chunkBytes){
+   need(chunks.length<l.chunks,'http-evidence-chunk-cap');
+   const chunk=bytes.subarray(offset,offset+l.chunkBytes),r=write(`s03-http-body-${chunks.length}.bin`,chunk,l.chunkBytes);
+   chunks.push({...r,offset});storedBytes+=chunk.length;
+  }
+  complete=true;
+ }catch(later){evidenceErrors.push({name:later.name,message:later.message,code:later.code??null});}
+ try{
+  const receipt={schema:'s03-http-body-v1',status:complete?'COMPLETE':'PARTIAL',intentSha256:intent?.sha256??null,firstFailure:error.message,storedBytes,chunks,evidenceErrors};
+  const r=write('s03-http-error-receipt.json',Buffer.from(JSON.stringify(receipt)+'\n'),l.metadataBytes);
+  if(complete){const restored=verifyOfficialHttpErrorEvidence(artifacts.outputDir);need(restored.bytes.equals(bytes),'http-evidence-reconstruction');}
+  error.httpEvidence={file:r.file,sha256:r.sha256,status:receipt.status};
+ }catch(later){complete=false;evidenceErrors.push({name:later.name,message:later.message,code:later.code??null});}
+ // Errors stay private in the receipt/in-memory exception. stdout never expands them.
+ error.evidenceErrors=evidenceErrors;
+ error.httpReference={code:error.message,requestId:/^control-[1-9][0-9]{0,15}$/.test(requestId)?requestId:null,status,
+  bodyBytes:Buffer.isBuffer(bytes)?bytes.length:null,bodySha256:Buffer.isBuffer(bytes)?observationDigest(bytes):null,
+  file:error.httpEvidence?.file??null,sha256:error.httpEvidence?.sha256??null,preservation:complete?'COMPLETE':'PARTIAL'};
+ return error;
+}
+// Official Driver/A call sites only. Framed binary avoids base64 expansion and
+// preserves raw HTTP bytes separately from already-formatted diagnostic text.
+export const officialRemainingLimits=Object.freeze({chunkBytes:1048575,chunks:64,records:32000,headerBytes:16384,bodyBytes:4194304,textBytes:8388608,manifestBytes:32768});
+export function verifyOfficialRemainingEvidence(dir,{allowPartial=false}={}){
+ const l=officialRemainingLimits,m=JSON.parse(observationRead(dir,'s03-remaining-manifest.json',l.manifestBytes,false));
+ need(m.schema==='s03-remaining-v1'&&['COMPLETE','PARTIAL'].includes(m.status)&&(allowPartial||m.status==='COMPLETE'),'remaining-incomplete');
+ need(Array.isArray(m.files)&&m.files.length<=l.chunks,'remaining-file-count');
+ const parts=[];let total=0;
+ for(const [i,f] of m.files.entries()){
+  need(f.file===`s03-remaining-${String(i).padStart(3,'0')}.bin`&&f.offset===total,'remaining-file-order');
+  const b=observationRead(dir,f.file,l.chunkBytes,false);need(b.length>0&&b.length===f.bytes&&observationDigest(b)===f.sha256,'remaining-file-sha');parts.push(b);total+=b.length;
+ }
+ need(JSON.stringify(fs.readdirSync(dir).filter(n=>/^s03-remaining-.*\.bin$/.test(n)).sort())===JSON.stringify(m.files.map(f=>f.file).sort()),'remaining-file-set');
+ const stream=Buffer.concat(parts);need(total===m.storedBytes&&observationDigest(stream)===m.streamSha256,'remaining-stream-sha');
+ const records=[];let at=0;
+ while(at<stream.length){
+  if(at+4>stream.length)break;const size=stream.readUInt32BE(at);need(size>0&&size<=l.headerBytes,'remaining-header-cap');
+  if(at+4+size>stream.length)break;const h=JSON.parse(stream.subarray(at+4,at+4+size));
+  need(h.sequence===records.length+1&&h.sequence<=l.records&&['response','stdout','stderr'].includes(h.kind),'remaining-sequence');
+  need(Number.isSafeInteger(h.bytes)&&h.bytes>=0&&h.bytes<=(h.kind==='response'?l.bodyBytes:l.textBytes),'remaining-record-cap');
+  let body;
+  if(h.reuse!==null){need(h.kind==='response'&&Number.isInteger(h.reuse)&&h.reuse>0&&h.reuse<h.sequence,'remaining-reuse');const prior=records[h.reuse-1];need(prior.kind==='response','remaining-reuse-kind');body=prior.body;}
+  else{if(at+4+size+h.bytes>stream.length)break;body=stream.subarray(at+4+size,at+4+size+h.bytes);}
+  need(body.length===h.bytes&&observationDigest(body)===h.sha256,'remaining-body-sha');
+  records.push({...h,body});at+=4+size+(h.reuse===null?h.bytes:0);
+ }
+ need(records.length<=m.acceptedRecords&&m.acceptedRecords<=l.records,'remaining-count');
+ if(m.status==='COMPLETE')need(at===stream.length&&records.length===m.acceptedRecords&&m.firstFailure===null&&m.observationFailure===null,'remaining-complete');
+ return {manifest:m,records,partialTailBytes:stream.length-at,reference:{file:'s03-remaining-manifest.json',sha256:observationDigest(observationRead(dir,'s03-remaining-manifest.json',l.manifestBytes,false)),status:m.status,records:records.length,bytes:total}};
+}
+export function createOfficialRemainingEvidence(artifacts,{admit}){
+ need(typeof admit==='function','remaining-admission');const l=officialRemainingLimits,files=[],dedup=new Map(),hash=crypto.createHash('sha256');
+ let pending=Buffer.alloc(0),accepted=0,stored=0,first=null,closed=false,writeFailed=false;
+ const fail=e=>{first??={name:e.name,message:e.message,code:e.code??null};return e;};
+ const write=(name,bytes,cap)=>{need(bytes.length<=cap,'remaining-write-cap');admit(bytes.length+l.manifestBytes);
+  try{const r=artifacts.write(name,bytes),b=observationRead(artifacts.outputDir,name,cap,false);need(b.equals(bytes)&&r.sha256===observationDigest(bytes)&&r.bytes===bytes.length,'remaining-write-readback');return r;}
+  catch(e){writeFailed=true;throw e;}};
+ const flush=()=>{if(!pending.length)return;need(files.length<l.chunks,'remaining-chunk-cap');const r=write(`s03-remaining-${String(files.length).padStart(3,'0')}.bin`,pending,l.chunkBytes);files.push({...r,offset:stored});stored+=pending.length;hash.update(pending);pending=Buffer.alloc(0);};
+ const append=(kind,body,meta)=>{
+  need(!closed,'remaining-closed');if(first)throw Object.assign(Error(first.message),{code:first.code});
+  try{
+   need(Buffer.isBuffer(body)&&body.length<=(kind==='response'?l.bodyBytes:l.textBytes)&&accepted<l.records,'remaining-input-cap');
+   const sha256=observationDigest(body),reuse=kind==='response'?(dedup.get(sha256)??null):null;
+   const header=Buffer.from(JSON.stringify({sequence:accepted+1,kind,bytes:body.length,sha256,reuse,meta}));need(header.length<=l.headerBytes,'remaining-header-cap');
+   const length=Buffer.alloc(4);length.writeUInt32BE(header.length);const frame=Buffer.concat([length,header,...(reuse===null?[body]:[])]);
+   need(stored+pending.length+frame.length<=l.chunkBytes*l.chunks,'remaining-total-cap');
+   // Reserve the entire accepted frame before emitting any part; keep the existing closeout reserve in the caller.
+   admit(pending.length+frame.length+l.manifestBytes);accepted++;
+   for(let offset=0;offset<frame.length;){const n=Math.min(l.chunkBytes-pending.length,frame.length-offset);pending=Buffer.concat([pending,frame.subarray(offset,offset+n)]);offset+=n;if(pending.length===l.chunkBytes)flush();}
+   if(kind==='response'&&reuse===null)dedup.set(sha256,accepted);return accepted;
+  }catch(e){throw fail(e);}
+ };
+ return {failure:()=>first,
+  response(bytes,meta){need(meta&&Number.isInteger(meta.status)&&typeof meta.route==='string'&&typeof meta.method==='string','remaining-response-meta');return append('response',bytes,{...meta,validation:'NOT_EVALUATED_AT_CAPTURE; bind subsequent check/failure diagnostics and Report'});},
+  diagnostic(stream,text){need(['stdout','stderr'].includes(stream)&&typeof text==='string','remaining-diagnostic');return append(stream,Buffer.from(text+'\n'),null);},
+  finish(complete,observationFailure=null){need(!closed,'remaining-closed');closed=true;if(!writeFailed)try{flush();}catch(e){fail(e);}
+   const m={schema:'s03-remaining-v1',status:complete&&!first&&!observationFailure?'COMPLETE':'PARTIAL',acceptedRecords:accepted,storedBytes:stored,files,streamSha256:hash.digest('hex'),firstFailure:first,observationFailure};
+   let r,verified;try{r=write('s03-remaining-manifest.json',Buffer.from(JSON.stringify(m)+'\n'),l.manifestBytes);
+    verified=verifyOfficialRemainingEvidence(artifacts.outputDir,{allowPartial:m.status==='PARTIAL'});
+   }catch(later){if(first)throw Object.assign(Error(first.message),{code:first.code,preservationError:later.message});throw later;}
+   if(first)throw Object.assign(Error(first.message),{code:first.code,remainingReceipt:r});return verified.reference;
+  }};
 }
 export function searchPerformanceResult({final,trace,completion,logsCaptured,batches}){
  const omitted={retentionDeletion:'NOT_RUN',retentionPostDeletionStability:'NOT_RUN',memoryP0:'NOT_RUN',readiness120:'NOT_RUN',releaseQualification:'NOT_RUN'};
@@ -203,7 +456,7 @@ export function mandatoryRequestLedger(){
   fail(code,id=null){return latch(code,id);},
   bindProcess(m,resource){try{
    requireValue(m?.valid===true&&m.error===null&&stamp(m.pid)&&typeof m.startIdentity==='string'&&m.startIdentity.length<=96&&/^(macos:\d+:\d+|linux:\d+)$/.test(m.startIdentity),'ledger-process-identity');
-   requireValue(resource?.pid===m.pid&&stamp(resource.seq),'ledger-resource-binding');
+   requireValue(resource?.pid===m.pid&&number(resource.seq),'ledger-resource-binding');
    const previous=processes.get(m.pid);requireValue(!previous||previous.startIdentity===m.startIdentity,'ledger-identity-changed');
    requireValue(!previous||resource.seq>=previous.resourceSequence,'ledger-resource-sequence');requireValue(previous||processes.size<3,'ledger-process-cap');
    processes.set(m.pid,{pid:m.pid,startIdentity:m.startIdentity,resourceSequence:resource.seq});

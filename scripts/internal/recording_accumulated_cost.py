@@ -6,8 +6,9 @@ from recording_http_cost_overlay import replace
 REPO=Path(__file__).resolve().parents[2]
 SCRIPTS=REPO/'scripts/internal'
 def sha(p):return hashlib.sha256(p.read_bytes()).hexdigest()
-def generate(out, attribution=False, mandatory_ledger=False, limited_search=False, build_root=None):
+def generate(out, attribution=False, mandatory_ledger=False, limited_search=False, build_root=None, official_contract=None):
     if limited_search and not mandatory_ledger:raise ValueError('limited-search-requires-mandatory-ledger')
+    if official_contract is not None and (not mandatory_ledger or limited_search or build_root is not None):raise ValueError('official-closeout-profile')
     out.mkdir(mode=0o700)
     probe=(SCRIPTS/'recording_http_cost_probe.h').read_text()
     probe=replace(probe,'return id==10||id==11?1:id==12||id==13?2:id==60?3:id>=20&&id<60?4:id>=61?5:6;','return id%3==0?3:1;')
@@ -91,10 +92,114 @@ def generate(out, attribution=False, mandatory_ledger=False, limited_search=Fals
     s=replace(s,"status:resultFailed||failed||latencyPassed!==true?'FAIL':'PASS',exit:resultFailed||failed||latencyPassed!==true?1:0", "status:performanceDiagnose?final.searchPerformance.status:resultFailed||failed||latencyPassed!==true?'FAIL':'PASS',exit:performanceDiagnose?(final.searchPerformance.status==='PASS'?0:1):resultFailed||failed||latencyPassed!==true?1:0")
     s=replace(s,'diagnosticCompleted:failed===0&&!!phaseResult', "diagnosticCompleted:performanceDiagnose?final.searchPerformance.status==='PASS':failed===0&&!!phaseResult")
     s=replace(s,'process.exitCode=resultFailed||failed||latencyPassed!==true?1:0', "process.exitCode=performanceDiagnose?(final.searchPerformance.status==='PASS'?0:1):resultFailed||failed||latencyPassed!==true?1:0")
-    s="import {selection,aSelection,costCollector,assertSearchPerformanceCapacity,searchPerformanceResult} from "+json.dumps(str(SCRIPTS/'recording_accumulated_cost.mjs'))+";\nlet selectedBatchOrdinal=0,selectedFailureReported=false,latencyPassed=null,selectedBound=null;const selectedTrace=costCollector(),performanceCompletion=[],performanceLogs=[];\n"+s
+    s="import {selection,aSelection,costCollector,assertSearchPerformanceCapacity,searchPerformanceResult,checkpointSearchPerformanceReport} from "+json.dumps(str(SCRIPTS/'recording_accumulated_cost.mjs'))+";\nlet selectedBatchOrdinal=0,selectedFailureReported=false,latencyPassed=null,selectedBound=null,officialFirstFailure=null;const selectedTrace=costCollector(),performanceCompletion=[],performanceLogs=[];\n"+s
     if mandatory_ledger:s=mandatory_overlay(out,binding,s)
     elif attribution:s=attribution_overlay(out,binding,s)
     if limited_search:s=limited_overlay(s)
+    # Preserve the first observation exception separately from final Report storage.
+    s=replace(s,'}catch(error){failed++;if(!selectedFailureReported)',
+        "}catch(error){failed++;if(performanceDiagnose&&officialFirstFailure===null)officialFirstFailure={name:error?.name??'Error',message:error?.message??String(error),code:error?.code??null};if(!selectedFailureReported)")
+    # Only the official final report changes whitespace. Historical diagnostics
+    # and Limited keep the shared checkpoint implementation and its consumers.
+    s=replace(s,'try{artifacts.checkpoint({...final,',
+        'try{(performanceDiagnose?report=>checkpointSearchPerformanceReport(artifacts,report,officialFirstFailure):report=>artifacts.checkpoint(report))({...final,')
+    if official_contract is not None:
+        contract_path=Path(official_contract)
+        if not contract_path.is_absolute():raise ValueError('official-contract-path')
+        # This opt-in is used only by the SHA-bound external official Runner.
+        # Historical generated drivers/wrappers keep their unconditional guard.
+        s=replace(s,'if(performanceDiagnose)assertSearchPerformanceCapacity();',
+            'if(performanceDiagnose)assertSearchPerformanceCapacity(JSON.parse(fs.readFileSync('+json.dumps(str(contract_path))+')));')
+        s=replace(s,".filter(n=>!n.startsWith('media-server-current-observer-'))",
+            ".filter(n=>performanceDiagnose?n!=='work':!n.startsWith('media-server-current-observer-'))")
+        # Reserve closeout in live checks too. Keep returned storage as measured
+        # bytes: the reservation is not a file and must not be counted twice by
+        # subsequent sidecar/response admission. Native anonymous bytes remain
+        # charged by the existing status/sample collectors.
+        s=replace(s,'  const bounds=admitWorkspaceSnapshot({storage:combined,',
+            "  if(performanceDiagnose)admitWorkspaceSnapshot({storage:combined,baseline:workspace??{fixedBytes:0,capBytes:448*1024*1024},additionalBytes:6*1024*1024,context:{kind:'official-live-closeout-reserve'}},workspaceFailure);\n  const bounds=admitWorkspaceSnapshot({storage:combined,")
+        s=replace(s,'additionalBytes:bytes,\n  context:',
+            'additionalBytes:bytes+(performanceDiagnose?6*1024*1024:0),\n  context:')
+        s=replace(s,'metrics:point,\n      expectedPid:',
+            'metrics:point,additionalBytes:performanceDiagnose?6*1024*1024:0,\n      expectedPid:')
+        s=replace(s,"fs.statSync(path.join(repo,'build-gst-onnx/media_server'))","fs.statSync(process.env.R165_BINARY)",2)
+        # Final upper-bound assumptions are checked against actual report inputs.
+        s=replace(s,'report=>checkpointSearchPerformanceReport(artifacts,report,officialFirstFailure)',
+            "report=>{if(report.status==='PASS'&&(report.processCount!==1||report.evidenceLoad.searchSuccess+report.evidenceLoad.searchUnavailable>484||report.aLoad.initialStore.names.length>3||report.aLoad.schedule.length>45))throw Error('official-report-premise');const receipt=checkpointSearchPerformanceReport(artifacts,report,officialFirstFailure);console.log('[official-report-artifact] '+JSON.stringify({file:'report.json',bytes:receipt.bytes,sha256:receipt.sha256}));return receipt;}")
+        # The complete report already passed the bounded writer and SHA readback.
+        # Keep per-sample diagnostics: the report contains only their summaries.
+        s=replace(s,'console.log(JSON.stringify(final));process.exitCode=',
+            'if(!performanceDiagnose)console.log(JSON.stringify(final));process.exitCode=')
+        s=replace(s,'checkpointSearchPerformanceReport} from ',
+            'checkpointSearchPerformanceReport,createOfficialObservationEvidence,preserveOfficialHttpError} from ')
+        s=replace(s,'const artifacts=createReviewTestArtifacts(repo);', '''const artifacts=createReviewTestArtifacts(repo);
+let officialObservations=null,officialHttpFailure=null,officialControlOrdinal=0;
+function getOfficialObservations(){return officialObservations??=createOfficialObservationEvidence(artifacts,{admit:additionalBytes=>
+ admitWorkspaceSnapshot({storage:storageNow(),baseline:workspace??{fixedBytes:0,capBytes:448*1024*1024},additionalBytes:additionalBytes+6*1024*1024,
+ context:{kind:'official-observation-write'}},workspaceFailure)});}
+function officialObservation(kind,value){if(performanceDiagnose)getOfficialObservations().append(kind,value);else console.log('['+kind+'] '+JSON.stringify(value));}''')
+        for kind in ['memory-attribution-cycle','current-observation','visual-query-observation','root-storage']:
+            token="console.log('["+kind+"] '+JSON.stringify("
+            # Root has both regular and failure paths. Keep all values/branches.
+            count=s.count(token)
+            if count<1:raise ValueError('official-observation-producer-missing:'+kind)
+            s=replace(s,token,"officialObservation('"+kind+"',(",count)
+        s=replace(s,'function budget(){',
+            "function budget(){if(performanceDiagnose&&officialHttpFailure)throw officialHttpFailure;if(performanceDiagnose&&officialObservations?.failure())throw Error(officialObservations.failure().message);")
+        s=replace(s,'async function request(app,method,route,body,observeStatus=false){const begin=',
+            'async function request(app,method,route,body,observeStatus=false){const localRequestId=performanceDiagnose?\'control-\'+(++officialControlOrdinal):null;const begin=')
+        old="if(response.status!==200&&response.status!==201){console.log('[http-failed-response] '+JSON.stringify({method,route,status:response.status,body:response.bytes.toString()}));throw Error('http-status-'+response.status);}"
+        s=replace(s,old,"""if(response.status!==200&&response.status!==201){
+ if(performanceDiagnose){
+  officialHttpFailure=preserveOfficialHttpError(artifacts,{bytes:response.bytes,status:response.status,requestId:localRequestId,method,route,
+   admit:additionalBytes=>admitWorkspaceSnapshot({storage:storageNow(),baseline:workspace??{fixedBytes:0,capBytes:448*1024*1024},additionalBytes:additionalBytes+6*1024*1024,context:{kind:'official-http-error-write'}},workspaceFailure)});
+  officialFirstFailure??={name:officialHttpFailure.name,message:officialHttpFailure.message,code:officialHttpFailure.code??null};
+  console.log('[http-failed-response-artifact] '+JSON.stringify(officialHttpFailure.httpReference));throw officialHttpFailure;
+ }
+ console.log('[http-failed-response] '+JSON.stringify({method,route,status:response.status,body:response.bytes.toString()}));throw Error('http-status-'+response.status);
+}""")
+        s=replace(s,'const receipt=checkpointSearchPerformanceReport(artifacts,report,officialFirstFailure);', '''let observationError=null;
+try{const observation=getOfficialObservations().finish(report.status==='PASS',officialFirstFailure);
+ if(report.status==='PASS'&&(observation.counts[0]!==report.resources.sampleCount||observation.counts[1]!==report.resources.sampleCount||observation.counts[2]!==report.evidenceLoad.searchSuccessByClient[2]+report.evidenceLoad.searchSuccessByClient[3]||observation.counts[3]<report.resources.sampleCount+2))throw Error('official-observation-report-count');
+ console.log('[official-observation-artifact] '+JSON.stringify(observation));
+}catch(error){observationError=error;}
+const receipt=checkpointSearchPerformanceReport(artifacts,observationError?{...report,status:'INCOMPLETE',exit:1}:report,officialFirstFailure??(observationError?{name:observationError.name,message:observationError.message}:null));
+if(observationError)throw observationError;''')
+        # Explicit official Driver/A call sites, not global console interception.
+        s=replace(s,'preserveOfficialHttpError} from ','preserveOfficialHttpError,createOfficialRemainingEvidence} from ')
+        leave={'fixture-profile','official-report-artifact','official-observation-artifact','http-failed-response-artifact'}
+        def redirect_output(m):
+            return m[0] if m[3] in leave else "officialRemainingOutput('"+('stdout' if m[1]=='log' else 'stderr')+"',"+m[2]+'['+m[3]+']'
+        s=re.sub(r"console\.(log|error)\((['\"])\[([A-Za-z0-9_-]+)\]",redirect_output,s)
+        s=replace(s,'let officialObservations=null,', '''let officialRemaining=null,officialRemainingError=null,officialRemainingFailurePrinted=false,officialResponseOrdinal=0;
+function getOfficialRemaining(){return officialRemaining??=createOfficialRemainingEvidence(artifacts,{admit:additionalBytes=>admitWorkspaceSnapshot({storage:storageNow(),baseline:workspace??{fixedBytes:0,capBytes:448*1024*1024},additionalBytes:additionalBytes+6*1024*1024,context:{kind:'official-remaining-write'}},workspaceFailure)});}
+function officialRemainingOutput(stream,text){
+ if(!performanceDiagnose){console[stream==='stdout'?'log':'error'](text);return;}
+ try{if(text.startsWith('[workspace-fixed] ')){if(Buffer.byteLength(text)+1>16384){getOfficialRemaining().diagnostic(stream,text);throw Error('official-fixed-line-cap');}console.log(text);return;}
+  getOfficialRemaining().diagnostic(stream,text);}catch(error){officialRemainingError??=error;if(!officialRemainingFailurePrinted){officialRemainingFailurePrinted=true;console.error('[remaining-evidence-incomplete]');}}
+}
+function officialRemainingResponseRoute(route){const p=route.split('?')[0];return p.includes('/evidence')||p.includes('/a-record')||p==='/ops/api/recordings/search'&&new URLSearchParams(route.split('?')[1]).get('channelIds')==='1';}
+let officialObservations=null,''')
+        s=replace(s,'function budget(){if(performanceDiagnose&&officialHttpFailure)',
+            'function budget(){if(performanceDiagnose&&officialRemainingError)throw officialRemainingError;if(performanceDiagnose&&officialHttpFailure)')
+        s=replace(s,"async function evidenceFetch(app,route,method='GET',body,selectedId=0){",
+            "async function evidenceFetch(app,route,method='GET',body,selectedId=0){\n const remainingRequestId=performanceDiagnose?'response-'+(++officialResponseOrdinal):null;")
+        s=replace(s,'failureBody=result.bytes;failureElapsedMs=', '''failureBody=result.bytes;
+ if(performanceDiagnose&&officialRemainingResponseRoute(route))try{getOfficialRemaining().response(result.bytes,{requestId:remainingRequestId,mandatoryRequestId:failureId||null,method,route,status:result.status,elapsedMs:performance.now()-started,activeA:aLoad?.active??null,scheduledA:aLoad?.schedule?.rows.at(-1)??null});}catch(error){officialRemainingError??=error;throw error;}
+ failureElapsedMs=''')
+        a_path=out/'s03_a_load.mjs'
+        a=(SCRIPTS/'v450_recording_a_load.mjs').read_text()
+        a=replace(a,'constructor({root,seedInfo,request,check,budget}){','constructor({root,seedInfo,request,check,budget,output}){this.output=output??console.log;')
+        a=replace(a,'console.log(\'[A-',"this.output('[A-",4)
+        a_path.write_text(a)
+        binding['scripts/internal/v450_recording_a_load.mjs']={'original':sha(SCRIPTS/'v450_recording_a_load.mjs'),'overlay':sha(a_path)}
+        s=replace(s,json.dumps(str(SCRIPTS/'v450_recording_a_load.mjs')),json.dumps(str(a_path)))
+        s=replace(s,'new MixedALoad({root,seedInfo,request:evidenceFetch,check,budget})',"new MixedALoad({root,seedInfo,request:evidenceFetch,check,budget,output:text=>officialRemainingOutput('stdout',text)})")
+        s=replace(s,'let observationError=null;', '''let remainingError=officialRemainingError;
+try{const remaining=getOfficialRemaining().finish(report.status==='PASS'&&!remainingError,officialFirstFailure);console.log('[official-remaining-artifact] '+JSON.stringify(remaining));}catch(error){remainingError??=error;}
+if(remainingError){report={...report,status:'INCOMPLETE',exit:1};officialFirstFailure??={name:remainingError.name,message:remainingError.message,code:remainingError.code??null};}
+let observationError=null;''')
+        s=replace(s,'if(observationError)throw observationError;','if(observationError||remainingError)throw observationError??remainingError;')
     if build_root is not None:
         if not limited_search:raise ValueError('isolated-build-limited-only')
         b=isolated_build_root(build_root)

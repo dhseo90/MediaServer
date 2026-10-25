@@ -48,6 +48,28 @@ function currentMediaPublicationActive(file,stat,lstat){
   return false;
 }
 function retryMediaPublication(){throw Object.assign(Error('root-media-publication'),{code:'EAGAIN'});}
+const reviewPendingName='.pending-review-v1',reviewFinalName=/^vr-[a-f0-9]{64}\.review$/;
+function currentReviewPublicationActive(file,stat,lstat){
+  const safe=s=>s.isFile()&&!s.isSymbolicLink()&&s.uid===process.getuid()&&(s.mode&0o077)===0&&
+    s.dev===stat.dev&&s.ino===stat.ino&&Number.isSafeInteger(s.size)&&s.size>=8&&s.size<=128*1024+8;
+  const current=lstat(file);
+  if(!safe(current))return false;
+  if(current.nlink===1)return true; // unlink completed; discard the entire earlier scan.
+  if(current.nlink!==2)return false;
+  const fd=fs.openSync(file,fs.constants.O_RDONLY|fs.constants.O_NOFOLLOW|fs.constants.O_NONBLOCK);
+  try{
+    const opened=fs.fstatSync(fd);if(!safe(opened)||![1,2].includes(opened.nlink))return false;
+    const bytes=Buffer.alloc(opened.size);let offset=0;
+    while(offset<bytes.length){const n=fs.readSync(fd,bytes,offset,bytes.length-offset,null);if(n===0)return false;offset+=n;}
+    if(fs.readSync(fd,Buffer.alloc(1),0,1,null)!==0||!/^MSVAR0[123]\n$/.test(bytes.subarray(0,8).toString('latin1')))return false;
+    const final='vr-'+crypto.createHash('sha256').update(bytes).digest('hex')+'.review',name=path.basename(file);
+    if(name!==reviewPendingName&&name!==final)return false;
+    let other;
+    try{other=lstat(path.join(path.dirname(file),name===reviewPendingName?final:reviewPendingName));}
+    catch(error){if(error?.code!=='ENOENT')throw error;const after=lstat(file);return safe(after)&&after.nlink===1;}
+    return safe(other)&&other.size===opened.size&&[1,2].includes(other.nlink);
+  }finally{fs.closeSync(fd);}
+}
 // Rejection-only, fixed shape. Never publish paths/names; diagnostic probing cannot change rejection.
 function rootFileRejection(root,file,parts,category,stat,lstat,recordingTop){
   const kind=s=>s.isSymbolicLink()?'symlink':s.isFile()?'regular':s.isDirectory()?'directory':'other';
@@ -240,6 +262,11 @@ export function measureCurrentRoot(root,{sqlitePages=false,lstat=fs.lstatSync,re
         if(current.isFile()&&!current.isSymbolicLink()&&current.nlink===1)retryMediaPublication();
         if(current.isFile()&&!current.isSymbolicLink()&&current.nlink===2&&currentMediaPublicationActive(file,current,lstat))retryMediaPublication();
       }
+      // VaReviewStore::PublishBytes publishes pending -> digest.review with link/fsync/unlink.
+      // Retry only this owned, content-bound pair; never accept/deduplicate live hardlinks.
+      if(stat.nlink===2&&parts.length===3&&parts[0]===recordingTop&&parts[1]==='va-reviews'&&
+          (parts[2]===reviewPendingName||reviewFinalName.test(parts[2]))&&currentReviewPublicationActive(file,stat,lstat))
+        throw Object.assign(Error('root-review-publication'),{code:'EAGAIN'});
       if(stat.nlink!==1)throw rootFileRejection(root,file,parts,itemCategory,stat,lstat,recordingTop);
     }else throw rootFileRejection(root,file,parts,itemCategory,stat,lstat,recordingTop);
     need(Number.isSafeInteger(stat.size)&&stat.size>=0&&Number.isSafeInteger(totalBytes+stat.size),'root-size-bound');
@@ -266,8 +293,9 @@ export function measureCurrentRootStable(root,options={}){
     if(error?.code==='EAGAIN'&&error?.message==='root-generation-transition'){
       if(generationRetries++>=31)throw Error('root-generation-transition-retry-exhausted');transientTreeRetries++;continue;
     }
-    if(error?.code==='EAGAIN'&&error?.message==='root-media-publication'){
-      if(mediaPublicationRetries++>=31)throw Error('root-media-publication-retry-exhausted');transientTreeRetries++;continue;
+    // Media and review publications share the existing budget; no additional deadline/retries.
+    if(error?.code==='EAGAIN'&&['root-media-publication','root-review-publication'].includes(error?.message)){
+      if(mediaPublicationRetries++>=31)throw Error(error.message+'-retry-exhausted');transientTreeRetries++;continue;
     }
     throw error;
   }
