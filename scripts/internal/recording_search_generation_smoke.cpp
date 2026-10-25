@@ -5,6 +5,7 @@
 #include "recording_catalog_generation_projection_smoke.cpp"
 #undef main
 #include "recording/recording_search_reader.h"
+#include "recording/recording_search_diagnostic.h"
 #include "recording/recording_identity_shard.h"
 #include <unistd.h>
 #ifdef RECORDING_SEARCH_ATTRIBUTION_TESTING
@@ -120,6 +121,14 @@ int main(int argc,char** argv) {
                 !after.rebuild&&after.delta.upserts.empty()&&after.delta.removed_ids.empty(),"V430-R04 reservation preserves source resolution and empty delta");
             SearchCheck(search.Refresh({"channel"},model,&model,&error)&&model==prior,"V430-R04 no search change reuses identical immutable model");
             if(phase==2) {
+#ifdef RECORDING_SEARCH_TESTING
+                bool damaged=false;
+                search_after_capture_test=[&]{damaged=RecordingGenerationRequestProofProbe::DamageCurrentRaw(catalog);};
+                auto unchanged=prior;
+                SearchCheck(!search.Refresh({"channel"},{},&unchanged,&error,{},false)&&damaged&&unchanged==prior,
+                    "retention delta cannot bypass authority loss after full capture");
+                search_after_capture_test={};
+#endif
                 // Capture authenticates the current owned row store. The
                 // sealed archive was projected at Open and is not that store.
                 Need(RecordingGenerationRequestProofProbe::DamageCurrentRaw(catalog));

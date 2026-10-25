@@ -126,7 +126,16 @@ bool RecordingSearchReader::RefreshImpl(const std::vector<std::string>& channels
         }
         Locate(batch.delta.upserts.at(pending.document_index), resolution);
     }
-    if (!catalog_.ValidateSearchSource(batch, error)) {
+    bool current=catalog_.ValidateSearchSource(batch,error);
+    bool retention_delta=!include_observations;
+#ifdef RECORDING_SEARCH_TESTING
+    retention_delta=retention_delta&&search_retention_delta_test_enabled;
+#endif
+    if(!current&&retention_delta) {
+        SearchDiagnostic::Phase cost("RetentionRebase");
+        current=catalog_.RebaseRetentionSearchSource(&batch,limits,error);
+    }
+    if (!current) {
         if(retry_capture&&!include_observations&&batch.rebuild&&error&&*error=="search-source-changed")
             {batch.memory.DiagnosticCategory(SearchModelResidency::Category::RetryBatch);*retry_capture=std::move(batch);}
         return false;

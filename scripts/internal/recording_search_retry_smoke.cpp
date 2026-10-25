@@ -5,10 +5,31 @@
 #include "recording/recording_search_reader.h"
 #include "recording/recording_search_diagnostic.h"
 #include "recording/recording_search_snapshots.h"
+#include "ingress/recording_application_service.h"
+#include "domain/strict_json.h"
+#include <future>
 namespace recording {
 struct RecordingSearchRetryTestProbe {
  static std::size_t Spans(const SearchSourceBatch& b){return b.segment_spans_.size();}
  static std::size_t Reused(const SearchSourceBatch& b){return b.reused_segments_;}
+#ifdef RECORDING_SEARCH_TESTING
+ static void RefuseCoverage(RecordingCatalog& c,bool floor) {
+  std::lock_guard lock(c.mu_);
+  if(floor)c.search_invalidations_->floor=c.source_snapshot_revision_;
+  else {auto& log=*c.search_invalidations_;log.entries[(log.next+log.entries.size()-1)%log.entries.size()].retention=2;}
+ }
+ static std::size_t InvalidationBytes(){return sizeof(RecordingCatalog::SearchInvalidations::Entry);}
+ static bool RepeatPending(RecordingCatalog& c,const std::string& id,unsigned count,std::string* error) {
+  latency::Lock lock(c.mu_,latency::Source::Test,__LINE__);
+  RecordingSegmentStateV2 state;state.segment_id=id;state.lifecycle=RecordingLifecycle::DeletionPending;state.reason="continuous-capacity";
+  for(unsigned i=0;i<count;++i){RecordingMutationV1 m;m.mutation_type=RecordingMutationType::SegmentV2State;m.entity_id=id;
+   m.payload_json=SerializeRecordingSegmentStateV2(state);if(!c.AppendAndApplyLocked(std::move(m),error))return false;}
+  return true;
+ }
+ static std::array<std::uint64_t,3> RingState(RecordingCatalog& c) {
+  std::lock_guard lock(c.mu_);return {c.search_invalidations_->floor,c.source_snapshot_revision_,c.search_invalidations_->count};
+ }
+#endif
 };
 }
 int main(int argc,char** argv){
@@ -184,6 +205,239 @@ int main(int argc,char** argv){
        "R167 lifecycle fallback equals strict full source");
   need(same(saved_documents,saved_append->documents()),
        "R167 held prior model retains pre-mutation lifecycle");
+  // STATE45-SEARCH-SOURCE-01: actual retention invalidation and ownership.
+  // Compare optional projection reuse with an independent strict capture.
+  // Counts report work, not a claim that a retry/build optimization is present.
+  const auto retention_base=appended;
+  const auto doomed=std::find_if(retention_base->documents().begin(),retention_base->documents().end(),
+    [](const auto& d){return d.unavailable_reason=="media-not-checked";});
+  need(doomed!=retention_base->documents().end(),"retention sharing live victim");
+  const auto doomed_id=doomed->segment_id;
+  const auto doomed_location=catalog.FindSegmentMediaLocation(doomed_id);
+  need(bool(doomed_location),"retention fixture records owned path while finalized");
+  std::array<std::shared_ptr<SearchModelResidency>,2> retention_owners{
+    std::make_shared<SearchModelResidency>(),std::make_shared<SearchModelResidency>()};
+  std::array<std::shared_ptr<const RecordingSearchModel>,2> retention_sources;
+  for(unsigned i=0;i<2;++i)need(reader.Refresh({"channel-1"},{},&retention_sources[i],&error,
+    {100000,64*1024*1024,retention_owners[i]},false),"retention independent residency base");
+  need(catalog.RequestDeletion(doomed_id,"continuous-capacity",&error),"retention sharing pending mutation");
+  auto compare_retention=[&](const char* phase,bool deleted) {
+    std::shared_ptr<const RecordingSearchModel> expected;
+    search_projection_reuse_test_enabled=false;
+    need(reader.Refresh({"channel-1"},{},&expected,&error,{},false),"retention independent current full capture");
+    std::array<std::size_t,4> strict{},shared{};
+    for(const bool sharing:{false,true}) {
+      search_projection_reuse_test_enabled=sharing;search_projection_work_test={};
+      const auto held_bytes=catalog.SearchResidency()->used();
+      std::shared_ptr<const RecordingSearchModel> measured;
+      const auto begin=std::chrono::steady_clock::now();
+      need(reader.Refresh({"channel-1"},retention_base,&measured,&error,{},false)&&
+           same(measured->documents(),expected->documents()),"retention strict/shared exact current membership and fields");
+      const auto elapsed=std::chrono::duration<double,std::milli>(std::chrono::steady_clock::now()-begin).count();
+      const auto work=search_projection_work_test;if(sharing)shared=work;else strict=work;
+      need(deleted?std::none_of(measured->documents().begin(),measured->documents().end(),[&](const auto& d){return d.segment_id==doomed_id;}):
+        std::any_of(measured->documents().begin(),measured->documents().end(),[&](const auto& d){return d.segment_id==doomed_id&&d.unavailable_reason=="deletion-pending";}),
+        "retention changed lifecycle cannot share stale fields or resurrect deleted mappings");
+      for(const auto& d:measured->documents())need(measured->Find(d.id)==&d,"retention shared ID index exact address");
+      std::cout<<"[retention-projection] phase="<<phase<<" sharing="<<sharing<<" raw="<<work[0]<<" materialized="<<work[1]
+        <<" shared="<<work[2]<<" fallback="<<work[3]<<" elapsedMs="<<elapsed<<" retainedDelta="<<catalog.SearchResidency()->used()-held_bytes<<'\n';
+      measured.reset();need(catalog.SearchResidency()->used()==held_bytes,"retention model destruction returns all new reservations");
+    }
+    need(strict[0]>0&&strict[0]==shared[0]&&shared[1]+shared[2]==strict[1]&&shared[3]==0,
+      "retention full authentication and projection accounting agree");
+    for(unsigned i=0;i<2;++i) {
+      search_projection_reuse_test_enabled=i!=0;
+      need(reader.Refresh({"channel-1"},retention_sources[i],&retention_sources[i],&error,
+        {100000,64*1024*1024,retention_owners[i]},false),"retention sole source replacement");
+      std::cout<<"[retention-sole-owner] phase="<<phase<<" sharing="<<i<<" used="<<retention_owners[i]->used()
+        <<" peak="<<retention_owners[i]->peak()<<" documents="<<retention_sources[i]->documents().size()<<'\n';
+    }
+  };
+  compare_retention("pending",false);
+  RecordingTombstoneV2 tomb;tomb.tombstone_id="search-retention-gone";tomb.segment=*catalog.FindSegmentV2ById(doomed_id);
+  tomb.deletion_reason="continuous-capacity";tomb.deleted_at_ms=1792920000000LL;
+  need(std::filesystem::remove(doomed_location->first/doomed_location->second),"retention fixture unlinks owned media before completion");
+  need(catalog.CompleteDeletionV2(tomb,&error),"retention real generation retired mutation");
+  compare_retention("retired",true);
+  need(catalog.Checkpoint(&error),"retention generation transition");
+  compare_retention("checkpoint",true);
+  retention_sources={};
+  need(retention_owners[0]->used()==0&&retention_owners[1]->used()==0,"retention last source releases all blocks including removed documents");
+  need(std::any_of(retention_base->documents().begin(),retention_base->documents().end(),[&](const auto& d){return d.segment_id==doomed_id&&d.unavailable_reason=="media-not-checked";}),
+       "retention prior immutable source remains unchanged");
+  search_projection_reuse_test_enabled=true;
+  for(const bool delta:{false,true}) {
+    // Deterministic real Retention mutations at each existing capture boundary.
+    // Preserve the original three-attempt assertion in the baseline arm.
+    search_retention_delta_test_enabled=delta;search_retention_delta_work_test={};
+    std::shared_ptr<const RecordingSearchModel> race_source;
+    need(reader.Refresh({"channel-1"},{},&race_source,&error,{},false),"retention race current source");
+    std::set<std::string> victims;
+    for(const auto& d:race_source->documents())if(d.unavailable_reason=="media-not-checked")victims.insert(d.segment_id);
+    need(victims.size()>=3,"retention race has three independent live segments");
+    const auto owner_before=catalog.SearchResidency()->used();
+    auto settled_scratch=catalog.ScratchResidency()->usage();
+    const auto resources=[&](const char* phase){const auto scratch=catalog.ScratchResidency()->usage();
+      std::cout<<"[delta-resource] delta="<<delta<<" phase="<<phase<<" owner="<<catalog.SearchResidency()->used()
+        <<" peak="<<catalog.SearchResidency()->peak()<<" scratchDisk="<<scratch.disk_bytes<<" scratchFd="<<scratch.file_descriptors
+        <<" scratchRam="<<scratch.ram_bytes<<'\n';};
+    resources("before");
+    {
+      ingress::RecordingApplicationService application(reads,catalog,true,{});
+      const auto& recent=race_source->documents().front();
+      const auto end_ms=recent.end_ns?*recent.end_ns/1000000+1:1;
+      const std::unordered_map<std::string,std::string> query{{"channelIds","channel-1"},{"startTimeMs",std::to_string(std::max<std::int64_t>(0,end_ms-30000))},
+        {"endTimeMs",std::to_string(end_ms)},{"includeUnplaced","true"}};
+      const auto allowed=[](const auto& c){return c=="channel-1";};
+      need(application.Search(query,"owner","scope",allowed).status==200,"retention race application warmup");
+      unsigned captures=0,builds=0,rebuilds=0;auto victim=victims.begin();
+      search_after_capture_test=[&]{
+        ++captures;const auto* d=SearchDiagnostic::active;if(d&&d->attempts[d->attempt].rebuild)++rebuilds;
+        if(victim==victims.end()||!catalog.RequestDeletion(*victim++,"continuous-capacity",&error))throw std::runtime_error(error);
+        settled_scratch=catalog.ScratchResidency()->usage();
+      };
+      search_after_build_test=[&]{++builds;};
+      const auto begin=std::chrono::steady_clock::now();
+      ingress::ApplicationServiceResult rejected;
+      {
+        latency::Scope measurement(latency::Operation::Query,latency::Source::Test,__LINE__,true,true);
+        std::cout<<"[delta-lock-request] delta="<<delta<<" request="<<latency::local.request<<'\n';
+        rejected=application.Search(query,"owner","scope",allowed);
+      }
+      search_after_capture_test={};search_after_build_test={};
+      const auto work=search_retention_delta_work_test;
+      std::cout<<"[retention-retry] delta="<<delta<<" captures="<<captures<<" rebuildCaptures="<<rebuilds<<" completedBuilds="<<builds<<" status="<<rejected.status
+        <<" deltaAttempted="<<work[0]<<" deltaApplied="<<work[1]<<" deltaRefused="<<work[2]
+        <<" elapsedMs="<<std::chrono::duration<double,std::milli>(std::chrono::steady_clock::now()-begin).count()<<'\n';
+      resources("request-complete");
+      if(!delta)need(captures==3&&rejected.status==503&&rejected.body=="{\"error\":\"recording-search-unavailable\"}","real retention changes exhaust exactly three attempts without stale success");
+      else {
+        need(captures==2&&rebuilds==1&&builds==1&&rejected.status==200&&work==std::array<unsigned,3>{2,1,1},
+          "authenticated retention delta reduces captures and retries without changing attempt limit");
+        ingress::RecordingApplicationService independent(reads,catalog,true,{});
+        const auto fresh=independent.Search(query,"owner","scope",allowed);
+        ingress::StrictJsonObjectDocument actual,expected;
+        need(fresh.status==200&&ingress::ParseStrictJsonObjectDocument(rejected.body,&actual,&error)&&
+          ingress::ParseStrictJsonObjectDocument(fresh.body,&expected,&error),"retention delta independent public result parses");
+        for(const auto* key:{"items","knownCount","unplacedCount","appliedQuery"})
+          need(actual.Find(key)&&expected.Find(key)&&actual.Find(key)->raw==expected.Find(key)->raw,"retention delta public fields equal fresh current source");
+      }
+      const auto invoke=[&]{return application.Search(query,"owner","scope",allowed);};
+      auto one=std::async(std::launch::async,invoke);auto two=std::async(std::launch::async,invoke);
+      need(one.get().status==200&&two.get().status==200,"two same-channel requests recover after retention mutations settle");
+      resources("concurrent-complete");
+    }
+    need(catalog.SearchResidency()->used()==owner_before,"retention retry and concurrent application release source snapshot and request owners");
+    const auto returned=catalog.ScratchResidency()->usage();
+    need(returned.disk_bytes==settled_scratch.disk_bytes&&returned.file_descriptors==settled_scratch.file_descriptors&&
+      catalog.ScratchResidency()->ReaderCleanupHealthy(),"retention requests return scratch files and FDs after actual mutation growth");
+    resources("released");
+  }
+  need(RecordingSearchRetryTestProbe::InvalidationBytes()==144,"retention metadata keeps existing fixed invalidation entry bytes");
+  // Same actual Writer/Generation fixture; no alternate source implementation.
+  write("delta-cases-a");write("delta-cases-b");
+  for(const std::string mode:{"deleted","checkpoint","during-apply","post-build","bad-alloc","budget","floor","mismatch"}) {
+    auto owner=std::make_shared<SearchModelResidency>();const SearchModelLimits limits{100000,64*1024*1024,owner};
+    std::shared_ptr<const RecordingSearchModel> held,result,independent;
+    need(reader.Refresh({"channel-1"},{},&held,&error,limits,false),"delta case immutable prior source");
+    const auto victim=std::find_if(held->documents().begin(),held->documents().end(),[](const auto& d){return d.unavailable_reason=="media-not-checked";});
+    need(victim!=held->documents().end(),"delta case has a live source");
+    const auto victim_id=victim->segment_id;const auto location=catalog.FindSegmentMediaLocation(victim_id);
+    const auto original=*catalog.FindSegmentV2ById(victim_id);
+    const std::vector<SearchDocument> held_docs(held->documents().begin(),held->documents().end());
+    result=held;const auto before_bytes=owner->used(),capture_peak=owner->peak();SearchModelResidency::Reservation pressure;
+    unsigned injected=0;search_retention_delta_work_test={};
+    search_after_capture_test=[&]{
+      if(!catalog.RequestDeletion(victim_id,"continuous-capacity",&error))throw std::runtime_error(error);
+      if(mode=="deleted"||mode=="bad-alloc") {
+        RecordingTombstoneV2 gone;gone.tombstone_id="delta-gone-"+victim_id;gone.segment=original;
+        gone.deletion_reason="continuous-capacity";gone.deleted_at_ms=1792920000000LL;
+        if(!location||!std::filesystem::remove(location->first/location->second)||!catalog.CompleteDeletionV2(gone,&error))throw std::runtime_error(error);
+      }
+      if(mode=="checkpoint"&&!catalog.Checkpoint(&error))throw std::runtime_error(error);
+      if(mode=="floor"||mode=="mismatch")RecordingSearchRetryTestProbe::RefuseCoverage(catalog,mode=="floor");
+      if(mode=="budget") {auto reserved=owner->ReserveOwned(owner->limit()-owner->used());if(!reserved)throw std::runtime_error("pressure setup");pressure=std::move(*reserved);}
+    };
+    if(mode=="bad-alloc")search_retention_delta_apply_test=[&]{if(++injected==2)throw std::bad_alloc();};
+    if(mode=="during-apply")search_retention_delta_apply_test=[&]{if(++injected==1)write("delta-during-apply");};
+    if(mode=="post-build")search_after_build_test=[&]{write("delta-post-build");};
+    const auto ok=reader.Refresh({"channel-1"},{},&result,&error,limits,false);
+    search_after_capture_test={};search_after_build_test={};search_retention_delta_apply_test={};pressure={};
+    const auto applied=search_retention_delta_work_test[1];
+    if(mode=="deleted"||mode=="checkpoint") {
+      need(ok&&applied==1,"delta applies authenticated deletion or checkpoint plus state change");
+      const auto delta_peak=owner->peak();auto oracle_owner=std::make_shared<SearchModelResidency>();
+      need(reader.Refresh({"channel-1"},{},&independent,&error,{limits.max_documents,limits.max_bytes,oracle_owner},false)&&same(result->documents(),independent->documents()),
+        "delta model all fields and ordering equal independent current capture");
+      if(mode=="deleted")need(std::none_of(result->documents().begin(),result->documents().end(),[&](const auto& d){return d.segment_id==victim_id;}),
+        "delta deleted segment has no remaining mapping");
+      const auto result_bytes=oracle_owner->used();independent.reset();
+      need(result_bytes==owner->used()-before_bytes,
+        "delta and independent model retain identical physical ownership");
+      need(oracle_owner->used()==0&&delta_peak<=before_bytes+std::max(capture_peak,oracle_owner->peak()),
+        "delta peak fits strict pre and post mutation full capture envelope with held source");
+      std::cout<<"[delta-owner] mode="<<mode<<" retained="<<owner->used()-before_bytes<<" oracle="<<result_bytes<<" peak="<<delta_peak
+        <<" held="<<before_bytes<<" preCapturePeak="<<capture_peak<<" currentCapturePeak="<<oracle_owner->peak()<<'\n';
+    } else {
+      need(!ok&&result==held&&owner->used()==before_bytes,"delta refusal or partial failure preserves prior source and returns private owners");
+      need((mode=="bad-alloc"||mode=="budget")?error=="search-capacity-exceeded":error=="search-source-changed",
+        "delta failure retains typed capacity or currentness error");
+      if(mode=="bad-alloc")need(injected==2,"delta fault injected after partial private compaction");
+      if(mode=="during-apply")need(injected>0&&search_retention_delta_work_test==std::array<unsigned,3>{1,0,1},
+        "delta unlocked edit permits real writer reentry and rejects changed revision before Build");
+      need(reader.Refresh({"channel-1"},{},&independent,&error,limits,false),"delta refusal leaves current source readable");
+    }
+    need(same(held_docs,held->documents()),"delta never mutates existing immutable source");
+    held.reset();result.reset();independent.reset();need(owner->used()==0,"delta case last owner fully returned");
+  }
+  for(const unsigned count:{31U,32U,33U,1U}) {
+    const bool long_identity=count==1;
+    const auto channel=long_identity?std::string(100,'x'):"delta-bound-"+std::to_string(count);
+    for(unsigned i=0;i<(long_identity?1U:12U);++i)write("delta-bound-"+std::to_string(i),channel);
+    std::shared_ptr<const RecordingSearchModel> held,rejected;
+    need(reader.Refresh({channel},{},&held,&error,{},false),"delta bound original source");
+    std::set<std::string> victims;for(const auto& d:held->documents())victims.insert(d.segment_id);
+    need(victims.size()>=count,"delta bound actual writer supplies distinct identities");
+    rejected=held;search_retention_delta_work_test={};
+    search_after_capture_test=[&]{auto it=victims.begin();for(unsigned i=0;i<count;++i)
+      if(!catalog.RequestDeletion(*it++,"continuous-capacity",&error))throw std::runtime_error(error);};
+    const auto ok=reader.Refresh({channel},{},&rejected,&error,{},false);
+    if(count==31||count==32)need(ok&&search_retention_delta_work_test==std::array<unsigned,3>{1,1,0},
+      "delta accepts 31 and exactly 32 distinct changed segments");
+    else need(!ok&&error=="search-source-changed"&&rejected==held&&search_retention_delta_work_test==std::array<unsigned,3>{1,0,1},
+      "delta refuses over-limit changes or identities that do not fit existing storage");
+    search_after_capture_test={};
+    if(ok){std::shared_ptr<const RecordingSearchModel> oracle;
+      need(reader.Refresh({channel},{},&oracle,&error,{},false)&&same(rejected->documents(),oracle->documents()),
+        "delta boundary result equals independent current capture");}
+    need(std::all_of(held->documents().begin(),held->documents().end(),[](const auto& d){return d.unavailable_reason=="media-not-checked";}),
+      "delta boundary keeps original source immutable");
+    std::cout<<"[delta-boundary] segments="<<count<<" longIdentity="<<long_identity<<" accepted="<<ok<<'\n';
+    need(reader.Refresh({channel},{},&rejected,&error,{},false),"delta bound refusal preserves ordinary full recapture");
+  }
+  // Actual durable identical-state mutations exercise duplicate identities and
+  // the existing ring's overwrite boundary, without fabricating revision rows.
+  for(const unsigned records:{1024U,1025U}) {
+    auto owner=std::make_shared<SearchModelResidency>();const SearchModelLimits limits{100000,64*1024*1024,owner};
+    std::shared_ptr<const RecordingSearchModel> held,result,oracle;
+    need(reader.Refresh({"delta-bound-31"},{},&held,&error,limits,false),"delta ring current source");
+    const auto victim=std::find_if(held->documents().begin(),held->documents().end(),[](const auto& d){return d.unavailable_reason=="deletion-pending";});
+    need(victim!=held->documents().end(),"delta ring has actual pending segment");
+    const auto id=victim->segment_id,source_instance=held->source_instance();
+    const auto revision=held->revision();const auto before=owner->used();result=held;search_retention_delta_work_test={};
+    search_after_capture_test=[&]{if(!RecordingSearchRetryTestProbe::RepeatPending(catalog,id,records,&error))throw std::runtime_error(error);};
+    const auto ok=reader.Refresh({"delta-bound-31"},{},&result,&error,limits,false);
+    search_after_capture_test={};const auto ring=RecordingSearchRetryTestProbe::RingState(catalog);
+    need(ring[2]==1024&&ring[1]-revision==records,"delta ring uses exact successful durable revisions and fixed capacity");
+    if(records==1024)need(ok&&ring[0]<=revision&&result->revision()==ring[1]&&result->source_instance()==source_instance&&
+      search_retention_delta_work_test==std::array<unsigned,3>{1,1,0},"delta covers exactly 1024 records and deduplicates one segment");
+    else need(!ok&&error=="search-source-changed"&&ring[0]>revision&&result==held&&owner->used()==before&&
+      search_retention_delta_work_test==std::array<unsigned,3>{1,0,1},"delta refuses overwritten required revision without partial publication");
+    need(reader.Refresh({"delta-bound-31"},{},&oracle,&error,limits,false)&&(!ok||same(result->documents(),oracle->documents())),
+      "delta ring result or strict fallback agrees with current authenticated source");
+    std::cout<<"[delta-ring] records="<<records<<" revision="<<revision<<" floor="<<ring[0]<<" current="<<ring[1]<<" accepted="<<ok<<'\n';
+    held.reset();result.reset();oracle.reset();need(owner->used()==0,"delta ring final source owners returned");
+  }
   // A real snapshot retains non-contiguous payload after both source owners go.
   {
     auto owner=std::make_shared<SearchModelResidency>();std::shared_ptr<const RecordingSearchModel> base,child;
@@ -229,7 +483,7 @@ int main(int argc,char** argv){
   std::cout<<"[search-retry] pass="<<passed<<" fail=0"<<std::endl;return 0;
  }catch(const std::exception& e){
 #ifdef RECORDING_SEARCH_TESTING
- search_after_build_test={};search_outside_raw_cut_test={};
+ search_after_build_test={};search_outside_raw_cut_test={};search_after_capture_test={};search_retention_delta_apply_test={};
 #endif
  std::cerr<<"[search-retry] FAIL "<<e.what()<<std::endl;return 1;}
 }

@@ -104,6 +104,9 @@ class RecordingCatalogHistoryRows;
 class RecordingCatalog final : public RecordingStorePort {
     friend class RecordingRuntimeStorage;
     friend struct RecordingAggregateResourceProbe;
+#ifdef RECORDING_SEARCH_TESTING
+    friend struct RecordingSearchRetryTestProbe;
+#endif
 #if MEDIA_SERVER_RECORDING_GENERATION_TESTING
     friend struct RecordingCatalogGenerationScratchProbe;
     friend struct RecordingGenerationPreappendProbe;
@@ -288,6 +291,7 @@ public:
                                                   std::int64_t end_ms) const override;
 
 private:
+    bool RebaseRetentionSearchSource(SearchSourceBatch*, SearchModelLimits, std::string*) const;
     bool CaptureSearchSourceImpl(const std::vector<std::string>& channels,
         const RecordingSearchModel* previous, SearchSourceBatch* result, std::string* error,
         SearchModelLimits limits, bool include_observations, SearchSourceBatch* retry_capture, bool allow_raw_cut, bool allow_document_sharing = true) const;
@@ -643,7 +647,7 @@ private:
                                            std::string* error) const;
     void CloseSqliteLocked();
     void ResolveObservationV2Locked(AnalysisObservationV2* observation) const;
-    void NoteSearchMutationLocked(const RecordingMutationV1&, const std::string& channel, bool structural = false) noexcept;
+    void NoteSearchMutationLocked(const RecordingMutationV1&, const std::string& channel, bool structural = false, bool retention = false) noexcept;
     bool SearchChangedLocked(const std::vector<std::string>&, std::uint64_t since, bool structural_only) const;
 
     std::shared_ptr<SearchModelResidency> search_residency_;
@@ -667,7 +671,9 @@ private:
     // Empty channel is a conservative global dependency; a lost prefix requires rebuild/rejection.
     struct SearchInvalidations {
         SearchModelResidency::Reservation memory;
-        struct Entry { std::uint64_t revision=0; char channel[129]{}; bool structural=false, new_bound_segment=false; };
+        // Retention optionally packs channel\0segment\0 into the same fixed
+        // buffer. Long identities retain ordinary invalidation, never a delta.
+        struct Entry { std::uint64_t revision=0; char channel[129]{}; bool structural=false, new_bound_segment=false; std::uint8_t retention=0; };
         std::array<Entry,1024> entries{};
         std::size_t next=0, count=0;
         std::uint64_t floor=0;

@@ -121,6 +121,112 @@ bool RecordingCatalog::ValidateSearchSource(const SearchSourceBatch& batch, std:
     return true;
 }
 
+bool RecordingCatalog::RebaseRetentionSearchSource(SearchSourceBatch* batch,SearchModelLimits limits,std::string* error) const {
+#ifdef RECORDING_SEARCH_TESTING
+    ++search_retention_delta_work_test[0];
+    bool applied=false;
+    struct Count {bool& applied;~Count(){++search_retention_delta_work_test[applied?1:2];}} count{applied};
+#endif
+    const auto refused=[&]{return Fail(error,"search-source-changed");};
+    // Only the reader's complete, private, recordings-only capture can advance.
+    // Published models, observation resolution and shared document blocks remain
+    // immutable and take the existing recapture path.
+    if(!batch||!batch->rebuild||!batch->pending.empty()||!batch->shared_documents_.empty()||
+       batch->sharing_memory_.bytes()||batch->retry_model_||!batch->delta.removed_ids.empty()||
+       batch->delta.source_instance.rfind("recordings:",0)!=0||!limits.residency||
+       batch->residency_!=limits.residency.get()||batch->memory.bytes()<limits.max_bytes||
+       batch->delta.revision!=batch->resolution_revision)return refused();
+    try {
+        latency::Lock lock(mu_,latency::Source::Catalog,__LINE__,false,__func__);
+        if(!opened_||!generation_backend_||!CanReadLocked(error)||!source_snapshot_revision_valid_||
+           recovery_report_.projection_error_count||recovery_report_.corrupt_line_count||
+           batch->catalog_instance!=search_instance_||!search_invalidations_||
+           batch->resolution_revision<search_invalidations_->floor||batch->resolution_revision>source_snapshot_revision_)return refused();
+        // Reuse the fixed invalidation ring; no persistent delta owner/log.
+        // At most 32 distinct short identities, otherwise strictly recapture.
+        std::array<SearchInvalidations::Entry,32> changes{};std::size_t count_changes=0;
+        const auto id=[](const auto& entry){return entry.channel+std::strlen(entry.channel)+1;};
+        for(const auto& entry:search_invalidations_->entries) {
+            if(entry.revision<=batch->resolution_revision)continue;
+            if(!entry.channel[0])return refused();
+            if(std::find(batch->channels.begin(),batch->channels.end(),entry.channel)==batch->channels.end())continue;
+            if(!entry.retention)return refused();
+            std::size_t at=0;for(;at<count_changes;++at)if(!std::strcmp(id(changes[at]),id(entry)))break;
+            if(at==count_changes){if(at==changes.size())return refused();++count_changes;}
+            if(entry.revision>changes[at].revision)changes[at]=entry;
+        }
+        if(!count_changes)return refused();
+        for(std::size_t i=0;i<count_changes;++i) {
+            const auto& change=changes[i];const std::string key=id(change);
+            const auto retired=RetiredLocked(key);
+            const auto tomb=tombstones_v2_.find(key);
+            if(change.retention==2) {
+                // Same authenticated receipt/domain used by full source capture.
+                if(retired){if(retired->channel_id!=change.channel)return refused();}
+                else if(tomb==tombstones_v2_.end()||tomb->second.segment.channel_id!=change.channel)return refused();
+            } else {
+                const auto segment=segments_v2_.find(key);const auto state=states_v2_.find(key);
+                if(retired||tomb!=tombstones_v2_.end()||tombstones_.count(key)||segment==segments_v2_.end()||
+                   segment->second.channel_id!=change.channel||state==states_v2_.end()||
+                   state->second.lifecycle!=RecordingLifecycle::DeletionPending)return refused();
+            }
+        }
+        const auto revision=source_snapshot_revision_;
+        // Optional retry spans are not needed for the new cut; release their
+        // actual storage before budgeting the private edit/compaction workspace.
+        batch->segment_spans_.clear();
+        {
+            // Document scanning/compaction never extends Catalog/History lock
+            // hold time. Owned change identities survive ring wrap while unlocked.
+            latency::Lock::Unlocked outside(lock);
+            auto& docs=batch->delta.upserts;
+            const auto change_for=[&](const SearchDocument& d)->std::size_t {
+                for(std::size_t i=0;i<count_changes;++i)if(d.segment_id==id(changes[i]))return i;
+                return count_changes;
+            };
+            std::array<bool,32> seen{};std::size_t removed=0,bytes=sizeof(SearchSourceBatch)+sizeof(changes)+1024;
+            for(const auto& d:docs) {
+                if(!AccountOwnedSearchDocument(d,&bytes,limits.max_bytes))return refused();
+                const auto i=change_for(d);if(i==count_changes)continue;
+                if(d.kind!=SearchDocumentKind::Recording||d.channel_id!=changes[i].channel)return refused();
+                seen[i]=true;
+                if(changes[i].retention==2)++removed;
+                else if((d.unavailable_reason!="media-not-checked"&&d.unavailable_reason!="deletion-pending")||
+                        d.unavailable_reason.capacity()<std::strlen("deletion-pending"))return refused();
+            }
+            for(std::size_t i=0;i<count_changes;++i)if(!seen[i])return refused();
+            // Both vector buffers fit the already admitted capture envelope.
+            // Exact compaction releases removed payload and slack before Build.
+            const auto extra=docs.capacity()-docs.size()+(removed?docs.size()-removed:0);
+            if(bytes>limits.max_bytes||extra>(limits.max_bytes-bytes)/sizeof(SearchDocument))return refused();
+            std::vector<SearchDocument> compact;
+            if(removed){compact.reserve(docs.size()-removed);if(compact.capacity()!=docs.size()-removed)return refused();}
+            for(auto& d:docs) {
+                const auto i=change_for(d);
+                if(i<count_changes&&changes[i].retention==2)continue;
+                if(i<count_changes)d.unavailable_reason="deletion-pending";
+                if(removed)compact.push_back(std::move(d));
+#ifdef RECORDING_SEARCH_TESTING
+                if(search_retention_delta_apply_test)search_retention_delta_apply_test();
+#endif
+            }
+            if(removed)docs.swap(compact);
+            batch->segment_spans_.clear();batch->retry_model_.reset();batch->append_order_hint=false;
+            batch->resolution_revision=revision;batch->delta.revision=revision;
+        }
+        if(!opened_||!CanReadLocked(error)||batch->catalog_instance!=search_instance_||!source_snapshot_revision_valid_||
+           recovery_report_.projection_error_count||recovery_report_.corrupt_line_count||
+           SearchChangedLocked(batch->channels,revision,false))return refused();
+#ifdef RECORDING_SEARCH_TESTING
+        applied=true;
+#endif
+        if(error)error->clear();return true;
+    } catch(const RecordingRetainedReadError&) {*batch=SearchSourceBatch{};return Fail(error,"search-source-unavailable");}
+      catch(const RecordingResourceUnavailable&) {*batch=SearchSourceBatch{};return Fail(error,"search-capacity-exceeded");}
+      catch(const std::bad_alloc&) {*batch=SearchSourceBatch{};return Fail(error,"search-capacity-exceeded");}
+      catch(const std::length_error&) {*batch=SearchSourceBatch{};return Fail(error,"search-capacity-exceeded");}
+}
+
 bool RecordingCatalog::CaptureSearchSource(const std::vector<std::string>& channels,
     const RecordingSearchModel* previous, SearchSourceBatch* result, std::string* error, SearchModelLimits limits, bool include_observations, SearchSourceBatch* retry_capture) const {
     return CaptureSearchSourceImpl(channels,previous,result,error,limits,include_observations,retry_capture,true,false);

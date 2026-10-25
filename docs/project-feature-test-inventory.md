@@ -5532,3 +5532,18 @@ MEDIA-012-STATE-INPUT-F01 합성 계약 보충: `assessSyntheticStateWriterSegme
 - 기존 request-proof와 copy-step fault hook을 재사용한다. 첫 선택 행 전/후 `bad_alloc`, 세 행 작성 뒤 일반/resource/non-standard consumer 예외는 Clone/Retention 실패로 전달하고 원본 Healthy·Catalog cut·Generation 권위를 유지해야 한다. 실패 원문, FD·allocated bytes·Scratch disk/fd/ram·Owner charge 반환과 이후 동일 Retention/Visual 결과, Search·durable order·Checkpoint 성공을 검사한다.
 - 원본 value 인증 손상·truncate·순회 도중 실제 short read·Unknown namespace는 계속 거부하며 원본/Catalog/Generation의 기존 poison 계약을 유지한다. `Visit`의 전역 오류 정책은 바꾸지 않는다. 앞선 부분 pwrite·자원 부족·namespace·보호·Generation 회귀도 유지한다.
 - 기존 실패 Native 변형을 먼저 재검증하고, 동일 빌드 설정으로 진단 활성 request-proof와 비활성 기본 구성을 실행한다. 안정화 내부 Native 영역이며 State45·Search 성능·Memory P0·장시간/UI 검증은 포함하지 않는다. 정상 복사·인증 알고리즘은 같으므로 기존 규모별 성능 증거는 그대로 보존한다.
+
+
+### STATE45-SEARCH-SOURCE-01 — Retention 변경 중 Structured Source 재시도·소유권 진단
+
+- MEDIA-012 내부 Native 안정화 범위. 기존 `recording_search_retry_smoke.cpp`의 실제 managed Writer/Generation fixture에서 삭제 pending·retired·Checkpoint 뒤 전체 현재 raw 인증 수와 독립 full capture의 모든 필드·멤버십을 대조한다. 삭제 mapping은 재등장하지 않고 이전 Source는 불변이며 기존 strict fallback·capacity/손상/currentness 검사를 유지한다.
+- 별도 Residency 두 개에서 optional projection sharing ON/OFF의 Source를 실제 교체·해제한 뒤 총 보유량·최고 예약량·마지막 반환을 대조한다. 공유 블록에 삭제 문서가 남는 비용과 새 모델만의 할당 절감을 구분한다. 현재 제품은 append-only sharing eligibility를 유지하며 Retention 공유 확대를 활성화하지 않는다.
+- delta 비활성 baseline에서 기존 capture hook마다 실제 `RequestDeletion`을 진행하면 최근 시간 범위·`includeUnplaced=true`의 실제 application 요청은 정확히3회 시도 뒤503으로 거부되어야 한다. 변경이 멎은 뒤 같은 채널 동시 요청2개는 성공하며 service 파괴 후 Source/snapshot/request 예약이 반환되어야 한다. 이는 기존 실패 조건 재현과 stale 성공 방지이며 baseline 자체는 503 개선 PASS가 아니다.
+- Source/scope/retry/generation/concurrent/playback 및 기존 Retention/Visual 검사를 재사용한다. 문서 재생성 감소를 Capture·Build·HTTP 재시도 감소로 계산하지 않는다. 단기 결과는 State45의503 해소·p95·Workspace·Memory P0·장시간/UI 검증을 대체하지 않는다.
+
+### STATE45-SEARCH-DELTA-01 — 인증된 Retention 변경의 비공유 Capture 반영
+
+- 기존 고정1024 invalidation 항목의 문자열 공간에 channel·segment ID가 함께 들어가는 V2 삭제 대기/완료만 표시한다. 추가 영속 로그·공유 블록은 만들지 않는다. 동일 Generation Catalog instance, 완전한 revision coverage, 최대32개 대상, 인증된 현재 state/tombstone/retired와 일치하는 비공유 recordings-only 전체 배치만 전진한다. 비지원/혼합 변경·floor 유실·긴 ID·관측·shared/빈 delta 배치는 기존 재수집/실패를 유지한다. 전체 최초 raw 인증과 Build 이후·Playback 현재성 검사는 불변이다.
+- 기존 실제 Writer/Retention retry fixture의 baseline arm은 Capture3/rebuild2/Build0/503 assertion을 보존한다. delta arm은 같은 매-Capture 삭제 경쟁에서 Capture2/rebuild1/Build1/200과 독립 최신 전체 Search의 items/count/query 일치를 요구한다. 예상 RED는 제품 delta 미구현일 때 이 두 번째 arm의 개선 assertion이다. 반복 삭제 완료·Checkpoint·동시2요청·corruption/authority·부분 적용 예외·자원 부족·변경 이력 한계의 거부 및 마지막 예약/FD 반환을 직접 대조한다.
+- 문서 수정/제거·정확한 vector 압축은 Catalog 잠금 밖에서 수행하며 기존 Capture 예산에 두 buffer를 계상한다. 이전 불변 Source·Reader는 유지하고 제거 payload를 새 공유 블록에 붙잡아 두지 않는다. 기존 Source/Scope/Generation/Playback/Retention/Visual Native와 `-Wall -Wextra -Werror`, 제품 구문·diff 검사를 재사용한다. 안정화 Native 범위이며 State45·S03·UI·120분·Memory P0의 PASS를 대체하지 않는다.
+- 최종 경계 회귀: 실제 Writer의 31·32개 변경은 최신 전체 재수집과 같아야 하며 33개·긴 ID는 거부한다. 동일 Segment의 실제 durable 상태 mutation 1,024개는 중복 집계 후 허용하고 1,025개로 필요한 revision이 덮어써지면 거부한다. 잠금 밖 Delta 적용 도중 실제 Writer 재진입은 완료되되, 변경된 revision의 부분 결과는 Build 전에 거부하고 기존 Source·Owner를 보존한다.

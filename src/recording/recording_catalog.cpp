@@ -1713,7 +1713,7 @@ bool RecordingCatalog::ValidateMutationLocked(const RecordingMutationV1& mutatio
     return ApplyMutationLocked(parsed,false,error,nullptr,{},nullptr,nullptr,nullptr,{},nullptr,false);
 } catch(const CatalogHistoryError& failure) { return Fail(error,failure.what()); }
   catch(const RecordingResourceUnavailable& failure) { return Fail(error,failure.what()); }
-void RecordingCatalog::NoteSearchMutationLocked(const RecordingMutationV1& mutation,const std::string& channel,bool structural) noexcept {
+void RecordingCatalog::NoteSearchMutationLocked(const RecordingMutationV1& mutation,const std::string& channel,bool structural,bool retention) noexcept {
     // 순서 예약은 ID/sequence만 확정한다. 파일·locator·재생 후보는 생기지 않으며
     // 이어지는 실제 finalized/state mutation이 검색의 resolution을 무효화한다.
     if(mutation.mutation_type==RecordingMutationType::RecordingOrderReserved)return;
@@ -1729,6 +1729,11 @@ void RecordingCatalog::NoteSearchMutationLocked(const RecordingMutationV1& mutat
         // This is an ordering hint, never permission to omit current raw reads.
         entry.new_bound_segment=mutation.mutation_type==RecordingMutationType::SegmentV2BoundFinalized;
         if(channel.size()<=128)std::memcpy(entry.channel,channel.data(),channel.size());
+        if(retention&&!channel.empty()&&!mutation.entity_id.empty()&&
+           channel.size()+1<sizeof(entry.channel)&&mutation.entity_id.size()<sizeof(entry.channel)-channel.size()-1) {
+            std::memcpy(entry.channel+channel.size()+1,mutation.entity_id.data(),mutation.entity_id.size());
+            entry.retention=mutation.mutation_type==RecordingMutationType::SegmentV2Deleted?2:1;
+        }
         log.next=(log.next+1)%log.entries.size();
     }
     if (!observation) return;
@@ -1803,7 +1808,7 @@ bool RecordingCatalog::ApplyMutationLocked(const RecordingMutationV1& mutation,
         return true;
     }
     bool ok = true;
-    std::string search_channel;bool search_structural=false;
+    std::string search_channel;bool search_structural=false,search_retention=false;
     switch (mutation.mutation_type) {
         case RecordingMutationType::DerivedJobIntent:
         case RecordingMutationType::DerivedJobFiles:
@@ -2057,6 +2062,7 @@ bool RecordingCatalog::ApplyMutationLocked(const RecordingMutationV1& mutation,
                state.segment_id==mutation.entity_id && segments_v2_.count(state.segment_id)&&!DerivedJobProtectsLocked(state.segment_id);
             if(ok) {
                 search_channel=segments_v2_.at(state.segment_id).channel_id;
+                search_retention=state.lifecycle==RecordingLifecycle::DeletionPending;
                 const auto old=EffectiveLifecycleV2Locked(state.segment_id);
                 const auto previous=states_v2_.find(state.segment_id);
                 const bool same=previous!=states_v2_.end() &&
@@ -2075,7 +2081,7 @@ bool RecordingCatalog::ApplyMutationLocked(const RecordingMutationV1& mutation,
             RecordingTombstoneV2 tombstone;
             ok=ParseRecordingTombstoneV2(mutation.payload_json,&tombstone,error) &&
                tombstone.segment.segment_id==mutation.entity_id&&!DerivedJobProtectsLocked(mutation.entity_id);
-            if(ok)search_channel=tombstone.segment.channel_id;
+            if(ok){search_channel=tombstone.segment.channel_id;search_retention=true;}
             const auto segment=segments_v2_.find(mutation.entity_id);
             const auto old=tombstones_v2_.find(mutation.entity_id);
             if(ok&&RetiredLocked(mutation.entity_id).has_value()) {
@@ -2110,7 +2116,7 @@ bool RecordingCatalog::ApplyMutationLocked(const RecordingMutationV1& mutation,
     if (!apply)return ok;
     if (!ok) {if(!completed_history_)mutation_ids_.erase(mutation.mutation_id);}
     else {
-        NoteSearchMutationLocked(mutation,search_channel,search_structural);
+        NoteSearchMutationLocked(mutation,search_channel,search_structural,search_retention);
         if (segment_state) {
             if(!completed_history_)accepted_segment_state_mutations_.emplace(mutation.mutation_id, std::move(accepted_link));
             touch("accepted-state",mutation.mutation_id);
