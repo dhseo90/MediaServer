@@ -5510,3 +5510,25 @@ MEDIA-012-STATE-INPUT-F01 합성 계약 보충: `assessSyntheticStateWriterSegme
 - 적격성은 모듈에 고정한 실제 Writer Plan·Review Manifest·원본 Manifest SHA, manifest 전체 readback, 양 채널65개 정상 Segment와 최대64,423B/상한71,237B, Source/Helper/Runtime/제품/동적 의존성 hash에 결속한다. 실측 뒤 변경한 명시 비컴파일 소비자는 현재 clean HEAD/source receipt로 결속하고 제품 C++와 기존 바이너리는 재빌드하지 않는다. 합성 Writer 검증기를 실제 receipt에 적용하지 않는다.
 - 집중 검사: `node --test scripts/internal/recording_state_input_profile.test.mjs`. 기본 입력·mode·SHA/크기 오류·Review 의미·2700/2880초·Quota/예약/Capacity·clean-source guard를 검사한다. `MEDIA_SERVER_STATE_BINDING_TEST=1`과 위 실행 입력 환경변수로 같은 명령을 실행하면 보존 증거 전체와 stale/missing/잘못된 자산의 거부, 기존 Helper byte-identical 복사를 검사한다. 미선택은 SKIP, 선택 후 누락/오류는 FAIL이다. 제품/HTTP/미디어 생성은 하지 않는다.
 - 실제 실행: 위5개 환경변수로 `python3 -B scripts/internal/run_v450_recording_a_mixed.py --state-diagnostic /private/tmp/media-server-<owned-parent>/new-run`. clean commit 이후 기존 Supervisor·Wrapper·Driver를 사용하며 State 관측2700초/전체2880초, 양 채널108MiB/예약64MiB, 자연 삭제와 삭제 후 관측, Search p95≤2000ms/max≤5000ms, 동일 OS identity의 Memory/Resource/FD/Workspace, Catalog/Journal/History 및 정상 종료·Finalization을 확인한다. Restart/복제 Store Recovery는 실행하지 않으므로 미검증이다. State45와 Memory P0는 별도 판정한다. 안정화 focused와 승인된45분 제품 영역이며120분·실제 UI는 비대상이다.
+
+
+### STATE45-OWNER-01 — 기존 Native History/Retention 소유권 진단
+
+- `recording_generation_request_proof_smoke.cpp`의 기존 fixture·Retention/Visual prepared·Hold/Pin·삭제·Checkpoint·FD 반환 검사를 재사용한다. `MEDIA_SERVER_RECORDING_GENERATION_TESTING=1`과 `RECORDING_HISTORY_OWNER_DIAGNOSTIC=1`을 함께 지정한 단기 Native 빌드만 HistoryIndex create/copy/close의 호출 위치·객체 식별·원본 연결·device/inode·logical/allocated bytes를 기록한다. 기본 빌드에는 진단 callback/추가 인자가 없다.
+- 기존 SharedDecode fixture에 16/64/256개 행을 누적하고 한 key 조회의 전체 clone 크기, clone 해제 후 FD 반환을 대조한다. Retention reader를 기존 barrier에서 보유/해제하는 경계에서는 동일 프로세스의 기존 `recording_process_metrics.cpp`와 소유 파일 합계를 대조한다. 기록된 peak는 순차 이벤트 표본의 최대이며 순간 peak가 아니다. raw pointer/FD 식별은 객체 참조 수명을 연장하지 않는다.
+- 정상 원본/고정 cut 정합성·변경 재검증·보호·실제 unlink·오류 전파·FD 반환 assertion은 유지한다. 내부 단기 진단 영역이며 새 Runner/제품 기능·Quota/Retention/Search 의미 변경이 없다. State45의 과거 8개 FD 귀속, 244502528B 재현, 45분 bounded 안정성·Memory P0·UI/120분은 이 검사로 입증하지 않는다.
+
+
+### STATE45-SELECTIVE-CUT-01 — Retention/Visual 고정 History 선택 복사
+
+- 기존 request-proof Native의 Retention/Visual prepared cut·Writer/Search 진행·현재 변경 ID·Hold/Pin·삭제·Checkpoint/Generation·오류 반환 회귀를 유지한다. 고정 cut은 segment-v1/v2, state-v2, tombstone-v1/v2, retired-v2, media-path, deletion-reason의 metadata/chunk/count를 포함하며, 현재 보호·예약·원본 인증/재검증은 기존 Catalog 경로를 따른다. 일반 CloneFrom·Generation export는 전체 복사를 유지한다.
+- 혼합 namespace의 16/64/256 observation 누적 입력으로 전체/선택 copy의 실제 할당 block을 비교한다. 필요한 8개 namespace와 제외 10개를 독립 기대값으로 대조하고, 제외 데이터 변경·손상, 미지 namespace, 부분 쓰기, 자원 부족에서 조용한 누락/성공·FD/Owner 누수가 없는지 검사한다. 선택 cut의 제외 namespace 접근은 명시적으로 거부한다.
+- 기존 진단 callback 및 prepared barrier를 재사용한다. `RECORDING_RETENTION_FULL_COPY_BASELINE=1`은 `MEDIA_SERVER_RECORDING_GENERATION_TESTING=1` 빌드에서만 Retention 원래 전체 복사를 선택하는 A/B 대조다. 새 256행 Checkpoint fixture만 입력용 ID 한도512(기존 사례100 불변)를 사용한다. 동일 fixture의 Checkpoint와 보유 cut 중첩 이벤트에서 파일별 logical/allocated, 실제 동시 합계 표본 peak, create/copy/close 시각을 대조한다. 부분 최대값 합산이나 State45 외삽은 하지 않는다. stdin은 `/dev/null`로 연결한다.
+- `verify_recording_generation_request_proof.sh`의 sources/flags를 재사용하여 진단 활성 A/B와 비활성 기본 Native를 `-Wall -Wextra -Werror`로 빌드/실행한다. 이 검사는 안정화 내부 Native 영역이며 30분·State45·120분·제품 UI·Memory P0 PASS를 대신하지 않는다. 이전 증거와 실패 Workspace는 변경하지 않는다.
+
+
+### STATE45-SELECTIVE-EXCEPTION-01 — 선택 복사 consumer 예외와 원본 오류 분리
+
+- 기존 request-proof와 copy-step fault hook을 재사용한다. 첫 선택 행 전/후 `bad_alloc`, 세 행 작성 뒤 일반/resource/non-standard consumer 예외는 Clone/Retention 실패로 전달하고 원본 Healthy·Catalog cut·Generation 권위를 유지해야 한다. 실패 원문, FD·allocated bytes·Scratch disk/fd/ram·Owner charge 반환과 이후 동일 Retention/Visual 결과, Search·durable order·Checkpoint 성공을 검사한다.
+- 원본 value 인증 손상·truncate·순회 도중 실제 short read·Unknown namespace는 계속 거부하며 원본/Catalog/Generation의 기존 poison 계약을 유지한다. `Visit`의 전역 오류 정책은 바꾸지 않는다. 앞선 부분 pwrite·자원 부족·namespace·보호·Generation 회귀도 유지한다.
+- 기존 실패 Native 변형을 먼저 재검증하고, 동일 빌드 설정으로 진단 활성 request-proof와 비활성 기본 구성을 실행한다. 안정화 내부 Native 영역이며 State45·Search 성능·Memory P0·장시간/UI 검증은 포함하지 않는다. 정상 복사·인증 알고리즘은 같으므로 기존 규모별 성능 증거는 그대로 보존한다.

@@ -9,6 +9,72 @@
 #include <future>
 #include "recording/recording_read_service.h"
 #include "../../src/recording/recording_catalog_history.h"
+#if defined(RECORDING_HISTORY_OWNER_DIAGNOSTIC) && MEDIA_SERVER_USE_OPENSSL && MEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND
+#define RECORDING_METRICS_NO_MAIN
+#include "recording_process_metrics.cpp"
+#undef RECORDING_METRICS_NO_MAIN
+namespace {
+// 기존 Native fixture의 진단만 담당한다. raw pointer/FD는 빌리지 않고 식별값으로만 기록한다.
+// 이벤트 표본은 순차 fstat이며 순간 peak를 보장하지 않는다. 제품 수명/원본에는 쓰지 않는다.
+struct HistoryOwnerDiagnostic {
+    using Index=recording::RecordingHistoryIndex;
+    struct Entry {unsigned id;int fd;std::uint64_t dev,ino;};
+    inline static std::mutex mutex;
+    inline static std::map<const Index*,Entry> live;
+    inline static unsigned serial=0;
+    inline static std::atomic<bool> loss{false};
+    inline static std::uint64_t peak=0;
+    static void Event(const char* event,const Index* object,int fd,const Index* source,
+                      const char* file,unsigned line,const char* function) noexcept {
+        const int saved=errno;
+        try {
+            std::lock_guard lock(mutex);struct stat st{};const bool valid=fstat(fd,&st)==0;
+            if(!std::strcmp(event,"create")){
+                if(!valid||st.st_nlink!=0||!S_ISREG(st.st_mode)||live.count(object))loss=true;
+                live[object]={++serial,fd,static_cast<std::uint64_t>(st.st_dev),static_cast<std::uint64_t>(st.st_ino)};
+            }
+            const auto found=live.find(object),from=live.find(source);
+            // 생성 완료 전 실패한 객체의 close는 성공 생성과 별도로 기록한다.
+            const auto id=found==live.end()?0:found->second.id;
+            if(!std::strcmp(event,"closed")){if(found!=live.end())live.erase(found);}
+            if(!std::strcmp(event,"close-error"))loss=true;
+            std::vector<recording_metrics::ObservedFile> seen;recording_metrics::Sample total;
+            for(const auto& pair:live){struct stat current{};
+                if(fstat(pair.second.fd,&current)||static_cast<std::uint64_t>(current.st_dev)!=pair.second.dev||
+                   static_cast<std::uint64_t>(current.st_ino)!=pair.second.ino)continue; // concurrent close; no stale value substituted
+                if(current.st_nlink==0&&S_ISREG(current.st_mode))recording_metrics::AddObserved(total,seen,current.st_dev,current.st_ino,current.st_size,current.st_blocks,4096);
+            }
+            peak=std::max(peak,total.anonymousAllocated);
+            const auto now=std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::steady_clock::now().time_since_epoch()).count();
+            std::fprintf(stderr,"[history-owner] {\"event\":\"%s\",\"id\":%u,\"sourceId\":%u,\"fd\":%d,\"dev\":%llu,\"ino\":%llu,\"logical\":%llu,\"allocated\":%llu,\"nlink\":%llu,\"statValid\":%s,\"liveObjects\":%zu,\"sampledFiles\":%llu,\"sampledAllocated\":%llu,\"atNs\":%lld,\"file\":\"%s\",\"line\":%u,\"function\":\"%s\"}\n",
+                event,id,from==live.end()?0:from->second.id,fd,
+                static_cast<unsigned long long>(st.st_dev),static_cast<unsigned long long>(st.st_ino),
+                static_cast<unsigned long long>(st.st_size),static_cast<unsigned long long>(st.st_blocks)*512,
+                static_cast<unsigned long long>(st.st_nlink),valid?"true":"false",live.size(),
+                static_cast<unsigned long long>(total.anonymousFiles),static_cast<unsigned long long>(total.anonymousAllocated),
+                static_cast<long long>(now),file,line,function);
+        }catch(...){loss=true;}
+        errno=saved;
+    }
+    static void Sample(const std::string& phase){
+        std::lock_guard lock(mutex);const auto os=recording_metrics::Collect(getpid());
+        std::uint64_t bytes=0;unsigned count=0;
+        for(const auto& pair:live){struct stat st{};Need(fstat(pair.second.fd,&st)==0);
+            Need(static_cast<std::uint64_t>(st.st_dev)==pair.second.dev&&static_cast<std::uint64_t>(st.st_ino)==pair.second.ino&&st.st_nlink==0);
+            bytes+=static_cast<std::uint64_t>(st.st_blocks)*512;++count;
+            std::fprintf(stderr,"[history-owner-sample] {\"phase\":\"%s\",\"id\":%u,\"logical\":%llu,\"allocated\":%llu}\n",phase.c_str(),pair.second.id,
+                static_cast<unsigned long long>(st.st_size),static_cast<unsigned long long>(st.st_blocks)*512);
+        }
+        Check("STATE45-OWNER-01",count==os.anonymousFiles&&bytes==os.anonymousAllocated,"owned History files equal existing process-metrics anonymous sample at quiescent boundary");
+        std::fprintf(stderr,"[history-owner-boundary] {\"phase\":\"%s\",\"files\":%u,\"allocated\":%llu,\"osFiles\":%llu,\"osAllocated\":%llu}\n",phase.c_str(),count,
+            static_cast<unsigned long long>(bytes),static_cast<unsigned long long>(os.anonymousFiles),static_cast<unsigned long long>(os.anonymousAllocated));
+    }
+    HistoryOwnerDiagnostic(){Index::probe_owner_event=Event;}
+    ~HistoryOwnerDiagnostic(){Index::probe_owner_event=nullptr;Check("STATE45-OWNER-01",!loss&&live.empty(),"diagnostic complete; all tracked History objects closed");
+        std::fprintf(stderr,"[history-owner-end] {\"live\":%zu,\"loss\":%s,\"observedPeakAllocated\":%llu}\n",live.size(),loss?"true":"false",static_cast<unsigned long long>(peak));}
+};
+}
+#endif
 // Only the opt-in focused build redirects EVP_Digest. Product headers expose
 // neither counters nor digest injection. Every normal call still reaches EVP.
 #if defined(RECORDING_RETAINED_DIGEST_FOCUSED)
@@ -51,9 +117,11 @@ struct RecordingGenerationRequestProofProbe {
     static void RetentionHook(std::function<void()> hook){RecordingCatalog::retention_prepared_hook_=std::move(hook);}
     static RetentionSnapshot LockedRetention(RecordingCatalog& c){std::lock_guard lock(c.mu_);return c.RetentionSnapshotLocked();}
 #if MEDIA_SERVER_USE_OPENSSL && !defined(_WIN32)
+    static std::shared_ptr<RecordingCatalogHistoryRows> History(RecordingCatalog& c){std::lock_guard lock(c.mu_);return c.completed_history_;}
+    static bool GenerationPoisoned(RecordingJournal& j){std::lock_guard lock(j.mu_);return j.poisoned_;}
     static void DamageRetention(RecordingCatalog& c){std::lock_guard lock(c.mu_);Need(::ftruncate(c.completed_history_->ProbeIndexFd(),0)==0);}
-    static void DamageRetentionValue(RecordingCatalog& c){
-        std::lock_guard lock(c.mu_);const int fd=c.completed_history_->ProbeIndexFd();struct stat st{};Need(fstat(fd,&st)==0);
+    static void DamageHistoryValue(int fd,const std::string& kind){
+        struct stat st{};Need(fstat(fd,&st)==0);
         // Locate a reachable media-path chunk through its actual serialized node,
         // then alter its value only. No root/size/FD replacement is involved.
         std::array<unsigned char,512> node{};bool changed=false;
@@ -62,11 +130,14 @@ struct RecordingGenerationRequestProofProbe {
             if(pread(fd,node.data(),node.size(),offset)!=ssize_t(node.size()))break;
             const auto length=number(node.data()+40);if(length<12||length>256)continue;
             const std::string key(reinterpret_cast<char*>(node.data()+144),length);
-            if(key.rfind("media-path/",0)!=0||key.find("/v")==std::string::npos)continue;
+            if(key.rfind(kind+"/",0)!=0||key.find("/v")==std::string::npos)continue;
             auto value=number(node.data()+16);if(!value)value=offset+144+256;
             unsigned char byte{};Need(pread(fd,&byte,1,value)==1);byte^=1;Need(pwrite(fd,&byte,1,value)==1);changed=true;break;
         }
         Need(changed);
+    }
+    static void DamageRetentionValue(RecordingCatalog& c){
+        std::lock_guard lock(c.mu_);DamageHistoryValue(c.completed_history_->ProbeIndexFd(),"media-path");
     }
 #endif
     static bool DeltaBoundary(){RecordingCatalog::RetentionReadState read;
@@ -199,14 +270,30 @@ std::string RetentionOracle(const RetentionSnapshot& snapshot){
     for(const auto& r:snapshot.durable_reservations)result+=r.job_id+"|"+r.channel_id+"|"+std::to_string(r.bytes)+"\n";
     return result;
 }
+AnalysisObservationV2 SelectiveObservation(unsigned n){
+    AnalysisObservationV2 v;v.observation_id="selective-obs-"+std::to_string(n);v.source_id="source";v.channel_id="channel";
+    v.analysis_namespace="tap";v.stream_epoch_id="epoch";v.pts=1500000000;v.track_id="track";v.class_label="person";
+    v.confidence=.8;v.bbox={.1,.2,.3,.4};v.selection_reasons={"track-start"};v.first_seen_pts=v.pts;v.last_seen_pts=v.pts;
+    v.created_at_ms=1500;v.locator_reason="unresolved";return v;
+}
 void RetentionPreparedCases(const std::filesystem::path& root){
     Check("R108-P01",ProofProbe::DeltaBoundary(),"bounded changed-ID set deduplicates and rejects overflow; unit boundary only");
-    for(const std::string mode:{"progress","hold","job","legacy-reason","delete","corrupt","new-finalized","new-pinned","other-channel","checkpoint","finish","scratch","scratch-value","resource","exception"}){
+    for(const std::string mode:{"progress","hold","job","legacy-reason","delete","corrupt","new-finalized","new-pinned","other-channel","checkpoint","checkpoint-16","checkpoint-64","checkpoint-256","finish","scratch","scratch-value","resource","exception"}){
         const auto path=root/mode;std::filesystem::create_directories(path);CompleteFixture(path);
-        RecordingJournal owner(Options(path));Need(owner.Open(&error));auto options=ReadOptions(path);options.enable_generation_writes=true;
+        auto journal_options=Options(path);
+        // Only the added 256-row fixture needs more than the original 100-ID test envelope.
+        // This is local input sizing; product admission and every original boundary case are unchanged.
+        if(mode=="checkpoint-256")journal_options.generation_limits.identity_unique_ids=512;
+        RecordingJournal owner(journal_options);Need(owner.Open(&error));auto options=ReadOptions(path);options.enable_generation_writes=true;
         RecordingCatalog catalog(owner,options);Need(catalog.Open(&error));
         if(mode=="legacy-reason"){std::filesystem::create_directories(path/"channel");Write(path/"channel/legacy.mp4",std::string(12,'x'));
             Need(catalog.FinalizeSegment(ProjectionV1(),(path/"channel/legacy.mp4").string(),&error));}
+        const bool checkpoint=mode.rfind("checkpoint",0)==0;
+        if(checkpoint&&mode!="checkpoint")for(unsigned i=0;i<std::stoul(mode.substr(11));++i)
+            Need(catalog.PutObservationV2(SelectiveObservation(i),&error));
+#if defined(RECORDING_HISTORY_OWNER_DIAGNOSTIC)
+        if(checkpoint)std::fprintf(stderr,"[history-owner-window] begin %s\n",mode.c_str());
+#endif
         const auto original=ProofProbe::LockedRetention(catalog);Need(original.authoritative);
         const auto owned=catalog.SearchResidency()->used();const auto descriptors=OpenDescriptors();
         std::promise<void> entered,resume;auto ready=entered.get_future();auto released=resume.get_future().share();
@@ -249,7 +336,10 @@ void RetentionPreparedCases(const std::filesystem::path& root){
             segment.order_sequence=order.sequence;const std::string media="new-fixture!";segment.size_bytes=media.size();segment.checksum_sha256=Hash(media);
             Write(path/"new.mp4",media);Need(catalog.FinalizeSegmentV2(segment,(path/"new.mp4").string(),&error));
         }
-        if(mode=="checkpoint")Need(catalog.Checkpoint(&error));
+#if defined(RECORDING_HISTORY_OWNER_DIAGNOSTIC)
+        HistoryOwnerDiagnostic::Sample("retention-"+mode+"-held");
+#endif
+        if(checkpoint)Need(catalog.Checkpoint(&error));
         if(mode=="finish")Need(owner.Finish(&error));
         if(mode=="scratch")ProofProbe::DamageRetention(catalog);
         if(mode=="scratch-value")ProofProbe::DamageRetentionValue(catalog);
@@ -268,10 +358,16 @@ void RetentionPreparedCases(const std::filesystem::path& root){
             std::any_of(result.candidates.begin(),result.candidates.end(),[](const auto& c){return c.Id()=="segment"&&c.hold_count>0;}),
             "new durable job reservation and source protection are combined at current cut");
         result={};expected={};
+#if defined(RECORDING_HISTORY_OWNER_DIAGNOSTIC)
+        HistoryOwnerDiagnostic::Sample("retention-"+mode+"-released");
+#endif
         Check("R108-P01",OpenDescriptors()==expected_descriptors,"explicit private scratch Finish returns its one FD; original Finish accounted separately");
         if(mode=="resource"||mode=="exception")Check("R108-P01",owner.HasManagedLease()&&catalog.RetentionSnapshot().authoritative,"transient reader failure does not poison original authority");
         if(mode=="hold")Need(catalog.AdjustHoldCount("segment",-1,&error));
         if(mode!="finish")Need(owner.Finish(&error));
+#if defined(RECORDING_HISTORY_OWNER_DIAGNOSTIC)
+        if(checkpoint)std::fprintf(stderr,"[history-owner-window] end %s\n",mode.c_str());
+#endif
     }
 }
 // R119: a real private Catalog cut is held before admission serialization.
@@ -473,11 +569,150 @@ void PreparedVisualCases(const std::filesystem::path& root){
         if(mode!="finish")Need(journal.Finish(&error));
     }
 }
+// The existing copy hook counts completed raw rows; zero is before the first selected write.
+struct SelectiveCopyFault {
+    inline static thread_local std::string mode;
+    inline static thread_local int source_fd=-1;
+    inline static thread_local bool injected=false;
+    static void Step(std::uint64_t rows){
+        if(injected)return;
+        if((mode=="bad-before"&&rows==0)||(mode=="bad-after"&&rows==1)){
+            injected=true;throw std::bad_alloc();
+        }
+        if(rows==3&&(mode=="consumer"||mode=="resource"||mode=="nonstd")){
+            injected=true;
+            if(mode=="resource")throw RecordingResourceUnavailable();
+            if(mode=="nonstd")throw 7;
+            throw std::runtime_error("copy-consumer-injected");
+        }
+        if(mode=="source-read"&&rows==1){injected=true;Need(ftruncate(source_fd,0)==0);}
+    }
+    ~SelectiveCopyFault(){RecordingCatalogHistoryRows::probe_retention_copy_step=nullptr;mode.clear();source_fd=-1;}
+};
+void SelectiveCopyExceptionCases(const std::filesystem::path& root){
+    for(const std::string mode:{"bad-before","bad-after","consumer","resource","nonstd","source-value","source-truncate","source-read","source-unknown"}){
+        const auto path=root/mode;std::filesystem::create_directories(path);CompleteFixture(path);
+        RecordingJournal journal(Options(path));Need(journal.Open(&error));auto options=ReadOptions(path);options.enable_generation_writes=true;
+        RecordingCatalog catalog(journal,options);Need(catalog.Open(&error));auto history=ProofProbe::History(catalog);Need(bool(history));
+        const auto keys=ProofProbe::SourceKeys(catalog);Need(!keys.empty());
+        const auto expected=RetentionOracle(catalog.RetentionSnapshot());
+        RecordingCatalogStatusSnapshot token;Need(catalog.SnapshotStatus(&token,&error));
+        const auto descriptors=OpenDescriptors();const auto owned=catalog.SearchResidency()->used();
+        const auto scratch=catalog.ScratchResidency()->usage();const auto bytes=history->Bytes(true);
+        const bool source_error=mode.rfind("source-",0)==0;
+        if(mode=="source-value")ProofProbe::DamageHistoryValue(history->ProbeIndexFd(),"source-binding");
+        if(mode=="source-truncate")Need(ftruncate(history->ProbeIndexFd(),0)==0);
+        if(mode=="source-unknown")Need(history->ProbeRawPut("future-kind/id/m","0/0",&error));
+        SelectiveCopyFault fault;SelectiveCopyFault::mode=mode;SelectiveCopyFault::source_fd=history->ProbeIndexFd();SelectiveCopyFault::injected=false;
+        RecordingCatalogHistoryRows::probe_retention_copy_step=SelectiveCopyFault::Step;
+        const auto result=catalog.RetentionSnapshot();RecordingCatalogHistoryRows::probe_retention_copy_step=nullptr;
+        Check("STATE45-SELECTIVE-EXCEPTION-01",!result.authoritative&&!result.error.empty(),(mode+": failed copy never publishes success").c_str());
+        Check("STATE45-SELECTIVE-EXCEPTION-01",OpenDescriptors()==descriptors,(mode+": private copy FD returned").c_str());
+        if(!source_error){
+            const auto returned=catalog.ScratchResidency()->usage();
+            Check("STATE45-SELECTIVE-EXCEPTION-01",SelectiveCopyFault::injected&&history->Healthy(&error)&&!ProofProbe::GenerationPoisoned(journal)&&catalog.ValidateStatusSnapshot(token),
+                (mode+": original History, Catalog cut and Generation authority survive").c_str());
+            Check("STATE45-SELECTIVE-EXCEPTION-01",history->Bytes(true)==bytes&&catalog.SearchResidency()->used()==owned&&
+                returned.disk_bytes==scratch.disk_bytes&&returned.file_descriptors==scratch.file_descriptors&&returned.ram_bytes==scratch.ram_bytes&&
+                !catalog.ScratchResidency()->preserved_fds()&&!catalog.ScratchResidency()->preserved_disk_bytes(),
+                (mode+": allocation, Scratch reservations and Owner charges returned").c_str());
+            const std::string first=(mode=="bad-before"||mode=="bad-after")?std::bad_alloc().what():
+                mode=="resource"?RecordingResourceUnavailable().what():mode=="nonstd"?"retention clone consumer exception":"copy-consumer-injected";
+            Check("STATE45-SELECTIVE-EXCEPTION-01",result.error.find(first)!=std::string::npos,(mode+": original failure is reported").c_str());
+            Check("STATE45-SELECTIVE-EXCEPTION-01",RetentionOracle(catalog.RetentionSnapshot())==expected&&ProofProbe::SourceKeys(catalog)==keys,
+                (mode+": subsequent Retention and Visual results unchanged").c_str());
+            RecordingReadService search(catalog);RecordingTimelineResult timeline;RecordingOrderReservationV1 order;
+            Check("STATE45-SELECTIVE-EXCEPTION-01",search.QuerySearchTimeline("channel",0,5000,&timeline,&error)&&
+                catalog.ReserveRecordingOrder("store","after-copy-failure","after-copy-segment","other",&order,&error)&&catalog.Checkpoint(&error)&&!ProofProbe::GenerationPoisoned(journal),
+                (mode+": subsequent Search, durable Writer order and Checkpoint succeed").c_str());
+        }else{
+            Check("STATE45-SELECTIVE-EXCEPTION-01",!history->Healthy(&error)&&!catalog.SnapshotStatus(&token,&error)&&ProofProbe::GenerationPoisoned(journal),
+                (mode+": real source error preserves authority poison contract").c_str());
+            if(mode=="source-read")Check("STATE45-SELECTIVE-EXCEPTION-01",SelectiveCopyFault::injected&&result.error.find("short read")!=std::string::npos,
+                "source pread failure during Visit remains visible, outside consumer exception boundary");
+        }
+        Need(journal.Finish(&error));
+    }
+}
+void SelectiveCutCases(){
+    const std::vector<std::string> required={"segment-v1","segment-v2","state-v2","tombstone-v1","tombstone-v2","retired-v2","media-path","deletion-reason"};
+    const std::vector<std::string> excluded={"source-binding","derived-job","job-output","job-reference","observation-v1","observation-v2","consumer-reference","referenced-observation","event-link","derived-reference-accepted"};
+    const auto fd_before=OpenDescriptors();
+    auto source=std::make_shared<RecordingCatalogHistoryRows>();Need(source->Create(&error));
+    // Lower-store coverage includes every supported namespace; Catalog/domain equivalence is exercised above.
+    for(const auto& kind:required)Need(source->Put(kind,"required",std::string(4097,'r'),&error));
+    for(const auto& kind:excluded)Need(source->Put(kind,"excluded",std::string(4097,'e'),&error));
+    const auto memory=source->MemoryOwner();const auto memory_before=memory->used();
+    for(unsigned n=1;n<=256;++n){const auto obs=SelectiveObservation(n);
+        Need(source->Put("observation-v2",obs.observation_id,SerializeAnalysisObservationV2(obs),&error));
+        if(n!=16&&n!=64&&n!=256)continue;
+        std::uint64_t full_bytes=0;const auto started=std::chrono::steady_clock::now();
+        {RecordingCatalogHistoryRows full;Need(full.CloneFrom(*source,&error));full_bytes=full.Bytes(true);
+         Check("STATE45-SELECTIVE-CUT-01",full.Bytes()==source->Bytes(),"generic full clone preserves all slots");
+         for(const auto& kind:excluded){std::string value;bool found=false;Need(full.Get(kind,"excluded",&value,&found,&error));Need(found&&value==std::string(4097,'e'));}
+#if defined(RECORDING_HISTORY_OWNER_DIAGNOSTIC)
+         HistoryOwnerDiagnostic::Sample("mixed-"+std::to_string(n)+"-full");
+#endif
+         Need(full.Finish(&error));}
+        const auto full_end=std::chrono::steady_clock::now();
+        RecordingCatalogHistoryRows cut;Need(cut.CloneRetentionFrom(*source,&error));
+        const auto selective_end=std::chrono::steady_clock::now();
+        for(const auto& kind:required){std::string value;bool found=false;Need(cut.Get(kind,"required",&value,&found,&error));
+            Check("STATE45-SELECTIVE-CUT-01",found&&value==std::string(4097,'r')&&cut.Count(kind)==source->Count(kind),"required namespace metadata/chunks/count survive unchanged");}
+        Check("STATE45-SELECTIVE-CUT-01",cut.Bytes(true)<full_bytes,"mixed namespace selective allocated bytes are below full clone");
+#if defined(RECORDING_HISTORY_OWNER_DIAGNOSTIC)
+        HistoryOwnerDiagnostic::Sample("mixed-"+std::to_string(n)+"-selective");
+#endif
+        std::fprintf(stderr,"[selective-cut-bytes] {\"rows\":%u,\"sourceLogical\":%llu,\"sourceAllocated\":%llu,\"fullAllocated\":%llu,\"selectiveLogical\":%llu,\"selectiveAllocated\":%llu,\"fullScopeUs\":%lld,\"selectiveScopeUs\":%lld}\n",n,
+            (unsigned long long)source->Bytes(),(unsigned long long)source->Bytes(true),(unsigned long long)full_bytes,
+            (unsigned long long)cut.Bytes(),(unsigned long long)cut.Bytes(true),
+            (long long)std::chrono::duration_cast<std::chrono::microseconds>(full_end-started).count(),
+            (long long)std::chrono::duration_cast<std::chrono::microseconds>(selective_end-full_end).count());
+        Need(source->Put("observation-v2","excluded",std::string(4097,'x'),&error));
+        std::string value;bool found=false;Need(cut.Get("media-path","required",&value,&found,&error));
+        Check("STATE45-SELECTIVE-CUT-01",found&&value==std::string(4097,'r'),"excluded source change leaves immutable required cut intact");
+        bool denied=false;try{(void)cut.Count("observation-v2");}catch(const RecordingRetainedReadError&){denied=true;}
+        Check("STATE45-SELECTIVE-CUT-01",denied&&!cut.Get("observation-v2","excluded",&value,&found,&error),"excluded cut access fails explicitly, never reports false absence");
+        Need(cut.Finish(&error));Need(source->Put("observation-v2","excluded",std::string(4097,'e'),&error));
+    }
+    // Fail after the first copied index row, not merely at Create. The source must remain usable.
+    const auto before_failure=OpenDescriptors();const auto owned=memory->used();
+    RecordingCatalogHistoryRows::probe_retention_copy_step=[](std::uint64_t rows){if(rows==1)RecordingHistoryIndex::probe_fault=3;};
+    RecordingCatalogHistoryRows partial;const bool copied=partial.CloneRetentionFrom(*source,&error);
+    RecordingCatalogHistoryRows::probe_retention_copy_step=nullptr;RecordingHistoryIndex::probe_fault=0;
+    Check("STATE45-SELECTIVE-CUT-01",!copied&&partial.ProbeIndexFd()==-1&&!partial.Healthy(&error)&&source->Healthy(&error)&&OpenDescriptors()==before_failure&&memory->used()==owned,
+        "partial copy fails closed and returns FD/scratch memory without poisoning source");Need(partial.Finish(&error));
+    {auto ticket=memory->ReserveOwned(memory->limit()-memory->used());Need(bool(ticket));RecordingCatalogHistoryRows refused;
+     Check("STATE45-SELECTIVE-CUT-01",!refused.CloneRetentionFrom(*source,&error)&&refused.ProbeIndexFd()==-1&&OpenDescriptors()==before_failure,
+        "resource admission failure creates no published cut or remaining FD");Need(refused.Finish(&error));}
+    Check("STATE45-SELECTIVE-CUT-01",source->Healthy(&error)&&memory->used()==owned,"resource refusal preserves source authority and charge");
+    ProofProbe::DamageHistoryValue(source->ProbeIndexFd(),"observation-v2");RecordingCatalogHistoryRows damaged;
+    Check("STATE45-SELECTIVE-CUT-01",!damaged.CloneRetentionFrom(*source,&error)&&damaged.ProbeIndexFd()==-1,
+        "excluded namespace value corruption is authenticated and rejects entire cut");Need(damaged.Finish(&error));Need(source->Finish(&error));
+    Check("STATE45-SELECTIVE-CUT-01",memory->used()<memory_before&&OpenDescriptors()==fd_before,"source and copies return all charged memory and FDs");
+    RecordingCatalogHistoryRows unknown,refused;Need(unknown.Create(&error));Need(unknown.ProbeRawPut("future-kind/id/m","0/0",&error));
+    Check("STATE45-SELECTIVE-CUT-01",!refused.CloneRetentionFrom(unknown,&error)&&refused.ProbeIndexFd()==-1,"authenticated unknown namespace fails rather than silently omitting future data");
+    Need(refused.Finish(&error));Need(unknown.Finish(&error));
+}
 void RetentionSharedDecodeCase(){
     using Rows=RecordingRetainedRows<RecordingSegmentV2,ParseRecordingSegmentV2,SerializeRecordingSegmentV2>;
     auto live=std::make_shared<RecordingCatalogHistoryRows>();Need(live->Create(&error));Rows rows;rows.Bind(live,"segment-v2");
     auto segment=CompleteInput().source.segment;rows.Set(segment.segment_id,segment);live->EnableVerifiedSegmentDecodeCache();
     const auto cached=rows.find(segment.segment_id);const auto charged=live->ProbeDecodedBytes();
+#if defined(RECORDING_HISTORY_OWNER_DIAGNOSTIC)
+    for(unsigned i=1;i<=256;++i){auto extra=segment;extra.segment_id="owner-growth-"+std::to_string(i);rows.Set(extra.segment_id,extra);
+        if(i==16||i==64||i==256){
+            HistoryOwnerDiagnostic::Sample("growth-"+std::to_string(i)+"-live");
+            auto cut=std::make_shared<RecordingCatalogHistoryRows>();Need(cut->CloneFrom(*live,&error));
+            Rows selected;selected.Bind(cut,"segment-v2",live);
+            Check("STATE45-OWNER-01",selected.find(segment.segment_id)!=selected.end()&&cut->Bytes()==live->Bytes(),
+                "one-key lookup owns full History clone at increasing fixture sizes");
+            HistoryOwnerDiagnostic::Sample("growth-"+std::to_string(i)+"-clone");
+            Need(cut->Finish(&error));cut.reset();
+            HistoryOwnerDiagnostic::Sample("growth-"+std::to_string(i)+"-released");
+        }
+    }
+#endif
     auto copy=std::make_shared<RecordingCatalogHistoryRows>();Need(copy->CloneFrom(*live,&error));Rows frozen;frozen.Bind(copy,"segment-v2",live);
     const auto reused=frozen.find(segment.segment_id);
     Check("R108-P01",&*cached==&*reused&&copy->ProbeDecodedBytes()==0&&live->ProbeDecodedBytes()==charged,
@@ -944,6 +1179,9 @@ void RetainedDigestOffCases(){
 #endif
 #endif
 
+#if defined(RECORDING_HISTORY_OWNER_DIAGNOSTIC) && MEDIA_SERVER_USE_OPENSSL && MEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND
+#define main HistoryOwnerPriorMain
+#endif
 int main(int argc,char** argv){
     if(argc!=2&&argc!=3)return 2;
 #if defined(RECORDING_RETAINED_DIGEST_FOCUSED)
@@ -1038,7 +1276,7 @@ int main(int argc,char** argv){
 #if MEDIA_SERVER_USE_OPENSSL && MEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND
         ColdReadProgressCases(root/"cold-read-progress");SourceReadCases(root/"source-read");SharedSourceReadCases(root/"shared-source-read");
         VerifiedDecodeCases();DecodeRecencyCase();EventCandidateClassificationCases();SearchChannelClassificationCases();FusedVisualCases(root/"fused-visual");PreparedVisualCases(root/"prepared-visual");
-        RetentionSharedDecodeCase();
+        SelectiveCutCases();SelectiveCopyExceptionCases(root/"selective-exceptions");RetentionSharedDecodeCase();
         RetentionPreparedCases(root/"retention-prepared");
         AdmissionPreparedCases(root/"admission-prepared");
         PeriodicPreparedCases(root/"periodic-prepared");
@@ -1062,3 +1300,11 @@ int main(int argc,char** argv){
         return failures?1:0;
     }catch(const std::exception& e){std::cerr<<"fixture: "<<e.what()<<'\n';return 2;}
 }
+
+#if defined(RECORDING_HISTORY_OWNER_DIAGNOSTIC) && MEDIA_SERVER_USE_OPENSSL && MEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND
+#undef main
+int main(int argc,char** argv){int result;
+    {HistoryOwnerDiagnostic diagnostic;result=HistoryOwnerPriorMain(argc,argv);}
+    return result?result:(failures?1:0);
+}
+#endif

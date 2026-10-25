@@ -44,7 +44,11 @@ public:
     RecordingHistoryIndex()=default;
     ~RecordingHistoryIndex(){try{Close(nullptr);}catch(...){}}
     bool Create(const std::string& directory,std::uint64_t disk_budget,std::string* error,
-                std::shared_ptr<RecordingScratchResidency> resources={}) {
+                std::shared_ptr<RecordingScratchResidency> resources={}
+#if defined(MEDIA_SERVER_RECORDING_GENERATION_TESTING) && defined(RECORDING_HISTORY_OWNER_DIAGNOSTIC)
+                ,const char* probe_file=__builtin_FILE(),unsigned probe_line=__builtin_LINE(),const char* probe_function=__builtin_FUNCTION()
+#endif
+                ) {
         try {
             if(fd_>=0||directory_fd_>=0||disk_budget<kNodeBytes||disk_budget>static_cast<std::uint64_t>(INT64_MAX))
                 throw Failure("history index create/budget invalid");
@@ -95,6 +99,9 @@ public:
             std::array<unsigned char,kNodeBytes> header{};
             std::memcpy(header.data(),"recording-history-scratch-v1",28);
             Append(header.data(),header.size());
+#if defined(MEDIA_SERVER_RECORDING_GENERATION_TESTING) && defined(RECORDING_HISTORY_OWNER_DIAGNOSTIC)
+            if(probe_owner_event)probe_owner_event("create",this,fd_,nullptr,probe_file,probe_line,probe_function);
+#endif
             if(error)error->clear();
             return true;
         } catch(const std::exception& e){
@@ -119,6 +126,9 @@ public:
             }
             if(!source.Healthy(error))return false;
             size_=source.size_;rows_=source.rows_;root_=source.root_;
+#if defined(MEDIA_SERVER_RECORDING_GENERATION_TESTING) && defined(RECORDING_HISTORY_OWNER_DIAGNOSTIC)
+            if(probe_owner_event)probe_owner_event("copy",this,fd_,&source,__FILE__,__LINE__,__func__);
+#endif
             // Descendant paths/values remain authenticated by Get/Visit; fstat is not a content proof.
             return Healthy(error);
         }catch(const RecordingResourceUnavailable& e){if(error)*error=e.what();return false;}
@@ -230,6 +240,9 @@ public:
         build_.reset();build_reservation_={}; // unpublished private build is discarded on failure, never flushed into authority
         bool ok=true;
         if(fd_>=0) {
+#if defined(MEDIA_SERVER_RECORDING_GENERATION_TESTING) && defined(RECORDING_HISTORY_OWNER_DIAGNOSTIC)
+            if(probe_owner_event)probe_owner_event("closing",this,fd_,nullptr,__FILE__,__LINE__,__func__);
+#endif
             if(!anonymous_) {
                 struct stat actual{},opened{};
                 if(directory_fd_>=0&&!fstat(fd_,&opened)&&
@@ -240,7 +253,11 @@ public:
                 }else {ok=false;reservation_.PreserveDisk();}
             }
             // close EINTR may already have released the descriptor. Never retry its number.
-            const int fd=fd_;fd_=-1;if(close(fd)){ok=false;reservation_.PreserveDisk();reservation_.PreserveFd();}
+            const int fd=fd_;fd_=-1;const int closed=close(fd);
+            if(closed){ok=false;reservation_.PreserveDisk();reservation_.PreserveFd();}
+#if defined(MEDIA_SERVER_RECORDING_GENERATION_TESTING) && defined(RECORDING_HISTORY_OWNER_DIAGNOSTIC)
+            if(probe_owner_event)probe_owner_event(closed?"close-error":"closed",this,fd,nullptr,__FILE__,__LINE__,__func__);
+#endif
 #if defined(MEDIA_SERVER_RECORDING_GENERATION_TESTING)
             if(probe_fault==4)ok=false; // descriptor was released; report uncertainty, never retry its number
 #endif
@@ -256,6 +273,11 @@ public:
     }
 #if defined(MEDIA_SERVER_RECORDING_GENERATION_TESTING)
     int ProbeFd()const{return fd_;}
+#if defined(RECORDING_HISTORY_OWNER_DIAGNOSTIC)
+    // 임시 Native 진단만: 관측 callback은 noexcept이며 객체를 소유/변경하지 않는다.
+    inline static void (*probe_owner_event)(const char*,const RecordingHistoryIndex*,int,
+        const RecordingHistoryIndex*,const char*,unsigned,const char*) noexcept=nullptr;
+#endif
     inline static thread_local int probe_fault=0;
 #endif
 private:

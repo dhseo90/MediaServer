@@ -17,6 +17,10 @@ public:
     inline static thread_local bool probe_throw_after_chunk=false;
 #if MEDIA_SERVER_USE_OPENSSL && !defined(_WIN32)
     int ProbeIndexFd()const{return index_.ProbeFd();}
+    inline static thread_local void (*probe_retention_copy_step)(std::uint64_t)=nullptr;
+    bool ProbeRawPut(const std::string& key,const std::string& value,std::string* error){
+        return index_.ReserveRows(index_.usage().rows+1,error)&&index_.Put(key,value,false,error);
+    }
 #endif
 #endif
     using Visitor=std::function<bool(const std::string&,const std::string&,std::string*)>;
@@ -35,15 +39,70 @@ public:
 #if MEDIA_SERVER_USE_OPENSSL && !defined(_WIN32)
         if(!source.healthy_||!index_.Create(std::filesystem::canonical(std::filesystem::temp_directory_path()).string(),
             RecordingHistoryIndex::BytesForRows(source.index_.usage().rows),error,source.index_.resources())||!index_.CopyFrom(source.index_,error))return false;
-        counts_=source.counts_;retired_continuous_only_=source.retired_continuous_only_;slot_limit_=source.slot_limit_;return true;
+        counts_=source.counts_;retired_continuous_only_=source.retired_continuous_only_;slot_limit_=source.slot_limit_;retention_cut_=source.retention_cut_;return true;
 #else
         (void)error;return false;
+#endif
+    }
+    // Retention/Visual 전용 불변 cut. 원본의 전체 인증 순회를 생략하지 않되,
+    // 필요한 namespace의 metadata/chunk만 직접 새 index에 쓴다. 전체 임시 복제는 없다.
+    // caller는 Catalog mu_를 보유한다. 두 store lock도 copy 완료까지 유지한다.
+    bool CloneRetentionFrom(RecordingCatalogHistoryRows& source,std::string* error) {
+        if(this==&source)return Fail(error,"retention clone aliases source");
+        std::scoped_lock lock(mu_,source.mu_);
+#if MEDIA_SERVER_USE_OPENSSL && !defined(_WIN32)
+        bool ok=false;std::exception_ptr copy_exception;
+        try {
+            if(!source.healthy_||source.retention_cut_||!source.index_.Healthy(error))return Fail(error,"retention clone source unavailable");
+            if(!index_.Create(std::filesystem::canonical(std::filesystem::temp_directory_path()).string(),
+                RecordingHistoryIndex::BytesForRows(0),error,source.index_.resources()))return Fail(error,"retention clone allocation failed");
+            ok=index_.BeginBufferedBuild(error)&&source.index_.Visit([&](const std::string& key,const std::string& value,std::string* detail){
+                try {
+                const auto slash=key.find('/');
+                if(slash==std::string::npos)return source.Fail(detail,"retention clone key namespace missing");
+                const auto kind=key.substr(0,slash);const int selection=RetentionSelection(kind);
+                if(selection<0)return source.Fail(detail,"retention clone unknown namespace");
+                if(!selection)return true; // Value() has already authenticated even this excluded chunk.
+                const auto rows=index_.usage().rows;
+#if defined(MEDIA_SERVER_RECORDING_GENERATION_TESTING)
+                if(!rows&&probe_retention_copy_step)probe_retention_copy_step(0);
+#endif
+                if(rows==UINT64_MAX||rows>=source.slot_limit_)return Fail(detail,"retention clone row capacity");
+                if(!index_.ReserveRows(rows+1,detail)||!index_.Put(key,value,false,detail))return false;
+#if defined(MEDIA_SERVER_RECORDING_GENERATION_TESTING)
+                if(probe_retention_copy_step)probe_retention_copy_step(rows+1);
+#endif
+                return true;
+                }catch(...){copy_exception=std::current_exception();return false;}
+            },error)&&source.index_.Healthy(error)&&index_.SealBufferedBuild(error);
+            // Visit(false) is failure without poisoning the source. Read/Value authentication
+            // still occurs outside this callback and retains the index's original error policy.
+            if(copy_exception)std::rethrow_exception(copy_exception);
+            if(ok){
+                counts_={};
+                for(const char* kind:{"segment-v1","segment-v2","state-v2","tombstone-v1","tombstone-v2","retired-v2","media-path","deletion-reason"})
+                    counts_[Kind(kind)-1]=source.counts_[Kind(kind)-1];
+                retired_continuous_only_=source.retired_continuous_only_;slot_limit_=source.slot_limit_;retention_cut_=true;
+#if defined(MEDIA_SERVER_RECORDING_GENERATION_TESTING) && defined(RECORDING_HISTORY_OWNER_DIAGNOSTIC)
+                if(RecordingHistoryIndex::probe_owner_event)RecordingHistoryIndex::probe_owner_event("selective-copy",&index_,index_.ProbeFd(),&source.index_,__FILE__,__LINE__,__func__);
+#endif
+                return true;
+            }
+        }catch(const RecordingResourceUnavailable& e){if(error)*error=e.what();}
+         catch(const std::exception& e){if(error)*error=e.what();}
+         catch(...){if(error)*error="retention clone consumer exception";}
+        // Partial writes / admission failure never expose a healthy cut or retain its FD.
+        std::string cleanup;const bool closed=index_.Close(&cleanup);healthy_=false;
+        if(!closed&&error)*error+="; retention clone cleanup: "+cleanup;
+        return false;
+#else
+        (void)source;return Fail(error,"catalog history unsupported");
 #endif
     }
     bool Get(const std::string& kind,const std::string& id,std::string* value,bool* found,std::string* error) override {
         std::lock_guard<std::recursive_mutex> lock(mu_);
 #if MEDIA_SERVER_USE_OPENSSL && !defined(_WIN32)
-        if(!healthy_||!value||!found)return Fail(error,"catalog history unavailable");
+        if(!healthy_||!ReadableKind(kind)||!value||!found)return Fail(error,"catalog history unavailable");
         // An external ID outside the original grammar cannot name a stored row.
         // This is input rejection, not a corruption of the authenticated index.
         if(Kind(kind)&&!ValidateOpaqueId(id,nullptr)){*found=false;value->clear();if(error)error->clear();
@@ -67,7 +126,7 @@ public:
         std::lock_guard<std::recursive_mutex> lock(mu_);
         latency::CatalogRowCost cost(kind=="segment-v2"?0:kind=="source-binding"?1:kind=="media-path"?2:kind=="retired-v2"?3:kind=="state-v2"?4:5);
 #if MEDIA_SERVER_USE_OPENSSL && !defined(_WIN32)
-        if(!healthy_||!output||!found)return Fail(error,"catalog history owned read invalid");
+        if(!healthy_||!ReadableKind(kind)||!output||!found)return Fail(error,"catalog history owned read invalid");
         if(Kind(kind)&&!ValidateOpaqueId(id,nullptr)){*found=false;return true;}
         std::uint64_t bytes=0,capacity=0;bool exists=false;
         if(!Meta(kind,id,&bytes,&capacity,&exists,error))return false;
@@ -92,7 +151,7 @@ public:
     bool NextOwned(const std::string& kind,const std::string& after,std::string* id,RecordingColdRow* value,bool* found,std::string* error) override {
         std::lock_guard<std::recursive_mutex> lock(mu_);
 #if MEDIA_SERVER_USE_OPENSSL && !defined(_WIN32)
-        if(!healthy_||!Kind(kind)||!id||!value||!found)return Fail(error,"catalog history cursor invalid");
+        if(!healthy_||!ReadableKind(kind)||!id||!value||!found)return Fail(error,"catalog history cursor invalid");
         *found=false;const auto prefix=kind+"/";
         const auto lower=after.empty()?prefix:prefix+after+"/m"+std::string(1,'\0');
         bool stopped=false;std::exception_ptr consumer;
@@ -115,7 +174,7 @@ public:
     bool Next(const std::string& kind,const std::string& after,std::string* id,std::string* value,bool* found,std::string* error) override {
         std::lock_guard<std::recursive_mutex> lock(mu_);
 #if MEDIA_SERVER_USE_OPENSSL && !defined(_WIN32)
-        if(!healthy_||!Kind(kind)||!id||!value||!found)return Fail(error,"catalog history cursor invalid");
+        if(!healthy_||!ReadableKind(kind)||!id||!value||!found)return Fail(error,"catalog history cursor invalid");
         *found=false;const auto prefix=kind+"/";
         const auto lower=after.empty()?prefix:prefix+after+"/m"+std::string(1,'\0');
         bool stopped=false;
@@ -137,7 +196,7 @@ public:
         std::lock_guard<std::recursive_mutex> lock(mu_);
 #if MEDIA_SERVER_USE_OPENSSL && !defined(_WIN32)
         try {
-        if(!healthy_||!Kind(kind)||!ValidateOpaqueId(id,error)||value.size()>kRecordingCatalogSnapshotMaxBytes)
+        if(!healthy_||retention_cut_||!Kind(kind)||!ValidateOpaqueId(id,error)||value.size()>kRecordingCatalogSnapshotMaxBytes)
             return Fail(error,"catalog history row invalid");
         // A process-owned exclusion proof, not an ID cache: only rows admitted through Put
         // contribute. Deletion never restores the proof; uncertain input stays conservative.
@@ -173,6 +232,7 @@ public:
 #endif
     }
     bool PutEventLink(const std::string& id,const EventRecordingLinkV1& value,std::string* error) override {
+        if(retention_cut_)return Fail(error,"retention cut is immutable");
         if(!value.completeness_reason.lazy())return Put("event-link",id,SerializeEventRecordingLinkV1(value),error);
         std::lock_guard<std::recursive_mutex> lock(mu_);
 #if MEDIA_SERVER_USE_OPENSSL && !defined(_WIN32)
@@ -235,7 +295,7 @@ public:
     bool VisitImpl(const std::string& kind,const Visitor& visitor,const OwnedVisitor* owned,std::string* error) {
         std::unique_lock<std::recursive_mutex> lock(mu_);
 #if MEDIA_SERVER_USE_OPENSSL && !defined(_WIN32)
-        if(!healthy_||!Kind(kind)||(!visitor&&!owned))return Fail(error,"catalog history visitor invalid");
+        if(!healthy_||!ReadableKind(kind)||(!visitor&&!owned))return Fail(error,"catalog history visitor invalid");
         const auto prefix=kind+"/";std::uint64_t seen=0;std::exception_ptr consumer_exception;
         SearchModelResidency::Reservation raw_memory;
         std::string current,value;std::uint64_t bytes=0,capacity=0,parts=0;bool have_meta=false;
@@ -298,7 +358,9 @@ public:
          if(event_candidates_only&&retired_continuous_only_)return Healthy(error);}
         return Visit("retired-v2",visitor,error);
     }
-    std::uint64_t Count(const std::string& kind)const override{std::lock_guard<std::recursive_mutex> lock(mu_);return Kind(kind)?counts_[Kind(kind)-1]:0;}
+    std::uint64_t Count(const std::string& kind)const override{std::lock_guard<std::recursive_mutex> lock(mu_);
+        if(retention_cut_&&RetentionSelection(kind)!=1)throw RecordingRetainedReadError("retention cut namespace unavailable");
+        return Kind(kind)?counts_[Kind(kind)-1]:0;}
     std::uint64_t Bytes(bool allocated=false)const {
         std::lock_guard<std::recursive_mutex> lock(mu_);
 #if MEDIA_SERVER_USE_OPENSSL && !defined(_WIN32)
@@ -358,10 +420,19 @@ private:
         // bounded string lists. They use the indexed strict document codec.
         return ingress::StrictJsonWorkspaceBytes(value,7,sizeof(std::string),true);
     }
+    // Explicit required/excluded lists: a future or malformed namespace cannot silently disappear.
+    static int RetentionSelection(const std::string& kind){
+        for(const char* required:{"segment-v1","segment-v2","state-v2","tombstone-v1","tombstone-v2","retired-v2","media-path","deletion-reason"})
+            if(kind==required)return 1;
+        for(const char* excluded:{"source-binding","derived-job","job-output","job-reference","observation-v1","observation-v2","consumer-reference","referenced-observation","event-link","derived-reference-accepted"})
+            if(kind==excluded)return 0;
+        return -1;
+    }
+    bool ReadableKind(const std::string& kind)const{return Kind(kind)&&(!retention_cut_||RetentionSelection(kind)==1);}
     static unsigned Kind(const std::string& kind){return kind=="retired-v2"?1:kind=="source-binding"?2:kind=="derived-job"?3:kind=="job-output"?4:kind=="job-reference"?5:kind=="segment-v2"?6:kind=="state-v2"?7:kind=="tombstone-v2"?8:kind=="media-path"?9:kind=="deletion-reason"?10:kind=="observation-v1"?11:kind=="observation-v2"?12:kind=="consumer-reference"?13:kind=="referenced-observation"?14:kind=="event-link"?15:kind=="derived-reference-accepted"?16:kind=="segment-v1"?17:kind=="tombstone-v1"?18:0;}
     bool Fail(std::string* error,const char* message){healthy_=false;if(error&&error->empty())*error=message;return false;}
     mutable std::recursive_mutex mu_;
-    bool healthy_{true},retired_continuous_only_{true};std::array<std::uint64_t,18> counts_{};
+    bool healthy_{true},retired_continuous_only_{true},retention_cut_{false};std::array<std::uint64_t,18> counts_{};
 #if MEDIA_SERVER_USE_OPENSSL && !defined(_WIN32)
     RecordingHistoryIndex index_;
     std::uint64_t slot_limit_{UINT64_MAX};

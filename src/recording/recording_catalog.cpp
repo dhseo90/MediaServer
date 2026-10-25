@@ -4551,7 +4551,11 @@ RetentionSnapshot RecordingCatalog::RetentionSnapshotPrepared(RetentionSnapshotS
             read=std::make_unique<RetentionReadState>();read->memory=std::move(*memory);
             completed_history_->EnableVerifiedSegmentDecodeCache();
             cold=std::make_shared<RecordingCatalogHistoryRows>();
+#if defined(MEDIA_SERVER_RECORDING_GENERATION_TESTING) && defined(RECORDING_RETENTION_FULL_COPY_BASELINE)
             if(!cold->CloneFrom(*completed_history_,&first))throw CatalogHistoryError(first);
+#else
+            if(!cold->CloneRetentionFrom(*completed_history_,&first))throw CatalogHistoryError(first);
+#endif
             frozen=std::make_unique<RecordingCatalog>(journal_,options_);
             frozen->completed_history_=cold;
             frozen->segments_.Bind(cold,"segment-v1");frozen->segments_v2_.Bind(cold,"segment-v2",completed_history_);
