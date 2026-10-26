@@ -321,20 +321,23 @@ bool RecordingCatalog::CaptureSearchSourceImpl(const std::vector<std::string>& c
                         std::vector<std::shared_ptr<const SearchDocument>>{}.swap(batch.shared_documents_);
                     } else {batch.sharing_memory_=std::move(*reservation);optional_sharing_owned=true;shared_source=previous;
                     if(reuse&&prior_capture.retry_model_)shared_source=prior_capture.retry_model_.get();
-                    remember_spans=false;
+#ifdef RECORDING_SEARCH_TESTING
+                    remember_spans=remember_spans&&search_retry_projection_test_enabled;
+#endif
                     }
                 }
             }
         }
 
         const auto drop_spans=[&] {batch.segment_spans_.clear();bytes-=span_bytes;span_bytes=0;remember_spans=false;};
-        const auto remember_span=[&](const std::string& id,RecordingLifecycle lifecycle,std::size_t begin) {
+        const auto remember_span=[&](const std::string& id,RecordingLifecycle lifecycle,std::size_t begin,std::size_t shared_begin) {
             if(!remember_spans||!raw_valid)return true;
             const auto charge=sizeof(std::pair<const std::string,SearchSourceBatch::SegmentSpan>)+4*sizeof(void*)+2*(id.size()+1);
             const auto slack=(batch.delta.upserts.capacity()-batch.delta.upserts.size())*sizeof(SearchDocument);
             if(bytes>limits.max_bytes||slack>limits.max_bytes-bytes||charge>limits.max_bytes-bytes-slack){drop_spans();return true;}
             bytes+=charge;span_bytes+=charge;
-            batch.segment_spans_.emplace(id,SearchSourceBatch::SegmentSpan{raw_digest,raw_size,begin,batch.delta.upserts.size()-begin,lifecycle});
+            batch.segment_spans_.emplace(id,SearchSourceBatch::SegmentSpan{raw_digest,raw_size,begin,batch.delta.upserts.size()-begin,lifecycle,
+                shared_begin,batch.shared_documents_.size()-shared_begin});
             return true;
         };
         const auto add = [&](SearchDocument d) {
@@ -465,13 +468,22 @@ bool RecordingCatalog::CaptureSearchSourceImpl(const std::vector<std::string>& c
             }
             RecordingLifecycle cut_lifecycle=RecordingLifecycle::Unknown;
             const auto current_lifecycle=[&](const auto& id){return detached?cut_lifecycle:EffectiveLifecycleV2Locked(id,true);};
+            const auto add_shared=[&](std::shared_ptr<const SearchDocument> document) {
+                if(batch.delta.upserts.size()+batch.shared_documents_.size()>=limits.max_documents)return false;
+                auto next=bytes;if(!AccountOwnedSearchDocument(*document,&next,limits.max_bytes))return false;
+                batch.shared_documents_.push_back(std::move(document));bytes=next;if(costs.attribution)++costs.shared;
+#ifdef RECORDING_SEARCH_TESTING
+                ++search_projection_work_test[2];
+#endif
+                return true;
+            };
             bool counted_current_raw=false;
             const auto consume=[&](const auto& id,const auto& s) {
                 counted_current_raw=false;
                 ++costs.rows;
                 const auto lifecycle=current_lifecycle(id);
-                const auto begin=batch.delta.upserts.size();
-                if (lifecycle==RecordingLifecycle::Deleted) return remember_span(id,lifecycle,begin);
+                const auto begin=batch.delta.upserts.size(),shared_begin=batch.shared_documents_.size();
+                if (lifecycle==RecordingLifecycle::Deleted) return remember_span(id,lifecycle,begin,shared_begin);
                 const auto segment = [&](const RecordingUtcMappingV1* m) {
 
                     const auto document_id="s2:"+Key(id)+Key(m?m->mapping_id:"");
@@ -490,13 +502,7 @@ bool RecordingCatalog::CaptureSearchSourceImpl(const std::vector<std::string>& c
                            old->playback_segment_id.empty()&&old->playback_event_id.empty()&&old->playback_job_id.empty()&&old->observation_id.empty()&&
                            old->reference_id.empty()&&old->analysis_namespace.empty()&&old->track_id.empty()&&old->object.empty()&&
                            old->event_ids.empty()&&old->zone_ids.empty()&&old->rule_ids.empty()&&old->event_facts.empty()) {
-                            if(batch.delta.upserts.size()+batch.shared_documents_.size()>=limits.max_documents)return false;
-                            auto next=bytes;if(!AccountOwnedSearchDocument(*old,&next,limits.max_bytes))return false;
-                            batch.shared_documents_.push_back(std::move(old));bytes=next;if(costs.attribution)++costs.shared;
-#ifdef RECORDING_SEARCH_TESTING
-                            ++search_projection_work_test[2];
-#endif
-                            return true;
+                            return add_shared(std::move(old));
                         }
                     }
 #ifdef RECORDING_SEARCH_TESTING
@@ -513,7 +519,7 @@ bool RecordingCatalog::CaptureSearchSourceImpl(const std::vector<std::string>& c
                 };
                 if (s.mappings.empty()) {if(!segment(nullptr))return false;}
                 else for(const auto& mapping:s.mappings)if(!segment(&mapping))return false;
-                return remember_span(id,lifecycle,begin);
+                return remember_span(id,lifecycle,begin,shared_begin);
             };
             const auto excluded=[&](const auto& id){
                 // Channel exclusion never suppresses current lifecycle errors.
@@ -530,7 +536,7 @@ bool RecordingCatalog::CaptureSearchSourceImpl(const std::vector<std::string>& c
 #endif
                 counted_current_raw=true;
                 raw_valid=false;
-                if(!remember||shared_source)return {};
+                if(!remember||(shared_source&&!remember_spans))return {};
 #if MEDIA_SERVER_USE_OPENSSL
                 unsigned digest_size=0;
                 raw_valid=EVP_Digest(raw.data(),raw.size(),raw_digest.data(),&digest_size,EVP_sha256(),nullptr)==1&&digest_size==raw_digest.size();
@@ -546,15 +552,26 @@ bool RecordingCatalog::CaptureSearchSourceImpl(const std::vector<std::string>& c
                 // the strict path; deleted rows are never moved into the result.
                 if(lifecycle!=span.lifecycle)return {};
                 if(span.begin>prior_capture.delta.upserts.size()||span.count>prior_capture.delta.upserts.size()-span.begin)return {};
-                const auto begin=batch.delta.upserts.size();
+                // The current raw row was authenticated above. Shared spans
+                // belong only to the consumed, unpublished pre-Build batch;
+                // never treat a model revision or an old DTO as that proof.
+                if(span.shared_count&&(!shared_source||span.shared_begin>prior_capture.shared_documents_.size()||
+                   span.shared_count>prior_capture.shared_documents_.size()-span.shared_begin))return {};
+                const auto begin=batch.delta.upserts.size(),shared_begin=batch.shared_documents_.size();
                 for(std::size_t i=span.begin;i<span.begin+span.count;++i){
                     const auto& d=prior_capture.delta.upserts[i];
                     if(d.segment_id!=id||d.kind!=SearchDocumentKind::Recording||!selected(d.channel_id))return {};
                 }
+                for(std::size_t i=span.shared_begin;i<span.shared_begin+span.shared_count;++i){
+                    const auto& d=prior_capture.shared_documents_[i];
+                    if(!d||d->segment_id!=id||d->kind!=SearchDocumentKind::Recording||!selected(d->channel_id))return {};
+                }
                 for(std::size_t i=span.begin;i<span.begin+span.count;++i)
                     if(!add(std::move(prior_capture.delta.upserts[i])))return false;
+                for(std::size_t i=span.shared_begin;i<span.shared_begin+span.shared_count;++i)
+                    if(!add_shared(std::move(prior_capture.shared_documents_[i])))return false;
                 prior_capture.segment_spans_.erase(prior);++costs.rows;++costs.reused;++batch.reused_segments_;
-                return remember_span(id,lifecycle,begin);
+                return remember_span(id,lifecycle,begin,shared_begin);
             };
             bool complete=true;
             if(detached){

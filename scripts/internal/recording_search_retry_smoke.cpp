@@ -13,6 +13,15 @@ struct RecordingSearchRetryTestProbe {
  static std::size_t Spans(const SearchSourceBatch& b){return b.segment_spans_.size();}
  static std::size_t Reused(const SearchSourceBatch& b){return b.reused_segments_;}
 #ifdef RECORDING_SEARCH_TESTING
+ static std::string SharedSpan(SearchSourceBatch& b,const std::string& fault) {
+  for(auto& [id,span]:b.segment_spans_)if(span.shared_count){
+   if(fault=="digest")span.digest[0]^=1;
+   if(fault=="size")++span.raw_bytes;
+   if(fault=="range")span.shared_begin=b.shared_documents_.size();
+   return id;
+  }
+  return {};
+ }
  static void RefuseCoverage(RecordingCatalog& c,bool floor) {
   std::lock_guard lock(c.mu_);
   if(floor)c.search_invalidations_->floor=c.source_snapshot_revision_;
@@ -477,6 +486,115 @@ int main(int argc,char** argv){
     std::cout<<"[projection-residency] peak="<<owner->peak()<<" final="<<owner->used()<<" limit="<<owner->limit()<<'\n';
   }
 
+  // Error boundaries use the actual consumed shared retry, not a copied DTO
+  // fixture. An invalid optional span must take the strict current raw path.
+  for(const std::string fault:{"digest","size","range","lifecycle","build-refusal","exception","capacity","scope","owner"}) {
+    auto owner=std::make_shared<SearchModelResidency>();auto foreign=std::make_shared<SearchModelResidency>();
+    SearchModelLimits limits{100000,64*1024*1024,owner};SearchSourceBatch retry;
+    std::shared_ptr<const RecordingSearchModel> base,result,oracle;
+    need(reader.Refresh({"channel-1"},{},&base,&error,limits,false),"shared retry boundary base");
+    write("shared-boundary-before-"+fault);result=base;
+    search_after_capture_test=[&]{write("shared-boundary-during-"+fault);};
+    need(!reader.Refresh({"channel-1"},base,&result,&error,limits,false,&retry)&&error=="search-source-changed"&&result==base,
+        "shared pre-Build retry rejects real Writer revision change without publishing");
+    search_after_capture_test={};
+    const auto identity=RecordingSearchRetryTestProbe::SharedSpan(retry,fault);
+    need(!identity.empty(),"shared pre-Build batch owns authenticated raw projection spans");
+    if(fault=="lifecycle")need(catalog.MarkSegmentCorrupt(identity,"container-invalid",&error),"shared retry real current lifecycle change");
+    if(fault=="exception")search_outside_raw_cut_test=[] {throw std::bad_alloc();};
+    if(fault=="build-refusal")search_projection_build_refused_test=true;
+    auto actual_limits=limits;if(fault=="capacity")actual_limits.max_documents=1;if(fault=="owner")actual_limits.residency=foreign;
+    const std::vector<std::string> channels{fault=="scope"?"empty-scope":"channel-1"};
+    const bool ok=reader.Refresh(channels,base,&result,&error,actual_limits,false,&retry);
+    search_outside_raw_cut_test={};search_projection_build_refused_test=false;
+    need(retry.memory.bytes()==0,"shared retry consumed exactly once on success or failure");
+    if(fault=="exception"||fault=="capacity")need(!ok&&error=="search-capacity-exceeded"&&result==base,
+        "shared retry allocation and admission failure preserve immutable output");
+    else {
+      need(ok,"shared retry boundary strict fallback succeeds");
+      search_projection_reuse_test_enabled=false;
+      need(reader.Refresh(channels,{},&oracle,&error,actual_limits,false)&&same(result->documents(),oracle->documents()),
+          "shared retry boundary fields and ordering equal independent full authenticated source");
+      search_projection_reuse_test_enabled=true;
+    }
+    base.reset();result.reset();oracle.reset();
+    need(owner->used()==0&&foreign->used()==0,"shared retry boundary returns every model batch and span reservation");
+  }
+  // Same real Writer input and 192 cold segments in each AB/BA case. Two
+  // finalizations invalidate the first request's captures; a second request
+  // for the identical scope waits on the unchanged preparation mutex.
+  std::array<std::uint64_t,4> preparation_decodes{};
+  for(unsigned round=0;round<4;++round) {
+    const bool reuse=round==1||round==2;
+    std::shared_ptr<SearchModelResidency> owner;
+    std::shared_ptr<RecordingScratchResidency> scratch;
+    std::cout<<"[preparation-case] round="<<round<<" reuse="<<reuse<<std::endl;
+    SearchDiagnostic::sequence=0;
+    {
+      RecordingRuntimeStorage fixture(std::filesystem::path(argv[1])/("preparation-"+std::to_string(round)));
+      need(fixture.Open(&error),"preparation real generation open");
+      auto& current=fixture.catalog();owner=current.SearchResidency();scratch=current.ScratchResidency();
+      const auto append=[&](const std::string& generation) {
+        GStreamerSegmentWriter writer(fixture.WriterOptions(1000));std::string detail;
+        if(!writer.Start("preparation","unused",input.descriptor,[](auto,auto,auto*){return false;},&detail))throw std::runtime_error(detail);
+        for(auto packet:input.packets){packet.observation->source_generation=generation;writer.Push(packet,0);}writer.Stop();
+      };
+      for(unsigned i=0;i<64;++i)append("base-"+std::to_string(i));
+      need(current.Checkpoint(&error),"preparation authenticated cold history");
+      RecordingReadService media(current);
+      std::array<unsigned,2> captures{},builds{};std::array<int,2> status{};
+      std::array<std::uint64_t,2> decodes{},raws{};std::array<double,2> elapsed{};
+      {
+        ingress::RecordingApplicationService application(media,current,true,{});
+        const std::unordered_map<std::string,std::string> query{{"channelIds","preparation"},{"startTimeMs","1789200000000"},
+            {"endTimeMs","1789200005000"},{"includeUnplaced","true"},{"limit","1"}};
+        const auto authorize=[](const auto& c){return c=="preparation";};
+        need(application.Search(query,"owner","scope",authorize).status==200,"preparation immutable source warmup");
+        append("before-request");
+        std::promise<void> captured,release,second_started;auto ready=release.get_future();
+        std::array<std::exception_ptr,2> failures{};std::array<std::string,2> bodies;
+        const auto request=[&](unsigned client) {
+          try {
+            search_retry_projection_test_enabled=reuse;search_projection_work_test={};
+            const auto before=latency::segment_decode_cost[0];
+            search_after_capture_test=[&]{
+              ++captures[client];
+              if(!client&&captures[client]<=2){
+                if(captures[client]==1){captured.set_value();ready.wait();}
+                append("during-"+std::to_string(captures[client]));
+              }
+            };
+            search_after_build_test=[&]{++builds[client];};
+            if(client)second_started.set_value();
+            const auto start=std::chrono::steady_clock::now();
+            auto response=application.Search(query,"owner","scope",authorize);
+            elapsed[client]=std::chrono::duration<double,std::milli>(std::chrono::steady_clock::now()-start).count();
+            status[client]=response.status;bodies[client]=std::move(response.body);
+            decodes[client]=latency::segment_decode_cost[0]-before;raws[client]=search_projection_work_test[0];
+          }catch(...){failures[client]=std::current_exception();}
+          search_after_capture_test={};search_after_build_test={};search_retry_projection_test_enabled=true;
+        };
+        std::thread first(request,0);
+        if(captured.get_future().wait_for(std::chrono::seconds(10))!=std::future_status::ready){release.set_value();first.join();throw std::runtime_error("preparation capture latch");}
+        std::thread second(request,1);second_started.get_future().wait();release.set_value();first.join();second.join();
+        for(const auto& failure:failures)if(failure)std::rethrow_exception(failure);
+        need(status==std::array<int,2>{200,200}&&captures==std::array<unsigned,2>{3,1}&&builds==std::array<unsigned,2>{1,0},
+            "preparation three bounded attempts then one source reuse; both concurrent requests complete");
+        need(bodies[0].find("\"knownCount\":201,")!=std::string::npos&&bodies[1].find("\"knownCount\":201,")!=std::string::npos,
+            "preparation both snapshots include all actual Writer finalizations");
+      }
+      preparation_decodes[round]=decodes[0];
+      std::cout<<"[preparation-work] round="<<round<<" reuse="<<reuse<<" decodes="<<decodes[0]<<','<<decodes[1]
+        <<" raw="<<raws[0]<<','<<raws[1]<<" captures="<<captures[0]<<','<<captures[1]<<" builds="<<builds[0]<<','<<builds[1]
+        <<" elapsedMs="<<elapsed[0]<<','<<elapsed[1]<<" sourcePeak="<<owner->peak()
+        <<" scratchPeak="<<scratch->peak().disk_bytes<<" scratchFdPeak="<<scratch->peak().file_descriptors<<std::endl;
+      need(fixture.Finish(&error),"preparation explicit Finish");
+    }
+    need(owner->used()==0&&scratch->usage().disk_bytes==0&&scratch->usage().file_descriptors==0&&scratch->usage().ram_bytes==0,
+        "preparation all source Scratch FD and RAM owners returned");
+  }
+  need(preparation_decodes[1]<preparation_decodes[0]&&preparation_decodes[2]<preparation_decodes[3],
+      "preparation authenticated retry avoids duplicate decode in both AB and BA order");
 #endif
   need(runtime.Finish(&error),"explicit generation Finish");
   need(shared_projection,"R169 unchanged authenticated projection has identical immutable document address");

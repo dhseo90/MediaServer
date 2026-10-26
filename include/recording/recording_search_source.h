@@ -29,6 +29,7 @@ private:
         std::array<unsigned char,32> digest{};
         std::size_t raw_bytes=0,begin=0,count=0;
         RecordingLifecycle lifecycle{RecordingLifecycle::Unknown};
+        std::size_t shared_begin=0,shared_count=0;
     };
     // A single HTTP retry owns this evidence, never a published/cache model.
     std::map<std::string,SegmentSpan> segment_spans_;

@@ -25,6 +25,8 @@ inline thread_local std::array<std::size_t,3> search_order_work_test{};
 // shared projections, optional sharing fallback. Never a product trace.
 inline thread_local std::array<std::size_t,4> search_projection_work_test{};
 inline thread_local bool search_projection_reuse_test_enabled=true;
+// Compare the same pre-Build retry with/without shared projection spans.
+inline thread_local bool search_retry_projection_test_enabled=true;
 inline thread_local bool search_projection_build_refused_test=false;
 inline thread_local bool search_retention_delta_test_enabled=true;
 inline thread_local std::array<unsigned,3> search_retention_delta_work_test{}; // attempted/applied/refused

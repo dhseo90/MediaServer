@@ -180,6 +180,9 @@ bool RecordingSearchReader::RefreshImpl(const std::vector<std::string>& channels
         // current raw again and checks the current lifecycle before using spans.
         if(retry_capture&&!include_observations&&batch.rebuild&&!next->shared_documents_.empty()&&error&&*error=="search-source-changed") {
             batch.retry_model_=next;batch.shared_documents_.clear();
+            // Build consumed/reordered the two projection arrays. Pre-Build
+            // span offsets cannot describe the immutable model's storage.
+            batch.segment_spans_.clear();
             batch.memory.DiagnosticCategory(SearchModelResidency::Category::RetryBatch);*retry_capture=std::move(batch);
         } else if(retry_capture&&!include_observations&&batch.rebuild&&!batch.segment_spans_.empty()&&
            error&&*error=="search-source-changed"&&next.use_count()==1){
