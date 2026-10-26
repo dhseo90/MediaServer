@@ -166,10 +166,13 @@ bool RecordingSearchReader::RefreshImpl(const std::vector<std::string>& channels
         }
         return false;
     }
-    // The model now owns its references. Drop the capture-only array/ticket;
-    // post-build diagnostics keep the strict path's consumed-batch meaning.
-    std::vector<std::shared_ptr<const SearchDocument>>{}.swap(batch.shared_documents_);
-    batch.sharing_memory_={};
+    // Keep only the already charged reference capacity until currentness is
+    // known. No additional allocation/reservation or published model mutation.
+    const bool span_capacity=retry_capture&&!include_observations&&batch.rebuild&&
+        next.use_count()==1&&!batch.segment_spans_.empty()&&!next->shared_documents_.empty()&&
+        batch.shared_documents_.capacity()>=next->shared_documents_.size();
+    batch.shared_documents_.clear();
+    if(!span_capacity){std::vector<std::shared_ptr<const SearchDocument>>{}.swap(batch.shared_documents_);batch.sharing_memory_={};}
 #ifdef RECORDING_SEARCH_TESTING
     if(search_after_build_test)search_after_build_test();
 #endif
@@ -179,10 +182,33 @@ bool RecordingSearchReader::RefreshImpl(const std::vector<std::string>& channels
         // Its old revision is never accepted: retry traverses/authenticates all
         // current raw again and checks the current lifecycle before using spans.
         if(retry_capture&&!include_observations&&batch.rebuild&&!next->shared_documents_.empty()&&error&&*error=="search-source-changed") {
-            batch.retry_model_=next;batch.shared_documents_.clear();
-            // Build consumed/reordered the two projection arrays. Pre-Build
-            // span offsets cannot describe the immutable model's storage.
-            batch.segment_spans_.clear();
+            bool restored=span_capacity;
+            const auto count=next->shared_documents_.size();std::size_t total=0;
+            // Prefix ranges reuse the existing span counts. Do not sort all
+            // Mapping documents again merely to recover segment grouping.
+            if(restored)for(auto& [id,span]:batch.segment_spans_){
+                (void)id;
+                if(span.count>count-total||span.shared_count>count-total-span.count){restored=false;break;}
+                const auto size=span.count+span.shared_count;
+                span.begin=0;span.count=size;span.shared_begin=total;span.shared_count=0;total+=size;
+            }
+            restored=restored&&total==count;
+            if(restored){
+                batch.shared_documents_.resize(count); // within existing capacity
+                for(const auto& document:next->shared_documents_){
+                    const auto found=batch.segment_spans_.find(document->segment_id);
+                    if(found==batch.segment_spans_.end()||found->second.shared_count==found->second.count){restored=false;break;}
+                    auto& span=found->second;
+                    batch.shared_documents_[span.shared_begin+span.shared_count++]=document;
+                }
+            }
+            if(restored)for(auto& entry:batch.segment_spans_)entry.second.count=0;
+            else {
+                // Incomplete metadata keeps the original full decode fallback.
+                // Never use a partial range or keep an extra reference array.
+                std::vector<std::shared_ptr<const SearchDocument>>{}.swap(batch.shared_documents_);batch.sharing_memory_={};
+                batch.retry_model_=next;batch.segment_spans_.clear();
+            }
             batch.memory.DiagnosticCategory(SearchModelResidency::Category::RetryBatch);*retry_capture=std::move(batch);
         } else if(retry_capture&&!include_observations&&batch.rebuild&&!batch.segment_spans_.empty()&&
            error&&*error=="search-source-changed"&&next.use_count()==1){
@@ -205,6 +231,7 @@ bool RecordingSearchReader::RefreshImpl(const std::vector<std::string>& channels
         }
         return false;
     }
+    std::vector<std::shared_ptr<const SearchDocument>>{}.swap(batch.shared_documents_);batch.sharing_memory_={};
     if(allow_document_sharing&&!include_observations&&next.use_count()==1)
         std::const_pointer_cast<RecordingSearchModel>(next)->PromoteSourceStorage(limits);
     *output = std::move(next);if(error)error->clear();return true;

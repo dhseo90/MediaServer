@@ -10,10 +10,16 @@
 #include <sstream>
 #include "ingress/recording_application_service.h"
 #include "recording/recording_visual_source.h"
+#include "recording/recording_search_reader.h"
 #include "domain/strict_json.h"
 #include <future>
 #include <thread>
 #include <sys/resource.h>
+namespace recording {
+struct RecordingSearchRetryTestProbe {
+ static std::size_t Reused(const SearchSourceBatch& batch){return batch.reused_segments_;}
+};
+}
 namespace {
 using VS=ingress::VisualSearchApplicationService;
 using Clock=std::chrono::steady_clock;
@@ -138,6 +144,50 @@ int main(int argc,char** argv){
   Need101(trace.Emit("after-pure-capture"),"pure-resource");
  }
  RecordingReadService reader(catalog);ingress::RecordingApplicationService structured(reader,catalog,true,{});
+#ifdef RECORDING_SEARCH_TESTING
+ // Same density and real Writer, isolated from the slow model startup.
+ // A failed unpublished Build is followed by exactly two/three Refresh calls.
+ if(density_rows&&std::getenv("MEDIA_SERVER_NATIVE_CAPTURE_RETRY_ONLY")){
+ for(unsigned invalidations:{1U,2U}){
+  auto owner=std::make_shared<SearchModelResidency>();
+  {
+   RecordingSearchReader source(catalog,reader);SearchModelLimits limits{100000,64*1024*1024,owner};
+   std::shared_ptr<const RecordingSearchModel> base,result,oracle;SearchSourceBatch retry;
+   Need101(source.Refresh({"9101"},{},&base,&error,limits,false),"density-retry-base:"+error);
+   write("9101",runtime.WriterOptions(2000));unsigned builds=0;
+   SearchDiagnostic::HttpRequest request("native-density-post-build-"+std::to_string(invalidations));SearchDiagnostic diagnostic(owner.get());
+   search_after_build_test=[&]{if(++builds<=invalidations)write("9101",runtime.WriterOptions(2000));};
+   const auto begin=Clock::now();
+   for(unsigned attempt=0;attempt<=invalidations;++attempt){
+    diagnostic.attempt=attempt;
+    const bool ok=source.Refresh({"9101"},base,&result,&error,limits,false,&retry);
+    Need101(ok==(attempt==invalidations),"density-post-build-retry-outcome:"+error);
+    if(!ok)Need101(error=="search-source-changed"&&!result,"density-no-stale-publication");
+    std::cout<<"[density-reused-segments] attempts="<<invalidations+1<<" attempt="<<attempt<<" reused="<<RecordingSearchRetryTestProbe::Reused(retry)<<'\n';
+   }
+   const double elapsed=std::chrono::duration<double,std::milli>(Clock::now()-begin).count();
+   search_after_build_test={};diagnostic.status=200;
+   Need101(builds==invalidations+1&&retry.memory.bytes()==0,"density-post-build-count-return");
+   for(unsigned i=0;i<diagnostic.capture_count;++i)std::cout<<Capture101("post-build",invalidations+1,i,diagnostic.id,diagnostic.captures[i]);
+   std::cout<<"[density-post-build] attempts="<<invalidations+1<<" elapsedMs="<<elapsed<<" peak="<<owner->peak()<<" current="<<owner->used()<<" documents="<<result->documents().size()<<std::endl;
+   // Independent full source verifies ordering, identity, mapping and lifecycle.
+   search_projection_reuse_test_enabled=false;
+   Need101(source.Refresh({"9101"},{},&oracle,&error,limits,false),"density-post-build-oracle:"+error);
+   search_projection_reuse_test_enabled=true;
+   Need101(result->documents().size()==oracle->documents().size(),"density-post-build-cardinality");
+   for(std::size_t i=0;i<oracle->documents().size();++i){
+    const auto fields=[](const auto& d){return std::tie(d.id,d.channel_id,d.segment_id,d.source_id,d.store_id,d.media_epoch_id,d.stream_epoch_id,
+     d.start_ns,d.end_ns,d.time_provenance,d.uncertainty_ns,d.media_pts,d.media_end_pts,d.time_base_num,d.time_base_den,d.unavailable_reason);};
+    Need101(fields(result->documents()[i])==fields(oracle->documents()[i]),"density-post-build-fields-order");
+   }
+  }
+  Need101(owner->used()==0,"density-post-build-owner-return");
+  std::cout<<"[density-post-build-return] attempts="<<invalidations+1<<" owner=0\n";
+ }
+ Need101(runtime.Finish(&error),"density-retry-finish:"+error);Need101(trace.Emit("after-Finish"),"density-retry-final-resource");
+ std::cout<<"[density-retry-result] passed=1\n";return 0;
+ }
+#endif
  VS::Options options;options.enabled=true;options.model_directory=argv[2];options.cache_directory=(root/"visual-cache").string();options.scan_seconds=1;options.sample_seconds=1;
  const VS::Authorize auth=[](const std::string& c){return c=="9101"||c=="9201";};
  Observer101("model");

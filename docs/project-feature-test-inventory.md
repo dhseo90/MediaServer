@@ -5564,3 +5564,10 @@ MEDIA-012-STATE-INPUT-F01 합성 계약 보충: `assessSyntheticStateWriterSegme
 - 기존 실제 Writer/Retention retry fixture의 baseline arm은 Capture3/rebuild2/Build0/503 assertion을 보존한다. delta arm은 같은 매-Capture 삭제 경쟁에서 Capture2/rebuild1/Build1/200과 독립 최신 전체 Search의 items/count/query 일치를 요구한다. 예상 RED는 제품 delta 미구현일 때 이 두 번째 arm의 개선 assertion이다. 반복 삭제 완료·Checkpoint·동시2요청·corruption/authority·부분 적용 예외·자원 부족·변경 이력 한계의 거부 및 마지막 예약/FD 반환을 직접 대조한다.
 - 문서 수정/제거·정확한 vector 압축은 Catalog 잠금 밖에서 수행하며 기존 Capture 예산에 두 buffer를 계상한다. 이전 불변 Source·Reader는 유지하고 제거 payload를 새 공유 블록에 붙잡아 두지 않는다. 기존 Source/Scope/Generation/Playback/Retention/Visual Native와 `-Wall -Wextra -Werror`, 제품 구문·diff 검사를 재사용한다. 안정화 Native 범위이며 State45·S03·UI·120분·Memory P0의 PASS를 대체하지 않는다.
 - 최종 경계 회귀: 실제 Writer의 31·32개 변경은 최신 전체 재수집과 같아야 하며 33개·긴 ID는 거부한다. 동일 Segment의 실제 durable 상태 mutation 1,024개는 중복 집계 후 허용하고 1,025개로 필요한 revision이 덮어써지면 거부한다. 잠금 밖 Delta 적용 도중 실제 Writer 재진입은 완료되되, 변경된 revision의 부분 결과는 Build 전에 거부하고 기존 Source·Owner를 보존한다.
+
+### STATE45-CAPTURE-REUSE-01 — Build 이후 요청 내 인증된 Span 재사용
+
+- 내부 Native 안정화 범위. 기존 Search retry의 실제 Writer/Generation·밀도1070행/41310 Mapping fixture를 재사용한다. 예상 RED는 공유 모델 Build 중 Writer 확정 뒤 미게시 재시도 배치의 인증된 SegmentSpan이 사라지는 assertion이다. 게시된 Source를 변경하지 않고, 기존 Capture 참조 배열·예약 안에서 Span prefix 위치를 복원하는 후보를 검증한다.
+- 현재 전체 Raw 인증, Catalog instance·scope·owner·한도, digest/size·Segment ID·Lifecycle·현재 revision 검사는 유지한다. pre/post-Build의 digest/size/range·Lifecycle·scope/owner·capacity·consumer 예외와 Retention/tombstone/retired·Generation 회귀는 strict oracle 및 자원 반환을 대조한다. 새로운 Cache·Raw 사본·장기 소유권·예약 한도는 도입하지 않는다.
+- 기존 밀도 fixture의 최초 Capture와 Writer 확정 후 Refresh2/3을 별도 측정한다. 동일 Native fixture에 수정 전·후 Reader를 결합해 Decode·Mapping 처리, Capture/Raw/잠금 밖·Catalog/History 시간과 Owner/Scratch/FD를 비교한다. 기존 재사용 toggle의 A/B 및 Structured2·Visual/Writer 중첩 검사도 유지한다. 제품 전체 Build·State45·S03·UI·Memory P0 PASS로 확대하지 않는다.
+- `MEDIA_SERVER_NATIVE_CAPTURE_RETRY_ONLY=1`은 같은 density 입력의 후속 Refresh2/3을 모델 기동 전에 실행하는 focused Native 부분집합이다. 기존 혼합12요청·180초 감독 검사는 이 변수를 사용하지 않고 별도로 판정한다. 기존 전체 검사에 새 사례를 덧붙여 한도를 초과한 실행은 실패로 보존하며, 한도 상향이나 기존 assertion 생략으로 합격시키지 않는다.

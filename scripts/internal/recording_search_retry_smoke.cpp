@@ -32,11 +32,12 @@ struct RecordingSearchRetryTestProbe {
  static std::size_t Reused(const SearchSourceBatch& b){return b.reused_segments_;}
 #ifdef RECORDING_SEARCH_TESTING
  static std::string SharedSpan(SearchSourceBatch& b,const std::string& fault) {
+  if(fault=="instance")++b.catalog_instance;
   for(auto& [id,span]:b.segment_spans_)if(span.shared_count){
    // Earlier cases leave corrupt/pending rows in this shared fixture. This
    // case must perform a real Finalized -> Corrupt transition, never a no-op
    // or a rejected transition selected by unordered_map iteration order.
-   if(fault=="lifecycle"&&span.lifecycle!=RecordingLifecycle::Finalized)continue;
+   if((fault=="lifecycle"||fault=="pending"||fault=="retired")&&span.lifecycle!=RecordingLifecycle::Finalized)continue;
    if(fault=="digest")span.digest[0]^=1;
    if(fault=="size")++span.raw_bytes;
    if(fault=="range")span.shared_begin=b.shared_documents_.size();
@@ -552,6 +553,8 @@ int main(int argc,char** argv){
     need(!reader.Refresh({"channel-1"},base,&child,&error,{100000,64*1024*1024,owner},false,&shared_retry)&&
          error=="search-source-changed"&&!child&&shared_races==1&&shared_retry.memory.bytes()>0,
          "R169 shared build rejects concurrent finalization without publishing output");
+    need(RecordingSearchRetryTestProbe::Spans(shared_retry)>0,
+         "post-Build shared retry preserves authenticated segment spans");
     search_after_build_test={};search_projection_work_test={};
     need(reader.Refresh({"channel-1"},base,&child,&error,{100000,64*1024*1024,owner},false,&shared_retry)&&
          shared_retry.memory.bytes()==0&&search_projection_work_test[2]>base->documents().size(),
@@ -583,31 +586,48 @@ int main(int argc,char** argv){
 
   // Error boundaries use the actual consumed shared retry, not a copied DTO
   // fixture. An invalid optional span must take the strict current raw path.
-  for(const std::string fault:{"digest","size","range","lifecycle","build-refusal","exception","capacity","scope","owner"}) {
+  for(const bool post_build:{false,true})
+  for(const std::string fault:{"digest","size","range","lifecycle","pending","retired","checkpoint","build-refusal","exception","consumer","resource","capacity","scope","owner","instance"}) {
     auto owner=std::make_shared<SearchModelResidency>();auto foreign=std::make_shared<SearchModelResidency>();
     SearchModelLimits limits{100000,64*1024*1024,owner};SearchSourceBatch retry;
     std::shared_ptr<const RecordingSearchModel> base,result,oracle;
     need(reader.Refresh({"channel-1"},{},&base,&error,limits,false),"shared retry boundary base");
     write("shared-boundary-before-"+fault);result=base;
-    search_after_capture_test=[&]{write("shared-boundary-during-"+fault);};
+    const auto invalidate=[&]{write("shared-boundary-during-"+fault);};
+    if(post_build)search_after_build_test=invalidate;else search_after_capture_test=invalidate;
     need(!reader.Refresh({"channel-1"},base,&result,&error,limits,false,&retry)&&error=="search-source-changed"&&result==base,
-        "shared pre-Build retry rejects real Writer revision change without publishing");
-    search_after_capture_test={};
+        "shared pre/post-Build retry rejects real Writer revision change without publishing");
+    search_after_capture_test={};search_after_build_test={};
     const auto identity=RecordingSearchRetryTestProbe::SharedSpan(retry,fault);
-    need(!identity.empty(),"shared pre-Build batch owns authenticated raw projection spans");
+    need(!identity.empty(),"shared pre/post-Build batch owns authenticated raw projection spans");
     if(fault=="lifecycle"){
       const bool changed=catalog.MarkSegmentCorrupt(identity,"container-invalid",&error);
       if(!changed)throw std::runtime_error("shared retry real current lifecycle change: "+error);
       need(changed,"shared retry real current lifecycle change");
     }
+    if(fault=="pending"||fault=="retired"){
+      const auto location=catalog.FindSegmentMediaLocation(identity);
+      need(location&&catalog.RequestDeletion(identity,"continuous-capacity",&error),"shared retry actual deletion pending");
+      if(fault=="retired"){
+        RecordingTombstoneV2 tombstone;tombstone.tombstone_id="retry-retired-"+identity;tombstone.segment=*catalog.FindSegmentV2ById(identity);
+        tombstone.deletion_reason="continuous-capacity";tombstone.deleted_at_ms=1792920000000LL;
+        need(std::filesystem::remove(location->first/location->second)&&catalog.CompleteDeletionV2(tombstone,&error),"shared retry actual tombstone and retired state");
+      }
+    }
+    if(fault=="checkpoint")need(catalog.Checkpoint(&error),"shared retry actual Generation transition");
     if(fault=="exception")search_outside_raw_cut_test=[] {throw std::bad_alloc();};
+    if(fault=="consumer")search_outside_raw_cut_test=[] {throw std::runtime_error("retry-consumer-fault");};
+    if(fault=="resource")search_outside_raw_cut_test=[] {throw RecordingResourceUnavailable();};
     if(fault=="build-refusal")search_projection_build_refused_test=true;
     auto actual_limits=limits;if(fault=="capacity")actual_limits.max_documents=1;if(fault=="owner")actual_limits.residency=foreign;
     const std::vector<std::string> channels{fault=="scope"?"empty-scope":"channel-1"};
-    const bool ok=reader.Refresh(channels,base,&result,&error,actual_limits,false,&retry);
+    bool ok=false,consumer_threw=false;
+    try {ok=reader.Refresh(channels,base,&result,&error,actual_limits,false,&retry);}
+    catch(const std::runtime_error& e){if(fault!="consumer"||std::string(e.what())!="retry-consumer-fault")throw;consumer_threw=true;}
     search_outside_raw_cut_test={};search_projection_build_refused_test=false;
     need(retry.memory.bytes()==0,"shared retry consumed exactly once on success or failure");
-    if(fault=="exception"||fault=="capacity")need(!ok&&error=="search-capacity-exceeded"&&result==base,
+    if(fault=="consumer")need(consumer_threw&&!ok&&result==base,"consumer exception propagates without publishing or poisoning source");
+    else if(fault=="exception"||fault=="capacity")need(!ok&&error=="search-capacity-exceeded"&&result==base,
         "shared retry allocation and admission failure preserve immutable output");
     else {
       need(ok,"shared retry boundary strict fallback succeeds");
@@ -616,6 +636,11 @@ int main(int argc,char** argv){
           "shared retry boundary fields and ordering equal independent full authenticated source");
       search_projection_reuse_test_enabled=true;
     }
+    if(fault=="consumer"||fault=="exception"){
+      need(reader.Refresh({"channel-1"},{},&oracle,&error,limits,false),"consumer failure leaves authoritative source readable");
+      write("after-consumer-"+fault);need(catalog.Checkpoint(&error),"consumer failure leaves Writer and Generation available");
+    }
+    std::cout<<"[shared-retry-boundary] postBuild="<<post_build<<" fault="<<fault<<" passed=1\n";
     base.reset();result.reset();oracle.reset();
     need(owner->used()==0&&foreign->used()==0,"shared retry boundary returns every model batch and span reservation");
   }
