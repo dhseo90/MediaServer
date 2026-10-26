@@ -107,7 +107,7 @@ check('malformed provided edge collection cannot be captured',()=>{
 // 실제 실행기의 환경/launch/종료 요약을 실행한다. 제품 서버는 명시적인 Node 자식 대역이다.
 const mixedSource=fs.readFileSync(new URL('./v450_recording_a_mixed.mjs',import.meta.url),'utf8');
 function mixedBoundary(source=mixedSource,diagnose=true){
-  const context=vm.createContext({path,process,repo:'/owned-repo',root:'/owned-run',diagnose,stateDiagnose:false,memoryDiagnose:false,memoryObserve:false,contentionDiagnose:false,
+  const context=vm.createContext({path,process,repo:'/owned-repo',root:'/owned-run',stateExecution:null,diagnose,stateDiagnose:false,memoryDiagnose:false,memoryObserve:false,contentionDiagnose:false,
     http:61001,rtsp:61002,stun:61003,frameTraceSummary,assertMixedFrameTraceMode,parseLongrunArgs,
     short:false,args:diagnose?['--frame-diagnostic']:['--duration-minutes','120'],console:{log(){}}});
   const declaration=(source.match(/^const frameTraceMode=.*;$/m)?.[0]??'')+'\n'+source.match(/^const duration=.*;$/m)[0];
@@ -129,7 +129,14 @@ function childMode(boundary){
   vm.runInContext(boundary.launch+'\nglobalThis.childResult=child;',boundary.context);
   assert.equal(called,1);return boundary.context.childResult.trace;
 }
-check('state diagnostic2700 keeps bounded and holder off',()=>{const b=mixedBoundary();b.context.stateDiagnose=true;b.context.memoryObserve=true;vm.runInContext(mixedSource.match(/^const duration=.*;$/m)[0].replace('const duration','globalThis.stateDuration'),b.context);assert.equal(b.context.stateDuration,2700000);assert.equal(childMode(b),'bounded');assert.equal(vm.runInContext('environment(1,2,3).MEDIA_SERVER_VERIFY_CATALOG_HOLDER_TRACE',b.context),'0');});
+check('state diagnostic2700 keeps bounded and holder off',()=>{const b=mixedBoundary();b.context.stateDiagnose=true;b.context.memoryObserve=true;vm.runInContext(mixedSource.match(/^const duration=.*;$/m)[0].replace('const duration','globalThis.stateDuration'),b.context);assert.equal(b.context.stateDuration,2700000);assert.equal(childMode(b),'bounded');assert.equal(vm.runInContext('environment(1,2,3).MEDIA_SERVER_VERIFY_CATALOG_HOLDER_TRACE',b.context),'0');
+  assert.equal(vm.runInContext('environment(1,2,3).MEDIA_SERVER_BIN_PATH',b.context),'/owned-repo/build-gst-onnx/media_server');
+  b.context.stateExecution={product:'/qualified/build/media_server',runtime:'/qualified/build/libmedia_server_runtime.a'};
+  assert.equal(vm.runInContext('environment(1,2,3).MEDIA_SERVER_BIN_PATH',b.context),b.context.stateExecution.product);
+  assert.equal(vm.runInContext('environment(1,2,3).MEDIA_SERVER_BUILD_DIR',b.context),'/qualified/build');
+  const opt=mixedBoundary();Object.assign(opt.context,{stateDiagnose:true,memoryObserve:true,stateExecution:b.context.stateExecution});
+  assert.equal(childMode(opt),'bounded');
+});
 check('R72-V1 actual600 child environment receives bounded',()=>{const b=mixedBoundary();assert.equal(vm.runInContext('duration',b.context),600000);assert.equal(childMode(b),'bounded');});
 check('R72-V1 actual600 final summary expects the child bounded mode',()=>{
   const b=mixedBoundary();b.context.text=trace(diagnostic);b.context.app={requiresFrameTrace:true};

@@ -6,6 +6,7 @@ import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {execFileSync} from 'node:child_process';
 import {mixedRecordingProfile} from './recording_longrun_progress.mjs';
+import {instrumentCatalog} from './recording_archive_diagnostic_profile.mjs';
 
 export const EARLY_STATE_INPUT = Object.freeze({
   name:'state-early-cbr224-v1', width:160, height:90, fps:30, frames:120,
@@ -40,7 +41,15 @@ export const STATE_PRODUCT_SMOKE_SHA=Object.freeze({
   result:'63fe3e5c8971bd3c5eceedc42ab445aa7b3e15d1941a326640dbf71d1d211b96',
   source:'b2f10911c88126bc35db78f335a7d74c57b8538e3f98928266be5bcdfa21be33',
   models:'7ef5ad7417ceaf245652bb92b6883e78498daf761918430987ca1617e6d82228',
+  catalogInstrumented:'03dba9c9c535f97202ac40e7c817aeea0c82aae72abe6478da99ec0a3fc00817',
 });
+export function stateHelperBytes(entry){
+  if(entry.generator===undefined)return boundFile(entry.path,entry.sha256);
+  need(entry.generator==='instrumentCatalog','state-helper-generator');
+  const bytes=Buffer.from(instrumentCatalog(fs.readFileSync(entry.path,'utf8')));
+  need(bytes.length===entry.bytes&&sha(bytes)===entry.sha256,'state-helper-generated-binding');
+  return bytes;
+}
 function bindCurrentStateProduct(directory,product,runtime){
   need(typeof directory==='string'&&path.isAbsolute(directory),'state-product-smoke-path');
   const smoke=JSON.parse(boundFile(path.join(directory,'result.json'),STATE_PRODUCT_SMOKE_SHA.result));
@@ -50,7 +59,7 @@ function bindCurrentStateProduct(directory,product,runtime){
   need(product===artifacts.media_server.preserved&&runtime===artifacts['libmedia_server_runtime.a'].preserved,'state-product-smoke-selection');
   boundFile(product,STATE_PRODUCT_SMOKE_SHA.product);boundFile(runtime,STATE_PRODUCT_SMOKE_SHA.runtime);
   const repo=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../..');
-  const currentScripts=new Set(['docs/project-feature-test-inventory.md','scripts/internal/recording_accumulated_cost.test.mjs','scripts/internal/recording_state_input_profile.mjs','scripts/internal/recording_state_input_profile.test.mjs']);
+  const currentScripts=new Set(['docs/project-feature-test-inventory.md','scripts/internal/recording_longrun_progress.test.mjs','scripts/internal/recording_accumulated_cost.test.mjs','scripts/internal/recording_state_input_profile.mjs','scripts/internal/recording_state_input_profile.test.mjs']);
   const changed=execFileSync('git',['diff','--name-only',smoke.head,'--'],{cwd:repo,encoding:'utf8'}).trim().split('\n').filter(Boolean);
   need(changed.every(p=>currentScripts.has(p)),'state-product-smoke-source-diff');
   let matched=0;
@@ -74,7 +83,11 @@ function bindCurrentStateProduct(directory,product,runtime){
     const entry=smoke.helpers[name];boundFile(entry.preservedPath,entry.sha256);
     helpers[name]={path:entry.preservedPath,sha256:entry.sha256};
   }
-  // State는 Snapshot/Recovery를 실행하지 않아 이미 삭제된 instrumentation 중간 소스가 필요 없다.
+  // Snapshot 실행 여부와 별개로 freezeCurrentWorkspace의 필수 고정 파일이다.
+  // 기존 생성 함수를 재사용하고 Smoke 당시 검증된 바이트에 결속한다. 재컴파일하지 않는다.
+  helpers['catalog-instrumented.cpp']={path:path.join(repo,'src/recording/recording_catalog.cpp'),
+    generator:'instrumentCatalog',bytes:376755,sha256:STATE_PRODUCT_SMOKE_SHA.catalogInstrumented};
+  stateHelperBytes(helpers['catalog-instrumented.cpp']);
   return {helpers,matched,sha256:{...STATE_BINDING_SHA,product:STATE_PRODUCT_SMOKE_SHA.product,runtime:STATE_PRODUCT_SMOKE_SHA.runtime},
     productSmoke:directory,productSmokeSha256:STATE_PRODUCT_SMOKE_SHA.result,freshness};
 }
@@ -150,7 +163,7 @@ if(process.argv[1]&&path.resolve(process.argv[1])===fileURLToPath(import.meta.ur
     const root=process.argv[3];need(root&&path.isAbsolute(root)&&fs.realpathSync(root)===root,'state-helper-root');
     const st=fs.lstatSync(root);need(st.isDirectory()&&st.uid===process.getuid()&&(st.mode&0o777)===0o700,'state-helper-root');
     for(const [name,entry] of Object.entries(binding.helpers)){
-      const bytes=boundFile(entry.path,entry.sha256),target=path.join(root,name);
+      const bytes=stateHelperBytes(entry),target=path.join(root,name);
       fs.writeFileSync(target,bytes,{flag:'wx',mode:name.endsWith('.cpp')?0o600:0o700});boundFile(target,entry.sha256);
     }
   }

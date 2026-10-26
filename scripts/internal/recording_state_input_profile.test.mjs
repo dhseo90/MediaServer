@@ -7,8 +7,8 @@ import os from 'node:os';
 import path from 'node:path';
 import {spawnSync} from 'node:child_process';
 import {EARLY_STATE_INPUT as p,selectStateInputProfile,requireStateInputExecutable,stateInputArgs,stateInputProbeArgs,
-  validateStateInputMedia,stateInputCapacity,assessSyntheticStateWriterSegments,validateQualifiedStateInput,STATE_BINDING_SHA,STATE_PRODUCT_SMOKE_SHA,assessQualifiedStateReview} from './recording_state_input_profile.mjs';
-import {workspaceBounds} from './recording_current_observer.mjs';
+  validateStateInputMedia,stateInputCapacity,assessSyntheticStateWriterSegments,validateQualifiedStateInput,STATE_BINDING_SHA,STATE_PRODUCT_SMOKE_SHA,assessQualifiedStateReview,stateHelperBytes} from './recording_state_input_profile.mjs';
+import {workspaceBounds,freezeCurrentWorkspace,measureCurrentWorkspace} from './recording_current_observer.mjs';
 import {mixedRecordingProfile} from './recording_longrun_progress.mjs';
 const sha=b=>crypto.createHash('sha256').update(b).digest('hex');
 const sourceSha='a'.repeat(64),inputSha='b'.repeat(64);
@@ -147,6 +147,19 @@ test('State consumer preserves duration, source guard, fixture branch and defaul
   assert(wrapper.includes('node "$observer_script/recording_state_input_profile.mjs" --install-helpers "$observer_run"\nelse\nobserver_build="$observer_repo/build-gst-onnx"'));
 });
 const replay=process.env.MEDIA_SERVER_STATE_BINDING_TEST;
+test('required generated helper rejects missing source, changed bytes, size and SHA',()=>{
+  const entry={path:path.resolve('src/recording/recording_catalog.cpp'),generator:'instrumentCatalog',bytes:376755,
+    sha256:'03dba9c9c535f97202ac40e7c817aeea0c82aae72abe6478da99ec0a3fc00817'};
+  assert.equal(stateHelperBytes(entry).length,376755);
+  const dir=fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(),'media-server-state-source-test-')));
+  try{
+    const changed=path.join(dir,'catalog.cpp');fs.writeFileSync(changed,fs.readFileSync(entry.path,'utf8')+'\n');
+    for(const patch of [{path:changed},{bytes:376754},{sha256:'0'.repeat(64)}])
+      assert.throws(()=>stateHelperBytes({...entry,...patch}),/state-helper-generated-binding/);
+    assert.throws(()=>stateHelperBytes({...entry,path:path.join(dir,'missing')}),/ENOENT/);
+    assert.throws(()=>stateHelperBytes({...entry,generator:'unknown'}),/state-helper-generator/);
+  }finally{fs.rmSync(dir,{recursive:true});assert(!fs.existsSync(dir));}
+});
 assert(replay===undefined||replay==='1','MEDIA_SERVER_STATE_BINDING_TEST must be unset or 1');
 test('qualified State binding: preserved real evidence and stale/missing assets', {skip:replay!=='1'},()=>{
   const env=process.env,binding=requireStateInputExecutable(p,env);
@@ -154,7 +167,7 @@ test('qualified State binding: preserved real evidence and stale/missing assets'
   const current=env.MEDIA_SERVER_STATE_PRODUCT_SMOKE!==undefined;
   assert.equal(binding.sha256.product,current?'3f40e4b6530e9c89922d31004dd9c9b758cf338ec165989835aff9f5d042bddc':'ed42ee3c55a3e48c2b30d564aa0397bf15c9acd5a89ad2145f1accc10546f4a8');
   assert.equal(binding.sha256.runtime,current?'da42acfb1d41fe4690a1440999d44a485591ee9c9b814ddb9c1e357b35c6bf83':'d9081c27bd5a0966e19719136b51b92433a3e67f79f4c56cbf70666f95a194b4');
-  assert(binding.matched>1500);assert.equal(Object.keys(binding.helpers).length,current?3:4);
+  assert(binding.matched>1500);assert.equal(Object.keys(binding.helpers).length,4);
   assert.equal(validateQualifiedStateInput(fs.readFileSync(binding.input)).bytes,120647);
   const dir=fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(),'media-server-state-binding-test-')));fs.chmodSync(dir,0o700);
   try{
@@ -179,5 +192,29 @@ test('qualified State binding: preserved real evidence and stale/missing assets'
     const run=spawnSync(process.execPath,['scripts/internal/recording_state_input_profile.mjs','--install-helpers',helpers],{env,encoding:'utf8',timeout:20000});
     assert.equal(run.status,0,run.stderr);
     for(const [name,entry] of Object.entries(binding.helpers))assert.equal(sha(fs.readFileSync(path.join(helpers,name))),entry.sha256);
+    // 실제 opt-in CLI 설치물에 검증된 두 입력을 놓고 제품과 동일한 Freeze/측정 경로를 실행한다.
+    fs.mkdirSync(path.join(helpers,'input'));
+    for(const id of ['9101','9201'])fs.copyFileSync(binding.input,path.join(helpers,'input',`retention-${id}.mp4`));
+    const frozen=freezeCurrentWorkspace(helpers);
+    assert.deepEqual(frozen.files.map(f=>f.name),['input/retention-9101.mp4','input/retention-9201.mp4','normalize','process-metrics','catalog-instrumented.cpp']);
+    for(const f of frozen.files){
+      assert.equal(f.sha256,f.name.startsWith('input/')?STATE_BINDING_SHA.input:binding.helpers[f.name].sha256);
+      assert.equal(f.size,fs.statSync(path.join(helpers,f.name)).size);
+    }
+    if(current){
+      const source=frozen.files.find(f=>f.name==='catalog-instrumented.cpp');
+      assert.equal(source.size,376755);assert.equal(source.sha256,'03dba9c9c535f97202ac40e7c817aeea0c82aae72abe6478da99ec0a3fc00817');
+    }
+    assert.equal(measureCurrentWorkspace(helpers,frozen).fixedBytes,frozen.fixedBytes);
+    const sourceFile=path.join(helpers,'catalog-instrumented.cpp'),original=fs.readFileSync(sourceFile);
+    fs.writeFileSync(sourceFile,Buffer.concat([original,Buffer.from('\n')]));
+    assert.throws(()=>measureCurrentWorkspace(helpers,frozen),/workspace-fixed-changed/);
+    fs.writeFileSync(sourceFile,original);
+    for(const name of frozen.files.map(f=>f.name)){
+      const file=path.join(helpers,name),saved=file+'.saved';fs.renameSync(file,saved);
+      try{assert.throws(()=>freezeCurrentWorkspace(helpers),/ENOENT/);}finally{fs.renameSync(saved,file);}
+    }
+    assert.doesNotThrow(()=>freezeCurrentWorkspace(helpers));
+    console.log(JSON.stringify({scope:'actual-state-install-freeze',files:frozen.files.map(({name,size,sha256})=>({name,size,sha256})),missingFilesRejected:5,installedMutationRejected:true}));
   }finally{fs.rmSync(dir,{recursive:true});assert(!fs.existsSync(dir));}
 });
