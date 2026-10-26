@@ -164,14 +164,60 @@ assert(replay===undefined||replay==='1','MEDIA_SERVER_STATE_BINDING_TEST must be
 test('qualified State binding: preserved real evidence and stale/missing assets', {skip:replay!=='1'},()=>{
   const env=process.env,binding=requireStateInputExecutable(p,env);
   assert.equal(binding.product,env.MEDIA_SERVER_STATE_PRODUCT);assert.equal(binding.runtime,env.MEDIA_SERVER_STATE_RUNTIME);
-  const current=env.MEDIA_SERVER_STATE_PRODUCT_SMOKE!==undefined;
-  assert.equal(binding.sha256.product,current?'3f40e4b6530e9c89922d31004dd9c9b758cf338ec165989835aff9f5d042bddc':'ed42ee3c55a3e48c2b30d564aa0397bf15c9acd5a89ad2145f1accc10546f4a8');
-  assert.equal(binding.sha256.runtime,current?'da42acfb1d41fe4690a1440999d44a485591ee9c9b814ddb9c1e357b35c6bf83':'d9081c27bd5a0966e19719136b51b92433a3e67f79f4c56cbf70666f95a194b4');
-  assert(binding.matched>1500);assert.equal(Object.keys(binding.helpers).length,4);
+  const verified=env.MEDIA_SERVER_STATE_VERIFIED_RESULT!==undefined;
+  const current=env.MEDIA_SERVER_STATE_PRODUCT_SMOKE!==undefined&&!verified;
+  assert.equal(binding.sha256.product,verified?'d5b561dc58b203cbbca20e5450afb850a3a84507f466fe99eb70b23715719a67':current?'3f40e4b6530e9c89922d31004dd9c9b758cf338ec165989835aff9f5d042bddc':'ed42ee3c55a3e48c2b30d564aa0397bf15c9acd5a89ad2145f1accc10546f4a8');
+  assert.equal(binding.sha256.runtime,verified?'cca20ab07bb1ae3a39bad63a2fa91cb1e25c2099db90604d5427f8a9e63de974':current?'da42acfb1d41fe4690a1440999d44a485591ee9c9b814ddb9c1e357b35c6bf83':'d9081c27bd5a0966e19719136b51b92433a3e67f79f4c56cbf70666f95a194b4');
+  if(verified){
+    const sources=JSON.parse(fs.readFileSync(path.join(path.dirname(env.MEDIA_SERVER_STATE_VERIFIED_RESULT),'source-manifest.json')));
+    const models=JSON.parse(fs.readFileSync(path.join(env.MEDIA_SERVER_STATE_PRODUCT_SMOKE,'model-sha256.json')));
+    assert.equal(binding.matched,Object.keys(sources).length+Object.keys(models).length);
+  }else assert(binding.matched>1500);
+  assert.equal(Object.keys(binding.helpers).length,4);
   assert.equal(validateQualifiedStateInput(fs.readFileSync(binding.input)).bytes,120647);
   const dir=fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(),'media-server-state-binding-test-')));fs.chmodSync(dir,0o700);
   try{
     const changed=path.join(dir,'input.mp4');fs.writeFileSync(changed,Buffer.alloc(120647));
+    if(verified){
+      assert.equal(binding.verifiedResultSha256,'3d612a61529bbea52db695d88b2af06652c7e403999a6894a3188657cbe1d5d7');
+      assert.equal(binding.freshness.status,'PASS_TARGET_AWARE_PREFLIGHT');
+      const cli=spawnSync(process.execPath,['scripts/internal/recording_state_input_profile.mjs','--binding'],{env,encoding:'utf8',timeout:20000});
+      assert.equal(cli.status,0,cli.stderr);assert.deepEqual(JSON.parse(cli.stdout),binding);
+      const original=JSON.parse(fs.readFileSync(env.MEDIA_SERVER_STATE_VERIFIED_RESULT));
+      fs.copyFileSync(path.join(path.dirname(env.MEDIA_SERVER_STATE_VERIFIED_RESULT),'source-manifest.json'),path.join(dir,'source-manifest.json'));
+      const altered=path.join(dir,'result.json');
+      // 테스트에서만 변형 결과에 별도 기대 digest를 제공해 최초 SHA 검사 이후 오류 경계를 검사한다.
+      const reject=(name,mutate,pattern)=>{
+        const value=structuredClone(original);mutate(value);
+        const bytes=Buffer.from(JSON.stringify(value));fs.writeFileSync(altered,bytes);
+        fs.writeFileSync(path.join(dir,'build-binding.json'),JSON.stringify(value.binding));
+        assert.throws(()=>requireStateInputExecutable(p,{...env,MEDIA_SERVER_STATE_VERIFIED_RESULT:altered,
+          MEDIA_SERVER_STATE_VERIFIED_RESULT_SHA256:sha(bytes)}),pattern,name);
+        console.log(JSON.stringify({scope:'verified-result-rejection',name,passed:true}));
+      };
+      reject('missing build field',v=>{delete v.build;},/state-verified-result-status/);
+      reject('unsupported schema',v=>{v.schema='unsupported';},/state-verified-result-schema/);
+      reject('failed build',v=>{v.build.exit=1;},/state-verified-result-status/);
+      reject('incomplete HTTP',v=>{delete v.integration.sourceEnd;},/state-verified-source-binding/);
+      reject('source mismatch',v=>{v.integration.sourceStart.head='0'.repeat(40);},/state-verified-source-binding/);
+      reject('product SHA mismatch',v=>{v.binding.artifacts.media_server.sha256='0'.repeat(64);},/state-verified-source-product/);
+      reject('runtime SHA mismatch',v=>{v.binding.artifacts['libmedia_server_runtime.a'].sha256='0'.repeat(64);},/state-binding-sha/);
+      reject('source manifest mismatch',v=>{v.binding.sourceManifestSHA256='0'.repeat(64);},/state-binding-sha/);
+      reject('helper missing',v=>{v.analysis.fixedBinding[0].root=dir;},/ENOENT/);
+      reject('helper altered digest',v=>{v.analysis.helperHashes.normalize.sha256='0'.repeat(64);},/state-binding-sha/);
+      reject('missing helper field',v=>{delete v.analysis.helperHashes.normalize;},/state-verified-helper-field/);
+      for(const patch of [{MEDIA_SERVER_STATE_VERIFIED_RESULT:path.join(dir,'absent')},
+        {MEDIA_SERVER_STATE_VERIFIED_RESULT_SHA256:'0'.repeat(64)},
+        {MEDIA_SERVER_STATE_VERIFIED_RESULT_SHA256:undefined},
+        {MEDIA_SERVER_STATE_VERIFIED_RESULT:undefined},
+        {MEDIA_SERVER_STATE_PRODUCT:'/private/tmp/media-server-product-smoke-aa3wkyf0/build/media_server'},
+        {MEDIA_SERVER_STATE_RUNTIME:'/private/tmp/media-server-product-smoke-aa3wkyf0/build/libmedia_server_runtime.a'}])
+        assert.throws(()=>requireStateInputExecutable(p,{...env,...patch}));
+      // 旧 인터페이스를 최신 증거로 대체하면 고정 SHA 거부를 유지한다.
+      assert.throws(()=>requireStateInputExecutable(p,{...env,MEDIA_SERVER_STATE_VERIFIED_RESULT:undefined,
+        MEDIA_SERVER_STATE_VERIFIED_RESULT_SHA256:undefined,MEDIA_SERVER_STATE_PRODUCT_SMOKE:path.dirname(env.MEDIA_SERVER_STATE_VERIFIED_RESULT)}),/state-binding-sha/);
+    }
+
     if(current){
       assert.equal(binding.productSmokeSha256,STATE_PRODUCT_SMOKE_SHA.result);
       assert.equal(binding.freshness.status,'PASS_TARGET_AWARE_PREFLIGHT');

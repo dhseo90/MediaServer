@@ -91,6 +91,79 @@ function bindCurrentStateProduct(directory,product,runtime){
   return {helpers,matched,sha256:{...STATE_BINDING_SHA,product:STATE_PRODUCT_SMOKE_SHA.product,runtime:STATE_PRODUCT_SMOKE_SHA.runtime},
     productSmoke:directory,productSmokeSha256:STATE_PRODUCT_SMOKE_SHA.result,freshness};
 }
+// 명시적 외부 기대 SHA가 신뢰 기준이다. 결과 내부의 자기 선언 SHA로 최초 인증하지 않는다.
+function bindVerifiedStateProduct(env,product,runtime){
+  const resultPath=env.MEDIA_SERVER_STATE_VERIFIED_RESULT;
+  const digest=env.MEDIA_SERVER_STATE_VERIFIED_RESULT_SHA256;
+  need(hash(digest),'state-verified-result-expectation');
+  const result=JSON.parse(boundFile(resultPath,digest)),directory=path.dirname(resultPath);
+  need(result.schema==='preparation-product-review-result-v1','state-verified-result-schema');
+  need(result.verdicts?.review==='PREPARATION_REVIEW_VERIFIED'&&
+    result.verdicts?.build==='PRODUCT_BUILD_LINK_VERIFIED'&&
+    ['HTTP_CONCURRENCY_SMOKE_PASS','HTTP_SMOKE_LIMITED_UNPROVEN'].includes(result.verdicts?.http)&&
+    result.build?.exit===0&&result.integration?.exit===0&&result.integration?.fail===0&&
+    result.integration?.pass>0&&result.integration?.observationMs>=30000&&
+    result.cleanup?.allPassed===true,'state-verified-result-status');
+  const binding=result.binding,begin=result.integration.sourceStart,end=result.integration.sourceEnd;
+  need(binding?.freshnessExit===0&&hash(binding.sourceManifestSHA256)&&
+    /^[a-f0-9]{40}$/.test(binding.head??'')&&begin?.head===binding.head&&
+    hash(begin.sourceSha256)&&/^[a-f0-9]{40}$/.test(begin.tree??'')&&
+    JSON.stringify(begin)===JSON.stringify(end),'state-verified-source-binding');
+  need(JSON.stringify(JSON.parse(fs.readFileSync(path.join(directory,'build-binding.json'))))===JSON.stringify(binding),
+    'state-verified-build-binding');
+  const artifacts=binding.artifacts;
+  need(product===artifacts?.media_server?.preserved&&runtime===artifacts?.['libmedia_server_runtime.a']?.preserved,
+    'state-verified-product-selection');
+  const productSha=artifacts.media_server.sha256,runtimeSha=artifacts['libmedia_server_runtime.a'].sha256;
+  need(begin.binarySha256===productSha,'state-verified-source-product');
+  boundFile(product,productSha);boundFile(runtime,runtimeSha);
+  boundFile(artifacts.media_server.source,productSha);boundFile(artifacts['libmedia_server_runtime.a'].source,runtimeSha);
+  const repo=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../..');
+  const currentScripts=new Set(['docs/project-feature-test-inventory.md','scripts/internal/recording_longrun_progress.test.mjs',
+    'scripts/internal/recording_accumulated_cost.test.mjs','scripts/internal/recording_state_input_profile.mjs',
+    'scripts/internal/recording_state_input_profile.test.mjs']);
+  const changed=execFileSync('git',['diff','--name-only',binding.head,'--'],{cwd:repo,encoding:'utf8'}).trim().split('\n').filter(Boolean);
+  need(changed.every(p=>currentScripts.has(p)),'state-verified-source-diff');
+  let matched=0;
+  const sources=JSON.parse(boundFile(path.join(directory,'source-manifest.json'),binding.sourceManifestSHA256));
+  need(Object.keys(sources).length>0,'state-verified-source-manifest');
+  for(const [relative,expected] of Object.entries(sources)){
+    need(!path.isAbsolute(relative)&&!relative.split('/').includes('..')&&hash(expected),'state-verified-source-path');
+    need(sha(fs.readFileSync(path.join(repo,relative)))===expected,'state-source-asset-binding:'+relative);matched++;
+  }
+  // 기존 고정 Smoke는 Model·동적 라이브러리의 독립 신뢰 기준으로만 사용한다.
+  // 실행 제품과 C++ 입력은 위 최신 검증 결과에 결속한다.
+  const baselineDir=env.MEDIA_SERVER_STATE_PRODUCT_SMOKE;
+  need(typeof baselineDir==='string'&&path.isAbsolute(baselineDir),'state-product-smoke-path');
+  const baseline=JSON.parse(boundFile(path.join(baselineDir,'result.json'),STATE_PRODUCT_SMOKE_SHA.result));
+  const models=JSON.parse(boundFile(path.join(baselineDir,'model-sha256.json'),STATE_PRODUCT_SMOKE_SHA.models));
+  for(const [relative,expected] of Object.entries(models)){
+    need(!path.isAbsolute(relative)&&!relative.split('/').includes('..'),'state-product-smoke-source-path');
+    need(sha(fs.readFileSync(path.join(repo,relative)))===expected,'state-source-asset-binding:'+relative);matched++;
+  }
+  for(const [file,expected] of Object.entries(baseline.binding.dynamicLibrariesSHA256))
+    need(sha(fs.readFileSync(file))===expected,'state-source-asset-binding:'+path.basename(file));
+  const freshness=JSON.parse(execFileSync('python3',[path.join(repo,'scripts/internal/recording_build_freshness.py'),
+    '--repo',repo,'--build',path.dirname(artifacts.media_server.source),
+    '--expected-product-sha256',productSha,'--expected-runtime-sha256',runtimeSha],{encoding:'utf8',timeout:20000,maxBuffer:65536}));
+  need(freshness.status==='PASS_TARGET_AWARE_PREFLIGHT'&&freshness.graphSha256===baseline.freshness.graphSha256&&
+    freshness.targets.media_server.artifactSha256===productSha&&freshness.targets.media_server_runtime.artifactSha256===runtimeSha,
+    'state-verified-freshness');
+  const helperRoot=result.analysis?.fixedBinding?.[0]?.root,helpers={};
+  need(typeof helperRoot==='string'&&path.isAbsolute(helperRoot),'state-verified-helper-root');
+  for(const name of ['normalize','process-metrics','review-seed']){
+    const entry=result.analysis?.helperHashes?.[name];need(hash(entry?.sha256)&&Number.isSafeInteger(entry?.bytes)&&entry.bytes>0,'state-verified-helper-field');
+    const file=path.join(helperRoot,name),bytes=boundFile(file,entry.sha256);need(bytes.length===entry.bytes,'state-verified-helper-size');
+    helpers[name]={path:file,sha256:entry.sha256};
+  }
+  const generated=result.analysis?.helperHashes?.['catalog-instrumented.cpp'];
+  need(generated?.sha256===STATE_PRODUCT_SMOKE_SHA.catalogInstrumented&&generated?.bytes===376755,'state-verified-generated-helper');
+  boundFile(path.join(helperRoot,'catalog-instrumented.cpp'),generated.sha256);
+  helpers['catalog-instrumented.cpp']={path:path.join(repo,'src/recording/recording_catalog.cpp'),generator:'instrumentCatalog',bytes:generated.bytes,sha256:generated.sha256};
+  stateHelperBytes(helpers['catalog-instrumented.cpp']);
+  return {helpers,matched,sha256:{...STATE_BINDING_SHA,product:productSha,runtime:runtimeSha},
+    verifiedResult:resultPath,verifiedResultSha256:digest,productSmoke:baselineDir,productSmokeSha256:STATE_PRODUCT_SMOKE_SHA.result,freshness};
+}
 export function validateQualifiedStateInput(bytes){
   need(Buffer.isBuffer(bytes)&&bytes.length===120647,'state-qualified-input-size');
   need(sha(bytes)===STATE_BINDING_SHA.input,'state-qualified-input-sha');
@@ -128,11 +201,13 @@ export function requireStateInputExecutable(profile,env=process.env){
   const parent=path.dirname(reviewDir),plan=JSON.parse(boundFile(path.join(parent,'plan.json'),STATE_BINDING_SHA.writerPlan));
   const reviewed=boundManifest(reviewDir,STATE_BINDING_SHA.reviewManifest);boundManifest(path.join(parent,'evidence'),STATE_BINDING_SHA.originalManifest);
   const review=JSON.parse(reviewed.get('result.json'));assessQualifiedStateReview(review);
-  if(env.MEDIA_SERVER_STATE_PRODUCT_SMOKE!==undefined){
+  need((env.MEDIA_SERVER_STATE_VERIFIED_RESULT===undefined)===(env.MEDIA_SERVER_STATE_VERIFIED_RESULT_SHA256===undefined),'state-verified-result-input-pair');
+  if(env.MEDIA_SERVER_STATE_PRODUCT_SMOKE!==undefined||env.MEDIA_SERVER_STATE_VERIFIED_RESULT!==undefined){
     need(plan.productSha===STATE_BINDING_SHA.product&&plan.inputSha===STATE_BINDING_SHA.input,'state-writer-plan-binding');
     validateQualifiedStateInput(boundFile(input,STATE_BINDING_SHA.input));
     return {profile:profile.name,input,product,runtime,writerReview:reviewDir,
-      ...bindCurrentStateProduct(env.MEDIA_SERVER_STATE_PRODUCT_SMOKE,product,runtime)};
+      ...(env.MEDIA_SERVER_STATE_VERIFIED_RESULT!==undefined?bindVerifiedStateProduct(env,product,runtime):
+        bindCurrentStateProduct(env.MEDIA_SERVER_STATE_PRODUCT_SMOKE,product,runtime))};
   }
   need(plan.product===product&&plan.productSha===STATE_BINDING_SHA.product&&plan.inputSha===STATE_BINDING_SHA.input,'state-product-plan-binding');
   validateQualifiedStateInput(boundFile(input,STATE_BINDING_SHA.input));
