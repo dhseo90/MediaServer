@@ -3,7 +3,7 @@
 import argparse, hashlib, json, os, pathlib, selectors, shlex, signal, subprocess, time
 from recording_native_isolation import environment
 from recording_visual_contention_contract import validate_output
-p=argparse.ArgumentParser();p.add_argument('action',choices=['build','run']);p.add_argument('parent');p.add_argument('--label',required=True);p.add_argument('--scale',choices=['4','53','cycle'],default='53');p.add_argument('--mode',choices=['single','visual-pair','parallel','background'],default='parallel');a=p.parse_args()
+p=argparse.ArgumentParser();p.add_argument('action',choices=['build','run']);p.add_argument('parent');p.add_argument('--label',required=True);p.add_argument('--scale',choices=['4','53','cycle'],default='53');p.add_argument('--mode',choices=['single','visual-pair','parallel','background'],default='parallel');p.add_argument("--density-snapshot");a=p.parse_args()
 repo=pathlib.Path(__file__).resolve().parents[2];parent=pathlib.Path(a.parent);assert parent.is_absolute() and parent.resolve()==parent and parent.is_dir()
 assert a.label and pathlib.Path(a.label).name==a.label and a.label not in ('.','..')
 environment(parent) # validate owned namespace before creating any run leaf
@@ -17,6 +17,13 @@ if a.action=='build':
 else:
  command=[str(binary),str(root),str(repo/'models/v430-siglip2'),a.scale,a.mode]
  env.update(MEDIA_SERVER_VERIFY_RECORDING_LATENCY_TRACE='1',MEDIA_SERVER_VERIFY_RECORDING_LATENCY_SLOW_ONLY='1',MEDIA_SERVER_VERIFY_VISUAL_REQUEST_TRACE='1',MEDIA_SERVER_VERIFY_CATALOG_HOLDER_TRACE='1',MEDIA_SERVER_VERIFY_CATALOG_HOLDER_WHOLE_REQUESTS='late' if a.mode in ('parallel','visual-pair') else '1',MEDIA_SERVER_VERIFY_FRAME_TRACE='bounded',MEDIA_SERVER_VERIFY_CONTENTION_OBSERVER='1')
+if a.density_snapshot:
+ assert a.action=='run' and a.mode=='background' and a.scale=='53','density uses existing bounded background case'
+ snapshot=pathlib.Path(a.density_snapshot)
+ assert snapshot.is_absolute() and snapshot.resolve()==snapshot and snapshot.is_file()
+ assert snapshot.stat().st_size<=16*1024*1024
+ assert hashlib.sha256(snapshot.read_bytes()).hexdigest()=='48a14fa34ecfa528e8c1042dc7b92501eefbfd42e9b8ca3a52e21b7f5c93daee','density reference SHA'
+ env.update(MEDIA_SERVER_NATIVE_CAPTURE_SNAPSHOT=str(snapshot),MEDIA_SERVER_VERIFY_SEARCH_ATTRIBUTION='1',MEDIA_SERVER_VERIFY_RECORDING_SEARCH_TRACE='1')
 deadline=630 if a.action=='run' and a.scale=='cycle' else 180
 record={'command':command,'cwd':str(root),'uid':os.getuid(),'head':subprocess.check_output(['git','rev-parse','HEAD'],cwd=repo,text=True).strip(),'fixtureSha256':hashlib.sha256((repo/'scripts/internal/recording_visual_contention_smoke.cpp').read_bytes()).hexdigest(),'archiveSha256':hashlib.sha256((build/'libmedia_server_runtime.a').read_bytes()).hexdigest(),'mode':a.mode,'scale':a.scale,'isolation':'native helper + preinitialization binary guard','receivedBytes':0,'savedBytes':0,'timeout':False,'overflow':False,'limitBytes':cap,'deadlineSeconds':deadline}
 if a.action=='run':

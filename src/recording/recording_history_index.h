@@ -314,6 +314,7 @@ private:
     int fd_{-1},directory_fd_{-1};pid_t pid_{0};struct stat binding_{};std::string name_;
     std::uint64_t budget_{0},size_{0},rows_{0},reads_{0},writes_{0};Ref root_;bool poisoned_{true},anonymous_{false},visiting_{false},close_failed_{false};
     static Hash Digest(const void* data,std::size_t bytes) {
+        latency::CaptureSubcost cost(latency::HistoryAuth);
         Hash hash{};unsigned count=0;
         if(EVP_Digest(data,bytes,hash.data(),&count,EVP_sha256(),nullptr)!=1||count!=hash.size())
             throw Failure("history index hash failure");
@@ -333,6 +334,7 @@ private:
     static void Set(unsigned char* p,std::uint64_t value){for(unsigned i=0;i<8;++i){p[i]=value&255;value>>=8;}}
     static std::uint64_t Number(const unsigned char* p){std::uint64_t n=0;for(unsigned i=0;i<8;++i)n|=std::uint64_t(p[i])<<(8*i);return n;}
     void ReadBytes(std::uint64_t offset,void* bytes,std::size_t count)const {
+        latency::CaptureSubcost cost(latency::HistoryRead);
         if(offset>size_||count>size_-offset)throw Failure("history index read bounds");
         auto* p=static_cast<unsigned char*>(bytes);
         for(std::size_t done=0;done<count;){const auto n=pread(fd_,p+done,count-done,static_cast<off_t>(offset+done));

@@ -53,7 +53,10 @@ struct SearchDiagnostic {
     // No output/allocation here. Owned overlays publish bounded terminal records after unlock.
     struct Capture {std::uint64_t begin=0,end=0,rows=0,cut_rows=0,raw_bytes=0,read_ns=0,outside_ns=0,
         decode_calls=0,decode_hits=0,parse_ns=0,raw_read_ns=0,shared=0,materialized=0,captured=0,current=0,rejected_before=0,rejected_after=0;
-        unsigned attempt=0,parent=0;bool complete=false;};
+        // Fixed numeric attribution, emitted after request locks in the existing terminal budget.
+        std::array<std::uint64_t,4> catalog_lock{}; // initial wait/hold, reacquire wait/hold
+        std::array<std::uint64_t,9> history_cost{}; // latency::CaptureField order
+        unsigned attempt=0,parent=0,observed=0;bool complete=false;};
     std::array<Capture,6> captures{};unsigned capture_count=0,capture_parent=0;bool capture_loss=false;
 
     struct Cost {const char* name;std::uint64_t begin,end;};
@@ -141,6 +144,14 @@ struct SearchDiagnostic {
         if(!active)return;
         auto& a=active->attempts[active->attempt];a.instance=instance;a.current_instance=current_instance;a.captured=captured;a.current=current;a.authority=authority;a.rebuild=rebuild;a.documents=docs;a.references=refs;
     }
+    // Saturating by omission, never a fabricated zero. Units are microseconds;
+    // sub-microsecond observed intervals may round to zero. Numeric width <=10.
+    static void CaptureNumber(char* line,std::size_t size,int& n,std::uint64_t value,bool observed,bool time,bool& loss) noexcept {
+        if(!observed){n+=std::snprintf(line+n,size-n,"null");return;}
+        if(time)value/=1000;
+        if(value>UINT32_MAX){loss=true;n+=std::snprintf(line+n,size-n,"null");return;}
+        n+=std::snprintf(line+n,size-n,"%u",static_cast<unsigned>(value));
+    }
     ~SearchDiagnostic() noexcept {
         active=previous;
         const auto ended=id?Tick():0;
@@ -157,7 +168,23 @@ struct SearchDiagnostic {
                 n+=std::snprintf(line+n,sizeof(line)-n,"%s[%llu,%llu,%llu,%llu,%u,%u]",i?",":"",
                     (unsigned long long)a.instance,(unsigned long long)a.current_instance,(unsigned long long)a.captured,
                     (unsigned long long)a.current,unsigned(a.rebuild),unsigned(a.authority));}
-            if(n>0&&n+4<int(sizeof(line))){std::memcpy(line+n,"]}\n",3);n+=3;Write(line,static_cast<std::size_t>(n));}else Write("[search-cost-loss]\n",18);
+            if(n>0&&n<int(sizeof(line)))n+=std::snprintf(line+n,sizeof(line)-n,
+                "],\"captureVersion\":1,\"captureUnit\":\"us\",\"captures\":[");
+            bool value_loss=false;
+            for(unsigned i=0;i<capture_count&&i<captures.size()&&n>0&&n<int(sizeof(line));++i){const auto& c=captures[i];
+                n+=std::snprintf(line+n,sizeof(line)-n,"%s{\"attempt\":%u,\"parent\":%u,\"complete\":%s,\"us\":[",i?",":"",c.attempt,c.parent,c.complete?"true":"false");
+                const std::array<std::uint64_t,17> times{{c.end>=c.begin?c.end-c.begin:0,c.catalog_lock[0],c.catalog_lock[1],c.catalog_lock[2],c.catalog_lock[3],
+                    c.history_cost[0],c.history_cost[1],c.history_cost[2],c.history_cost[3],c.history_cost[4],c.history_cost[5],c.history_cost[6],c.history_cost[7],c.history_cost[8],c.read_ns,c.outside_ns,c.parse_ns}};
+                const std::array<bool,17> seen{{c.begin&&c.end>=c.begin,bool(c.observed&1),bool(c.observed&1),bool(c.observed&2),bool(c.observed&2),
+                    bool(c.observed&(1<<8)),bool(c.observed&(1<<9)),bool(c.observed&(1<<10)),bool(c.observed&(1<<11)),bool(c.observed&(1<<12)),bool(c.observed&(1<<13)),bool(c.observed&(1<<14)),bool(c.observed&(1<<15)),bool(c.observed&(1<<16)),bool(c.observed&4),bool(c.observed&8),c.decode_calls!=0}};
+                for(unsigned j=0;j<times.size()&&n>0&&n<int(sizeof(line));++j){if(j)n+=std::snprintf(line+n,sizeof(line)-n,",");if(n<int(sizeof(line)))CaptureNumber(line,sizeof(line),n,times[j],seen[j],true,value_loss);}
+                if(n>0&&n<int(sizeof(line)))n+=std::snprintf(line+n,sizeof(line)-n,"],\"counts\":[");
+                const std::array<std::uint64_t,7> counts{{c.rows,c.cut_rows,c.raw_bytes,c.decode_calls,c.decode_hits,c.shared,c.materialized}};
+                for(unsigned j=0;j<counts.size()&&n>0&&n<int(sizeof(line));++j){if(j)n+=std::snprintf(line+n,sizeof(line)-n,",");if(n<int(sizeof(line)))CaptureNumber(line,sizeof(line),n,counts[j],true,false,value_loss);}
+                if(n>0&&n<int(sizeof(line)))n+=std::snprintf(line+n,sizeof(line)-n,"]}");
+            }
+            if(n>0&&n<int(sizeof(line)))n+=std::snprintf(line+n,sizeof(line)-n,"],\"captureLoss\":%s,\"captureValueLoss\":%s}\n",capture_loss?"true":"false",value_loss?"true":"false");
+            if(n>0&&n<int(sizeof(line)))Write(line,static_cast<std::size_t>(n));else Write("[search-cost-loss]\n",18);
         }
         if(!Enabled()||status<500)return;
         const auto& c=search_capacity_diagnostic;

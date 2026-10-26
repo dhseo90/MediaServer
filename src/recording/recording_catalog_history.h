@@ -123,7 +123,9 @@ public:
 #endif
     }
     bool GetOwned(const std::string& kind,const std::string& id,RecordingColdRow* output,bool* found,std::string* error) override {
-        std::lock_guard<std::recursive_mutex> lock(mu_);
+        latency::HistoryVisitCost lock_cost(latency::HistoryGetWait,latency::HistoryGetHold);
+        std::lock_guard<std::recursive_mutex> lock(mu_);lock_cost.Acquired();
+        struct EndHold {latency::HistoryVisitCost& cost;~EndHold(){cost.Releasing();}} end_hold{lock_cost};
         latency::CatalogRowCost cost(kind=="segment-v2"?0:kind=="source-binding"?1:kind=="media-path"?2:kind=="retired-v2"?3:kind=="state-v2"?4:5);
 #if MEDIA_SERVER_USE_OPENSSL && !defined(_WIN32)
         if(!healthy_||!ReadableKind(kind)||!output||!found)return Fail(error,"catalog history owned read invalid");
@@ -293,7 +295,9 @@ public:
         return VisitImpl(kind,{},&visitor,error);
     }
     bool VisitImpl(const std::string& kind,const Visitor& visitor,const OwnedVisitor* owned,std::string* error) {
-        std::unique_lock<std::recursive_mutex> lock(mu_);
+        latency::HistoryVisitCost cost;
+        std::unique_lock<std::recursive_mutex> lock(mu_);cost.Acquired();
+        struct EndHold {latency::HistoryVisitCost& cost;~EndHold(){cost.Releasing();}} end_hold{cost};
 #if MEDIA_SERVER_USE_OPENSSL && !defined(_WIN32)
         if(!healthy_||!ReadableKind(kind)||(!visitor&&!owned))return Fail(error,"catalog history visitor invalid");
         const auto prefix=kind+"/";std::uint64_t seen=0;std::exception_ptr consumer_exception;
@@ -308,7 +312,7 @@ public:
             const auto required=bytes/RecordingHistoryIndex::kValueBytes+(bytes%RecordingHistoryIndex::kValueBytes!=0);
             if(parts!=required)return Fail(detail,"catalog history streaming chunk coverage invalid");
             if(!bytes)return true;
-            ++seen;lock.unlock();bool accepted=false;
+            ++seen;cost.Releasing();lock.unlock();bool accepted=false;
             try {
                 if(owned){RecordingColdRow row{std::move(raw_memory),std::move(value)};accepted=(*owned)(current,row,detail);}
                 else {
@@ -319,8 +323,9 @@ public:
                     accepted=visitor(current,value,detail);
                 }
             } catch (...) { consumer_exception=std::current_exception(); }
-            lock.lock();return healthy_&&accepted;
+            cost.Waiting();lock.lock();cost.Acquired();return healthy_&&accepted;
         };
+        latency::CaptureSubcost visit_cost(latency::HistoryVisit);
         const bool ok=index_.VisitRange(prefix,kind+"0",[&](const std::string& key,const std::string& chunk,std::string* detail){
             const auto split=key.rfind('/');
             if(split==std::string::npos||split<prefix.size())return Fail(detail,"catalog history streaming key invalid");
@@ -331,6 +336,7 @@ public:
                 if(!ParseMeta(chunk,&bytes,&capacity,detail))return false;
                 auto ticket=MemoryOwner()->ReserveOwned(RecordingColdWorkspaceBytes(bytes,kind),SearchModelResidency::Category::Unattributed,SearchModelResidency::Site::HistoryRaw);
                 if(!ticket){consumer_exception=std::make_exception_ptr(RecordingResourceUnavailable());return false;}
+                latency::CaptureSubcost copy_cost(latency::RawCopy);
                 std::string replacement(static_cast<std::size_t>(bytes),'\0');
                 value.swap(replacement);raw_memory.swap(*ticket);
                 current=id;parts=0;have_meta=true;return true;
@@ -343,6 +349,7 @@ public:
             if(part>=required)return true; // reserved overwritten tail is not current row content
             const auto offset=part*RecordingHistoryIndex::kValueBytes,wanted=std::min<std::uint64_t>(RecordingHistoryIndex::kValueBytes,bytes-offset);
             if(chunk.size()!=wanted)return Fail(detail,"catalog history streaming chunk length invalid");
+            latency::CaptureSubcost copy_cost(latency::RawCopy);
             value.replace(static_cast<std::size_t>(offset),chunk.size(),chunk);++parts;return true;
         },error);
         const bool completed=ok&&flush(error);

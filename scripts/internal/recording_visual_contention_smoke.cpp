@@ -5,6 +5,9 @@
 #undef main
 #include "recording_writer_test_isolation.h"
 #include "recording/recording_latency_trace.h"
+#include "recording/recording_search_diagnostic.h"
+#include <fstream>
+#include <sstream>
 #include "ingress/recording_application_service.h"
 #include "recording/recording_visual_source.h"
 #include "domain/strict_json.h"
@@ -15,6 +18,37 @@ namespace {
 using VS=ingress::VisualSearchApplicationService;
 using Clock=std::chrono::steady_clock;
 void Need101(bool ok,const std::string& why){if(!ok)throw std::runtime_error(why);}
+// Opt-in density only: immutable State snapshot supplies mapping shapes, not
+// source/file bindings. Every new row still passes the existing real file proof.
+std::vector<recording::RecordingSegmentV2> Density101(){
+ const char* path=std::getenv("MEDIA_SERVER_NATIVE_CAPTURE_SNAPSHOT");if(!path)return {};
+ Need101(std::filesystem::file_size(path)<=16*1024*1024,"density-input-cap");
+ std::ifstream input(path);Need101(input.good(),"density-open");std::string line,error;
+ std::vector<recording::RecordingSegmentV2> rows;std::size_t mappings=0,raw=0;
+ while(std::getline(input,line)){
+  Need101(line.size()<=65536,"density-line-cap");ingress::StrictJsonObjectDocument doc;
+  Need101(ingress::ParseStrictJsonObjectDocument(line,&doc,&error),"density-json:"+error);
+  if(ingress::StrictJsonStringField(doc,"kind")!=std::optional<std::string>("segment-v2"))continue;
+  const auto value=ingress::StrictJsonObjectField(doc,"value");Need101(value.has_value(),"density-value");
+  recording::RecordingSegmentV2 row;Need101(recording::ParseRecordingSegmentV2(*value,&row,&error),"density-row:"+error);
+  if(row.channel_id!="9101"&&row.channel_id!="9201")continue;
+  Need101(row.time_base_num==1&&row.time_base_den==1000000000&&row.media_end_pts&&*row.media_end_pts-row.media_start_pts==1999999999,"density-media-domain");
+  mappings+=row.mappings.size();raw+=value->size();rows.push_back(std::move(row));Need101(rows.size()<=1068,"density-row-cap");
+ }
+ Need101(input.eof()&&rows.size()==1068&&mappings==41308,"density-reference-counts");
+ std::cout<<"[R101-density-reference] rows="<<rows.size()<<" mappings="<<mappings<<" rawBytes="<<raw<<std::endl;return rows;
+}
+std::string Capture101(const char* phase,unsigned round,unsigned client,unsigned id,const recording::SearchDiagnostic::Capture& c){
+ Need101(c.complete&&c.end>=c.begin&&c.read_ns+c.outside_ns<=c.end-c.begin,"capture-complete-intervals");
+ const auto lock=c.catalog_lock[0]+c.catalog_lock[1]+c.catalog_lock[2]+c.catalog_lock[3];
+ Need101(lock<=c.end-c.begin&&c.history_cost[1]<=c.end-c.begin,"capture-lock-intervals");
+ std::ostringstream out;out<<"[native-density-capture] {\"phase\":\""<<phase<<"\",\"round\":"<<round<<",\"client\":"<<client<<",\"diagnosticId\":"<<id
+  <<",\"attempt\":"<<c.attempt<<",\"elapsedNs\":"<<c.end-c.begin<<",\"cutReadNs\":"<<c.read_ns<<",\"outsideNs\":"<<c.outside_ns
+  <<",\"rawReadInclusiveNs\":"<<c.raw_read_ns<<",\"decodeParseInclusiveNs\":"<<c.parse_ns<<",\"rows\":"<<c.rows<<",\"cutRows\":"<<c.cut_rows<<",\"rawBytes\":"<<c.raw_bytes
+  <<",\"decodeCalls\":"<<c.decode_calls<<",\"decodeHits\":"<<c.decode_hits<<",\"shared\":"<<c.shared<<",\"materialized\":"<<c.materialized<<",\"catalogLockNs\":[";
+ for(unsigned i=0;i<c.catalog_lock.size();++i)out<<(i?",":"")<<c.catalog_lock[i];out<<"],\"historyNs\":[";
+ for(unsigned i=0;i<c.history_cost.size();++i)out<<(i?",":"")<<c.history_cost[i];out<<"]}\n";return out.str();
+}
 void Observer101(const char* phase){
  if(const char* wait=std::getenv("MEDIA_SERVER_VERIFY_CONTENTION_OBSERVER");wait&&std::string(wait)=="1"){
   std::cout<<"[R101-phase] "<<phase<<std::endl;char token[16]{};std::cin.getline(token,sizeof(token));Need101(std::string(token)=="continue","observer-phase-not-ready");
@@ -62,6 +96,7 @@ int main(int argc,char** argv){
  gst_init(nullptr,nullptr);using namespace recording;std::string error;const std::string scale=argv[3],mode=argv[4];
  Need101(scale=="4"||scale=="53"||scale=="cycle","scale");Need101(mode=="single"||mode=="visual-pair"||mode=="parallel"||mode=="background","mode");
  RecordingResourceTrace trace("1");RecordingRuntimeStorage runtime(root/"recording");Need101(runtime.Open(&error),"open:"+error);auto& catalog=runtime.catalog();Need101(trace.Bind(catalog.SearchResidency(),catalog.ScratchResidency()),"trace-bind");
+ auto density=Density101();std::size_t density_rows=0,density_mappings=0,density_bytes=0;
  auto input=MixedInput(root);input.packets.resize(60);
  for(auto& p:input.packets){auto& o=*p.observation;o.clock_process_id="r101-clock";o.mono_before_ns=1000000000+p.pts;o.mono_after_ns=o.mono_before_ns+1000;o.observed_utc_ns=1789200000000000000LL+p.pts;}
  const auto write=[&](const std::string& channel,GStreamerSegmentWriter::Options options){GStreamerSegmentWriter writer(options);Need101(writer.Start(channel,"unused",input.descriptor,[](auto,auto,auto*){return false;},&error),"writer-start:"+error);for(const auto& p:input.packets)writer.Push(p,0);writer.Stop();};
@@ -69,15 +104,39 @@ int main(int argc,char** argv){
  for(const auto& channel:{"9101","9201"}){
   write(channel,runtime.WriterOptions(2000));auto list=catalog.RetentionSnapshot();auto found=std::find_if(list.candidates.begin(),list.candidates.end(),[&](const auto& x){return x.Channel()==channel;});Need101(found!=list.candidates.end()&&found->segment_v2.has_value(),"template");
   const auto seed=*found->segment_v2;const auto file=found->media_path;auto binding=catalog.FindSourceBinding(seed.segment_id);Need101(binding&&binding->file_evidence&&seed.size_bytes>0&&seed.size_bytes<=36*1024,"template-bound");
-  count=scale=="cycle"?(Q-E)/seed.size_bytes+2:std::stoul(scale);Need101(count<=2048,"count-cap");
+  count=!density.empty()?535:scale=="cycle"?(Q-E)/seed.size_bytes+2:std::stoul(scale);Need101(count<=2048,"count-cap");
   for(std::uint64_t i=1;i<count;++i){auto row=seed;row.segment_id="r101-"+std::string(channel)+"-"+std::to_string(i);row.order_request_id="order-"+row.segment_id;row.media_epoch_id="epoch-"+row.segment_id;
+   if(!density.empty()){
+    std::vector<const RecordingSegmentV2*> selected;for(const auto& value:density)if(value.channel_id==channel)selected.push_back(&value);
+    Need101(selected.size()==534&&i<=selected.size(),"density-channel-count");const auto& original=*selected[i-1];
+    row.segment_id=original.segment_id;row.order_request_id="order-"+row.segment_id;row.media_epoch_id=original.media_epoch_id;
+    row.mappings=original.mappings;for(auto& mapping:row.mappings){
+     mapping.start_pts+=seed.media_start_pts-original.media_start_pts;
+     if(mapping.end_pts)*mapping.end_pts+=seed.media_start_pts-original.media_start_pts;
+     if(mapping.utc_start_ns){const auto offset=1789200000000000000LL+mapping.start_pts-*mapping.utc_start_ns;*mapping.utc_start_ns+=offset;if(mapping.utc_end_ns)*mapping.utc_end_ns+=offset;}
+    }
+    Need101(ValidateRecordingSegmentV2(row,&error),"density-translated-row:"+error);
+    ++density_rows;density_mappings+=row.mappings.size();density_bytes+=SerializeRecordingSegmentV2(row).size();
+   }
    RecordingOrderReservationV1 order;Need101(catalog.ReserveRecordingOrder(row.store_id,row.order_request_id,row.segment_id,channel,&order,&error),"reserve:"+error);row.order_sequence=order.sequence;
    auto bound=*binding;bound.segment_id=row.segment_id;bound.media_epoch_id=row.media_epoch_id;const auto target=root/"recording"/channel/(row.segment_id+".mp4");std::filesystem::create_directories(target.parent_path());std::filesystem::copy_file(file,target);
    const int fd=open(target.c_str(),O_RDONLY|O_CLOEXEC|O_NOFOLLOW);Need101(fd>=0,"clone-open");const bool good=VerifyRecordingFileEvidenceFd(fd,bound,&error);const int closed=close(fd);Need101(good&&closed==0,"clone-proof:"+error);Need101(catalog.FinalizeBoundSegmentV2(row,bound,target.string(),&error),"clone-finalize:"+error);
   }
   std::cout<<"[R101-state] channel="<<channel<<" active="<<count<<" uniqueOriginals="<<count<<" segmentBytes="<<seed.size_bytes<<" seedHash="<<seed.checksum_sha256<<" sampleCount="<<binding->samples.size()<<std::endl;
  }
+ if(!density.empty())std::cout<<"[R101-density-installed] denseRows="<<density_rows<<" denseMappings="<<density_mappings<<" denseRawBytes="<<density_bytes<<" seedRows=2"<<std::endl;
+ density.clear();density.shrink_to_fit();
  Need101(catalog.Checkpoint(&error),"baseline-checkpoint:"+error);Need101(trace.Emit("baseline"),"baseline-resource");
+ if(density_rows){
+  for(unsigned round=0;round<3;++round){
+   SearchDiagnostic::HttpRequest request("native-density-pure-"+std::to_string(round));SearchDiagnostic diagnostic(catalog.SearchResidency().get());
+   SearchSourceBatch batch,empty;Need101(catalog.CaptureSearchSource({"9101"},nullptr,&batch,&error,{},false,&empty),"density-pure-capture:"+error);
+   Need101(catalog.ValidateSearchSource(batch,&error),"density-pure-currentness:"+error);diagnostic.status=200;
+   Need101(diagnostic.capture_count==1&&!diagnostic.capture_loss,"density-pure-count");
+   std::cout<<Capture101("pure",round,0,diagnostic.id,diagnostic.captures[0])<<std::flush;
+  }
+  Need101(trace.Emit("after-pure-capture"),"pure-resource");
+ }
  RecordingReadService reader(catalog);ingress::RecordingApplicationService structured(reader,catalog,true,{});
  VS::Options options;options.enabled=true;options.model_directory=argv[2];options.cache_directory=(root/"visual-cache").string();options.scan_seconds=1;options.sample_seconds=1;
  const VS::Authorize auth=[](const std::string& c){return c=="9101"||c=="9201";};
@@ -113,10 +172,22 @@ int main(int argc,char** argv){
    Need101(writes.load()>=2*round,"background-finalization-progress");
   }
   std::cout<<"[R101-wave] round="<<round<<" completed="<<writes.load()<<" removed="<<removed.load()<<" status="<<service.Status(auth).body<<std::endl;
-  const auto call=[&](bool visual,unsigned client){latency::WorkScope work(visual?latency::Work::Visual:latency::Work::Structured);const auto t=Clock::now();const auto result=visual?service.Search(query,auth):structured.Search(sq,"r101","both",auth);const double ms=std::chrono::duration<double,std::milli>(Clock::now()-t).count();return std::make_tuple(visual,client,ms,result.status,result.body);};
+  const auto call=[&](bool visual,unsigned client){latency::WorkScope work(visual?latency::Work::Visual:latency::Work::Structured);const auto t=Clock::now();SearchDiagnostic::HttpRequest request("native-density-"+std::to_string(round)+"-"+std::to_string(client));
+   std::array<SearchDiagnostic::Capture,6> captures{};unsigned captured=0,id=0,builds=0;std::array<unsigned,3> delta{};
+#ifdef RECORDING_SEARCH_TESTING
+   search_retention_delta_work_test={};
+   search_after_capture_test=[&]{if(auto* d=SearchDiagnostic::active){captures=d->captures;captured=d->capture_count;id=d->id;}};
+   search_after_build_test=[&]{++builds;};
+#endif
+   const auto result=visual?service.Search(query,auth):structured.Search(sq,"r101","both",auth);
+#ifdef RECORDING_SEARCH_TESTING
+   delta=search_retention_delta_work_test;search_after_capture_test={};search_after_build_test={};
+#endif
+   std::string costs;for(unsigned i=0;i<captured;++i)costs+=Capture101("concurrent",round,client,id,captures[i]);
+   costs+="[R101-refresh] round="+std::to_string(round)+" client="+std::to_string(client)+" captures="+std::to_string(captured)+" builds="+std::to_string(builds)+" delta="+std::to_string(delta[0])+","+std::to_string(delta[1])+","+std::to_string(delta[2])+"\n";const double ms=std::chrono::duration<double,std::milli>(Clock::now()-t).count();return std::make_tuple(visual,client,ms,result.status,result.body,costs);};
   std::vector<std::future<decltype(call(true,0))>> jobs;const unsigned n=mode=="single"?1:(mode=="visual-pair"?2:4);
   for(unsigned i=0;i<n;++i)jobs.push_back(std::async(std::launch::async,call,i<2,i));
-  for(auto& job:jobs){const auto [visual,client,ms,status,body]=job.get();times.push_back(ms);if(status!=200)++failures;std::cout<<"[R101-request] round="<<round<<" visual="<<visual<<" client="<<client<<" ms="<<ms<<" status="<<status<<" body="<<body<<std::endl;}
+  for(auto& job:jobs){const auto [visual,client,ms,status,body,costs]=job.get();std::cout<<costs;times.push_back(ms);if(status!=200)++failures;std::cout<<"[R101-request] round="<<round<<" visual="<<visual<<" client="<<client<<" ms="<<ms<<" status="<<status<<" body="<<body<<std::endl;}
  }
  if(background.joinable())background.join();if(bgerror)std::rethrow_exception(bgerror);
  // Observe actual publication before Stop cancels the worker. This consumes

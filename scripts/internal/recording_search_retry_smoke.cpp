@@ -106,6 +106,10 @@ int main(int argc,char** argv){
     {SearchDiagnostic::HttpRequest request(std::string(64,'a'));
     {SearchDiagnostic d;d.status=code;d.entered-=5000000000ULL;d.attempt=2;
      for(auto& a:d.attempts){a.instance=a.current_instance=a.captured=a.current=std::numeric_limits<std::uint64_t>::max();a.authority=true;}
+     d.capture_count=6;
+     for(unsigned i=0;i<6;++i){auto& c=d.captures[i];c.attempt=i/2;c.parent=i%2;c.observed=0x1ff0f;c.complete=i!=5;c.begin=1;c.end=1+std::uint64_t(UINT32_MAX)*1000;
+      c.catalog_lock.fill(std::uint64_t(UINT32_MAX)*1000);c.history_cost.fill(std::uint64_t(UINT32_MAX)*1000);
+      c.read_ns=c.outside_ns=c.parse_ns=std::uint64_t(UINT32_MAX)*1000;c.rows=c.cut_rows=c.raw_bytes=c.decode_calls=c.decode_hits=c.shared=c.materialized=UINT32_MAX;}
      for(unsigned i=0;i<41;++i)SearchDiagnostic::CostRow("PlaybackCandidates",std::numeric_limits<std::uint64_t>::max(),std::numeric_limits<std::uint64_t>::max());}
     request.Prepared(code);request.SendBegin();request.SendEnd(false);}
     const std::string line(diagnostic_line.data(),diagnostic_size);ingress::StrictJsonObjectDocument json;std::string detail;
@@ -115,6 +119,9 @@ int main(int argc,char** argv){
          "diagnostic late success or failure preserves phases and explicit overflow");
     need(json.Find("clientRequestId")->string_value==std::string(64,'a')&&json.Find("revisions")->raw.size()>100,
          "diagnostic one HTTP identity spans all three revision attempts");
+    need(json.Find("captureVersion")->raw=="1"&&json.Find("captureUnit")->string_value=="us"&&
+         json.Find("captures")->raw.find("4294967295")!=std::string::npos&&!json.Find("captureLoss")->bool_value&&!json.Find("captureValueLoss")->bool_value,
+         "diagnostic six maximum-width captures fit alongside forty phases and three revisions");
     const std::string terminal(http_line.data(),http_size);ingress::StrictJsonObjectDocument wire;
     need(http_size<512&&ingress::ParseStrictJsonObjectDocument(terminal.substr(terminal.find('{')),&wire,&detail)&&
          wire.Find("id")->raw==json.Find("id")->raw&&wire.Find("clientRequestId")->string_value==std::string(64,'a')&&
@@ -122,9 +129,15 @@ int main(int argc,char** argv){
          "diagnostic HTTP failed send preserves late service status and identical IDs");
    }
    diagnostic_size=0;
-   try{SearchDiagnostic d;d.status=503;d.exception="bad_alloc";SearchDiagnostic::Phase phase("exception-unwind");throw std::bad_alloc();}
+   try{SearchDiagnostic d;d.status=503;d.exception="bad_alloc";d.capture_count=1;
+    auto& c=d.captures[0];c.begin=1;c.end=17001;c.observed=1;c.catalog_lock[1]=UINT64_MAX;c.rows=UINT64_MAX;
+    SearchDiagnostic::Phase phase("exception-unwind");throw std::bad_alloc();}
    catch(const std::bad_alloc&){}
    need(diagnostic_size&&SearchDiagnostic::active==nullptr,"diagnostic exception unwinding preserves terminal record and restores TLS");
+   {const std::string line(diagnostic_line.data(),diagnostic_size);ingress::StrictJsonObjectDocument json;std::string detail;
+    need(ingress::ParseStrictJsonObjectDocument(line.substr(line.find('{')),&json,&detail)&&json.Find("captureValueLoss")->bool_value&&
+      json.Find("captures")->raw.find("\"complete\":false")!=std::string::npos&&json.Find("captures")->raw.find("[17,0,null,null,null")!=std::string::npos,
+      "diagnostic exception preserves partial Capture; absent stages and overflow are null, observed zero remains zero");}
    search_diagnostic_sink_test=nullptr;ResetDetailBudget();SearchDiagnostic::sequence=0;
    if(had_env)setenv("MEDIA_SERVER_VERIFY_RECORDING_SEARCH_TRACE",saved.c_str(),1);else unsetenv("MEDIA_SERVER_VERIFY_RECORDING_SEARCH_TRACE");
   }
@@ -637,6 +650,11 @@ int main(int argc,char** argv){
       RecordingReadService media(current);
       std::array<unsigned,2> captures{},builds{};std::array<int,2> status{};
       std::array<std::uint64_t,2> decodes{},raws{};std::array<double,2> elapsed{};
+      // Existing bounded CaptureCost records, copied after Capture releases its
+      // Catalog lock. Emit only after both requests finish; the bounded copy is
+      // still part of the measured Preparation interval.
+      std::array<std::array<SearchDiagnostic::Capture,6>,2> capture_costs{};
+      std::array<unsigned,2> capture_counts{},diagnostic_ids{};
       {
         ingress::RecordingApplicationService application(media,current,true,{});
         const std::unordered_map<std::string,std::string> query{{"channelIds","preparation"},{"startTimeMs","1789200000000"},
@@ -648,10 +666,14 @@ int main(int argc,char** argv){
         std::array<std::exception_ptr,2> failures{};std::array<std::string,2> bodies;
         const auto request=[&](unsigned client) {
           try {
+            SearchDiagnostic::HttpRequest request_id("native-capture-"+std::to_string(round)+"-"+std::to_string(client));
             search_retry_projection_test_enabled=reuse;search_projection_work_test={};
             const auto before=latency::segment_decode_cost[0];
             search_after_capture_test=[&]{
               ++captures[client];
+              if(const auto* d=SearchDiagnostic::active){
+                capture_costs[client]=d->captures;capture_counts[client]=d->capture_count;diagnostic_ids[client]=d->id;
+              }
               if(!client&&captures[client]<=2){
                 if(captures[client]==1){captured.set_value();ready.wait();}
                 append("during-"+std::to_string(captures[client]));
@@ -677,6 +699,20 @@ int main(int argc,char** argv){
             "preparation both snapshots include all actual Writer finalizations");
       }
       preparation_decodes[round]=decodes[0];
+      for(unsigned client=0;client<2;++client)for(unsigned i=0;i<capture_counts[client];++i){
+        const auto& c=capture_costs[client][i];
+        need(c.complete&&c.end>=c.begin&&c.read_ns+c.outside_ns<=c.end-c.begin,
+            "capture recorded nonoverlapping raw read and outside decode fit elapsed time");
+        std::cout<<"[native-capture] {\"round\":"<<round<<",\"client\":"<<client<<",\"diagnosticId\":"<<diagnostic_ids[client]
+          <<",\"ordinal\":"<<i+1<<",\"attempt\":"<<c.attempt<<",\"parent\":"<<c.parent
+          <<",\"elapsedNs\":"<<c.end-c.begin<<",\"cutReadNs\":"<<c.read_ns<<",\"outsideNs\":"<<c.outside_ns
+          <<",\"rawReadInclusiveNs\":"<<c.raw_read_ns<<",\"decodeParseInclusiveNs\":"<<c.parse_ns
+          <<",\"rows\":"<<c.rows<<",\"cutRows\":"<<c.cut_rows<<",\"rawBytes\":"<<c.raw_bytes
+          <<",\"decodeCalls\":"<<c.decode_calls<<",\"decodeHits\":"<<c.decode_hits
+          <<",\"catalogLockNs\":["<<c.catalog_lock[0]<<','<<c.catalog_lock[1]<<','<<c.catalog_lock[2]<<','<<c.catalog_lock[3]<<']'
+          <<",\"historyNs\":["<<c.history_cost[0]<<','<<c.history_cost[1]<<','<<c.history_cost[2]<<','<<c.history_cost[3]<<','<<c.history_cost[4]<<','<<c.history_cost[5]<<','<<c.history_cost[6]<<','<<c.history_cost[7]<<','<<c.history_cost[8]<<']'
+          <<",\"shared\":"<<c.shared<<",\"materialized\":"<<c.materialized<<"}"<<std::endl;
+      }
       std::cout<<"[preparation-work] round="<<round<<" reuse="<<reuse<<" decodes="<<decodes[0]<<','<<decodes[1]
         <<" coldRows="<<3*preparation_cycles<<" finalRows="<<3*preparation_cycles+9
         <<" raw="<<raws[0]<<','<<raws[1]<<" captures="<<captures[0]<<','<<captures[1]<<" builds="<<builds[0]<<','<<builds[1]

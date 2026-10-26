@@ -28,7 +28,8 @@ inline bool HolderEnabled() noexcept {static const bool yes=[] {const char* p=st
 // identity lookup, cold mutation read/parse. Nested authority is inclusive.
 // Owned request attribution enables numeric decode costs without enabling Lock/Holder output.
 inline bool SearchAttributionEnabled() noexcept {static const bool yes=[] {const char* p=std::getenv("MEDIA_SERVER_VERIFY_SEARCH_ATTRIBUTION");return p&&std::strcmp(p,"1")==0;}();return yes;}
-inline bool DecodeCostEnabled() noexcept {return HolderEnabled()||SearchAttributionEnabled();}
+inline thread_local unsigned capture_depth=0;
+inline bool DecodeCostEnabled() noexcept {return HolderEnabled()||SearchAttributionEnabled()||capture_depth;}
 inline bool SubcostEnabled() noexcept {static const bool yes=[] {const char* p=std::getenv("MEDIA_SERVER_VERIFY_CATALOG_SUBCOSTS");return p&&std::strcmp(p,"1")==0;}();return yes;}
 inline thread_local std::array<std::uint64_t,4> journal_subcost{};
 struct JournalSubcost {
@@ -38,6 +39,23 @@ struct JournalSubcost {
     ~JournalSubcost() noexcept {End();}
 };
 inline thread_local std::array<std::uint64_t,4> segment_decode_cost{}; // opt-in calls/hits/inclusive parse ns/second canonical serialization ns
+// Capture-only, fixed numeric elapsed costs. No output, allocation or new mutex.
+// Nested read/auth/copy intervals are inclusive; never sum them with lock hold.
+enum CaptureField : unsigned { HistoryWait, HistoryHold, HistoryVisit, RawCopy, HistoryRead, HistoryAuth, CutConsumer, HistoryGetWait, HistoryGetHold, CaptureFields };
+inline thread_local std::array<std::uint64_t,CaptureFields> capture_cost{},capture_calls{};
+struct CaptureSubcost {
+    unsigned field;std::uint64_t begin;
+    explicit CaptureSubcost(unsigned f) noexcept:field(f),begin(capture_depth?Now():0){if(begin)++capture_calls[field];}
+    ~CaptureSubcost() noexcept {if(begin)capture_cost[field]+=Now()-begin;}
+};
+struct HistoryVisitCost {
+    bool active=capture_depth!=0,owned=false;std::uint64_t at=active?Now():0;unsigned wait_field,hold_field;
+    explicit HistoryVisitCost(unsigned w=HistoryWait,unsigned h=HistoryHold):wait_field(w),hold_field(h){}
+    void Acquired() noexcept {if(active){const auto now=Now();capture_cost[wait_field]+=now-at;++capture_calls[wait_field];at=now;owned=true;}}
+    void Releasing() noexcept {if(active&&owned){const auto now=Now();capture_cost[hold_field]+=now-at;++capture_calls[hold_field];at=now;owned=false;}}
+    void Waiting() noexcept {if(active)at=Now();}
+    ~HistoryVisitCost() noexcept {if(active&&owned)capture_cost[hold_field]+=Now()-at;}
+};
 inline thread_local std::uint64_t history_node_reads=0; // opt-in logical authenticated node reads, not physical I/O
 // R111 narrow source-read costs: six fixed namespace groups, calls/elapsed ns.
 // Inclusive GetOwned time (under its mutation lock), not CPU time or peak I/O.
@@ -282,6 +300,15 @@ inline void Append(Row row,bool always=false) noexcept {
     if(local.used==local.rows.size()){local.loss=true;return;}local.rows[local.used++]=row;
 }
 inline void FlushFast() noexcept {for(auto& row:local.fast)if(row.n){if(local.used<local.rows.size())local.rows[local.used++]=row;else local.loss=true;row={};}local.fast_events=0;Flush();}
+// Thread-local observation of the Capture's existing Catalog mutex only.
+// The Lock object layout and all acquisition/release operations stay unchanged.
+struct CaptureLockCost {
+    inline static thread_local CaptureLockCost* active=nullptr;
+    CaptureLockCost* previous=active;std::mutex* mutex;std::array<std::uint64_t,4> ns{};
+    unsigned acquisitions=0;std::uint64_t waiting=0,acquired=0;
+    CaptureLockCost(std::mutex* m,bool enabled):mutex(m){if(enabled)active=this;}
+    ~CaptureLockCost(){if(active==this)active=previous;}
+};
 class Lock {
     std::mutex& mutex_;bool enabled_;Row row_;std::uint64_t previous_=0;
     bool owned_=false,always_;Lock* enclosing_=nullptr;
@@ -290,7 +317,10 @@ class Lock {
     void Acquire() {
         if(holder_)++Holder().inflight;
         if(enabled_){row_.b=Now();row_.e=0;}
+        auto* capture=CaptureLockCost::active;
+        if(capture&&capture->mutex==&mutex_)capture->waiting=Now();
         mutex_.lock();owned_=true;retention_costs_=false;
+        if(capture&&capture->mutex==&mutex_){capture->acquired=Now();capture->ns[capture->acquisitions?2:0]+=capture->acquired-capture->waiting;++capture->acquisitions;}
         if(enabled_){row_.a=Now();previous_=local.mutex;local.mutex=row_.m;++local.depth;}
         if(holder_){event_.b=row_.b;event_.a=row_.a;event_.m=row_.m;event_.t=local.thread;event_.r=VisualRequestSummary::CurrentId();event_.line=row_.l;event_.site=site_;event_.work=static_cast<unsigned>(holder_work);begin_counts_=SubcostEnabled()?journal_subcost:holder_counts;}
     }
@@ -298,6 +328,7 @@ class Lock {
         if(!owned_)return;
         if(enabled_)row_.e=Now();
         if(holder_){event_.e=row_.e;for(unsigned i=retention_costs_?4:0;i<4;++i)event_.counts[i]=(SubcostEnabled()?journal_subcost[i]:holder_counts[i])-begin_counts_[i];}
+        if(auto* capture=CaptureLockCost::active;capture&&capture->mutex==&mutex_)capture->ns[capture->acquisitions>1?3:1]+=Now()-capture->acquired;
         mutex_.unlock();owned_=false;
         if(holder_){Holder().Add(event_);--Holder().inflight;}
         if(enabled_){--local.depth;local.mutex=previous_;Append(row_,always_);if(!local.request&&local.fast_events>=256)FlushFast();else Flush();}
@@ -310,7 +341,10 @@ public:
     Lock(std::mutex& mutex,Source source,unsigned line,std::try_to_lock_t,const char* site):mutex_(mutex),enabled_(Enabled()),always_(false),holder_(Enabled()&&HolderEnabled()&&source==Source::Catalog),site_(site){
         if(enabled_){row_.o=1;row_.s=static_cast<unsigned>(source);row_.l=line;row_.m=MutexId(&mutex);row_.b=Now();}
         if(holder_)(void)Holder(); // initialize bounded storage before acquiring the product mutex
+        auto* capture=CaptureLockCost::active;
+        if(capture&&capture->mutex==&mutex_)capture->waiting=Now();
         owned_=mutex_.try_lock();
+        if(owned_&&capture&&capture->mutex==&mutex_){capture->acquired=Now();capture->ns[capture->acquisitions?2:0]+=capture->acquired-capture->waiting;++capture->acquisitions;}
         if(owned_){if(enabled_){row_.a=Now();previous_=local.mutex;local.mutex=row_.m;++local.depth;}
             if(holder_){++Holder().inflight;event_.b=row_.b;event_.a=row_.a;event_.m=row_.m;event_.t=local.thread;event_.r=VisualRequestSummary::CurrentId();event_.line=line;event_.site=site_;event_.work=static_cast<unsigned>(holder_work);begin_counts_=SubcostEnabled()?journal_subcost:holder_counts;}}
         enclosing_=current_;current_=this;

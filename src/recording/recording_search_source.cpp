@@ -17,13 +17,16 @@ namespace {
 // Counts are per capture, not the whole HTTP request or a CPU-time estimate.
 struct OptionalCaptureCapacity {};
 struct CaptureCost {
-    bool attribution=latency::SearchAttributionEnabled()&&SearchDiagnostic::active;
+    bool attribution=(latency::SearchAttributionEnabled()||SearchDiagnostic::Enabled())&&SearchDiagnostic::active;
     bool enabled=latency::SubcostEnabled()||attribution,complete=false;
     SearchDiagnostic* diagnostic=attribution?SearchDiagnostic::active:nullptr;
     unsigned slot=0,parent=0;
+    latency::CaptureLockCost catalog_lock;
+    std::array<std::uint64_t,latency::CaptureFields> history_cost=latency::capture_cost,history_calls=latency::capture_calls;
     std::uint64_t shared=0,materialized=0,captured=0,current=0;
     std::array<std::uint64_t,12> raw=latency::catalog_row_cost;
-    CaptureCost() {
+    explicit CaptureCost(std::mutex& mutex):catalog_lock(&mutex,enabled) {
+        if(enabled)++latency::capture_depth;
         if(!diagnostic)return;
         parent=diagnostic->capture_parent;
         if(diagnostic->capture_count==diagnostic->captures.size()){diagnostic->capture_loss=true;return;}
@@ -34,11 +37,19 @@ struct CaptureCost {
     std::uint64_t rows=0,excluded=0,memo=0,reused=0,begin=enabled?latency::Now():0;
     std::uint64_t vector_hint=0,growths=0,relocated=0;
     std::uint64_t cut_rows=0,raw_bytes=0,cut_charge=0,read_ns=0,outside_ns=0;
+    bool read_observed=false,outside_observed=false;
+    struct Interval {std::uint64_t& value;bool& observed;std::uint64_t start;
+        Interval(std::uint64_t& v,bool& o,bool enabled):value(v),observed(o),start(enabled?latency::Now():0){if(start)observed=true;}
+        ~Interval(){if(start)value+=latency::Now()-start;}
+    };
     std::array<std::uint64_t,4> decode=latency::segment_decode_cost;
     ~CaptureCost() {
+        if(enabled)--latency::capture_depth;
         if(diagnostic&&slot){
             auto& c=diagnostic->captures[slot-1];c.end=SearchDiagnostic::Tick();c.rows=rows;c.cut_rows=cut_rows;
-            c.raw_bytes=raw_bytes;c.read_ns=read_ns;c.outside_ns=outside_ns;
+            c.raw_bytes=raw_bytes;c.read_ns=read_ns;c.outside_ns=outside_ns;c.catalog_lock=catalog_lock.ns;
+            c.observed=(catalog_lock.acquisitions?1:0)|(catalog_lock.acquisitions>1?2:0)|(read_observed?4:0)|(outside_observed?8:0);
+            for(unsigned i=0;i<history_cost.size();++i){c.history_cost[i]=latency::capture_cost[i]-history_cost[i];if(latency::capture_calls[i]!=history_calls[i])c.observed|=1U<<(8+i);}
             c.decode_calls=latency::segment_decode_cost[0]-decode[0];c.decode_hits=latency::segment_decode_cost[1]-decode[1];
             c.parse_ns=latency::segment_decode_cost[2]-decode[2];
             for(unsigned i=1;i<raw.size();i+=2)c.raw_read_ns+=latency::catalog_row_cost[i]-raw[i];
@@ -109,6 +120,7 @@ bool RecordingCatalog::SearchChangedLocked(const std::vector<std::string>& chann
 }
 
 bool RecordingCatalog::ValidateSearchSource(const SearchSourceBatch& batch, std::string* error) const {
+    SearchDiagnostic::Phase currentness("SourceCurrentness");
     latency::Lock lock(mu_,latency::Source::Catalog,__LINE__,false,__func__);
     SearchDiagnostic::Stage("validate-source");
     const bool readable=opened_&&CanReadLocked(error);
@@ -242,7 +254,7 @@ bool RecordingCatalog::CaptureSearchSourceImpl(const std::vector<std::string>& c
         if (!ValidateRecordingReferenceId(channel, nullptr)) return Fail(error, "search-invalid-channels");
     SearchDiagnostic::Stage("capture-source");
     SearchCapacityBegin("capture-source",limits.max_documents,limits.max_bytes,0,0);
-    CaptureCost costs;
+    CaptureCost costs(mu_);
     bool optional_cut_owned=false,optional_sharing_owned=false;
     try {
         latency::Lock lock(mu_,latency::Source::Catalog,__LINE__,false,__func__);
@@ -440,8 +452,9 @@ bool RecordingCatalog::CaptureSearchSourceImpl(const std::vector<std::string>& c
                         auto ticket=limits.residency->ReserveOwned(meta,SearchModelResidency::Category::SourceCut);
                         if(ticket){
                             cut_memory=std::move(*ticket);cut.reserve(count);cut_bytes=meta;
-                            const auto read_begin=costs.enabled?latency::Now():0;
+                            { CaptureCost::Interval read(costs.read_ns,costs.read_observed,costs.enabled);
                             try { detached=segments_v2_.VisitRawOwned([&](const auto& id,RecordingColdRow& row){
+                                latency::CaptureSubcost consumer_cost(latency::CutConsumer);
                                 const auto retained=row.bytes.capacity()+1;
                                 const auto key=2*(id.size()+1);
                                 if(cut.size()==count||retained>limits.max_bytes-cut_bytes||key>limits.max_bytes-cut_bytes-retained)return false;
@@ -459,7 +472,7 @@ bool RecordingCatalog::CaptureSearchSourceImpl(const std::vector<std::string>& c
                                 cut.push_back({std::move(key_owner),id,std::move(row),lifecycle});diagnostic_cut_rows.Set(cut.size());
                                 return true;
                             }); } catch(const RecordingResourceUnavailable&) { detached=false; }
-                            costs.read_ns+=costs.enabled?latency::Now()-read_begin:0;
+                            }
                             if(detached){optional_cut_owned=true;view.emplace(segments_v2_.ColdReadView());costs.cut_rows=cut.size();costs.cut_charge=cut_bytes;}
                             else {std::vector<CutRow>{}.swap(cut);diagnostic_cut_rows.Set(0);cut_memory={};cut_bytes=0;}
                         }
@@ -576,7 +589,7 @@ bool RecordingCatalog::CaptureSearchSourceImpl(const std::vector<std::string>& c
             bool complete=true;
             if(detached){
                 latency::Lock::Unlocked outside(lock);
-                const auto outside_begin=costs.enabled?latency::Now():0;
+                CaptureCost::Interval outside_cost(costs.outside_ns,costs.outside_observed,costs.enabled);
 #ifdef RECORDING_SEARCH_TESTING
                 if(search_outside_raw_cut_test)search_outside_raw_cut_test();
 #endif
@@ -626,7 +639,6 @@ bool RecordingCatalog::CaptureSearchSourceImpl(const std::vector<std::string>& c
                         if(costs.enabled){++costs.growths;costs.relocated+=documents.size();}
                     }
                 }
-                costs.outside_ns+=costs.enabled?latency::Now()-outside_begin:0;
             }else complete=segments_v2_.ForEachChannelEntry(channels,consume,excluded,&costs.memo,raw_consumer);
             if(!complete){if(optional_sharing_owned)throw OptionalCaptureCapacity{};return Fail(error,"search-capacity-exceeded");}
             if(include_observations&&(!observations_.ForEach(v1)||!observations_v2_.ForEach(v2)||!referenced_observations_.ForEach(referenced)))
