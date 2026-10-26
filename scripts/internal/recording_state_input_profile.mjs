@@ -91,6 +91,15 @@ function bindCurrentStateProduct(directory,product,runtime){
   return {helpers,matched,sha256:{...STATE_BINDING_SHA,product:STATE_PRODUCT_SMOKE_SHA.product,runtime:STATE_PRODUCT_SMOKE_SHA.runtime},
     productSmoke:directory,productSmokeSha256:STATE_PRODUCT_SMOKE_SHA.result,freshness};
 }
+// 실제 Guard가 다시 읽은 TU/edge/target와, 외부 SHA로 인증한 빌드 당시 결과를 비교한다.
+export function assertVerifiedStateFreshness(actual,expected,productSha,runtimeSha){
+  for(const value of [actual,expected])need(value?.schema==='media-server.build-freshness.v1'&&
+    value.status==='PASS_TARGET_AWARE_PREFLIGHT'&&hash(value.graphSha256),'state-verified-freshness-schema');
+  need(actual.graphSha256===expected.graphSha256,'state-verified-graph');
+  assert.deepEqual(actual.targets,expected.targets,'state-verified-targets');
+  need(actual.targets?.media_server?.artifactSha256===productSha&&
+    actual.targets?.media_server_runtime?.artifactSha256===runtimeSha,'state-verified-freshness');
+}
 // 명시적 외부 기대 SHA가 신뢰 기준이다. 결과 내부의 자기 선언 SHA로 최초 인증하지 않는다.
 function bindVerifiedStateProduct(env,product,runtime){
   const resultPath=env.MEDIA_SERVER_STATE_VERIFIED_RESULT;
@@ -121,7 +130,7 @@ function bindVerifiedStateProduct(env,product,runtime){
   const repo=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../..');
   const currentScripts=new Set(['docs/project-feature-test-inventory.md','scripts/internal/recording_longrun_progress.test.mjs',
     'scripts/internal/recording_accumulated_cost.test.mjs','scripts/internal/recording_state_input_profile.mjs',
-    'scripts/internal/recording_state_input_profile.test.mjs']);
+    'scripts/internal/recording_state_input_profile.test.mjs','scripts/internal/test_recording_build_freshness.py']);
   const changed=execFileSync('git',['diff','--name-only',binding.head,'--'],{cwd:repo,encoding:'utf8'}).trim().split('\n').filter(Boolean);
   need(changed.every(p=>currentScripts.has(p)),'state-verified-source-diff');
   let matched=0;
@@ -146,9 +155,17 @@ function bindVerifiedStateProduct(env,product,runtime){
   const freshness=JSON.parse(execFileSync('python3',[path.join(repo,'scripts/internal/recording_build_freshness.py'),
     '--repo',repo,'--build',path.dirname(artifacts.media_server.source),
     '--expected-product-sha256',productSha,'--expected-runtime-sha256',runtimeSha],{encoding:'utf8',timeout:20000,maxBuffer:65536}));
-  need(freshness.status==='PASS_TARGET_AWARE_PREFLIGHT'&&freshness.graphSha256===baseline.freshness.graphSha256&&
-    freshness.targets.media_server.artifactSha256===productSha&&freshness.targets.media_server_runtime.artifactSha256===runtimeSha,
-    'state-verified-freshness');
+  if(binding.freshnessSHA256!==undefined){
+    // 새 시스템/자동 최신값 선택이 아니다. 선택한 결과의 외부 기대 SHA ->
+    // build-binding -> 기존 freshness.json -> 실제 depfile/compile/link Guard 결속이다.
+    const expected=JSON.parse(boundFile(path.join(directory,'freshness.json'),binding.freshnessSHA256));
+    assertVerifiedStateFreshness(freshness,expected,productSha,runtimeSha);
+  }else{
+    // 기존 결과 형식은 기존 고정 Smoke 그래프만 허용한다. 누락을 새 그래프 수락으로 바꾸지 않는다.
+    need(freshness.status==='PASS_TARGET_AWARE_PREFLIGHT'&&freshness.graphSha256===baseline.freshness.graphSha256&&
+      freshness.targets.media_server.artifactSha256===productSha&&freshness.targets.media_server_runtime.artifactSha256===runtimeSha,
+      'state-verified-freshness');
+  }
   const helperRoot=result.analysis?.fixedBinding?.[0]?.root,helpers={};
   need(typeof helperRoot==='string'&&path.isAbsolute(helperRoot),'state-verified-helper-root');
   for(const name of ['normalize','process-metrics','review-seed']){

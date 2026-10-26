@@ -7,7 +7,7 @@ import os from 'node:os';
 import path from 'node:path';
 import {spawnSync} from 'node:child_process';
 import {EARLY_STATE_INPUT as p,selectStateInputProfile,requireStateInputExecutable,stateInputArgs,stateInputProbeArgs,
-  validateStateInputMedia,stateInputCapacity,assessSyntheticStateWriterSegments,validateQualifiedStateInput,STATE_BINDING_SHA,STATE_PRODUCT_SMOKE_SHA,assessQualifiedStateReview,stateHelperBytes} from './recording_state_input_profile.mjs';
+  validateStateInputMedia,stateInputCapacity,assessSyntheticStateWriterSegments,validateQualifiedStateInput,STATE_BINDING_SHA,STATE_PRODUCT_SMOKE_SHA,assessQualifiedStateReview,stateHelperBytes,assertVerifiedStateFreshness} from './recording_state_input_profile.mjs';
 import {workspaceBounds,freezeCurrentWorkspace,measureCurrentWorkspace} from './recording_current_observer.mjs';
 import {mixedRecordingProfile} from './recording_longrun_progress.mjs';
 const sha=b=>crypto.createHash('sha256').update(b).digest('hex');
@@ -166,8 +166,8 @@ test('qualified State binding: preserved real evidence and stale/missing assets'
   assert.equal(binding.product,env.MEDIA_SERVER_STATE_PRODUCT);assert.equal(binding.runtime,env.MEDIA_SERVER_STATE_RUNTIME);
   const verified=env.MEDIA_SERVER_STATE_VERIFIED_RESULT!==undefined;
   const current=env.MEDIA_SERVER_STATE_PRODUCT_SMOKE!==undefined&&!verified;
-  assert.equal(binding.sha256.product,verified?'d5b561dc58b203cbbca20e5450afb850a3a84507f466fe99eb70b23715719a67':current?'3f40e4b6530e9c89922d31004dd9c9b758cf338ec165989835aff9f5d042bddc':'ed42ee3c55a3e48c2b30d564aa0397bf15c9acd5a89ad2145f1accc10546f4a8');
-  assert.equal(binding.sha256.runtime,verified?'cca20ab07bb1ae3a39bad63a2fa91cb1e25c2099db90604d5427f8a9e63de974':current?'da42acfb1d41fe4690a1440999d44a485591ee9c9b814ddb9c1e357b35c6bf83':'d9081c27bd5a0966e19719136b51b92433a3e67f79f4c56cbf70666f95a194b4');
+  assert.equal(binding.sha256.product,verified?'6923524115bd0326afce8dfbf58384544b5ca2508e1e4e9ebc56a1fadcf9c9a8':current?'3f40e4b6530e9c89922d31004dd9c9b758cf338ec165989835aff9f5d042bddc':'ed42ee3c55a3e48c2b30d564aa0397bf15c9acd5a89ad2145f1accc10546f4a8');
+  assert.equal(binding.sha256.runtime,verified?'ab3d492e8844de4dcb5a8e8b5b1d518a5a11553e38c53093e7b5f0c729ba86d8':current?'da42acfb1d41fe4690a1440999d44a485591ee9c9b814ddb9c1e357b35c6bf83':'d9081c27bd5a0966e19719136b51b92433a3e67f79f4c56cbf70666f95a194b4');
   if(verified){
     const sources=JSON.parse(fs.readFileSync(path.join(path.dirname(env.MEDIA_SERVER_STATE_VERIFIED_RESULT),'source-manifest.json')));
     const models=JSON.parse(fs.readFileSync(path.join(env.MEDIA_SERVER_STATE_PRODUCT_SMOKE,'model-sha256.json')));
@@ -179,12 +179,14 @@ test('qualified State binding: preserved real evidence and stale/missing assets'
   try{
     const changed=path.join(dir,'input.mp4');fs.writeFileSync(changed,Buffer.alloc(120647));
     if(verified){
-      assert.equal(binding.verifiedResultSha256,'3d612a61529bbea52db695d88b2af06652c7e403999a6894a3188657cbe1d5d7');
+      assert.equal(binding.verifiedResultSha256,'41cc20f4453239b07f2d756500252de9be30482a70ca18348f562bee40c227a0');
+      assert.equal(binding.freshness.graphSha256,'5c5d1f9152996ba7b253f9f034b25a8e056a99022591014b4f9d9584c3cadaa5');
       assert.equal(binding.freshness.status,'PASS_TARGET_AWARE_PREFLIGHT');
       const cli=spawnSync(process.execPath,['scripts/internal/recording_state_input_profile.mjs','--binding'],{env,encoding:'utf8',timeout:20000});
       assert.equal(cli.status,0,cli.stderr);assert.deepEqual(JSON.parse(cli.stdout),binding);
       const original=JSON.parse(fs.readFileSync(env.MEDIA_SERVER_STATE_VERIFIED_RESULT));
       fs.copyFileSync(path.join(path.dirname(env.MEDIA_SERVER_STATE_VERIFIED_RESULT),'source-manifest.json'),path.join(dir,'source-manifest.json'));
+      fs.copyFileSync(path.join(path.dirname(env.MEDIA_SERVER_STATE_VERIFIED_RESULT),'freshness.json'),path.join(dir,'freshness.json'));
       const altered=path.join(dir,'result.json');
       // 테스트에서만 변형 결과에 별도 기대 digest를 제공해 최초 SHA 검사 이후 오류 경계를 검사한다.
       const reject=(name,mutate,pattern)=>{
@@ -195,6 +197,8 @@ test('qualified State binding: preserved real evidence and stale/missing assets'
           MEDIA_SERVER_STATE_VERIFIED_RESULT_SHA256:sha(bytes)}),pattern,name);
         console.log(JSON.stringify({scope:'verified-result-rejection',name,passed:true}));
       };
+      reject('freshness SHA mismatch',v=>{v.binding.freshnessSHA256='0'.repeat(64);},/state-binding-sha/);
+      reject('missing graph evidence rejects current graph',v=>{delete v.binding.freshnessSHA256;},/state-verified-freshness/);
       reject('missing build field',v=>{delete v.build;},/state-verified-result-status/);
       reject('unsupported schema',v=>{v.schema='unsupported';},/state-verified-result-schema/);
       reject('failed build',v=>{v.build.exit=1;},/state-verified-result-status/);
@@ -203,6 +207,24 @@ test('qualified State binding: preserved real evidence and stale/missing assets'
       reject('product SHA mismatch',v=>{v.binding.artifacts.media_server.sha256='0'.repeat(64);},/state-verified-source-product/);
       reject('runtime SHA mismatch',v=>{v.binding.artifacts['libmedia_server_runtime.a'].sha256='0'.repeat(64);},/state-binding-sha/);
       reject('source manifest mismatch',v=>{v.binding.sourceManifestSHA256='0'.repeat(64);},/state-binding-sha/);
+      for(const [label,change] of [['graph schema',x=>{x.schema='unsupported';}],
+        ['graph edge substitution',x=>{x.graphSha256='f'.repeat(64);}],['target substitution',x=>{x.targets.media_server.objects++;}],
+        ['Freshness failure',x=>{x.status='FAIL';}]]){
+        const file=path.join(dir,'freshness.json'),originalFresh=fs.readFileSync(file),value=JSON.parse(originalFresh);change(value);
+        fs.writeFileSync(file,JSON.stringify(value));
+        try{reject(label,v=>{v.binding.freshnessSHA256=sha(fs.readFileSync(file));},/state-verified-/);}
+        finally{fs.writeFileSync(file,originalFresh);}
+      }
+      {
+        const file=path.join(dir,'source-manifest.json'),bytes=fs.readFileSync(file),value=JSON.parse(bytes);
+        value['include/recording/recording_search_diagnostic.h']='0'.repeat(64);fs.writeFileSync(file,JSON.stringify(value));
+        try{reject('actual Source SHA mismatch',v=>{v.binding.sourceManifestSHA256=sha(fs.readFileSync(file));},/state-source-asset-binding/);}
+        finally{fs.writeFileSync(file,bytes);}
+      }
+      {
+        const file=path.join(dir,'freshness.json'),bytes=fs.readFileSync(file);fs.unlinkSync(file);
+        try{reject('missing graph file',()=>{},/ENOENT/);}finally{fs.writeFileSync(file,bytes);}
+      }
       reject('helper missing',v=>{v.analysis.fixedBinding[0].root=dir;},/ENOENT/);
       reject('helper altered digest',v=>{v.analysis.helperHashes.normalize.sha256='0'.repeat(64);},/state-binding-sha/);
       reject('missing helper field',v=>{delete v.analysis.helperHashes.normalize;},/state-verified-helper-field/);
@@ -263,4 +285,22 @@ test('qualified State binding: preserved real evidence and stale/missing assets'
     assert.doesNotThrow(()=>freezeCurrentWorkspace(helpers));
     console.log(JSON.stringify({scope:'actual-state-install-freeze',files:frozen.files.map(({name,size,sha256})=>({name,size,sha256})),missingFilesRejected:5,installedMutationRejected:true}));
   }finally{fs.rmSync(dir,{recursive:true});assert(!fs.existsSync(dir));}
+});
+
+// Graph digest comes from the real depfile Guard; all graph differences remain strict.
+const graphFixture=()=>({schema:'media-server.build-freshness.v1',status:'PASS_TARGET_AWARE_PREFLIGHT',graphSha256:'a'.repeat(64),
+ targets:{media_server:{objects:1,artifactSha256:'b'.repeat(64)},media_server_runtime:{objects:2,artifactSha256:'c'.repeat(64)}}});
+test('verified current graph accepts exact authenticated target-aware evidence',()=>{
+ const expected=graphFixture();assert.doesNotThrow(()=>assertVerifiedStateFreshness(structuredClone(expected),expected,'b'.repeat(64),'c'.repeat(64)));
+});
+for(const [name,change] of [
+ ['missing schema',x=>{delete x.schema;}],['unsupported schema',x=>{x.schema='v99';}],
+ ['failed Freshness',x=>{x.status='FAIL';}],['missing graph',x=>{delete x.graphSha256;}],
+ ['changed graph digest',x=>{x.graphSha256='d'.repeat(64);}],['missing target',x=>{delete x.targets.media_server;}],
+ ['additional target',x=>{x.targets.extra={objects:1};}],['different TU count',x=>{x.targets.media_server_runtime.objects++;}],
+ ['old product',x=>{x.targets.media_server.artifactSha256='d'.repeat(64);}],
+ ['old Runtime',x=>{x.targets.media_server_runtime.artifactSha256='d'.repeat(64);}]
+])test('verified current graph rejects '+name,()=>{
+ const expected=graphFixture(),actual=structuredClone(expected);change(actual);
+ assert.throws(()=>assertVerifiedStateFreshness(actual,expected,'b'.repeat(64),'c'.repeat(64)),/state-verified-/);
 });

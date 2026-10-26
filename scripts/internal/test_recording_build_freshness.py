@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 """R144: 제품을 시작하지 않는 독립 기대값 기반 의존성 반례."""
 import os
+import json
+import subprocess
 from pathlib import Path
 import tempfile
 import unittest
@@ -180,6 +182,34 @@ class FreshnessTest(unittest.TestCase):
         p.write_text(p.read_text().replace('"Makefile"',''))
         self.f.time(p,1)
         with self.assertRaisesRegex(Unverified,'missing-generation-output'):self.f.run()
+
+    def test_16_state_graph_rejects_real_depfile_edge_changes(self):
+        expected=self.f.run()
+        p=self.f.path(self.f.runtime,'unit.cpp.o.d');original=p.read_text()
+        extra=self.f.put('include/extra.h')
+        changes=[original.rstrip()+' '+str(extra)+'\n',
+                 original.replace(self.f.escape(str(self.f.shared)),''),
+                 original.replace(self.f.escape(str(self.f.shared)),str(extra))]
+        for changed in changes:
+            p.write_text(changed);actual=self.f.run()
+            self.assertNotEqual(actual['graphSha256'],expected['graphSha256'])
+            module=(Path(__file__).parent/'recording_state_input_profile.mjs').resolve().as_uri()
+            script="import {assertVerifiedStateFreshness} from "+json.dumps(module)+"; import assert from 'node:assert/strict'; const [a,e]=process.argv.slice(1).map(JSON.parse); assert.throws(()=>assertVerifiedStateFreshness(a,e,e.targets.media_server.artifactSha256,e.targets.media_server_runtime.artifactSha256),/state-verified-graph/);"
+            run=subprocess.run(['node','--input-type=module','-e',script,json.dumps(actual),json.dumps(expected)],capture_output=True,text=True)
+            self.assertEqual(run.returncode,0,run.stderr)
+        p.write_text(original)
+        self.assertEqual(self.f.run()['graphSha256'],expected['graphSha256'])
+
+    def test_17_missing_extra_or_changed_tu_rejected(self):
+        p=self.f.path(self.f.runtime,'DependInfo.cmake');original=p.read_text()
+        rows=original.removeprefix('set(CMAKE_DEPENDS_DEPENDENCY_FILES ').removesuffix(')')
+        for value in ['set(CMAKE_DEPENDS_DEPENDENCY_FILES)',
+                      'set(CMAKE_DEPENDS_DEPENDENCY_FILES '+rows+' '+rows+')',
+                      original.replace('src/media_server_runtime.cpp','src/absent.cpp')]:
+            p.write_text(value);self.f.time(p,1)
+            with self.assertRaises(Unverified):self.f.run()
+        p.write_text(original);self.f.time(p,1)
+        self.assertEqual(self.f.run()['status'],'PASS_TARGET_AWARE_PREFLIGHT')
 
 
 if __name__=='__main__':unittest.main(verbosity=2)
