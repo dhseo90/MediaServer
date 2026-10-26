@@ -62,7 +62,7 @@ def generate(out, attribution=False, mandatory_ledger=False, limited_search=Fals
  if(!selectedId&&method==='GET'&&route.split('?')[0]==='/ops/api/recordings/search'&&new URLSearchParams(route.split('?')[1]).get('channelIds')==='1')selectedId=aSelection(aLoad?.schedule?.rows.at(-1)?.slot);
  if(selectedId)selectedTrace.start(selectedId);''')
     s=replace(s,"report:value=>console.log('[mixed-http-timing] '+JSON.stringify({...value,routeKind})),","report:value=>{console.log('[mixed-http-timing] '+JSON.stringify({...value,routeKind}));if(selectedId){const row={...value,id:selectedId,loss:false,observationMs:performance.now()-observationStart,channels:progress.status(performance.now()).channels};console.log('[R165-client] '+JSON.stringify(row));selectedTrace.client(row);}},")
-    s=replace(s,"headers:{Cookie:app.cookie,...(method==='POST'","headers:{Cookie:app.cookie,...(selectedId?{'X-R154-ID':String(selectedId)}:{}),...(method==='POST'")
+    s=replace(s,"headers:{...diagnosticHeaders,Cookie:app.cookie,...(method==='POST'","headers:{...diagnosticHeaders,Cookie:app.cookie,...(selectedId?{'X-R154-ID':String(selectedId)}:{}),...(method==='POST'")
     s=replace(s,'const all=await Promise.all(routes.map(route=>evidenceFetch(app,route)));','const selectedBatch=selectedBatchOrdinal++;const all=await Promise.all(routes.map((route,i)=>evidenceFetch(app,route,\'GET\',undefined,selection(selectedBatch,i))));')
     s=replace(s,'function budget(){if(cancelled)',"function budget(){if(selectedTrace.failure())throw Error(selectedTrace.failure().code);if(cancelled)")
     s=replace(s,"collectResourceTrace(app.resourceTrace,chunk);","collectResourceTrace(app.resourceTrace,chunk);") # assert original boundary
@@ -261,7 +261,7 @@ def attribution_overlay(out,binding,mixed):
  try {''')
     mixed=replace(mixed,"report:value=>{console.log('[mixed-http-timing] '","report:value=>{failureTiming=value;console.log('[mixed-http-timing] '")
     mixed=replace(mixed,'selectedTrace.client(row);','try{selectedTrace.client(row);}catch(error){selectedClientFailure=error;}')
-    mixed=replace(mixed,"headers:{Cookie:app.cookie,...(selectedId?", "headers:{Cookie:app.cookie,...(failureId?{'X-R171-ID':String(failureId)}:{}),...(selectedId?")
+    mixed=replace(mixed,"headers:{...diagnosticHeaders,Cookie:app.cookie,...(selectedId?", "headers:{...diagnosticHeaders,Cookie:app.cookie,...(failureId?{'X-R171-ID':String(failureId)}:{}),...(selectedId?")
     mixed=replace(mixed,'return {...result,elapsedMs:performance.now()-started};', '''failureBody=result.bytes;return {...result,elapsedMs:performance.now()-started};
  } finally {if(failureId){if(!failureTiming)throw Error('attribution-client-missing-timing');
  const t=failureTiming;const row={id:failureId,loss:false,status:t.status,phase:t.phase,outcome:t.outcome,headerReceived:t.headerElapsedMs!==null,totalElapsedMs:t.totalElapsedMs,bytes:t.bytes,reason:attributionError(failureBody)};
@@ -303,8 +303,8 @@ def mandatory_overlay(out,binding,mixed):
  }if(selectedClientFailure){failureTrace.fail('ledger-selected-client');if(!failureError)throw selectedClientFailure;}}
 """+mixed[end:]
     # Observe fetch abort before the existing HTTP helper sanitizes its exception.
-    mixed=replace(mixed,"request:()=>fetch(app.base+route,{method,redirect:'error',signal:AbortSignal.timeout(5000),headers:{Cookie:app.cookie,...(failureId?",
-        "request:async()=>{try{return await fetch(app.base+route,{method,redirect:'error',signal:(failureSignal=AbortSignal.timeout(5000)),headers:{Cookie:app.cookie,...(failureId?")
+    mixed=replace(mixed,"request:diagnosticHeaders=>fetch(app.base+route,{method,redirect:'error',signal:AbortSignal.timeout(5000),headers:{...diagnosticHeaders,Cookie:app.cookie,...(failureId?",
+        "request:async diagnosticHeaders=>{try{return await fetch(app.base+route,{method,redirect:'error',signal:(failureSignal=AbortSignal.timeout(5000)),headers:{...diagnosticHeaders,Cookie:app.cookie,...(failureId?")
     mixed=replace(mixed,"body:method==='POST'?JSON.stringify(body??{}):undefined})});",
         "body:method==='POST'?JSON.stringify(body??{}):undefined});}catch(error){failureCancelled=error?.name==='AbortError'&&failureSignal?.reason?.name!=='TimeoutError';throw error;}}});")
     mixed=replace(mixed,"if(app.completionTrace.error||app.resourceTrace.error||(memoryObserve&&app.memoryTrace.error))child.kill('SIGTERM');",

@@ -85,7 +85,7 @@ test('LP26-O05 actual mixed request child preserves first failure to parent repo
   const script=`import vm from 'node:vm';import http from 'node:http';import {once} from 'node:events';import {measuredHttpResponse,createRecordingStatusCapture} from ${JSON.stringify(new URL('./recording_current_app_helpers.mjs',import.meta.url).href)};
   let calls=0;const server=http.createServer((q,r)=>{calls++;r.end(${JSON.stringify(body)});});server.listen(0,'127.0.0.1');await once(server,'listening');
   const statusCapture=createRecordingStatusCapture(${JSON.stringify(dir)});
-  const c=vm.createContext({measuredHttpResponse,statusCapture,fetch,AbortSignal,performance,console,statusAdmissionMetrics:null,collector:'stub',collectProcess:async()=>({valid:true}),currentResourceTrace:()=>({}),workspaceFailure:{capture(){}},workspaceAnonymousBytes(){},budget(){},check(ok,label){if(!ok)throw Error(label);}});
+  const c=vm.createContext({short:false,measuredHttpResponse,statusCapture,fetch,AbortSignal,performance,console,statusAdmissionMetrics:null,collector:'stub',collectProcess:async()=>({valid:true}),currentResourceTrace:()=>({}),workspaceFailure:{capture(){}},workspaceAnonymousBytes(){},budget(){},check(ok,label){if(!ok)throw Error(label);}});
   vm.runInContext(${JSON.stringify(source.slice(begin,end))},c);
   c.app={base:'http://127.0.0.1:'+server.address().port,child:{pid:123},resourceTrace:{receivedAt:0}};let error;
   try{await vm.runInContext("request(app,'GET','/ops/api/recordings/status',undefined,true)",c);}catch(e){error=e.message;}
@@ -112,7 +112,7 @@ test('LP26-O06 mixed status keeps original judgment when fresh metrics fail or a
   const bytes=Buffer.from(JSON.stringify({channels:['9101','9201'].map(channelId=>({channelId,enabled:true,active,storageBlocked:!active}))}));
   let clock=10;const failures=[];
   const capture=createRecordingStatusCapture(dir,{admit:()=>{throw Error('workspace-process-measurement-invalid');},now:()=>clock});
-  const context=vm.createContext({measuredHttpResponse:async()=>({status:200,bytes}),statusCapture:capture,
+  const context=vm.createContext({short:false,measuredHttpResponse:async()=>({status:200,bytes}),statusCapture:capture,
    performance:{now:()=>clock},console:{log(){}},budget(){},check(ok,label){if(!ok)throw Error(label);},
    collector:'test',statusAdmissionMetrics:null,workspaceAnonymousBytes,
    collectProcess:async()=>{clock=20;if(!incomplete)throw Error('collector-failed');return {valid:false,pid:123};},
@@ -127,4 +127,46 @@ test('LP26-O06 mixed status keeps original judgment when fresh metrics fail or a
    assert.deepEqual(fs.readdirSync(dir),[]);
   }finally{fs.rmSync(dir,{recursive:true});}
  }
+});
+
+test('R169 State parallel GET binds unique pre-send IDs despite reverse completion',async()=>{
+ const {default:vm}=await import('node:vm');
+ const source=fs.readFileSync(new URL('./v450_recording_a_mixed.mjs',import.meta.url),'utf8');
+ const reports=[],pending=[];
+ const context=vm.createContext({measuredHttpResponse,performance,AbortSignal,
+  console:{log:line=>reports.push(JSON.parse(line.slice(line.indexOf(' ')+1)))},
+  fetch:async(_url,options)=>new Promise(resolve=>pending.push({id:options.headers['X-Media-Search-Request-Id'],resolve}))});
+ vm.runInContext(source.slice(source.indexOf('async function evidenceFetch('),source.indexOf('async function verifySavedEvidence(')),context);
+ context.app={base:'http://fixture',cookie:'private'};
+ const one=vm.runInContext("evidenceFetch(app,'/ops/api/recordings/search?channelIds=9101')",context);
+ const two=vm.runInContext("evidenceFetch(app,'/ops/api/recordings/search?channelIds=9101')",context);
+ assert.equal(pending.length,2);assert.notEqual(pending[0].id,pending[1].id);
+ for(const p of pending)assert.match(p.id,/^[a-f0-9-]{36}-[1-9][0-9]*$/);
+ const response=()=>({status:200,headers:{},body:(async function*(){yield Buffer.from('{}');})()});
+ pending[1].resolve(response());await two;pending[0].resolve(response());await one;
+ assert.deepEqual(reports.map(r=>r.clientRequestId),[pending[1].id,pending[0].id]);
+ assert(reports.every(r=>r.status===200&&r.outcome==='ok'&&r.endMs>=r.startMs&&r.clock==='client-performance-ms'));
+});
+
+test('R169 client timeout remains failure with matching server 503, late 200, or UNKNOWN',async()=>{
+ for(const serverStatus of [503,200,null]){
+  let report,wireId;
+  await assert.rejects(measuredHttpResponse({route:'/ops/api/recordings/search',correlateSearch:true,now:clock([100,5100]),report:r=>{report=r;},
+   request:async headers=>{wireId=headers['X-Media-Search-Request-Id'];throw new DOMException('timeout','TimeoutError');}}),/http-header-timeout/);
+  // Server terminal arrives later in its own clock domain; do not subtract clocks.
+  const server=serverStatus===null?[]:[{clientRequestId:wireId,id:129,status:serverStatus,sendEnd:999999999999}];
+  const joined=server.find(r=>r.clientRequestId===report.clientRequestId);
+  assert.equal(report.clientRequestId,wireId);assert.equal(report.outcome,'timeout');assert.equal(report.status,null);
+  assert.equal(report.totalElapsedMs,5000);assert.equal(joined?.status??'UNKNOWN',serverStatus??'UNKNOWN');
+ }
+});
+
+test('R169 request session differs across independent clients and non-GET has no ID',async()=>{
+ const other=await import('./recording_current_app_helpers.mjs?independent-request-session');
+ const ids=[];
+ for(const helper of [measuredHttpResponse,other.measuredHttpResponse])await helper({route:'/ops/api/recordings/search',correlateSearch:true,
+  report:r=>ids.push(r.clientRequestId),request:async headers=>{assert(headers['X-Media-Search-Request-Id']);return {status:200,headers:{},body:(async function*(){})()};}});
+ assert.notEqual(ids[0].slice(0,36),ids[1].slice(0,36));
+ await measuredHttpResponse({route:'/ops/api/recordings/search',correlateSearch:true,method:'POST',report:r=>assert.equal(r.clientRequestId,undefined),
+  request:async headers=>{assert.deepEqual(headers,{});return {status:503,headers:{},body:(async function*(){})()};}});
 });

@@ -690,13 +690,13 @@ test('official remaining: total reserved evidence and known product quotas do no
 const capacityBinding={
  'scripts/internal/recording_http_cost_probe.h':'ad1eca0c1710c7605d1c0e9f8277ed2f77c92d50ba774f58ac5b9988ef6724b5',
  'scripts/internal/recording_accumulated_cost.mjs':'d4ceef8febef32f90862af5e8c190c9a41054de9ca688d48150d2cd7442ce277',
- 'scripts/internal/recording_accumulated_cost.py':'306e5f708b65c3e3480d815f058a6c4239a20c55e04b7dd0dfe84a371adf55a1',
- 'scripts/internal/v450_recording_a_mixed.mjs':'d1edb14c97afb83279a4d820d69c2f0d046ac58421cad202b541716dc91e9783',
- 'include/recording/recording_search_diagnostic.h':'07e66e67d26c8ee3bd633786fdc190f2280ce1437b19df71d3012f9bb181206b',
+ 'scripts/internal/recording_accumulated_cost.py':'81385e375f24698665e9dcb6b009b14da809ec7fad77de7137d564eca48b229b',
+ 'scripts/internal/v450_recording_a_mixed.mjs':'668bece372e7005ddd0a7fb2a47be185d8f369410bbfcb2b0c83cf529ea5e986',
+ 'include/recording/recording_search_diagnostic.h':'6e43c8ed03c5f3bfbcb8790559ac887797886bba44d98824a8c4c6dbba8372ef',
  'src/ingress/recording_search_application_service.cpp':'61f0482fe8735afab055891cb46c14670332f3c12392293f875f0b1a565cc46e',
  'src/recording/recording_search_reader.cpp':'136b84401aefd8d6233e2cdb5ce440e2e52945ef29e7af17625b39af0611afef',
  'src/recording/recording_search_source.cpp':'b77c5fe93183c9011e3006d70192e4f3884a4822951be8d31f60c9cae1c18d12',
- 'scripts/internal/recording_current_app_helpers.mjs':'e06f2d929f8b0e2cd7a6144084be86528c1aae795fcf4c018fa22c08a2a3d0c2',
+ 'scripts/internal/recording_current_app_helpers.mjs':'f31c2d430b7141b81fff8d3285340b1a15b7548d52cbaee041e85fe75793d166',
 };
 function capacityTest(name,run){test('ledger capacity regression: '+name,()=>{
  let assertions=0;const a=Object.fromEntries(['equal','deepEqual','ok','match','throws','notEqual'].map(k=>[k,(...args)=>{assertions++;return assert[k](...args);} ]));
@@ -2653,7 +2653,7 @@ function producerVisualEnvelope(){return Array.from({length:121},()=>({cycle:pro
 const reportProducerBinding={
  'src/application/media_server_application.cpp':'d8eeebcfaffe92df43afac6212feb2071d098e497dbbaf0fb137ee6b84db05c5',
  "scripts/internal/v450_recording_a_load.mjs": "fcb30638d05d9899f081c5825fb76e61f0f462a479e9501179bcad8a57f6e31f",
- "scripts/internal/v450_recording_a_mixed.mjs": "d1edb14c97afb83279a4d820d69c2f0d046ac58421cad202b541716dc91e9783",
+ "scripts/internal/v450_recording_a_mixed.mjs": "668bece372e7005ddd0a7fb2a47be185d8f369410bbfcb2b0c83cf529ea5e986",
  "scripts/internal/recording_current_observer.mjs": "75ef4b8987c5583f8955db674de3cf4a9e23d8590cf3492df247f7a4d429aaf3",
  "scripts/internal/va_review_smoke.cpp": "992d43b0edc954414eff4ea44f38ddcb52580a2d5d87e402dde91dbcf47527df",
  "scripts/internal/va_review_confirmed_checks.h": "787409e75deec2f646ac7131c675bd58753f68cafb8c92082c9a2a6aaf7a8b7b",

@@ -95,8 +95,8 @@ function environment(http,rtsp,stun){const env={PATH:process.env.PATH,HOME:proce
   for(const [k,v] of Object.entries(values))env['MEDIA_SERVER_'+k]=String(v);return env;
 }
 async function request(app,method,route,body,observeStatus=false){const begin=performance.now();budget();console.log('[request-budget] '+JSON.stringify({elapsedMs:Math.round(performance.now()-begin)}));
-  const response=await measuredHttpResponse({route,method,maxBytes:4*1024*1024,report:value=>console.log('[http-timing] '+JSON.stringify(value)),
-    request:()=>fetch(app.base+route,{method,redirect:'error',signal:AbortSignal.timeout(4000),headers:{...(app.cookie?{Cookie:app.cookie}:{}),...(body?{'Content-Type':'application/json'}:{})},body:body?JSON.stringify(body):undefined})});
+  const response=await measuredHttpResponse({route,method,correlateSearch:true,maxBytes:4*1024*1024,report:value=>console.log('[http-timing] '+JSON.stringify(value)),
+    request:diagnosticHeaders=>fetch(app.base+route,{method,redirect:'error',signal:AbortSignal.timeout(4000),headers:{...diagnosticHeaders,...(app.cookie?{Cookie:app.cookie}:{}),...(body?{'Content-Type':'application/json'}:{})},body:body?JSON.stringify(body):undefined})});
   if(response.status!==200&&response.status!==201){console.log('[http-failed-response] '+JSON.stringify({method,route,status:response.status,body:response.bytes.toString()}));throw Error('http-status-'+response.status);}
   if(observeStatus){const receivedAt=performance.now(),metricBegin=receivedAt;let metricError=null;statusAdmissionMetrics=null;
     try{statusAdmissionMetrics={...await collectProcess(collector,app.child.pid),expectedPid:app.child.pid,measurementStartedAt:metricBegin,measurementCompletedAt:performance.now(),productOwner:{...currentResourceTrace(app.resourceTrace),receivedAt:app.resourceTrace.receivedAt}};if(short){assertLaunchMetrics(app.identity,statusAdmissionMetrics);statusAdmissionMetrics.expectedStart=app.identity.startIdentity;app.identityStatusSamples++;}workspaceAnonymousBytes(statusAdmissionMetrics,app.child.pid);}
@@ -114,9 +114,9 @@ const mixed={windows:Array.from({length:3},()=>({structured:0,visual:0,evidence:
 async function evidenceFetch(app,route,method='GET',body){
  const started=performance.now();
  const routeKind=route.split('?')[0].replace(/\/(?:ep-|vr-|vj-|ad-)[^/]+/g,'/owned-id');
- const result=await measuredHttpResponse({route,method,maxBytes:4*1024*1024,
+ const result=await measuredHttpResponse({route,method,correlateSearch:true,maxBytes:4*1024*1024,
   report:value=>console.log('[mixed-http-timing] '+JSON.stringify({...value,routeKind})),
-  request:()=>fetch(app.base+route,{method,redirect:'error',signal:AbortSignal.timeout(5000),headers:{Cookie:app.cookie,...(method==='POST'?{'Content-Type':'application/json'}:{})},body:method==='POST'?JSON.stringify(body??{}):undefined})});
+  request:diagnosticHeaders=>fetch(app.base+route,{method,redirect:'error',signal:AbortSignal.timeout(5000),headers:{...diagnosticHeaders,Cookie:app.cookie,...(method==='POST'?{'Content-Type':'application/json'}:{})},body:method==='POST'?JSON.stringify(body??{}):undefined})});
  return {...result,elapsedMs:performance.now()-started};
 }
 async function verifySavedEvidence(app,afterRestart=false){

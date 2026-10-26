@@ -1,5 +1,5 @@
 // 파일 용도: 공개 DTO 관측 helper. 원장 replay/parser를 구현하지 않는다.
-import {createHash} from 'node:crypto';
+import {createHash,randomUUID} from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
 export function summarizeOverlappingSources(page,eventMs,{unplacedUnit='mapping'}={}){
@@ -117,7 +117,10 @@ export function summarizeEventState(page,eventId,referenceId,reason){
     outputCount:new Set(matched.map(r=>r.segmentId).filter(x=>typeof x==='string'&&x.length)).size,
     referenceMatches:matched.every(r=>r.referenceId===referenceId),truncated:matched.length>8,rows};
 }
-export async function measuredHttpResponse({route,method='GET',request,report,maxBytes=64*1024*1024,now=()=>performance.now()}) {
+// R171의 전송 전 ID 결속을 재사용한다. State 장시간 실행은 numeric 512 cap과
+// 다른 세션 도메인이므로 UUID + 단조 순번을 사용한다. 헤더는 진단 전용이다.
+const searchRequestSession=randomUUID();let searchRequestSequence=0;
+export async function measuredHttpResponse({route,method='GET',request,report,correlateSearch=false,maxBytes=64*1024*1024,now=()=>performance.now()}) {
   need(Number.isSafeInteger(maxBytes)&&maxBytes>0&&maxBytes<=64*1024*1024,'http-body-limit');
   const pathname=route.split('?')[0];
   const routes=[[/^\/health$/,'health'],[/^\/webrtc\/config$/,'ice'],
@@ -126,9 +129,11 @@ export async function measuredHttpResponse({route,method='GET',request,report,ma
     [/^\/ops\/api\/sources$/,'source'],[/^\/lab\/analysis\/taps$/,'tap-create'],
     [/^\/lab\/analysis\/taps\/[^/]+\/events$/,'tap-events'],[/^\/lab\/analysis\/taps\/[^/]+$/,'tap'],
     [/^\/lab\/analysis\/rules\/[^/]+$/,'rule']];
+  const clientRequestId=correlateSearch&&method==='GET'&&pathname==='/ops/api/recordings/search'?`${searchRequestSession}-${++searchRequestSequence}`:null;
+  const diagnosticHeaders=clientRequestId?{'X-Media-Search-Request-Id':clientRequestId}:{};
   const start=now();let header=null,bytes=0,phase='header',outcome='error',status=null;
   try {
-    const response=await request();header=now();phase='body';status=response.status;
+    const response=await request(diagnosticHeaders);header=now();phase='body';status=response.status;
     const chunks=[];
     for await(const chunk of response.body){bytes+=chunk.length;if(bytes>maxBytes)throw Error('http-body-cap');chunks.push(chunk);}
     phase='complete';outcome='ok';
@@ -139,7 +144,7 @@ export async function measuredHttpResponse({route,method='GET',request,report,ma
     throw Error(`http-${phase}-${outcome}`);
   } finally {
     const end=now();
-    report({method:['GET','POST','PUT','DELETE','HEAD','PATCH'].includes(method)?method:'OTHER',
+    report({...clientRequestId?{clientRequestId,clock:'client-performance-ms',startMs:start,endMs:end}:{},method:['GET','POST','PUT','DELETE','HEAD','PATCH'].includes(method)?method:'OTHER',
       routeClass:routes.find(([pattern])=>pattern.test(pathname))?.[1]??'other',status,
       headerElapsedMs:header===null?null:Math.round(header-start),
       bodyElapsedMs:header===null?null:Math.round(end-header),totalElapsedMs:Math.round(end-start),bytes,phase,outcome});

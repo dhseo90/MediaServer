@@ -1,3 +1,4 @@
+#include "recording/recording_search_diagnostic.h"
 #include "recording/recording_latency_trace.h"
 // 파일 요약: WebRTC HTTP 서버의 공개 runtime lifecycle과 registry 검증 구현이다.
 #include "webrtc_http_server_detail.h"
@@ -429,6 +430,9 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                 SetHttpSocketTimeouts(client_fd);
                 HttpResponse response;
                 auto request_opt = ReadHttpRequest(client_fd, &response);
+                recording::SearchDiagnostic::HttpRequest search_http(
+                    recording::SearchDiagnostic::Enabled()&&request_opt&&request_opt->method=="GET"&&request_opt->path=="/ops/api/recordings/search"
+                        ? HeaderValue(*request_opt,"X-Media-Search-Request-Id") : std::string{});
                 const bool visual_request=request_opt&&request_opt->method=="GET"&&request_opt->path=="/ops/api/recordings/visual-search";
                 recording::latency::VisualPhase visual_http("http-parsed-through-send",visual_request);
                 SiteOperationsRequestDiagnostic site_diagnostic(
@@ -5243,6 +5247,7 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                     site_diagnostic.Emit(SiteOperationsRequestDiagnostic::Phase::HandlerEnd);
                 }
 
+                search_http.Prepared(response.status);
                 if (!response_sent) {
                     SuppressSocketSigPipe(client_fd);
                     const HttpRequest* request_for_headers =
@@ -5250,13 +5255,16 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                     const std::string encoded = BuildHttpResponse(response, request_for_headers);
                     const auto observation=recording_gate->SendObservation();
                     recording::latency::VisualPhase visual_send("http-send",visual_request);
+                    search_http.SendBegin();
                     const bool sent = SendAllObserved(client_fd, encoded, observation.get());
+                    search_http.SendEnd(sent);
                     site_diagnostic.Emit(SiteOperationsRequestDiagnostic::Phase::SendEnd, sent);
                 }
                 // Drain is the recording transport's lifetime boundary. Release the
                 // body after the encoded send buffer has gone, before notifying Drain.
                 // Removing Flight still precedes close, so shutdown cannot target a
                 // reused descriptor. Other retained readers own independent tickets.
+                search_http.End();
                 response = HttpResponse{};
                 // No Impl access may remain after the recording drain notification.
                 active_connection_guard.Finish();

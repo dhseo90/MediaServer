@@ -8,6 +8,24 @@
 #include "ingress/recording_application_service.h"
 #include "domain/strict_json.h"
 #include <future>
+#include <limits>
+#ifdef RECORDING_SEARCH_TESTING
+namespace {
+std::array<char,512> http_line{};std::size_t http_size=0;
+std::array<char,6144> diagnostic_line{};std::size_t diagnostic_size=0,diagnostic_writes=0;
+void DiagnosticSink(const char* data,std::size_t size) noexcept {
+ ++diagnostic_writes;
+ if(std::string_view(data,size).find("[search-http-cost] ")==0){http_size=std::min(size,http_line.size());std::memcpy(http_line.data(),data,http_size);}
+ if(std::string_view(data,size).find("[search-request-cost] ")==0){
+  diagnostic_size=std::min(size,diagnostic_line.size());std::memcpy(diagnostic_line.data(),data,diagnostic_size);
+ }
+}
+void ResetDetailBudget() {
+ auto& budget=recording::SearchDiagnostic::Budget();
+ for(auto& x:budget.kept)x=0;for(auto& x:budget.dropped)x=0;budget.unselected=0;
+}
+}
+#endif
 namespace recording {
 struct RecordingSearchRetryTestProbe {
  static std::size_t Spans(const SearchSourceBatch& b){return b.segment_spans_.size();}
@@ -15,6 +33,10 @@ struct RecordingSearchRetryTestProbe {
 #ifdef RECORDING_SEARCH_TESTING
  static std::string SharedSpan(SearchSourceBatch& b,const std::string& fault) {
   for(auto& [id,span]:b.segment_spans_)if(span.shared_count){
+   // Earlier cases leave corrupt/pending rows in this shared fixture. This
+   // case must perform a real Finalized -> Corrupt transition, never a no-op
+   // or a rejected transition selected by unordered_map iteration order.
+   if(fault=="lifecycle"&&span.lifecycle!=RecordingLifecycle::Finalized)continue;
    if(fault=="digest")span.digest[0]^=1;
    if(fault=="size")++span.raw_bytes;
    if(fault=="range")span.shared_begin=b.shared_documents_.size();
@@ -47,6 +69,66 @@ int main(int argc,char** argv){
  unsigned passed=0;bool shared_projection=false;
  const auto need=[&](bool ok,const char* name){if(!ok)throw std::runtime_error(name);++passed;std::cout<<"[pass] "<<name<<std::endl;};
  try{
+#ifdef RECORDING_SEARCH_TESTING
+  // Synthetic clocks test retention, not HTTP latency or client cancellation.
+  {
+   using Budget=SearchDiagnostic::DetailBudget;
+   Budget budget;
+   need(budget.Select(17,1999999999ULL,200,"none")==-1,"diagnostic ordinary late requests are explicitly unsampled");
+   need(budget.Select(17,2000000000ULL,200,"none")==1&&budget.Select(129,5000000000ULL,200,"none")==2,
+        "diagnostic exact slow and very-late boundaries include late server 200");
+   need(budget.Select(130,0,503,"none")==2&&budget.Select(131,0,200,"bad_alloc")==2,
+        "diagnostic late failures and exception completion retain reserved priority");
+   Budget concurrent;std::array<std::thread,4> writers;
+   for(auto& worker:writers)worker=std::thread([&]{for(unsigned i=0;i<200;++i){
+    concurrent.Select(1,0,200,"none");concurrent.Select(129,2000000000ULL,200,"none");concurrent.Select(130,5000000000ULL,200,"none");}});
+   for(auto& worker:writers)worker.join();
+   for(unsigned i=0;i<3;++i)need(concurrent.kept[i]==Budget::limits[i]&&concurrent.dropped[i]==800-Budget::limits[i],
+        "diagnostic concurrent fixed budget and loss accounting");
+   need(16+80+31+1==128&&127*6144+512<=128*6144,"diagnostic detail and summary fit original total output budget");
+   const char* old_env=std::getenv("MEDIA_SERVER_VERIFY_RECORDING_SEARCH_TRACE");
+   const bool had_env=old_env;const std::string saved=old_env?old_env:"";
+   setenv("MEDIA_SERVER_VERIFY_RECORDING_SEARCH_TRACE","0",1);search_diagnostic_sink_test=DiagnosticSink;
+   diagnostic_size=diagnostic_writes=0;
+   {SearchDiagnostic d;SearchDiagnostic::Phase phase("disabled");d.status=200;need(!d.id&&!phase.begin,"diagnostic disabled performs no phase clock collection");}
+   need(!diagnostic_writes,"diagnostic disabled emits nothing");
+   {SearchDiagnostic d;d.id=77;d.entered=SearchDiagnostic::Tick();d.status=200;SearchDiagnostic::CostRow("overlay",d.entered,d.entered);}
+   need(std::string(diagnostic_line.data(),diagnostic_size).find("\"id\":77")!=std::string::npos,
+        "diagnostic external proof overlay ID remains independent of opt-in budget");
+   setenv("MEDIA_SERVER_VERIFY_RECORDING_SEARCH_TRACE","1",1);SearchDiagnostic::sequence=128;ResetDetailBudget();
+   for(auto invalid:{std::string{},std::string(65,'a'),std::string("bad\nID"),std::string("bad\"ID"),std::string("a,b")}){
+    SearchDiagnostic::HttpRequest request(invalid);
+    need(!request.dispatch&&!request.client[0],"diagnostic invalid or oversized header cannot enter output");
+   }
+   for(auto code:{200,503}){
+    diagnostic_size=0;
+    http_size=0;
+    {SearchDiagnostic::HttpRequest request(std::string(64,'a'));
+    {SearchDiagnostic d;d.status=code;d.entered-=5000000000ULL;d.attempt=2;
+     for(auto& a:d.attempts){a.instance=a.current_instance=a.captured=a.current=std::numeric_limits<std::uint64_t>::max();a.authority=true;}
+     for(unsigned i=0;i<41;++i)SearchDiagnostic::CostRow("PlaybackCandidates",std::numeric_limits<std::uint64_t>::max(),std::numeric_limits<std::uint64_t>::max());}
+    request.Prepared(code);request.SendBegin();request.SendEnd(false);}
+    const std::string line(diagnostic_line.data(),diagnostic_size);ingress::StrictJsonObjectDocument json;std::string detail;
+    need(diagnostic_size<5632&&ingress::ParseStrictJsonObjectDocument(line.substr(line.find('{')),&json,&detail),
+         "diagnostic maximum phase and revision widths form complete bounded JSON");
+    need(json.Find("loss")->bool_value&&json.Find("selection")->raw=="2"&&std::stoul(json.Find("id")->raw)>128,
+         "diagnostic late success or failure preserves phases and explicit overflow");
+    need(json.Find("clientRequestId")->string_value==std::string(64,'a')&&json.Find("revisions")->raw.size()>100,
+         "diagnostic one HTTP identity spans all three revision attempts");
+    const std::string terminal(http_line.data(),http_size);ingress::StrictJsonObjectDocument wire;
+    need(http_size<512&&ingress::ParseStrictJsonObjectDocument(terminal.substr(terminal.find('{')),&wire,&detail)&&
+         wire.Find("id")->raw==json.Find("id")->raw&&wire.Find("clientRequestId")->string_value==std::string(64,'a')&&
+         wire.Find("status")->raw==std::to_string(code)&&!wire.Find("sent")->bool_value,
+         "diagnostic HTTP failed send preserves late service status and identical IDs");
+   }
+   diagnostic_size=0;
+   try{SearchDiagnostic d;d.status=503;d.exception="bad_alloc";SearchDiagnostic::Phase phase("exception-unwind");throw std::bad_alloc();}
+   catch(const std::bad_alloc&){}
+   need(diagnostic_size&&SearchDiagnostic::active==nullptr,"diagnostic exception unwinding preserves terminal record and restores TLS");
+   search_diagnostic_sink_test=nullptr;ResetDetailBudget();SearchDiagnostic::sequence=0;
+   if(had_env)setenv("MEDIA_SERVER_VERIFY_RECORDING_SEARCH_TRACE",saved.c_str(),1);else unsetenv("MEDIA_SERVER_VERIFY_RECORDING_SEARCH_TRACE");
+  }
+#endif
   std::string error;RecordingRuntimeStorage runtime(std::filesystem::path(argv[1])/"recording");need(runtime.Open(&error),"generation runtime open");
   auto& catalog=runtime.catalog();auto input=Encode(true,30);
   const auto write=[&](const std::string& generation,const std::string& channel="channel-1"){
@@ -500,7 +582,11 @@ int main(int argc,char** argv){
     search_after_capture_test={};
     const auto identity=RecordingSearchRetryTestProbe::SharedSpan(retry,fault);
     need(!identity.empty(),"shared pre-Build batch owns authenticated raw projection spans");
-    if(fault=="lifecycle")need(catalog.MarkSegmentCorrupt(identity,"container-invalid",&error),"shared retry real current lifecycle change");
+    if(fault=="lifecycle"){
+      const bool changed=catalog.MarkSegmentCorrupt(identity,"container-invalid",&error);
+      if(!changed)throw std::runtime_error("shared retry real current lifecycle change: "+error);
+      need(changed,"shared retry real current lifecycle change");
+    }
     if(fault=="exception")search_outside_raw_cut_test=[] {throw std::bad_alloc();};
     if(fault=="build-refusal")search_projection_build_refused_test=true;
     auto actual_limits=limits;if(fault=="capacity")actual_limits.max_documents=1;if(fault=="owner")actual_limits.residency=foreign;
@@ -520,7 +606,14 @@ int main(int argc,char** argv){
     base.reset();result.reset();oracle.reset();
     need(owner->used()==0&&foreign->used()==0,"shared retry boundary returns every model batch and span reservation");
   }
-  // Same real Writer input and 192 cold segments in each AB/BA case. Two
+  // Optional bounded scaling of the existing Writer fixture, never a product input.
+  unsigned preparation_cycles=64;
+  if(const char* scale=std::getenv("MEDIA_SERVER_NATIVE_PREPARATION_CYCLES")) {
+    const std::string value(scale);
+    if(value!="110"&&value!="125"&&value!="150")throw std::runtime_error("unsupported native preparation scale");
+    preparation_cycles=static_cast<unsigned>(std::stoul(value));
+  }
+  // Same real Writer input and cold segments in each AB/BA case. Two
   // finalizations invalidate the first request's captures; a second request
   // for the identical scope waits on the unchanged preparation mutex.
   std::array<std::uint64_t,4> preparation_decodes{};
@@ -529,7 +622,7 @@ int main(int argc,char** argv){
     std::shared_ptr<SearchModelResidency> owner;
     std::shared_ptr<RecordingScratchResidency> scratch;
     std::cout<<"[preparation-case] round="<<round<<" reuse="<<reuse<<std::endl;
-    SearchDiagnostic::sequence=0;
+    SearchDiagnostic::sequence=0;ResetDetailBudget();
     {
       RecordingRuntimeStorage fixture(std::filesystem::path(argv[1])/("preparation-"+std::to_string(round)));
       need(fixture.Open(&error),"preparation real generation open");
@@ -539,7 +632,7 @@ int main(int argc,char** argv){
         if(!writer.Start("preparation","unused",input.descriptor,[](auto,auto,auto*){return false;},&detail))throw std::runtime_error(detail);
         for(auto packet:input.packets){packet.observation->source_generation=generation;writer.Push(packet,0);}writer.Stop();
       };
-      for(unsigned i=0;i<64;++i)append("base-"+std::to_string(i));
+      for(unsigned i=0;i<preparation_cycles;++i)append("base-"+std::to_string(i));
       need(current.Checkpoint(&error),"preparation authenticated cold history");
       RecordingReadService media(current);
       std::array<unsigned,2> captures{},builds{};std::array<int,2> status{};
@@ -580,11 +673,12 @@ int main(int argc,char** argv){
         for(const auto& failure:failures)if(failure)std::rethrow_exception(failure);
         need(status==std::array<int,2>{200,200}&&captures==std::array<unsigned,2>{3,1}&&builds==std::array<unsigned,2>{1,0},
             "preparation three bounded attempts then one source reuse; both concurrent requests complete");
-        need(bodies[0].find("\"knownCount\":201,")!=std::string::npos&&bodies[1].find("\"knownCount\":201,")!=std::string::npos,
+        need(bodies[0].find("\"knownCount\":"+std::to_string(3*preparation_cycles+9)+",")!=std::string::npos&&bodies[1].find("\"knownCount\":"+std::to_string(3*preparation_cycles+9)+",")!=std::string::npos,
             "preparation both snapshots include all actual Writer finalizations");
       }
       preparation_decodes[round]=decodes[0];
       std::cout<<"[preparation-work] round="<<round<<" reuse="<<reuse<<" decodes="<<decodes[0]<<','<<decodes[1]
+        <<" coldRows="<<3*preparation_cycles<<" finalRows="<<3*preparation_cycles+9
         <<" raw="<<raws[0]<<','<<raws[1]<<" captures="<<captures[0]<<','<<captures[1]<<" builds="<<builds[0]<<','<<builds[1]
         <<" elapsedMs="<<elapsed[0]<<','<<elapsed[1]<<" sourcePeak="<<owner->peak()
         <<" scratchPeak="<<scratch->peak().disk_bytes<<" scratchFdPeak="<<scratch->peak().file_descriptors<<std::endl;
