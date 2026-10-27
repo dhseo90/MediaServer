@@ -13,6 +13,7 @@ RTSP/WebRTC·GStreamer, YOLO/ONNX 분석, 녹화, Ops/Client와 Auth/Role/Scope�
 - 실제 UI: [UI 풀테스트 기준](docs/manual-ui-fulltest.md).
 - 버전·공개: [릴리즈 정책](docs/release-policy.md), [버전 정책](docs/versioning-policy.md).
 - 미완료 작업·후속 방향: [backlog](docs/development-backlog.md), [녹화·검색 로드맵](docs/v410-v49-recording-search-roadmap.md).
+- v4.5.0 실행 경계·자원 배분·성능 안정화: [현행 계획](docs/v450-execution-performance-plan.md).
 
 작업에 필요한 문서·코드·소비자만 읽는다. 같은 지침의 반복 읽기나 매 수정 전 전체 과거 로그
 재검토는 요구하지 않는다. 전면 문서 정리는 전체 파일을 분류하되 목록·구조 확인과 전문 리뷰를

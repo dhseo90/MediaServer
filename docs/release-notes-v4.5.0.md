@@ -5,6 +5,10 @@ v4.5.0 후보는 한국어·영어 장면 설명과 명시적인 카메라·시�
 사용자가 직접 지정·확인한 명세를 계산하는 A 기록 검토도 제공한다. 공개 완료 버전은
 [GitHub Latest](https://github.com/dhseo90/MediaServer/releases/latest)에서 별도로 확인한다.
 
+**계획·미완료:** 실행 경계·자원 배분·누적 혼합 성능/수명/복구 안정화를 v4.5.0의 추가 선행 개발로
+진행한다. [실행·성능 계획](v450-execution-performance-plan.md)의 단계 분리·제한된 실행은 아직 완료 기능이
+아니며, 아래 기존 구현 범위와 구분한다. 일정 단축보다 기반 완성을 우선하되 기존 안전·성능 Gate는 유지한다.
+
 ## 변경 범위
 
 - 검색 질의가 SigLIP2의 본문 63토큰 한도를 넘으면 잘라 실행하지 않고 거부한다.
@@ -47,6 +51,12 @@ macOS의 새 증거 PNG 추출은 처음부터 **SoftwareOnly 후보**를 사용
 근본 원인 수정으로 설명하지 않으며, 최종 채택과 소유자의 운영위험 수용은 별도 결정이다.
 
 ## 검증과 배포 경계
+
+2026-10-28 로컬 최신 기준은 State45 **FAIL**, Memory P0·Readiness120·Release **HOLD**다.
+[현행 계획의 Source·공식 Result](v450-execution-performance-plan.md#최신-공식-증거)와
+[backlog 우선순위](development-backlog.md#v450-잔여-개발과-릴리즈-순서)를 따른다.
+아래 번호별 결과는 해당 소스·시점의 보존 근거이며 최신 제품의 장시간 PASS를 뜻하지 않는다.
+Structured 요청 기준점 B안의 API 의미 변경은 승인 대기이며 공개 기능/schema로 확정하지 않았다.
 
 Recorder 큐의 영상 손실과 입력 ordinal 공백을 인지해 기존 수용 구간을 보존하고 실제 keyframe에서 회복하는
 [한정 직접 검증](release-artifacts/v4.5.0/116-validation.json)을 추가했다. 과부하의 녹화 공백을 숨기거나
