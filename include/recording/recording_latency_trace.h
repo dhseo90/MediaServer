@@ -39,6 +39,26 @@ struct JournalSubcost {
     ~JournalSubcost() noexcept {End();}
 };
 inline thread_local std::array<std::uint64_t,4> segment_decode_cost{}; // opt-in calls/hits/inclusive parse ns/second canonical serialization ns
+#ifdef RECORDING_SEARCH_TESTING
+// Native-only successful Segment V2 parse attribution. Mapping is inside JSON;
+// canonical serialization is inside validation. These intervals are not additive.
+inline thread_local std::array<std::uint64_t,7> segment_parse_detail{}; // JSON ns, Mapping ns, validation ns, serialization ns, Mapping count, input bytes, JSON string ns
+inline thread_local std::uint64_t native_json_string_ns=0;
+// Native opt-in operation attribution. Container capacities/copy bytes are
+// logical work, not malloc totals, live memory, or isolated allocator time.
+enum NativeJsonField : unsigned {
+    JsonDuplicateNs, JsonMemberNs, JsonNumberNs, JsonKeyStringNs,
+    JsonKeys, JsonMembers, JsonNumbers, JsonRawCopyBytes, JsonKeyCopyBytes,
+    JsonVectorGrowths, JsonVectorCapacityBytes, JsonRelocatedMembers,
+    JsonBucketGrowths, JsonBucketCapacityBytes, JsonArrayObjects,
+    JsonStrings, JsonStringInputBytes, JsonObjects, NativeJsonFields
+};
+inline thread_local std::array<std::uint64_t,NativeJsonFields> native_json_cost{};
+inline bool NativeJsonCostEnabled() noexcept {
+    static const bool yes=[] {const char* p=std::getenv("MEDIA_SERVER_NATIVE_JSON_COST");return p&&std::strcmp(p,"1")==0;}();
+    return yes&&DecodeCostEnabled();
+}
+#endif
 // Capture-only, fixed numeric elapsed costs. No output, allocation or new mutex.
 // Nested read/auth/copy intervals are inclusive; never sum them with lock hold.
 enum CaptureField : unsigned { HistoryWait, HistoryHold, HistoryVisit, RawCopy, HistoryRead, HistoryAuth, CutConsumer, HistoryGetWait, HistoryGetHold, CaptureFields };

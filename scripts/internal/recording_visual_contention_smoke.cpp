@@ -136,7 +136,19 @@ int main(int argc,char** argv){
  if(density_rows){
   for(unsigned round=0;round<3;++round){
    SearchDiagnostic::HttpRequest request("native-density-pure-"+std::to_string(round));SearchDiagnostic diagnostic(catalog.SearchResidency().get());
+#ifdef RECORDING_SEARCH_TESTING
+   const auto parse_before=latency::segment_parse_detail;
+   const auto json_before=latency::native_json_cost;
+#endif
    SearchSourceBatch batch,empty;Need101(catalog.CaptureSearchSource({"9101"},nullptr,&batch,&error,{},false,&empty),"density-pure-capture:"+error);
+#ifdef RECORDING_SEARCH_TESTING
+   std::cout<<"[native-density-parse] round="<<round<<" values=";
+   for(unsigned i=0;i<parse_before.size();++i)std::cout<<(i?",":"")<<latency::segment_parse_detail[i]-parse_before[i];
+   std::cout<<'\n';
+   std::cout<<"[native-density-json] round="<<round<<" values=";
+   for(unsigned i=0;i<json_before.size();++i)std::cout<<(i?",":"")<<latency::native_json_cost[i]-json_before[i];
+   std::cout<<'\n';
+#endif
    Need101(catalog.ValidateSearchSource(batch,&error),"density-pure-currentness:"+error);diagnostic.status=200;
    Need101(diagnostic.capture_count==1&&!diagnostic.capture_loss,"density-pure-count");
    std::cout<<Capture101("pure",round,0,diagnostic.id,diagnostic.captures[0])<<std::flush;

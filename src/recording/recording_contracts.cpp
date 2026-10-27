@@ -3,6 +3,9 @@
 #include "recording/recording_contracts.h"
 
 #include "domain/strict_json.h"
+#ifdef RECORDING_SEARCH_TESTING
+#include "recording/recording_latency_trace.h"
+#endif
 
 #include <algorithm>
 #include <array>
@@ -964,7 +967,13 @@ static bool ValidateSegmentV2Canonical(const RecordingSegmentV2& v, std::string*
         } else next=*m.end_pts;
     }
     if (v.mappings.back().end_pts!=v.media_end_pts) return Fail(error,"V2 mapping 전체 cover 오류");
+#ifdef RECORDING_SEARCH_TESTING
+    const auto serialization_begin=latency::DecodeCostEnabled()?latency::Now():0;
+#endif
     auto bytes=SerializeRecordingSegmentV2(v);
+#ifdef RECORDING_SEARCH_TESTING
+    if(serialization_begin)latency::segment_parse_detail[3]+=latency::Now()-serialization_begin;
+#endif
     if (bytes.empty()) return Fail(error,"V2 JSON 상한 초과");
     if(canonical)*canonical=std::move(bytes);
     ClearError(error);return true;
@@ -980,6 +989,9 @@ bool ParseRecordingSegmentV2Canonical(const std::string& json, RecordingSegmentV
     Document d; RecordingSegmentV2 v; std::string retention,lifecycle;
     std::string detail;
     const auto mapping=[&](const Document& md) {
+#ifdef RECORDING_SEARCH_TESTING
+        const auto mapping_begin=latency::DecodeCostEnabled()?latency::Now():0;
+#endif
         if(v.mappings.size()>=256)return Fail(error,"V2 mapping 개수 오류");
         RecordingUtcMappingV1 m;
         if (md.members.size()!=9) return Fail(error,"V2 mapping 정확한 field 집합 오류");
@@ -988,9 +1000,22 @@ bool ParseRecordingSegmentV2Canonical(const std::string& json, RecordingSegmentV
             !RequiredString(md,"provenance",&m.provenance,error) || !RequiredNullableInteger(md,"utc_start_ns",&m.utc_start_ns,error) ||
             !RequiredNullableInteger(md,"utc_end_ns",&m.utc_end_ns,error) || !RequiredNullableInteger(md,"uncertainty_ns",&m.uncertainty_ns,error) ||
             !RequiredString(md,"reason",&m.reason,error)) return false;
-        v.mappings.push_back(std::move(m));return true;
+        v.mappings.push_back(std::move(m));
+#ifdef RECORDING_SEARCH_TESTING
+        if(mapping_begin){latency::segment_parse_detail[1]+=latency::Now()-mapping_begin;++latency::segment_parse_detail[4];}
+#endif
+        return true;
     };
-    if(!ingress::ParseStrictJsonObjectDocumentObjectArray(json,"mappings",&d,mapping,&detail))
+#ifdef RECORDING_SEARCH_TESTING
+    const auto json_begin=latency::DecodeCostEnabled()?latency::Now():0;
+    const auto string_before=latency::native_json_string_ns;
+#endif
+    const bool json_ok=ingress::ParseStrictJsonObjectDocumentObjectArray(json,"mappings",&d,mapping,&detail);
+#ifdef RECORDING_SEARCH_TESTING
+    if(json_begin){latency::segment_parse_detail[0]+=latency::Now()-json_begin;latency::segment_parse_detail[5]+=json.size();}
+    if(json_begin)latency::segment_parse_detail[6]+=latency::native_json_string_ns-string_before;
+#endif
+    if(!json_ok)
         return Fail(error,"JSON object 오류: "+detail);
     if (d.members.size()!=24) return Fail(error,"V2 정확한 field 집합 오류");
     if (!RequiredString(d,"schema",&v.schema,error) || !RequiredString(d,"segment_id",&v.segment_id,error) ||
@@ -1008,7 +1033,14 @@ bool ParseRecordingSegmentV2Canonical(const std::string& json, RecordingSegmentV
     v.retention_class=ParseRetention(retention);v.lifecycle=ParseLifecycle(lifecycle);
     if (RetentionString(v.retention_class)!=retention || lifecycle!="finalized") return Fail(error,"V2 enum 오류");
     if(!RequiredMember(d,"mappings",Type::Array,error))return false;
-    if (!ValidateSegmentV2Canonical(v,canonical,error)) return false;
+#ifdef RECORDING_SEARCH_TESTING
+    const auto validation_begin=latency::DecodeCostEnabled()?latency::Now():0;
+#endif
+    const bool valid=ValidateSegmentV2Canonical(v,canonical,error);
+#ifdef RECORDING_SEARCH_TESTING
+    if(validation_begin)latency::segment_parse_detail[2]+=latency::Now()-validation_begin;
+#endif
+    if (!valid) return false;
     *value=std::move(v);ClearError(error);return true;
 }
 

@@ -1,4 +1,7 @@
 #include "domain/strict_json.h"
+#ifdef RECORDING_SEARCH_TESTING
+#include "recording/recording_latency_trace.h"
+#endif
 // 파일 용도: 중복 키와 타입 경계를 엄격히 검사하는 JSON parser를 구현한다.
 #include <cctype>
 #include <array>
@@ -13,6 +16,15 @@
 namespace ingress {
 
 namespace {
+
+#ifdef RECORDING_SEARCH_TESTING
+struct NativeJsonTimer {
+    unsigned field;
+    std::uint64_t begin;
+    explicit NativeJsonTimer(unsigned f):field(f),begin(recording::latency::NativeJsonCostEnabled()?recording::latency::Now():0){}
+    ~NativeJsonTimer(){if(begin)recording::latency::native_json_cost[field]+=recording::latency::Now()-begin;}
+};
+#endif
 
 class StrictJsonParser {
 public:
@@ -69,12 +81,33 @@ private:
             return true;
         }
         std::unordered_set<std::string> keys;
+#ifdef RECORDING_SEARCH_TESTING
+        const bool measure=recording::latency::NativeJsonCostEnabled();
+        if(measure)++recording::latency::native_json_cost[recording::latency::JsonObjects];
+#endif
         while (pos_ < json_.size()) {
             std::string key;
+#ifdef RECORDING_SEARCH_TESTING
+            const auto key_string_before=recording::latency::native_json_string_ns;
+#endif
             if (!ParseString(&key)) {
                 return Fail("invalid object key");
             }
-            if (!keys.insert(key).second) {
+#ifdef RECORDING_SEARCH_TESTING
+            if(measure)recording::latency::native_json_cost[recording::latency::JsonKeyStringNs]+=recording::latency::native_json_string_ns-key_string_before;
+            const auto buckets_before=keys.bucket_count();
+            const auto duplicate_begin=measure?recording::latency::Now():0;
+#endif
+            const bool inserted=keys.insert(key).second;
+#ifdef RECORDING_SEARCH_TESTING
+            if(measure){
+                auto& cost=recording::latency::native_json_cost;
+                cost[recording::latency::JsonDuplicateNs]+=recording::latency::Now()-duplicate_begin;
+                ++cost[recording::latency::JsonKeys];
+                if(keys.bucket_count()!=buckets_before){++cost[recording::latency::JsonBucketGrowths];cost[recording::latency::JsonBucketCapacityBytes]+=keys.bucket_count()*sizeof(void*);}
+            }
+#endif
+            if (!inserted) {
                 return Fail("duplicate JSON key at " + path + "." + key);
             }
             if (key_index_) document_->all_keys.insert(key);
@@ -93,6 +126,16 @@ private:
                 return false;
             }
             if (captured_members != nullptr) {
+#ifdef RECORDING_SEARCH_TESTING
+                const auto capacity_before=captured_members->capacity();
+                if(measure){
+                    auto& cost=recording::latency::native_json_cost;
+                    ++cost[recording::latency::JsonMembers];
+                    cost[recording::latency::JsonKeyCopyBytes]+=key.size();
+                    if(!(selected||(array_views_&&value.type==StrictJsonType::Array)))cost[recording::latency::JsonRawCopyBytes]+=value.end-value.start;
+                }
+                const auto member_begin=measure?recording::latency::Now():0;
+#endif
                 captured_members->push_back(StrictJsonMember{
                     key,
                     value.type,
@@ -101,6 +144,17 @@ private:
                     value.bool_value,
                     array_views_ && value.type == StrictJsonType::Array ? std::string_view(json_).substr(value.start, value.end-value.start) : std::string_view{},
                 });
+#ifdef RECORDING_SEARCH_TESTING
+                if(measure){
+                    auto& cost=recording::latency::native_json_cost;
+                    cost[recording::latency::JsonMemberNs]+=recording::latency::Now()-member_begin;
+                    if(captured_members->capacity()!=capacity_before){
+                        ++cost[recording::latency::JsonVectorGrowths];
+                        cost[recording::latency::JsonVectorCapacityBytes]+=captured_members->capacity()*sizeof(StrictJsonMember);
+                        cost[recording::latency::JsonRelocatedMembers]+=captured_members->size()-1;
+                    }
+                }
+#endif
             }
             SkipWhitespace();
             if (Consume('}')) {
@@ -120,8 +174,14 @@ private:
         SkipWhitespace();
         if (Consume(']')) return true;
         std::size_t index=0;
+        // The consumer may not retain parser references beyond its call. Reuse
+        // only vector capacity; destroy every member before parsing the next row.
+        StrictJsonObjectDocument element;
         while (pos_<json_.size()) {
-            StrictJsonObjectDocument element;
+            element.members.clear();
+#ifdef RECORDING_SEARCH_TESTING
+            if(recording::latency::NativeJsonCostEnabled())++recording::latency::native_json_cost[recording::latency::JsonArrayObjects];
+#endif
             if (!ParseObject(path+"["+std::to_string(index)+"]", &element.members, depth+1)) return false;
             if (!(*object_array_consumer_)(element)) return Fail("object array consumer rejected");
             ++index; SkipWhitespace();
@@ -197,6 +257,19 @@ private:
     }
 
     bool ParseString(std::string* decoded) {
+#ifdef RECORDING_SEARCH_TESTING
+        struct StringCost {
+            std::uint64_t begin=recording::latency::DecodeCostEnabled()?recording::latency::Now():0;
+            const std::size_t& pos;std::size_t start;
+            ~StringCost(){
+                if(begin)recording::latency::native_json_string_ns+=recording::latency::Now()-begin;
+                if(recording::latency::NativeJsonCostEnabled()){
+                    ++recording::latency::native_json_cost[recording::latency::JsonStrings];
+                    recording::latency::native_json_cost[recording::latency::JsonStringInputBytes]+=pos-start;
+                }
+            }
+        } string_cost{recording::latency::DecodeCostEnabled()?recording::latency::Now():0,pos_,pos_};
+#endif
         if (!Consume('"')) {
             return false;
         }
@@ -289,6 +362,10 @@ private:
     }
 
     bool ParseNumber() {
+#ifdef RECORDING_SEARCH_TESTING
+        NativeJsonTimer number_cost(recording::latency::JsonNumberNs);
+        if(number_cost.begin)++recording::latency::native_json_cost[recording::latency::JsonNumbers];
+#endif
         const std::size_t start = pos_;
         if (Consume('-') && pos_ >= json_.size()) return false;
         if (Consume('0')) {
