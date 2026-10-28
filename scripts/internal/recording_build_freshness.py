@@ -108,7 +108,7 @@ def sha(path):
     return hashlib.sha256(file(path).read_bytes()).hexdigest()
 
 
-def check(repo, build, expected_product=None, expected_runtime=None):
+def check(repo, build, expected_product=None, expected_runtime=None, *, repository_inputs=None):
     repo, build = Path(repo).resolve(strict=True), Path(build).resolve(strict=True)
     cache_path = build / 'CMakeCache.txt'
     cache = {}
@@ -134,6 +134,9 @@ def check(repo, build, expected_product=None, expected_runtime=None):
             'missing-configuration-input')
     for p in configuration_inputs:
         older(p, stamp)
+    # Optional caller-owned inventory of the inputs read by this very check.
+    # No persistent hash/stat cache, second depfile walk, or skipped freshness edge.
+    all_inputs = set(configuration_inputs)
     targets = ('media_server_runtime', 'media_server')
     infos = {resolve(build, p) for p in cmake_list(config, 'CMAKE_DEPEND_INFO_FILES')}
     summaries, graph = {}, []
@@ -186,6 +189,7 @@ def check(repo, build, expected_product=None, expected_runtime=None):
             deps.update(inputs)
             graph.append({'target': target, 'source': str(source), 'object': str(obj),
                           'dependencies': sorted(map(str, inputs))})
+        all_inputs.update(deps)
         listed = {resolve(build, n) for n in shlex.split(make_assignment(make, target + '_OBJECTS'))}
         require(listed == objects, 'make-object-list-mismatch')
         require(not make_assignment(make, target + '_EXTERNAL_OBJECTS'), 'unverified-external-objects')
@@ -253,6 +257,9 @@ def check(repo, build, expected_product=None, expected_runtime=None):
         if expected is not None:
             require(re.fullmatch('[0-9a-f]{64}', expected) is not None and
                     summaries[target]['artifactSha256'] == expected, 'binary-hash-mismatch: ' + target)
+    # Publish only after all target checks pass. The default CLI result is unchanged.
+    if repository_inputs is not None:
+        repository_inputs.update(p for p in all_inputs if p.is_relative_to(repo) and not p.is_relative_to(build))
     return {'schema': 'media-server.build-freshness.v1', 'status': 'PASS_TARGET_AWARE_PREFLIGHT',
             'targets': summaries, 'graphSha256': hashlib.sha256(json.dumps(graph,sort_keys=True).encode()).hexdigest(),
             'scope': 'CMake Unix Makefiles timestamp dependency contract; no build or product execution',

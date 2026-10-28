@@ -1,4 +1,5 @@
 // 기본 검사는 합성 정보, 명시 opt-in은 보존된 실측 파일을 읽는다. 제품/HTTP/미디어 생성 없음.
+import vm from 'node:vm';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
@@ -7,7 +8,7 @@ import os from 'node:os';
 import path from 'node:path';
 import {spawnSync} from 'node:child_process';
 import {EARLY_STATE_INPUT as p,selectStateInputProfile,requireStateInputExecutable,stateInputArgs,stateInputProbeArgs,
-  validateStateInputMedia,stateInputCapacity,assessSyntheticStateWriterSegments,validateQualifiedStateInput,STATE_BINDING_SHA,STATE_PRODUCT_SMOKE_SHA,assessQualifiedStateReview,stateHelperBytes,assertVerifiedStateFreshness} from './recording_state_input_profile.mjs';
+  validateStateInputMedia,stateInputCapacity,assessSyntheticStateWriterSegments,validateQualifiedStateInput,STATE_BINDING_SHA,STATE_PRODUCT_SMOKE_SHA,assessQualifiedStateReview,stateHelperBytes,assertVerifiedStateFreshness,assertEP1StateEvidence,assertStateSourceBytes} from './recording_state_input_profile.mjs';
 import {workspaceBounds,freezeCurrentWorkspace,measureCurrentWorkspace} from './recording_current_observer.mjs';
 import {mixedRecordingProfile} from './recording_longrun_progress.mjs';
 const sha=b=>crypto.createHash('sha256').update(b).digest('hex');
@@ -147,6 +148,17 @@ test('State consumer preserves duration, source guard, fixture branch and defaul
   assert(wrapper.includes('node "$observer_script/recording_state_input_profile.mjs" --install-helpers "$observer_run"\nelse\nobserver_build="$observer_repo/build-gst-onnx"'));
 });
 const replay=process.env.MEDIA_SERVER_STATE_BINDING_TEST;
+function bindingCli(args,env){
+  const start=performance.now();
+  const result=spawnSync(process.execPath,['scripts/internal/recording_state_input_profile.mjs',...args],{env,encoding:'utf8',timeout:20000});
+  const receipt={scope:'actual-binding-cli',args,timeoutMs:20000,elapsedMs:performance.now()-start,
+    status:result.status,signal:result.signal,error:result.error?{code:result.error.code,message:result.error.message}:null,
+    stdoutBytes:Buffer.byteLength(result.stdout??''),stderrBytes:Buffer.byteLength(result.stderr??'')};
+  console.log(JSON.stringify(receipt));
+  assert.equal(result.status,0,JSON.stringify(receipt)+'\n'+(result.stderr??''));
+  return result;
+}
+
 test('required generated helper rejects missing source, changed bytes, size and SHA',()=>{
   const entry={path:path.resolve('src/recording/recording_catalog.cpp'),generator:'instrumentCatalog',bytes:376755,
     sha256:'03dba9c9c535f97202ac40e7c817aeea0c82aae72abe6478da99ec0a3fc00817'};
@@ -161,15 +173,17 @@ test('required generated helper rejects missing source, changed bytes, size and 
   }finally{fs.rmSync(dir,{recursive:true});assert(!fs.existsSync(dir));}
 });
 assert(replay===undefined||replay==='1','MEDIA_SERVER_STATE_BINDING_TEST must be unset or 1');
-test('qualified State binding: preserved real evidence and stale/missing assets', {skip:replay!=='1'},()=>{
+test('qualified State binding: preserved real evidence and stale/missing assets', {skip:replay!=='1'},t=>{
   const env=process.env,binding=requireStateInputExecutable(p,env);
   assert.equal(binding.product,env.MEDIA_SERVER_STATE_PRODUCT);assert.equal(binding.runtime,env.MEDIA_SERVER_STATE_RUNTIME);
   const verified=env.MEDIA_SERVER_STATE_VERIFIED_RESULT!==undefined;
   const current=env.MEDIA_SERVER_STATE_PRODUCT_SMOKE!==undefined&&!verified;
-  assert.equal(binding.sha256.product,verified?'6923524115bd0326afce8dfbf58384544b5ca2508e1e4e9ebc56a1fadcf9c9a8':current?'3f40e4b6530e9c89922d31004dd9c9b758cf338ec165989835aff9f5d042bddc':'ed42ee3c55a3e48c2b30d564aa0397bf15c9acd5a89ad2145f1accc10546f4a8');
-  assert.equal(binding.sha256.runtime,verified?'ab3d492e8844de4dcb5a8e8b5b1d518a5a11553e38c53093e7b5f0c729ba86d8':current?'da42acfb1d41fe4690a1440999d44a485591ee9c9b814ddb9c1e357b35c6bf83':'d9081c27bd5a0966e19719136b51b92433a3e67f79f4c56cbf70666f95a194b4');
+  const ep1=verified&&JSON.parse(fs.readFileSync(env.MEDIA_SERVER_STATE_VERIFIED_RESULT)).schema==='ep1-product-review-result-v1';
+  assert.equal(binding.sha256.product,ep1?'976014bbe4761376d813ead410d924d44317b87f44c71ff0b5abf5358372cea4':verified?'6923524115bd0326afce8dfbf58384544b5ca2508e1e4e9ebc56a1fadcf9c9a8':current?'3f40e4b6530e9c89922d31004dd9c9b758cf338ec165989835aff9f5d042bddc':'ed42ee3c55a3e48c2b30d564aa0397bf15c9acd5a89ad2145f1accc10546f4a8');
+  assert.equal(binding.sha256.runtime,ep1?'f817742ab65a4ef90cb48ff0259a106e15277eecebf6627a03beb0ae4c410b47':verified?'ab3d492e8844de4dcb5a8e8b5b1d518a5a11553e38c53093e7b5f0c729ba86d8':current?'da42acfb1d41fe4690a1440999d44a485591ee9c9b814ddb9c1e357b35c6bf83':'d9081c27bd5a0966e19719136b51b92433a3e67f79f4c56cbf70666f95a194b4');
   if(verified){
-    const sources=JSON.parse(fs.readFileSync(path.join(path.dirname(env.MEDIA_SERVER_STATE_VERIFIED_RESULT),'source-manifest.json')));
+    const sources=ep1?JSON.parse(fs.readFileSync(path.join(path.dirname(env.MEDIA_SERVER_STATE_VERIFIED_RESULT),'build-binding.json'))).sourceFiles:
+      JSON.parse(fs.readFileSync(path.join(path.dirname(env.MEDIA_SERVER_STATE_VERIFIED_RESULT),'source-manifest.json')));
     const models=JSON.parse(fs.readFileSync(path.join(env.MEDIA_SERVER_STATE_PRODUCT_SMOKE,'model-sha256.json')));
     assert.equal(binding.matched,Object.keys(sources).length+Object.keys(models).length);
   }else assert(binding.matched>1500);
@@ -178,11 +192,11 @@ test('qualified State binding: preserved real evidence and stale/missing assets'
   const dir=fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(),'media-server-state-binding-test-')));fs.chmodSync(dir,0o700);
   try{
     const changed=path.join(dir,'input.mp4');fs.writeFileSync(changed,Buffer.alloc(120647));
-    if(verified){
+    if(verified&&!ep1){
       assert.equal(binding.verifiedResultSha256,'41cc20f4453239b07f2d756500252de9be30482a70ca18348f562bee40c227a0');
       assert.equal(binding.freshness.graphSha256,'5c5d1f9152996ba7b253f9f034b25a8e056a99022591014b4f9d9584c3cadaa5');
       assert.equal(binding.freshness.status,'PASS_TARGET_AWARE_PREFLIGHT');
-      const cli=spawnSync(process.execPath,['scripts/internal/recording_state_input_profile.mjs','--binding'],{env,encoding:'utf8',timeout:20000});
+      const cli=bindingCli(['--binding'],env);
       assert.equal(cli.status,0,cli.stderr);assert.deepEqual(JSON.parse(cli.stdout),binding);
       const original=JSON.parse(fs.readFileSync(env.MEDIA_SERVER_STATE_VERIFIED_RESULT));
       fs.copyFileSync(path.join(path.dirname(env.MEDIA_SERVER_STATE_VERIFIED_RESULT),'source-manifest.json'),path.join(dir,'source-manifest.json'));
@@ -240,6 +254,80 @@ test('qualified State binding: preserved real evidence and stale/missing assets'
         MEDIA_SERVER_STATE_VERIFIED_RESULT_SHA256:undefined,MEDIA_SERVER_STATE_PRODUCT_SMOKE:path.dirname(env.MEDIA_SERVER_STATE_VERIFIED_RESULT)}),/state-binding-sha/);
     }
 
+    if(ep1){
+      assert.equal(binding.verifiedResultSha256,'a737df126a8f50d3409195e340ac1e24bfc5a195a25823f63d4f26771613334c');
+      assert.equal(binding.sourceBinding.committedFiles,403);assert.equal(binding.sourceBinding.repoInputs,402);
+      assert.equal(binding.freshness.graphSha256,'61d36999cdc709aa6cb3019158cccd9eea770617a105acd45974879bb29cd6d7');
+      const cli=bindingCli(['--binding'],env);
+      assert.equal(cli.status,0,cli.stderr);assert.deepEqual(JSON.parse(cli.stdout),binding);
+      const sourceDir=path.dirname(env.MEDIA_SERVER_STATE_VERIFIED_RESULT),original=JSON.parse(fs.readFileSync(env.MEDIA_SERVER_STATE_VERIFIED_RESULT));
+      const names=['build-binding.json','freshness.json','integration/execution.json','integration/artifacts/report.json'];
+      const originals=Object.fromEntries(names.map(n=>[n,JSON.parse(fs.readFileSync(path.join(sourceDir,n)))]));
+      for(const name of names)fs.mkdirSync(path.dirname(path.join(dir,name)),{recursive:true});
+      const reject=(name,mutate,pattern)=>{
+        const result=structuredClone(original),artifacts=structuredClone(originals);mutate(result,artifacts);
+        for(const n of names){
+          const bytes=Buffer.from(JSON.stringify(artifacts[n]));fs.writeFileSync(path.join(dir,n),bytes);
+          result.evidenceArtifacts[n]={bytes:bytes.length,sha256:sha(bytes)};
+        }
+        const bytes=Buffer.from(JSON.stringify(result)),file=path.join(dir,'result.json');fs.writeFileSync(file,bytes);
+        assert.throws(()=>requireStateInputExecutable(p,{...env,MEDIA_SERVER_STATE_VERIFIED_RESULT:file,
+          MEDIA_SERVER_STATE_VERIFIED_RESULT_SHA256:sha(bytes)}),pattern,name);
+        console.log(JSON.stringify({scope:'ep1-isolated-evidence-rejection',name,passed:true}));
+      };
+      for(const [name,change,pattern] of [
+        ['unsupported schema',r=>r.schema='unsupported',/state-verified-result-schema/],
+        ['review blocker',r=>r.review.P1=1,/state-ep1-review/],
+        ['missing build',r=>delete r.build,/state-ep1-build/],
+        ['build failure',r=>r.build.result.exit=1,/state-ep1-build/],
+        ['HTTP failure',r=>r.http.fail=1,/state-ep1-http/],
+        ['HTTP incomplete',r=>r.http.observationSeconds=29,/state-ep1-http/],
+        ['Header Timeout',r=>r.http.allSearchGETs['/ops/api/recordings/search'].timeoutOrError=1,/state-ep1-search/],
+        ['late server 503',r=>r.http.allSearchGETs['/ops/api/recordings/search'].statusCounts['503']=1,/state-ep1-search/],
+        ['cleanup failure',r=>r.cleanup.status='FAIL',/state-ep1-cleanup/],
+        ['forced exit',r=>r.processCleanup[0].forcedTermination='SIGKILL',/state-ep1-cleanup/],
+        ['Owner remaining',r=>r.resources.finalPerProcess[0].ram=1,/state-ep1-resource-return/],
+        ['Model digest mismatch',r=>r.build.modelArtifacts['models/v430-siglip2/onnx/text_encoder.onnx'].sha256='0'.repeat(64),/state-ep1-model-binding/],
+      ])reject(name,r=>change(r),pattern);
+      reject('source start/end mismatch',(_,a)=>a['integration/execution.json'].sourceEnd.head='0'.repeat(40),/state-ep1-source-binding/);
+      reject('incomplete execution',(_,a)=>delete a['integration/execution.json'].sourceEnd,/state-ep1-source-binding/);
+      reject('failed raw report',(_,a)=>a['integration/artifacts/report.json'].failed=1,/state-ep1-report/);
+      for(const name of ['media_server','libmedia_server_runtime.a'])reject(name+' mismatch',(r,a)=>{
+        a['build-binding.json'].artifacts[name].sha256='0'.repeat(64);
+        r.build[name==='media_server'?'binary':'runtime'].sha256='0'.repeat(64);
+        if(name==='media_server')a['integration/execution.json'].source.binarySha256=a['integration/execution.json'].sourceEnd.binarySha256='0'.repeat(64);
+      },/state-binding-sha/);
+      const changeSources=(a,mutate)=>{
+        const b=a['build-binding.json'];mutate(b.sourceFiles);
+        b.sourceManifestSha256=sha(JSON.stringify(Object.fromEntries(Object.entries(b.sourceFiles).sort())));
+      };
+      reject('manifest missing one header',(_,a)=>changeSources(a,s=>delete s['include/recording/recording_catalog.h']),/state-ep1-source-manifest/);
+      reject('one changed C++ byte digest',(_,a)=>changeSources(a,s=>s['src/recording/visual_index_worker.cpp']='0'.repeat(64)),/state-source-asset-binding/);
+      reject('one changed header digest',(_,a)=>changeSources(a,s=>s['include/recording/recording_catalog.h']='0'.repeat(64)),/state-source-asset-binding/);
+      reject('403 entries but substituted path',(_,a)=>changeSources(a,s=>{delete s['include/recording/recording_catalog.h'];s['include/unknown.h']='0'.repeat(64);}),/state-ep1-source-coverage/);
+      reject('dynamic library mismatch',(_,a)=>{const libs=a['build-binding.json'].dynamicLibrarySha256;libs[Object.keys(libs)[0]]='0'.repeat(64);},/state-ep1-library-binding/);
+      for(const [name,change] of [['graph mismatch',v=>v.graphSha256='0'.repeat(64)],
+        ['target mismatch',v=>v.targets.media_server.objects++],['failed freshness',v=>v.status='FAIL']])
+        reject(name,(_,a)=>change(a['freshness.json']),/state-verified-/);
+      // Actual original-byte authentication; no mutation of old Evidence or assets.
+      for(const patch of [{MEDIA_SERVER_STATE_VERIFIED_RESULT_SHA256:'0'.repeat(64)},
+        {MEDIA_SERVER_STATE_VERIFIED_RESULT_SHA256:undefined},{MEDIA_SERVER_STATE_VERIFIED_RESULT:undefined}])
+        assert.throws(()=>requireStateInputExecutable(p,{...env,...patch}));
+      // Inject asset reads only; original Model/Helper files remain untouched.
+      const read=fs.readFileSync,baseline=JSON.parse(read(path.join(env.MEDIA_SERVER_STATE_PRODUCT_SMOKE,'result.json')));
+      for(const file of [path.resolve('models/v430-siglip2/preparation.json'),Object.keys(baseline.binding.dynamicLibrariesSHA256)[0],baseline.helpers.normalize.preservedPath]){
+        t.mock.method(fs,'readFileSync',function(p,...args){return p===file?Buffer.from('isolated changed asset'):read.call(this,p,...args);});
+        try{assert.throws(()=>requireStateInputExecutable(p,env),/state-(source-asset-binding|binding-sha)/);}
+        finally{t.mock.restoreAll();}
+      }
+      const stat=fs.realpathSync;t.mock.method(fs,'realpathSync',function(file,...args){
+        if(file===baseline.helpers.normalize.preservedPath)throw Object.assign(new Error('isolated missing helper'),{code:'ENOENT'});
+        return stat.call(this,file,...args);
+      });
+      try{assert.throws(()=>requireStateInputExecutable(p,env),/isolated missing helper/);}finally{t.mock.restoreAll();}
+      console.log(JSON.stringify({scope:'ep1-asset-read-injection',changedAssetsRejected:3,missingHelperRejected:true}));
+    }
+
     if(current){
       assert.equal(binding.productSmokeSha256,STATE_PRODUCT_SMOKE_SHA.result);
       assert.equal(binding.freshness.status,'PASS_TARGET_AWARE_PREFLIGHT');
@@ -251,13 +339,14 @@ test('qualified State binding: preserved real evidence and stale/missing assets'
       assert.throws(()=>requireStateInputExecutable(p,{...env,MEDIA_SERVER_STATE_PRODUCT_SMOKE:dir}),/state-binding-sha/);
     }
     for(const patch of [{MEDIA_SERVER_STATE_INPUT_MEDIA:changed},{MEDIA_SERVER_STATE_WRITER_REVIEW:dir},
-      {MEDIA_SERVER_STATE_INPUT_MEDIA:path.join(dir,'absent')},{MEDIA_SERVER_STATE_PRODUCT:path.resolve('build-gst-onnx/media_server')},
-      {MEDIA_SERVER_STATE_RUNTIME:path.resolve('build-gst-onnx/libmedia_server_runtime.a')}])assert.throws(()=>requireStateInputExecutable(p,{...env,...patch}));
+      {MEDIA_SERVER_STATE_INPUT_MEDIA:path.join(dir,'absent')},
+      {MEDIA_SERVER_STATE_PRODUCT:ep1?path.join(dir,'wrong-product'):path.resolve('build-gst-onnx/media_server')},
+      {MEDIA_SERVER_STATE_RUNTIME:ep1?path.join(dir,'wrong-runtime'):path.resolve('build-gst-onnx/libmedia_server_runtime.a')}])assert.throws(()=>requireStateInputExecutable(p,{...env,...patch}));
     fs.copyFileSync(path.join(path.dirname(env.MEDIA_SERVER_STATE_WRITER_REVIEW),'plan.json'),path.join(dir,'plan.json'));
     const review=path.join(dir,'review');fs.mkdirSync(review);fs.writeFileSync(path.join(review,'SHA256SUMS'),'invalid manifest');
     assert.throws(()=>requireStateInputExecutable(p,{...env,MEDIA_SERVER_STATE_WRITER_REVIEW:review}),/state-binding-sha/);
     const helpers=path.join(dir,'helpers');fs.mkdirSync(helpers,{mode:0o700});
-    const run=spawnSync(process.execPath,['scripts/internal/recording_state_input_profile.mjs','--install-helpers',helpers],{env,encoding:'utf8',timeout:20000});
+    const run=bindingCli(['--install-helpers',helpers],env);
     assert.equal(run.status,0,run.stderr);
     for(const [name,entry] of Object.entries(binding.helpers))assert.equal(sha(fs.readFileSync(path.join(helpers,name))),entry.sha256);
     // 실제 opt-in CLI 설치물에 검증된 두 입력을 놓고 제품과 동일한 Freeze/측정 경로를 실행한다.
@@ -303,4 +392,40 @@ for(const [name,change] of [
 ])test('verified current graph rejects '+name,()=>{
  const expected=graphFixture(),actual=structuredClone(expected);change(actual);
  assert.throws(()=>assertVerifiedStateFreshness(actual,expected,'b'.repeat(64),'c'.repeat(64)),/state-verified-/);
+});
+
+// Direct byte boundary distinguishes modified Worktree and committed Source independently.
+test('EP1 source bytes reject changed worktree or committed input independently',()=>{
+  const bytes=Buffer.from('source'),digest=sha(bytes);
+  assert.doesNotThrow(()=>assertStateSourceBytes('src/example.cpp',digest,bytes,bytes));
+  assert.throws(()=>assertStateSourceBytes('src/example.cpp',digest,Buffer.from('changed'),bytes),/state-source-asset-binding/);
+  assert.throws(()=>assertStateSourceBytes('include/example.h',digest,bytes,Buffer.from('changed')),/state-ep1-commit-binding/);
+});
+// Legacy branch regression uses an isolated VM, not a new real-product certification.
+test('legacy verified schema still performs its original evidence checks',()=>{
+  const source=fs.readFileSync(new URL('./recording_state_input_profile.mjs',import.meta.url),'utf8');
+  const body=source.slice(source.indexOf('function bindVerifiedStateProduct('),source.indexOf('export function validateQualifiedStateInput'));
+  const dir='/isolated',product=dir+'/media_server',runtime=dir+'/runtime.a',productSha='b'.repeat(64),runtimeSha='c'.repeat(64);
+  const freshness=graphFixture();
+  const binding={head:'a'.repeat(40),freshnessExit:0,sourceManifestSHA256:'a'.repeat(64),freshnessSHA256:'a'.repeat(64),
+    artifacts:{media_server:{source:product,preserved:product,sha256:productSha},'libmedia_server_runtime.a':{source:runtime,preserved:runtime,sha256:runtimeSha}}};
+  const begin={head:binding.head,tree:binding.head,sourceSha256:'a'.repeat(64),binarySha256:productSha};
+  const result={schema:'preparation-product-review-result-v1',verdicts:{review:'PREPARATION_REVIEW_VERIFIED',build:'PRODUCT_BUILD_LINK_VERIFIED',http:'HTTP_CONCURRENCY_SMOKE_PASS'},
+    build:{exit:0},integration:{exit:0,fail:0,pass:1,observationMs:30000,sourceStart:begin,sourceEnd:begin},cleanup:{allPassed:true},binding,
+    analysis:{fixedBinding:[{root:dir}],helperHashes:Object.fromEntries(['normalize','process-metrics','review-seed','catalog-instrumented.cpp'].map(name=>[name,
+      {sha256:name.endsWith('.cpp')?STATE_PRODUCT_SMOKE_SHA.catalogInstrumented:'a'.repeat(64),bytes:name.endsWith('.cpp')?376755:1}]))}};
+  const calls=[];
+  const context={result,assert,JSON,Buffer,path,hash:x=>/^[a-f0-9]{64}$/.test(x),need:(v,c)=>assert(v,c),
+    boundFile:(file,digest)=>{calls.push([file,digest]);return Buffer.from(JSON.stringify(file===dir+'/result.json'?result:
+      file===dir+'/source-manifest.json'?{'src/example.cpp':sha(Buffer.from('source'))}:file===dir+'/freshness.json'?freshness:
+      file==='/baseline/result.json'?{binding:{dynamicLibrariesSHA256:{}}}:file==='/baseline/model-sha256.json'?{}:0));},
+    fs:{readFileSync:file=>file===dir+'/build-binding.json'?JSON.stringify(binding):Buffer.from('source')},
+    fileURLToPath:()=>'/repo/scripts/internal/profile.mjs',sha,stateHelperBytes:()=>{},STATE_BINDING_SHA,STATE_PRODUCT_SMOKE_SHA,
+    assertVerifiedStateFreshness,execFileSync:cmd=>cmd==='git'?'':JSON.stringify(freshness)};
+  // Helper payload size is one byte in this synthetic fixture.
+  const bound=context.boundFile;context.boundFile=(file,digest)=>/\/(normalize|process-metrics|review-seed)$/.test(file)?Buffer.from('x'):bound(file,digest);
+  vm.createContext(context);vm.runInContext(body.replace('import.meta.url',"'file:///repo/scripts/internal/profile.mjs'")+"; selected=bindVerifiedStateProduct({MEDIA_SERVER_STATE_VERIFIED_RESULT:'/isolated/result.json',MEDIA_SERVER_STATE_VERIFIED_RESULT_SHA256:'a'.repeat(64),MEDIA_SERVER_STATE_PRODUCT_SMOKE:'/baseline'},'/isolated/media_server','/isolated/runtime.a');",context);
+  assert.equal(context.selected.sha256.product,productSha);assert(calls.some(([file])=>file.endsWith('source-manifest.json')));
+  for(const value of ['FAIL',undefined]){result.verdicts.build=value;
+    assert.throws(()=>vm.runInContext("bindVerifiedStateProduct({MEDIA_SERVER_STATE_VERIFIED_RESULT:'/isolated/result.json',MEDIA_SERVER_STATE_VERIFIED_RESULT_SHA256:'a'.repeat(64)},'/isolated/media_server','/isolated/runtime.a')",context),/state-verified-result-status/);}
 });

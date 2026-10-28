@@ -100,12 +100,151 @@ export function assertVerifiedStateFreshness(actual,expected,productSha,runtimeS
   need(actual.targets?.media_server?.artifactSha256===productSha&&
     actual.targets?.media_server_runtime?.artifactSha256===runtimeSha,'state-verified-freshness');
 }
+// EP1은 dirty 검증 HEAD가 아니라 인증된 제품 입력 바이트를 현재 Commit에 결속한다.
+// 이 함수는 이미 외부 SHA로 인증한 Result/하위 증거의 의미만 검사한다.
+export function assertEP1StateEvidence(result,binding,execution,report){
+  need(result.schema==='ep1-product-review-result-v1','state-verified-result-schema');
+  need(result.verdict==='EP1_PRODUCT_SHORT_VERIFIED'&&result.review?.P0===0&&result.review?.P1===0&&
+    Array.isArray(result.review.blockers)&&result.review.blockers.length===0&&
+    Array.isArray(result.review.findings)&&result.review.findings.every(f=>f.blocking===false), 'state-ep1-review');
+  need(result.build?.result?.exit===0&&result.build.linkErrors===0&&result.build.architecture==='arm64'&&
+    result.build.sourceStartEndEqual===true,'state-ep1-build');
+  const http=result.http;
+  need(http?.exit===0&&http.fail===0&&http.pass>0&&http.observationSeconds>=30&&http.startupPreparationPass===true&&
+    http.unexpectedSearchGETFailure===0&&http.productLaunchCount===3&&
+    http.mixedGatePopulation?.structured===6&&http.mixedGatePopulation.visual===6&&
+    http.mixedGatePopulation.success===12&&http.mixedGatePopulation.unavailable===0,'state-ep1-http');
+  for(const route of ['/ops/api/recordings/search','/ops/api/recordings/visual-search']){
+    const row=http.allSearchGETs?.[route];
+    need(Number.isSafeInteger(row?.requests)&&row.requests>=6&&row.timeoutOrError===0&&
+      Object.keys(row.statusCounts??{}).length===1&&row.statusCounts['200']===row.requests,'state-ep1-search');
+  }
+  need(execution.status==='PASS'&&execution.exit===0&&execution.childExit===0&&execution.timedOut===false&&
+    execution.observationSeconds>=30&&execution.processGroupAbsent===true&&execution.registeredGroupsAbsent===true&&
+    Array.isArray(execution.cleanupErrors)&&execution.cleanupErrors.length===0,'state-ep1-execution');
+  need(report.failed===0&&report.passed===http.pass&&report.startupPreparationPass===true&&
+    report.verifiedDurationMs>=30000&&report.workspaceFailure?.status==='no-workspace-failure'&&
+    report.workspaceFailure.primary===null,'state-ep1-report');
+  const begin=execution.source;
+  need(/^[a-f0-9]{40}$/.test(binding.head??'')&&begin?.head===binding.head&&
+    result.git?.head===binding.head&&hash(begin.sourceSha256)&&begin.sourceSha256===result.build.sourceSha256&&
+    JSON.stringify(begin)===JSON.stringify(execution.sourceEnd),'state-ep1-source-binding');
+  need(result.cleanup?.status==='PASS'&&result.cleanup.cacheRootsAbsent===true&&
+    result.cleanup.externalTargetsUntouched===true&&Array.isArray(result.processCleanup)&&result.processCleanup.length===3&&
+    result.processCleanup.every(c=>c.exitCode===0&&c.normalShutdownPass===true&&c.normalExitPass===true&&
+      c.forcedTermination==='not-used'&&c.archiveSafe===true&&c.ports?.length===2&&c.ports.every(p=>p.closed===true)),
+    'state-ep1-cleanup');
+  need(result.resources?.finalPerProcess?.length===3&&result.resources.finalPerProcess.every(r=>
+    r.phase==='after-storage-destruction'&&r.ram===0&&r.scratchDisk===0&&r.scratchFd===0&&
+    r.preservedDisk===0&&r.preservedFd===0&&r.readerCleanupHealthy===true),'state-ep1-resource-return');
+}
+export function assertStateSourceBytes(relative,expected,working,committed){
+  need(hash(expected)&&sha(working)===expected,'state-source-asset-binding:'+relative);
+  need(sha(committed)===expected,'state-ep1-commit-binding:'+relative);
+}
+function bindEP1StateProduct(env,product,runtime,result,directory,digest){
+  const repo=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../..');
+  const evidence=name=>{
+    const entry=result.evidenceArtifacts?.[name];
+    need(hash(entry?.sha256)&&Number.isSafeInteger(entry.bytes)&&entry.bytes>0,'state-ep1-evidence:'+name);
+    const bytes=boundFile(path.join(directory,name),entry.sha256);
+    need(bytes.length===entry.bytes,'state-ep1-evidence-size:'+name);return JSON.parse(bytes);
+  };
+  const binding=evidence('build-binding.json'),execution=evidence('integration/execution.json'),
+    report=evidence('integration/artifacts/report.json'),expectedFreshness=evidence('freshness.json');
+  assertEP1StateEvidence(result,binding,execution,report);
+  const artifacts=binding.artifacts,productSha=result.build.binary?.sha256,runtimeSha=result.build.runtime?.sha256;
+  for(const [name,selected,entry] of [['media_server',product,result.build.binary],['libmedia_server_runtime.a',runtime,result.build.runtime]]){
+    assert.deepEqual(artifacts?.[name],entry,'state-ep1-artifact-binding');
+    need(selected===entry?.path,'state-verified-product-selection');
+  }
+  need(execution.source.binarySha256===productSha,'state-verified-source-product');
+  const build=path.dirname(product),required=['media_server','libmedia_server_runtime.a','CMakeCache.txt',
+    ...['media_server','media_server_runtime'].flatMap(t=>['flags.make','link.txt','DependInfo.cmake'].map(f=>`CMakeFiles/${t}.dir/${f}`))];
+  assert.deepEqual(Object.keys(artifacts).sort(),required.sort(),'state-ep1-build-inputs');
+  for(const [name,entry] of Object.entries(artifacts)){
+    need(entry.path===path.join(build,name),'state-ep1-artifact-path');
+    need(boundFile(entry.path,entry.sha256).length===entry.bytes,'state-ep1-artifact-size');
+  }
+  const sources=binding.sourceFiles,entries=Object.entries(sources??{}).sort(([a],[b])=>a<b?-1:a>b?1:0);
+  need(entries.length===403&&sha(JSON.stringify(Object.fromEntries(entries)))===binding.sourceManifestSha256,'state-ep1-source-manifest');
+  const committedPaths=execFileSync('git',['ls-tree','-r','--name-only','HEAD','--','CMakeLists.txt','src','include'],{cwd:repo,encoding:'utf8'}).trim().split('\n').sort();
+  assert.deepEqual(entries.map(([p])=>p),committedPaths,'state-ep1-source-coverage');
+  // cat-file --batch reads immutable HEAD blobs without 403 child processes or a checkout.
+  const blobs=execFileSync('git',['cat-file','--batch'],{cwd:repo,input:entries.map(([p])=>`HEAD:${p}\n`).join(''),maxBuffer:32*1024*1024});
+  let offset=0;
+  for(const [relative,expected] of entries){
+    need(!path.isAbsolute(relative)&&!relative.split('/').includes('..'),'state-ep1-source-path');
+    const end=blobs.indexOf(10,offset),header=blobs.subarray(offset,end).toString(),match=/^[a-f0-9]{40} blob (\d+)$/.exec(header);
+    need(end>=offset&&match,'state-ep1-commit-blob');const size=Number(match[1]);offset=end+1;
+    assertStateSourceBytes(relative,expected,fs.readFileSync(path.join(repo,relative)),blobs.subarray(offset,offset+size));
+    offset+=size;need(blobs[offset++]===10,'state-ep1-commit-blob');
+  }
+  need(offset===blobs.length,'state-ep1-commit-blob');
+  const baselineDir=env.MEDIA_SERVER_STATE_PRODUCT_SMOKE;
+  need(typeof baselineDir==='string'&&path.isAbsolute(baselineDir),'state-product-smoke-path');
+  const baseline=JSON.parse(boundFile(path.join(baselineDir,'result.json'),STATE_PRODUCT_SMOKE_SHA.result));
+  const models=JSON.parse(boundFile(path.join(baselineDir,'model-sha256.json'),STATE_PRODUCT_SMOKE_SHA.models));
+  for(const [relative,expected] of Object.entries(models)){
+    need(relative.startsWith('models/')&&!relative.split('/').includes('..'),'state-product-smoke-source-path');
+    need(sha(fs.readFileSync(path.join(repo,relative)))===expected,'state-source-asset-binding:'+relative);
+  }
+  for(const [relative,entry] of Object.entries(result.build.modelArtifacts??{})){
+    need(models[relative]===entry.sha256&&fs.statSync(path.join(repo,relative)).size===entry.bytes,'state-ep1-model-binding');
+  }
+  need(Object.keys(result.build.modelArtifacts??{}).length===2,'state-ep1-model-binding');
+  assert.deepEqual(binding.dynamicLibrarySha256,baseline.binding.dynamicLibrariesSHA256,'state-ep1-library-binding');
+  for(const [file,expected] of Object.entries(baseline.binding.dynamicLibrariesSHA256))
+    need(sha(fs.readFileSync(file))===expected,'state-source-asset-binding:'+path.basename(file));
+  // 403 tracked inputs exclude the vendored SentencePiece header/library. Their historical
+  // hashes are anchored by the fixed Model manifest, not inferred from today's files.
+  const preparation='models/v430-siglip2/preparation.json';need(hash(models[preparation]),'state-ep1-model-preparation');
+  const dependency=JSON.parse(boundFile(path.join(repo,preparation),models[preparation])).sentencepiece_cpp;
+  const external={};
+  for(const relative of ['sentencepiece/include/sentencepiece_processor.h','sentencepiece/lib/libsentencepiece.a']){
+    const rows=dependency?.artifacts?.filter(a=>a.file===relative);need(rows?.length===1,'state-ep1-vendor-binding');
+    const name='third_party/v430-embedding/'+relative;boundFile(path.join(repo,name),rows[0].sha256);external[name]=rows[0].sha256;
+  }
+  // Reuse the existing Guard/parser for real TU dependencies; no alternate freshness policy.
+  const checked=JSON.parse(execFileSync('python3',['-B','-c',`
+import sys,json
+from pathlib import Path
+repo,build=map(Path,sys.argv[1:3]);sys.path.insert(0,str(repo/'scripts/internal'))
+import recording_build_freshness as f
+inputs=set()
+fresh=f.check(repo,build,sys.argv[3],sys.argv[4],repository_inputs=inputs)
+print(json.dumps({'freshness':fresh,'repoInputs':sorted(str(p.relative_to(repo)) for p in inputs)}))
+`,repo,build,productSha,runtimeSha],{encoding:'utf8',timeout:20000,maxBuffer:65536}));
+  need(checked.repoInputs.length>0&&checked.repoInputs.every(p=>hash(sources[p]??external[p])),'state-ep1-graph-source-coverage');
+  for(const expected of [expectedFreshness,binding.freshness,result.build.targetAwareFreshness])
+    assertVerifiedStateFreshness(checked.freshness,expected,productSha,runtimeSha);
+  const baselineSources=JSON.parse(boundFile(path.join(baselineDir,'source-manifest.json'),STATE_PRODUCT_SMOKE_SHA.source));
+  for(const name of ['recording_current_observer_native.cpp','recording_process_metrics.cpp','va_review_smoke.cpp','recording_archive_phase_trace.h']){
+    const relative='scripts/internal/'+name;
+    need(sha(fs.readFileSync(path.join(repo,relative)))===baselineSources[relative],'state-ep1-helper-source:'+name);
+  }
+  const helpers={};
+  for(const name of ['normalize','process-metrics','review-seed']){
+    const entry=baseline.helpers[name];need(boundFile(entry.preservedPath,entry.sha256).length===entry.bytes,'state-ep1-helper-size');
+    helpers[name]={path:entry.preservedPath,sha256:entry.sha256};
+  }
+  helpers['catalog-instrumented.cpp']={path:path.join(repo,'src/recording/recording_catalog.cpp'),
+    generator:'instrumentCatalog',bytes:376755,sha256:STATE_PRODUCT_SMOKE_SHA.catalogInstrumented};
+  stateHelperBytes(helpers['catalog-instrumented.cpp']);
+  return {helpers,matched:entries.length+Object.keys(models).length,sha256:{...STATE_BINDING_SHA,product:productSha,runtime:runtimeSha},
+    verifiedResult:env.MEDIA_SERVER_STATE_VERIFIED_RESULT,verifiedResultSha256:digest,
+    productSmoke:baselineDir,productSmokeSha256:STATE_PRODUCT_SMOKE_SHA.result,freshness:checked.freshness,
+    sourceBinding:{manifestSha256:binding.sourceManifestSha256,committedFiles:entries.length,
+      head:execFileSync('git',['rev-parse','HEAD'],{cwd:repo,encoding:'utf8'}).trim(),repoInputs:checked.repoInputs.length,
+      vendorInputs:external}};
+}
 // 명시적 외부 기대 SHA가 신뢰 기준이다. 결과 내부의 자기 선언 SHA로 최초 인증하지 않는다.
 function bindVerifiedStateProduct(env,product,runtime){
   const resultPath=env.MEDIA_SERVER_STATE_VERIFIED_RESULT;
   const digest=env.MEDIA_SERVER_STATE_VERIFIED_RESULT_SHA256;
   need(hash(digest),'state-verified-result-expectation');
   const result=JSON.parse(boundFile(resultPath,digest)),directory=path.dirname(resultPath);
+  if(result.schema==='ep1-product-review-result-v1')return bindEP1StateProduct(env,product,runtime,result,directory,digest);
   need(result.schema==='preparation-product-review-result-v1','state-verified-result-schema');
   need(result.verdicts?.review==='PREPARATION_REVIEW_VERIFIED'&&
     result.verdicts?.build==='PRODUCT_BUILD_LINK_VERIFIED'&&

@@ -89,6 +89,30 @@ class FreshnessTest(unittest.TestCase):
         change()
         with self.assertRaisesRegex(Unverified,expected):self.f.run()
 
+    def test_repository_inputs_from_same_verified_walk(self):
+        inputs = set()
+        actual = check(self.f.repo, self.f.build, repository_inputs=inputs)
+        self.assertEqual(actual, self.f.run())  # Existing result/graph contract unchanged.
+        self.assertEqual(inputs, {self.f.repo / 'CMakeLists.txt', self.f.header,
+            self.f.app_header, self.f.shared, self.f.repo / 'src/media_server.cpp',
+            self.f.repo / 'src/media_server_runtime.cpp'})
+        # A newly declared real TU edge is included, not inferred from manifest count.
+        p = self.f.path(self.f.app, 'unit.cpp.o.d')
+        self.f.time(self.f.observer, 1)
+        p.write_text(p.read_text().rstrip() + ' ' + str(self.f.observer) + '\n')
+        inputs = set()
+        check(self.f.repo, self.f.build, repository_inputs=inputs)
+        self.assertIn(self.f.observer, inputs)
+
+    def test_repository_inputs_not_cached_or_published_on_failure(self):
+        inputs = set()
+        check(self.f.repo, self.f.build, repository_inputs=inputs)
+        self.f.time(self.f.header, 5)
+        rejected = set()
+        with self.assertRaisesRegex(Unverified, 'stale-product-build'):
+            check(self.f.repo, self.f.build, repository_inputs=rejected)
+        self.assertEqual(rejected, set())
+
     def test_01_runtime_header_newer(self):
         self.rejects(lambda:self.f.time(self.f.header,5),'stale-product-build')
 
