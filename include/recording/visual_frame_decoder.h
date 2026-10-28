@@ -4,6 +4,7 @@
 #include <functional>
 #include <string>
 #include <vector>
+#include "recording/recording_memory_reservation.h"
 namespace recording {
 // SoftwareOnly의 avdec_h264는 인스턴스별 단일 codec thread로 frame 소유 충돌을 피한다.
 // 자동 정책과 전역 factory 선택은 변경하지 않는다.
@@ -27,4 +28,9 @@ struct VisualRgbFrame {
 bool DecodeVisualFrame(int fd,std::uint64_t bytes,std::int64_t presentation_ns,
     VisualRgbFrame* output,std::string* error,const std::function<bool()>& cancelled={},
     std::uint32_t budget_ms=5000,VisualDecodePolicy policy=VisualDecodePolicy::Automatic);
+// 소유 RGB 할당 전에 기존 Owner admission. 성공 ticket은 RGB보다 오래 살아야 한다.
+bool DecodeVisualFrame(int fd,std::uint64_t bytes,std::int64_t presentation_ns,
+    VisualRgbFrame* output,std::string* error,const std::function<bool()>& cancelled,
+    std::uint32_t budget_ms,VisualDecodePolicy policy,
+    const std::shared_ptr<SearchModelResidency>& owner,SearchModelResidency::Reservation* memory);
 } // namespace recording

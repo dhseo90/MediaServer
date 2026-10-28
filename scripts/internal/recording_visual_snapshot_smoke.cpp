@@ -91,6 +91,14 @@ int main(int argc,char** argv){try{
     Check(source.SnapshotMatchesEvent(docs.front(),"analysis-epoch")&&!source.SnapshotMatchesEvent(docs.front(),"different-epoch")&&
         !source.SnapshotMatchesEvent(docs.front(),""),"current event epoch must match producer binding");
     {analysis::Siglip2Encoder encoder(argv[2]);Check(source.Encode(&docs.front(),encoder,&error),"snapshot JPEG embedding: "+error);
+    auto split=source.PrepareImage(docs.front(),&error);Check(bool(split),"EP1 authenticated snapshot input");
+    auto split_doc=docs.front();split_doc.embedding.clear();
+    Check(source.EncodePreparedImage(&split_doc,std::move(split),encoder,&error)&&split_doc.embedding==docs.front().embedding,"EP1 snapshot embedding byte equality");
+    auto cancelled_image=source.PrepareImage(docs.front(),&error);Check(bool(cancelled_image),"EP1 snapshot cancel input");
+    const auto image_owner=runtime.catalog().SearchResidency();const auto before_cancel=image_owner->used();
+    const auto snapshot_cancelled=source.EncodePreparedImage(&split_doc,std::move(cancelled_image),encoder,&error,[]{return true;});
+    Check(!snapshot_cancelled&&error=="visual-cancelled"&&image_owner->used()<before_cancel,"EP1 snapshot cancel releases owned RGB");
+    std::cout<<"[ep1-embedding] ";for(float value:docs.front().embedding)std::cout<<std::hexfloat<<value<<",";std::cout<<std::defaultfloat<<"\n";
     double norm=0;for(float x:docs.front().embedding){Check(std::isfinite(x),"finite snapshot embedding");norm+=double(x)*x;}
     Check(docs.front().embedding.size()==768&&std::abs(norm-1)<1e-5,"snapshot actual model norm");
     auto changed=original_manifest;const auto at=changed.find(proof.rgb_sha256);Check(at!=std::string::npos,"proof replacement fixture");changed.replace(at,64,std::string(64,'f'));Write(manifest,changed);
@@ -217,8 +225,15 @@ int main(int argc,char** argv){try{
         Write(jpg,"owned corrupt JPEG during actual rebuild");
         const auto failed=wait_status("\"error\":\"visual-index-build-failed\"",5);
         Check(failed.find("\"searchAvailable\":true")!=std::string::npos,"snapshot rebuild failure retains previous published index");
-        const auto frames=before.substr(before.find("\"indexedFrames\":"));
-        Check(failed.find(frames)!=std::string::npos,"failed snapshot rebuild keeps complete channel coverage and frame count");
+        // 비교 대상은 이전 완성 게시본이다. 실패 시 달라져야 하는 refresh 오류/시각은 별도 상태다.
+        ingress::StrictJsonObjectDocument previous_status,failed_status;
+        Check(ingress::ParseStrictJsonObjectDocument(before,&previous_status,&error)&&
+            ingress::ParseStrictJsonObjectDocument(failed,&failed_status,&error),"rebuild status JSON");
+        const auto previous_index=ingress::StrictJsonObjectField(previous_status,"index");
+        const auto previous_channels=previous_status.Find("channels"),failed_channels=failed_status.Find("channels");
+        Check(previous_index&&previous_index==ingress::StrictJsonObjectField(failed_status,"index")&&
+            previous_channels&&failed_channels&&previous_channels->raw==failed_channels->raw,
+            "failed snapshot rebuild keeps exact publication and complete channel coverage and frame count");
         Check(service.Search(query,allowed).status==503,"retained index still refuses currently corrupt snapshot");
         Write(jpg,original_image);
         const auto restored=service.Search(query,allowed);Check(restored.status==200&&restored.body.find("event-snapshot")!=std::string::npos,"restored original is searchable through retained complete index");

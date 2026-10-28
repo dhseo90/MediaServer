@@ -161,7 +161,8 @@ bool VisualIndexWorker::Rebuild(const Cancelled& cancelled,std::string* error){
         for(const auto& entry:unsupported_segments)++publication->coverage->at(entry.first).unsupported_segments;
         for(const auto& entry:unsupported_snapshots)++publication->coverage->at(entry.first).unsupported_snapshots;
     }
-    {std::lock_guard lock(mutex_);retired_=current_;current_=std::move(complete);++status_.generation;
+    {std::lock_guard lock(mutex_);if(stopping_)return Fail(error,"visual-cancelled");
+        retired_=current_;current_=std::move(complete);++status_.generation;
         publication->generation=status_.generation;publication->published_at_ms=NowMs();publication_=std::move(publication);
         status_.last_success_ms=publication_->published_at_ms;status_.attempt_finished_ms=status_.last_success_ms;status_.attempt_state="succeeded";
         status_.documents=current_->documents().size();status_.state="ready";status_.error.clear();

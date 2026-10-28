@@ -143,23 +143,65 @@ bool RecordingVisualSource::ResolvePrepared(const VisualSearchDocument& doc,cons
     RecordingSearchReader search(catalog_,reader_);
     return search.SourceSeekPrepared(prepared,doc.media_pts,1,1000000000,seek,error,cancelled,deadline);
 }
+std::unique_ptr<RecordingVisualSource::PreparedImage> RecordingVisualSource::PrepareImage(
+    const VisualSearchDocument& doc,std::string* error,const std::function<bool()>& cancelled,const PreparedSource* prepared)const{
+    if(cancelled&&cancelled()){Fail(error,"visual-cancelled");return {};}
+    const auto owner=catalog_.SearchResidency();
+    // Identity는 embedding 없이 복사한다. 기존 문서 문자열 상한을 인계에도 적용한다.
+    std::size_t bytes=sizeof(PreparedImage);
+    for(const auto* s:{&doc.id,&doc.channel_id,&doc.segment_id,&doc.event_id,&doc.media_sha256,&doc.frame_sha256}){
+        if(s->size()>1024){Fail(error,"visual-invalid-frame-reference");return {};}bytes+=4*(s->size()+1);}
+    auto reserved=owner->ReserveOwned(bytes,SearchModelResidency::Category::Preparation);
+    if(!reserved){Fail(error,"recording-resource-unavailable");return {};}
+    auto result=std::unique_ptr<PreparedImage>(new PreparedImage);
+    result->metadata_memory_=std::move(*reserved);result->source_=this;
+    auto& identity=result->identity_;
+    identity.id=doc.id;identity.channel_id=doc.channel_id;identity.segment_id=doc.segment_id;identity.event_id=doc.event_id;
+    identity.media_sha256=doc.media_sha256;identity.frame_sha256=doc.frame_sha256;identity.media_pts=doc.media_pts;
+    identity.time_base_num=doc.time_base_num;identity.time_base_den=doc.time_base_den;identity.utc_ns=doc.utc_ns;
+    if(!doc.event_id.empty()){
+        if(!PrepareSnapshotImage(doc,result.get(),error,cancelled))return {};
+    }else{
+        SearchSeekTarget seek;std::unique_ptr<ResolvedRecordingMedia> media;
+        if(prepared){
+            if(!ResolvePrepared(doc,*prepared,&seek,error,cancelled,std::chrono::steady_clock::time_point::max()))return {};
+            result->hold_=prepared->Hold();
+        }else{
+            if(!Resolve(doc,&seek,&media,error,cancelled))return {};
+            result->hold_=std::move(media);
+        }
+        const long double ns=static_cast<long double>(seek.seconds)*1000000000;
+        if(!std::isfinite(ns)||ns<0||ns>=std::ldexp(1.0L,63)){Fail(error,"visual-invalid-frame-reference");return {};}
+        latency::VisualPhase decode("image-decode");
+        if(!DecodeVisualFrame(result->hold_->fd(),result->hold_->size_bytes(),std::llround(ns),&result->frame_,error,
+            cancelled,5000,StoredVisualIndexDecodePolicy(),owner,&result->rgb_memory_))return {};
+    }
+    if(cancelled&&cancelled()){Fail(error,"visual-cancelled");return {};}
+    if(error)error->clear();return result;
+}
+bool RecordingVisualSource::EncodePreparedImage(VisualSearchDocument* doc,std::unique_ptr<PreparedImage> input,
+    analysis::Siglip2Encoder& encoder,std::string* error,const std::function<bool()>& cancelled)const{
+    if(cancelled&&cancelled())return Fail(error,"visual-cancelled");
+    if(!doc||!input||input->source_!=this)return Fail(error,"visual-invalid-frame-reference");
+    const auto& id=input->identity_;
+    if(doc->id!=id.id||doc->channel_id!=id.channel_id||doc->segment_id!=id.segment_id||doc->event_id!=id.event_id||
+       doc->media_sha256!=id.media_sha256||doc->frame_sha256!=id.frame_sha256||doc->media_pts!=id.media_pts||
+       doc->time_base_num!=id.time_base_num||doc->time_base_den!=id.time_base_den||doc->utc_ns!=id.utc_ns)
+        return Fail(error,"visual-invalid-frame-reference");
+    // 기존 resize RGB + FP32 입력 + 결과 vector. ORT 내부 arena는 기존 RSS 관측과 별개다.
+    constexpr std::size_t pixels=3*analysis::Siglip2Encoder::kImageSize*analysis::Siglip2Encoder::kImageSize;
+    auto tensor=catalog_.SearchResidency()->ReserveOwned(pixels*(sizeof(float)+1)+768*sizeof(float),SearchModelResidency::Category::Preparation);
+    if(!tensor)return Fail(error,"recording-resource-unavailable");
+    const auto& frame=input->frame_;
+    auto embedding=encoder.EncodeRgb(frame.rgb.data(),frame.width,frame.height,std::size_t(frame.width)*3);
+    if(cancelled&&cancelled())return Fail(error,"visual-cancelled");
+    doc->embedding=std::move(embedding);
+    if(error)error->clear();return true;
+}
 bool RecordingVisualSource::Encode(VisualSearchDocument* doc,analysis::Siglip2Encoder& encoder,
     std::string* error,const std::function<bool()>& cancelled,const PreparedSource* prepared)const{
     if(!doc)return Fail(error,"visual-invalid-frame-reference");
-    if(!doc->event_id.empty())return EncodeSnapshot(doc,encoder,error,cancelled);
-    SearchSeekTarget seek;std::unique_ptr<ResolvedRecordingMedia> media;std::shared_ptr<const ResolvedRecordingMedia> held;
-    if(prepared){
-        if(!ResolvePrepared(*doc,*prepared,&seek,error,cancelled,std::chrono::steady_clock::time_point::max()))return false;held=prepared->Hold();
-    }else if(!Resolve(*doc,&seek,&media,error,cancelled))return false;
-    const auto* original=held?held.get():media.get();
-    const long double ns=static_cast<long double>(seek.seconds)*1000000000;
-    if(!std::isfinite(ns)||ns<0||ns>=std::ldexp(1.0L,63))return Fail(error,"visual-invalid-frame-reference");
-    VisualRgbFrame frame;
-    latency::VisualPhase decode("image-decode");
-    if(!DecodeVisualFrame(original->fd(),original->size_bytes(),std::llround(ns),&frame,error,cancelled,5000,StoredVisualIndexDecodePolicy()))return false;
-    decode.End();
-    if(cancelled&&cancelled())return Fail(error,"visual-cancelled");
-    doc->embedding=encoder.EncodeRgb(frame.rgb.data(),frame.width,frame.height,std::size_t(frame.width)*3);
-    if(error)error->clear();return true;
+    auto image=PrepareImage(*doc,error,cancelled,prepared);if(!image)return false;
+    return EncodePreparedImage(doc,std::move(image),encoder,error,cancelled);
 }
 } // namespace recording

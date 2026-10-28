@@ -3,6 +3,7 @@
 #include "analysis/siglip2_encoder.h"
 #include "recording/recording_search_reader.h"
 #include "recording/visual_search_index.h"
+#include "recording/visual_frame_decoder.h"
 #include <functional>
 #include <map>
 namespace recording {
@@ -22,6 +23,24 @@ public:
         std::vector<VisualSearchDocument>*,std::map<std::string,VisualSourceCoverage>*,
         std::string* error,const std::function<bool()>& cancelled={}) const;
     using PreparedSource=RecordingSearchReader::PreparedSource;
+    // 단일 Rebuild의 동기 인계 값. 외부 생성/복사 불가, 소비 시 성공/실패 모두 해제한다.
+    class PreparedImage {
+        friend class RecordingVisualSource;
+        PreparedImage()=default;
+        SearchModelResidency::Reservation metadata_memory_,rgb_memory_;
+        const RecordingVisualSource* source_{};
+        VisualSearchDocument identity_;
+        std::shared_ptr<const ResolvedRecordingMedia> hold_;
+        VisualRgbFrame frame_;
+    public:
+        PreparedImage(const PreparedImage&)=delete;
+        PreparedImage& operator=(const PreparedImage&)=delete;
+        std::size_t rgb_bytes()const{return frame_.rgb.size();}
+    };
+    std::unique_ptr<PreparedImage> PrepareImage(const VisualSearchDocument&,std::string*,
+        const std::function<bool()>& cancelled={},const PreparedSource* prepared=nullptr) const;
+    bool EncodePreparedImage(VisualSearchDocument*,std::unique_ptr<PreparedImage>,analysis::Siglip2Encoder&,
+        std::string*,const std::function<bool()>& cancelled={}) const;
     bool Encode(VisualSearchDocument*,analysis::Siglip2Encoder&,std::string* error,
         const std::function<bool()>& cancelled={},const PreparedSource* prepared=nullptr) const;
     // 원본 hash/sample과 현재 파일 재생을 확인한다. 성공 FD가 caller 반환/추출 동안 보존 보호한다.
@@ -43,6 +62,6 @@ private:
     static std::optional<std::int64_t> SampleUtc(const RecordingSegmentV2&,std::int64_t);
     bool CurrentDocument(const VisualSearchDocument&,std::string*) const;
     bool SnapshotDocument(const std::string& event,const std::string& channel,VisualSearchDocument*,std::string*) const;
-    bool EncodeSnapshot(VisualSearchDocument*,analysis::Siglip2Encoder&,std::string*,const std::function<bool()>&) const;
+    bool PrepareSnapshotImage(const VisualSearchDocument&,PreparedImage*,std::string*,const std::function<bool()>&) const;
 };
 } // namespace recording

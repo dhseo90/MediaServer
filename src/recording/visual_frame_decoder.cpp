@@ -277,7 +277,8 @@ void Pad(GstElement*,GstPad* pad,gpointer user){
     if(target)gst_object_unref(target);
     if(!video&&!gst_element_sync_state_with_parent(sink))c.Failed("fakesink-sync");
 }
-bool Copy(GstSample* sample,std::int64_t target,VisualRgbFrame* out,DecodeTrace& trace){
+bool Copy(GstSample* sample,std::int64_t target,VisualRgbFrame* out,DecodeTrace& trace,
+    const std::shared_ptr<SearchModelResidency>& owner,SearchModelResidency::Reservation* memory,bool* denied){
     const auto reject=[&](const char* reason){if(trace.samples<=4||std::strcmp(reason,"copy-target"))trace.Add(reason);return false;};
     GstBuffer* buffer=gst_sample_get_buffer(sample);const GstSegment* segment=gst_sample_get_segment(sample);
     if(!buffer||!segment||segment->format!=GST_FORMAT_TIME||!GST_BUFFER_PTS_IS_VALID(buffer)){trace.Sample(-1,-1);return reject("copy-timestamp-segment");}
@@ -291,15 +292,24 @@ bool Copy(GstSample* sample,std::int64_t target,VisualRgbFrame* out,DecodeTrace&
     const int stride=GST_VIDEO_FRAME_PLANE_STRIDE(&frame,0);const auto* bytes=static_cast<const std::uint8_t*>(GST_VIDEO_FRAME_PLANE_DATA(&frame,0));
     if(stride<width*3||!bytes){gst_video_frame_unmap(&frame);return reject("copy-stride");}
     try{
+        SearchModelResidency::Reservation charge;
+        if(owner){auto reserved=owner->ReserveOwned(std::size_t(width)*height*3,SearchModelResidency::Category::Preparation);
+            if(!reserved){*denied=true;gst_video_frame_unmap(&frame);return reject("copy-admission");}charge=std::move(*reserved);}
         VisualRgbFrame value{width,height,std::int64_t(pts),{}};value.rgb.resize(std::size_t(width)*height*3);
         for(int y=0;y<height;++y)std::memcpy(value.rgb.data()+std::size_t(y)*width*3,bytes+std::size_t(y)*stride,std::size_t(width)*3);
-        gst_video_frame_unmap(&frame);*out=std::move(value);return true;
+        gst_video_frame_unmap(&frame);*out=std::move(value);if(memory)*memory=std::move(charge);return true;
     }catch(...){gst_video_frame_unmap(&frame);return reject("copy-allocation");}
 }
 #endif
 }
 bool DecodeVisualFrame(int fd,std::uint64_t bytes,std::int64_t target,VisualRgbFrame* output,
     std::string* error,const std::function<bool()>& cancelled,std::uint32_t budget_ms,VisualDecodePolicy policy){
+    return DecodeVisualFrame(fd,bytes,target,output,error,cancelled,budget_ms,policy,{},nullptr);
+}
+bool DecodeVisualFrame(int fd,std::uint64_t bytes,std::int64_t target,VisualRgbFrame* output,
+    std::string* error,const std::function<bool()>& cancelled,std::uint32_t budget_ms,VisualDecodePolicy policy,
+    const std::shared_ptr<SearchModelResidency>& owner,SearchModelResidency::Reservation* memory){
+    if(owner&&!memory)return Fail(error,"visual-frame-invalid-request");
     if((policy!=VisualDecodePolicy::Automatic&&policy!=VisualDecodePolicy::SoftwareOnly)||fd<0||!output||!bytes||bytes>512ULL*1024*1024||target<0||!budget_ms||budget_ms>5000)return Fail(error,"visual-frame-invalid-request");
 #if MEDIA_SERVER_USE_GSTREAMER
     DecodeTrace trace(fd,bytes,target,budget_ms,error);trace.policy=policy;
@@ -337,7 +347,8 @@ bool DecodeVisualFrame(int fd,std::uint64_t bytes,std::int64_t target,VisualRgbF
     g_object_set(sink,"sync",FALSE,"max-buffers",1,"drop",FALSE,"wait-on-eos",FALSE,nullptr);
     gst_bin_add_many(GST_BIN(pipeline),src,decode,convert,sink,nullptr);g_signal_connect(decode,"pad-added",G_CALLBACK(Pad),&context);
     if(trace.enabled){trace.edges.Attach(sink,"sink",2);GstAppSinkCallbacks sc{};sc.eos=DecodeEdges::Eos;sc.new_preroll=DecodeEdges::Preroll;sc.new_sample=DecodeEdges::Render;gst_app_sink_set_callbacks(GST_APP_SINK(sink),&sc,&trace.edges,nullptr);}
-    VisualRgbFrame result;bool found=false;
+    SearchModelResidency::Reservation result_memory;
+    VisualRgbFrame result;bool found=false,denied=false;
     const bool linked=gst_element_link(src,decode)&&gst_element_link(convert,sink);
     if(linked&&target>0&&set_state(GST_STATE_PAUSED)!=GST_STATE_CHANGE_FAILURE){
         GstStateChangeReturn state=GST_STATE_CHANGE_ASYNC;
@@ -357,7 +368,7 @@ bool DecodeVisualFrame(int fd,std::uint64_t bytes,std::int64_t target,VisualRgbF
         while(!context.Stop()&&!context.failed){
             GstSample* sample=gst_app_sink_try_pull_sample(GST_APP_SINK(sink),20*GST_MSECOND);
             if(trace.enabled){++trace.edges.pulls;if(!sample)++trace.edges.empty_pulls;}
-            if(sample){found=Copy(sample,target,&result,trace);gst_sample_unref(sample);if(found)break;}
+            if(sample){found=Copy(sample,target,&result,trace,owner,&result_memory,&denied);gst_sample_unref(sample);if(found||denied)break;}
             GstMessage* message=gst_bus_pop_filtered(bus,GST_MESSAGE_ERROR);
             if(message){GError* problem=nullptr;gst_message_parse_error(message,&problem,nullptr);
                 if(problem&&problem->domain==GST_STREAM_ERROR&&problem->code==GST_STREAM_ERROR_CODEC_NOT_FOUND)context.unsupported=true;
@@ -372,6 +383,7 @@ bool DecodeVisualFrame(int fd,std::uint64_t bytes,std::int64_t target,VisualRgbF
     trace.closing=true;const auto null_state=set_state(GST_STATE_NULL);trace.null_done=null_state!=GST_STATE_CHANGE_FAILURE;
     if(trace_bus){gst_bus_set_sync_handler(trace_bus,nullptr,nullptr,nullptr);gst_object_unref(trace_bus);}gst_object_unref(pipeline);
     if(context.Stop())return Fail(error,cancelled&&cancelled()?"visual-cancelled":"visual-frame-timeout");
+    if(denied)return Fail(error,"recording-resource-unavailable");
     struct stat after{};
 #ifdef __APPLE__
     const auto bm=before.st_mtimespec,bc=before.st_ctimespec;
@@ -389,7 +401,7 @@ bool DecodeVisualFrame(int fd,std::uint64_t bytes,std::int64_t target,VisualRgbF
     if(software_codec.failed)return Fail(error,"visual-frame-software-policy-unavailable");
     if(context.unsupported)return Fail(error,"visual-frame-unsupported");
     if(context.failed||!found)return Fail(error,"visual-frame-unavailable");
-    *output=std::move(result);if(error)error->clear();trace.succeeded=true;return true;
+    *output=std::move(result);if(memory)*memory=std::move(result_memory);if(error)error->clear();trace.succeeded=true;return true;
 #else
     (void)cancelled;return Fail(error,"visual-frame-disabled");
 #endif

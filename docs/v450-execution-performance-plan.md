@@ -16,13 +16,18 @@
 `08493307528d72a42c11ed67a49c2ee14e64d017`이다. 최초 문서 개정 시작 시 Index·Worktree는 clean이었다.
 계획 최초 반영 Commit `0cdd18b0037e1f7ceed86a1853b8f90b26e62ee0` 및 후속 문서 Commit은
 제품 실행 Source와 구분하며 기존 증거 SHA를 문서 HEAD로 바꾸지 않는다.
+EP1 개발·단기 제품 검증의 기준 HEAD는 `5f02c6f310720d3d95e8529113fdf8cb8b2306ec`이며,
+위 공식 Source 이후 두 Commit은 문서 변경이다. EP1은 이 기준 위의 미커밋 제품 바이트로
+검증됐으며 아래 Result·Patch·Source manifest에 결속된다. 이번 승인 범위는 검증된 EP1과
+정본 문서 총 14개 파일의 Commit 및 사전 결속이 통과한 공식 State45 단회 실행이다.
+Commit 식별은 Git 이력을 따르며 과거 실행의 Source HEAD를 새 Commit으로 바꿔 쓰지 않는다.
 원격의 과거 상태로 이 로컬 기준을 대체하지 않는다. 문서 개정은 제품 구현·검증 완료가 아니다.
 
 | 항목 | 현재 결정 |
 | --- | --- |
 | 승인된 방향 | 개발 기간이 늘어나더라도 실행 경계·소유권·자원 배분·누적 혼합 성능 기반을 완성한다. 느린 독립 단계에만 제한적으로 병렬도를 부여한다. |
-| 현재 단계 | EP0 기준·합격 조건 고정. 이번에는 문서 개정만 수행하며 EP1 제품 구현은 미착수다. |
-| 다음 제품 작업 하나 | 해당 개발 지시에서 EP0의 실험 입력·시스템 평가 기준을 필요한 범위에서 고정한 뒤, EP1의 **Visual 배경 Source/Media 준비·Decode와 추론·게시 경계 및 제한된 인계·자원 수명**을 구현·검증한다. 기존 추론 동시성을 유지하며 Stop/오류 반환과 검색·Writer·배경 진행을 함께 확인한다. |
+| 현재 단계 | EP0는 이번 소규모 Native 비교에 필요한 기준·사전 채택 조건 확인 완료. EP1 Native와 실제 제품 Build/Link·짧은 HTTP는 VERIFIED. 현재 후보의 공식 State45는 NOT_TESTED, 최종 장시간 채택·Release는 NOT_APPROVED다. |
+| 다음 제품 작업 하나 | **EP1 Commit에 결속된 공식 State45 1회 검증**. Clean-source·제품/Runtime·Helper·Fixture 및 기존 실행 선택기의 적격성이 통과할 때만 실행한다. 결속 실패 시 우회하지 않고 차단 사유를 보고한다. EP2·EP3·B안을 동시에 구현하지 않는다. |
 | 별도 승인 대기 | Structured 요청 기준점 B안의 API/제품 최신성 의미, 그 C++ 구현·실행. 구체적인 의미 변경은 아래 별도 결정 절을 따른다. |
 | 보류 | R101-C02 v2 시간 계약, 추가 Parser·Projection 미세 최적화, 근거 없는 동시 Build 확대. |
 | 공식 상태 | State45 **FAIL**, Memory P0·Readiness120·Release **HOLD**. 근거는 아래 최신 공식 증거 절에 둔다. |
@@ -57,11 +62,53 @@ State45 하나를 통과시키는 국소 최적화에 한정하지 않는다. �
   의 `preservation.json`, `preservation-verification.json`, `restore-verification.json`, `native-evidence/`.
 - 해당 `experiment.patch` SHA256:
   `f8aa2a11be49b683fe88c9d34f9c6fd3877fd7f21709216eb4d733eab89445c5`.
-  Manifest는 8개 파일의 격리 재구성 바이트 일치·HEAD 복구를 기록한다. 현재 Worktree에는 실험 구현이 없다.
+  Manifest는 8개 파일의 격리 재구성 바이트 일치·HEAD 복구를 기록한다. 그 실험은 복구 완료됐으며
+  현재 EP1 후보는 해당 제품 Patch의 일괄 재적용이 아니다.
 
 이전 Request 166/167의 Capture·Preparation 대기는 이전 제품의 병목 근거다. 최신 공식 실행에서
 확인한 Structured·Visual 지연 및 Visual Timeout과 구분하며, 다른 Source·History 규모·요청 집합의
 수치를 직접 개선율로 계산하지 않는다. 기존 실패·Claim·Workspace·미채택 패치는 수정하지 않는다.
+
+## 최신 EP1 후보와 검증 범위
+
+**EP1 Native 및 실제 제품 Build/Link·짧은 HTTP 검증은 VERIFIED다. 현재 후보의 공식 State45는
+NOT_TESTED, 최종 장시간 채택·Release는 NOT_APPROVED다.** Native 판정은
+`EP1_BOUNDARY_NATIVE_VERIFIED`, 제품 단기 판정은 `EP1_PRODUCT_SHORT_VERIFIED`다.
+단기 동작 PASS는 장시간 혼합 성능·삭제 후 안정성·Memory P0 완료를 의미하지 않는다.
+
+- Result: `/private/tmp/media-server-ep1-ul6j8yox/result.json`
+  (SHA256 `70ef09c98e71ad1c878535c7ab8201f9ed64233a90d24119cb492ff98d4943e8`).
+- 같은 디렉터리의 `candidate.patch`와 `source-manifest.json`이 기준 HEAD `5f02c6f` 위의 후보를
+  식별한다. 이번 문서 갱신 전 기존 11개 변경의 SHA와 Patch 바이트 일치를 읽기 전용으로 확인했다.
+  상세 실행·초기 실패와 재검증·비교·정리는 원증거를 따르며 이번에 Native를 재실행한 것은 아니다.
+- EP0는 기존 160×90/30fps H.264·2채널 소규모 Fixture, 새 격리 Store/Index, 동일 모델·단일 추론,
+  A/B·B/A 및 시스템 채택 조건을 사전에 고정했다. OS 파일 캐시는 비우지 않았으며 공식 State45와
+  입력·Segment 간격·History 규모·HTTP 지속 부하가 다르다. 이 범위 밖의 기준 완료로 확대하지 않는다.
+- 구현은 `PreparedImage`의 Identity·Media Hold·RGB·예약 소유권과 단일 입력의 제한된 동기 인계다.
+  Source 준비·Decode를 추론 Mutex 밖으로 분리하고 RGB·알려진 Tensor 입력 예약, Stop·취소·예외·
+  예약 거부 시 반환, 게시 시 Stop 재확인을 추가했다. 기존 추론 동시성 **1**, 추가 Queue·Worker·Session **없음**.
+  Encoder 전처리는 여전히 추론 Lock 안이며 ORT 내부 할당 전체를 Owner 예약으로 계상한 것은 아니다.
+- 집중 검사 **1,947 PASS / 최종 FAIL 0**, 혼합 요청 **90/90**(기준·후보 각 45) 성공,
+  대표 프레임·Snapshot의 768차원 Embedding 동일성을 확인했다. 자연 중첩의 Visual 중앙값은
+  A/B **197.8→92.0ms**, B/A **372.9→93.7ms**, 요청 묶음은 **214.9~437.8→102.1~107.7ms**였다.
+  작은 표본의 Native 비교이며 공식 p95나 현재 후보의 실제 HTTP 결과가 아니다.
+- Structured·Writer 지연 증가도 관측됐다. 각 하위 단계의 무회귀를 요구하지 않되 절대 지연·
+  Writer 진행·배경 갱신·묶음 완료와 기존 필수 Gate를 함께 평가한다. 종료 시 Owner·Scratch·FD
+  논리 계상은 0이었다. 양 구성 모두 마지막 Capture 뒤 추가된 Segment **3개가 미색인**으로 남았으며
+  지속 적체 해소·공정성·장시간 안정성은 입증하지 않았다. 표본 Resource peak는 연속 최고값 증명이 아니다.
+
+최종 리뷰·제품 단기 증거는 `/private/tmp/media-server-ep1-review-yp22xngs/result.json`
+(SHA256 `a737df126a8f50d3409195e340ac1e24bfc5a195a25823f63d4f26771613334c`)에 둔다.
+P0/P1 차단 결함 없이 arm64 제품 Build/Link·Target-aware Freshness 및 기존 30초 HTTP 경로
+**233 PASS / 0 FAIL**을 확인했다. Structured GET 10/10·Visual GET 6/6, 혼합 판정 12건의
+p95/max 573.19ms, 양 채널 Segment 14개씩 확정, Visual Generation 2→12와 정상 종료 후
+Owner·Scratch·FD 계상 0을 관측했다. 이 수치는 소규모 단기 실행이며 공식 State45 비교값이 아니다.
+현재 제품/Runtime·Helper·Source 결속과 원출력은 해당 증거를 따르며 불필요한 재빌드를 요구하지 않는다.
+
+남은 P2는 추론 Lock 안에서 PreparedImage Hold 반환이 Catalog를 획득할 수 있는 경로와,
+RGB/Tensor 예약이 기존 전처리 임시 Buffer·ORT Arena 전체를 대표하지 않는 한계다.
+이번 Commit에서 이를 새 리팩토링으로 확대하지 않는다. Structured·Writer 지연 증가 관측은
+유지하며 제품 A/B·장시간 공정성·색인 적체 해소·삭제 후 안정성은 미입증이다.
 
 ## 실행 경계와 자원 정책
 
@@ -111,15 +158,18 @@ coverage를 성공으로 숨기지 않는다. 기존 지원·정확성 정책 �
 | 단계 | 목표·산출물 | 선행조건·검증 | 채택·중단 기준과 다음 단계 |
 | --- | --- | --- | --- |
 | EP0 · 기준과 합격 조건 | 현재 Source·공식 실패·입력/부하와 시스템 비교 기준 고정 | 입력 코덱·해상도·FPS·GOP·채널 수, 대표 프레임 간격·색인 주기, 모델 입력 크기·실제 추론률을 각각 확인. 원격 과거 Fixture를 최신 로컬 입력으로 대체하지 않음. 전체 요청·Writer·배경 지표와 허용 trade-off를 실험 전에 정함 | 비교 가능한 입력·측정 경계와 안전/채택 조건이 확보되면 EP1. 부족한 값은 미확정으로 표시하고 꼭 필요한 기존 계측만 보완. 또 다른 로드맵 작성 자체를 진척으로 계산하지 않음 |
-| EP1 · 실행 경계와 수명 | Visual 준비·Decode·추론·게시 보호 범위와 제한된 인계 구현. 기존 추론 동시성 유지 | EP0 및 해당 C++ 개발 지시. 기존 Visual 경계·큐를 재사용하고 정상/예외/취소/Stop·세대·순서·Reader 보호와 반환을 직접 검증 | 안전한 독립 경계가 성립하고 시스템 지표를 비교할 수 있으면 EP2. 단순 Mutex 해제나 과거 패치 재적용만으로 채택하지 않음. 광범위 소유권 재설계가 필요하면 범위 결정 |
+| EP1 · 실행 경계와 수명 | Visual 준비·Decode·추론·게시 보호 범위와 제한된 인계 구현. 기존 추론 동시성 유지 | EP0 및 해당 C++ 개발 지시. 기존 Visual 경계·큐를 재사용하고 정상/예외/취소/Stop·세대·순서·Reader 보호와 반환을 직접 검증 | 현재 Native·최종 Diff 리뷰·Build/Link·짧은 제품 검증 완료. Commit·결속 검증 후 승인된 공식 State45 1회로 연결. EP2 자동 진입이나 과거 패치 재적용만으로 채택하지 않음. 광범위 소유권 재설계가 필요하면 범위 결정 |
 | EP2 · 자원 배분과 제한된 실행 | 필요한 bounded queue/admission을 기존 구조에 연결하고 전경·녹화·배경 경쟁/적체 제어 | EP1 수명 검증. 포화·예약 거부·늦은 결과·Stop·지속 Writer·사용자 검색·배경 진행의 경쟁 및 Owner/Workspace 상한 대조 | 사전 합의한 시스템 trade-off와 필수 Gate를 충족하면 통합 후보. 실제 병목과 자원 여유가 확인된 경우에만 EP3. 무한 큐·배경 기아·무제한 병렬화는 거부 |
 | EP3 · 병목 단계 병렬도 | 필요한 느린 단계만 외부 워커/내부 스레드 조합 비교 | EP2, 실제 연산 병목과 사용 가능한 자원 근거. 중복 Build/Decode, 모델 보유량, 요청 묶음 완료·tail·Writer·적체·peak를 같은 조건으로 비교 | 시스템 효과가 측정 변동보다 명확하고 상한/정확성을 지킬 때만 채택. 효과 부족·자원 악화면 직렬 유지도 정상 결론. 추가 후보 연속 구현 없이 EP4 또는 범위 결정 |
 | EP4 · 제품 통합과 공식 Gate | 누적 변경의 제품 성능·수명·복구·출시 적격성 확인 | 영향 Native·통합 회귀 → Build/Link·Source/Runtime 결속 → 실제 제품 단기 검증 → 별도 승인된 공식 State45. Memory P0·Readiness120·복구·UI/릴리즈 요건은 각각 대조 | 필수 Gate를 모두 충족해야 완료. 부분 실행·최종 계상 0만으로 장시간/삭제 후/복구 PASS 아님. 실패하면 최초 차단 원인 하나로 후속 작업 선정; 자동 재실행·공개 금지 |
 
 기존 검색 범위·갱신 표시·화면 연결의 잔여와 출시 범위·호환 마감도 유지한다. 완료 구현을
-재구현하지 않으며 실행·자원 기반을 최종 출시 검증의 선행 과제로 둔다. EP3는 병렬화가 필요할 때만
+재구현하지 않으며 실행·자원 기반을 최종 출시 검증의 선행 과제로 둔다. EP2는 아직 미착수이며
+실제 동시 실행·적체·자원 문제에 필요할 때만 범위를 정해 수행한다. EP3도 미착수이며 병렬화가 필요할 때만
 수행하고 불필요하면 근거를 남겨 직렬 설정으로 EP4에 연결한다. 아래 B안은 별도 결정이며
 EP1~EP3의 필수 선행조건이 아니다. Visual 변경과 동시에 적용해 효과를 혼합하지 않는다.
+EP4의 제품 Build/Link·단기 HTTP는 완료됐고 공식 State45 이후 단계는 미완료다. 이번 승인된
+State45 단회 외에 Memory P0·Readiness120·Recovery·UI·Release는 각 증거와 별도 실행 승인이 필요하다.
 
 ## 후보의 상태와 재개 조건
 
@@ -214,5 +264,5 @@ v4.8 대화형 UI, v4.9 누적 품질·호환 검증의 기능 배분을 앞당�
 진척은 승인된 제품 산출물 완성, 실제 실패 조건 감소, 재현 가능한 원인 가설 구분, 공식 Gate
 완료로 판단한다. 문서·Commit·테스트 개수나 근거 없는 완성도 백분율로 진척을 주장하지 않는다.
 AGENTS의 무진척 반복·범위 확대 중단 기준을 유지한다. 같은 문제의 BLOCKED가 반복되면 유사 후보를
-계속 만드는 대신 필요한 계약·범위 결정을 명시한다. 다음 작업은 EP1의 구체적 제품 경계 구현이며
+계속 만드는 대신 필요한 계약·범위 결정을 명시한다. 다음 작업은 EP1 Commit에 결속된 공식 State45 단회 검증이며
 계획을 더 세분화하는 일을 별도 성과로 삼지 않는다.

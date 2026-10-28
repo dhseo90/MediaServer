@@ -12,6 +12,9 @@
 #include <sstream>
 #include <sys/stat.h>
 namespace ingress {
+#ifdef RECORDING_SEARCH_TESTING
+std::atomic<void(*)()> visual_image_prepare_test_hook{nullptr},visual_image_ready_test_hook{nullptr};
+#endif
 namespace {
 using Query=VisualSearchApplicationService::Query;
 std::string Quote(const std::string& value){
@@ -200,10 +203,10 @@ public:
         }
         return true;
     }
-    bool Encode(recording::VisualSearchDocument* doc,analysis::Siglip2Encoder& encoder,std::string* error){
-        if(!doc->event_id.empty())return source_.Encode(doc,encoder,error,cancelled_);
-        std::unique_ptr<Prepared> temporary;const auto* proof=Acquire(*doc,temporary,error);if(!proof)return false;
-        return source_.Encode(doc,encoder,error,cancelled_,proof);
+    std::unique_ptr<recording::RecordingVisualSource::PreparedImage> PrepareImage(const recording::VisualSearchDocument& doc,std::string* error){
+        if(!doc.event_id.empty())return source_.PrepareImage(doc,error,cancelled_);
+        std::unique_ptr<Prepared> temporary;const auto* proof=Acquire(doc,temporary,error);if(!proof)return {};
+        return source_.PrepareImage(doc,error,cancelled_,proof);
     }
 };
 bool EventFacts(bool enabled,const std::vector<std::string>& channels,
@@ -270,12 +273,21 @@ VisualSearchApplicationService::VisualSearchApplicationService(recording::Record
         }),recording::VisualIndexWorker::EncodeFactory([this]{
             auto media=std::make_shared<RequestMedia>(source_,[this]{return stopped_.load();},std::chrono::steady_clock::time_point::max(),"visual-index-build");
             return [this,media](auto* doc,const auto& cancelled,std::string* error){
+                // Worker 한 개, 동기 인계 한 개. 준비/Decode는 추론 직렬 구역과 독립이며
+                // RGB·Hold·예약은 대기/추론/예외가 끝날 때까지 이 호출만 소유한다.
+#ifdef RECORDING_SEARCH_TESTING
+                if(const auto hook=visual_image_prepare_test_hook.load())hook();
+#endif
+                auto image=media->PrepareImage(*doc,error);if(!image)return false;
+#ifdef RECORDING_SEARCH_TESTING
+                if(const auto hook=visual_image_ready_test_hook.load())hook();
+#endif
                 recording::latency::VisualPhase wait("image-inference-wait");
                 std::unique_lock<std::timed_mutex> lock(inference_,std::defer_lock);
                 while(!lock.try_lock_for(std::chrono::milliseconds(25)))if(cancelled())return false;
                 wait.End();recording::latency::VisualPhase hold("image-inference-held");
                 if(cancelled())return false;
-                return media->Encode(doc,*encoder_,error);
+                return source_.EncodePreparedImage(doc,std::move(image),*encoder_,error,cancelled);
             };
         }),std::chrono::seconds(options_.scan_seconds));
     worker_->Start();

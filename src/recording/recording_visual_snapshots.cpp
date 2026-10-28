@@ -124,21 +124,25 @@ bool RecordingVisualSource::SnapshotMatchesEvent(const VisualSearchDocument& doc
     Snapshot current;if(!Read(snapshots_,doc.event_id,doc.channel_id,&current))return Fail(error,"visual-snapshot-read-failed");
     return current.id==doc.id&&current.proof.event_epoch==event_epoch;
 }
-bool RecordingVisualSource::EncodeSnapshot(VisualSearchDocument* doc,analysis::Siglip2Encoder& encoder,std::string* error,
+bool RecordingVisualSource::PrepareSnapshotImage(const VisualSearchDocument& doc,PreparedImage* output,std::string* error,
     const std::function<bool()>& cancelled)const{
     SearchSeekTarget seek;std::unique_ptr<ResolvedRecordingMedia> media;
-    if(!Resolve(*doc,&seek,&media,error,cancelled))return false;
-    Snapshot snapshot;if(!Read(snapshots_,doc->event_id,doc->channel_id,&snapshot)||snapshot.id!=doc->id)return Fail(error,"visual-snapshot-changed");
+    if(!Resolve(doc,&seek,&media,error,cancelled))return false;
+    Snapshot snapshot;if(!Read(snapshots_,doc.event_id,doc.channel_id,&snapshot)||snapshot.id!=doc.id)return Fail(error,"visual-snapshot-changed");
     const long double ns=static_cast<long double>(seek.seconds)*1000000000;
     if(!std::isfinite(ns)||ns<0||ns>=std::ldexp(1.0L,63))return Fail(error,"visual-invalid-frame-reference");
+    SearchModelResidency::Reservation original_memory;
     VisualRgbFrame original;
-    if(!DecodeVisualFrame(media->fd(),media->size_bytes(),std::llround(ns),&original,error,cancelled))return false;
+    const auto owner=catalog_.SearchResidency();
+    if(!DecodeVisualFrame(media->fd(),media->size_bytes(),std::llround(ns),&original,error,cancelled,5000,
+        VisualDecodePolicy::Automatic,owner,&original_memory))return false;
     if(original.width!=snapshot.proof.width||original.height!=snapshot.proof.height||
         analysis::SnapshotBytesSha256(original.rgb.data(),original.rgb.size())!=snapshot.proof.rgb_sha256)return Fail(error,"visual-snapshot-pixels-mismatch");
-    VisualRgbFrame image;if(!DecodeVisualFrame(snapshot.image_fd.value,snapshot.image.size(),0,&image,error,cancelled))return false;
-    if(image.width!=original.width||image.height!=original.height)return Fail(error,"visual-snapshot-pixels-mismatch");
+    if(!DecodeVisualFrame(snapshot.image_fd.value,snapshot.image.size(),0,&output->frame_,error,cancelled,5000,
+        VisualDecodePolicy::Automatic,owner,&output->rgb_memory_))return false;
+    if(output->frame_.width!=original.width||output->frame_.height!=original.height)return Fail(error,"visual-snapshot-pixels-mismatch");
     if(cancelled&&cancelled())return Fail(error,"visual-cancelled");
-    doc->embedding=encoder.EncodeRgb(image.rgb.data(),image.width,image.height,std::size_t(image.width)*3);
+    output->hold_=std::move(media);
     if(error)error->clear();return true;
 }
 }

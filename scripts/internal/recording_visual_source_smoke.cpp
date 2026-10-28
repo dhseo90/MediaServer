@@ -33,6 +33,16 @@ int main(int argc,char**argv){try{
         recording::VisualRgbFrame rgb;
         Check(recording::DecodeVisualFrame(media->fd(),media->size_bytes(),std::llround(seek.seconds*1e9),&rgb,&error),"decode bound source: "+error);
         Check(rgb.width==160&&rgb.height==90&&rgb.rgb.size()==160*90*3,"actual RGB source frame");
+        auto budget=std::make_shared<recording::SearchModelResidency>(1);
+        recording::SearchModelResidency::Reservation rgb_charge;
+        recording::VisualRgbFrame rejected;rejected.width=42;
+        Check(!recording::DecodeVisualFrame(media->fd(),media->size_bytes(),std::llround(seek.seconds*1e9),&rejected,&error,{},5000,
+            recording::StoredVisualIndexDecodePolicy(),budget,&rgb_charge)&&error=="recording-resource-unavailable"&&rejected.width==42&&budget->used()==0,
+            "EP1 RGB admission precedes allocation and preserves output");
+        unsigned cancellation_calls=0;
+        Check(!recording::DecodeVisualFrame(media->fd(),media->size_bytes(),std::llround(seek.seconds*1e9),&rejected,&error,
+            [&]{return ++cancellation_calls>=4;},5000,recording::StoredVisualIndexDecodePolicy())&&error=="visual-cancelled"&&rejected.width==42,
+            "EP1 cancellation within decoder tears down pipeline");
         auto altered=doc;altered.media_sha256=std::string(64,'f');Check(!source.Resolve(altered,&seek,&media,&error),"changed media hash denied");
         altered=doc;altered.frame_sha256=std::string(64,'f');Check(!source.Resolve(altered,&seek,&media,&error),"changed AU hash denied");
         altered=doc;altered.channel_id="other";Check(!source.Resolve(altered,&seek,&media,&error),"wrong channel denied");
@@ -139,6 +149,38 @@ int main(int argc,char**argv){try{
     if(argc==3){
         analysis::Siglip2Encoder encoder(argv[2]);auto actual=docs.front();
         Check(source.Encode(&actual,encoder,&error),"actual source RGB to embedding");
+        // EP1: 소유 입력은 검증된 문서 하나에 결속되며 소비/거부/취소에서 즉시 반환한다.
+        const auto owner=runtime.catalog().SearchResidency();
+        auto image=source.PrepareImage(docs.front(),&error);
+        Check(image&&image->rgb_bytes()==160*90*3,"EP1 owned RGB exact size");
+        Check(holds()==1&&!runtime.catalog().RequestDeletion(docs.front().segment_id,"continuous-capacity",&error)&&
+            !runtime.catalog().MarkSegmentCorrupt(docs.front().segment_id,"container-invalid",&error),
+            "EP1 prepared RGB retains the only source hold through inference wait");
+        auto separated=docs.front();
+        Check(source.EncodePreparedImage(&separated,std::move(image),encoder,&error)&&separated.embedding==actual.embedding,
+            "EP1 split preparation embedding byte equality");
+        Check(holds()==0,"EP1 successful inference returns the source hold");
+        auto mismatch=source.PrepareImage(docs.front(),&error);Check(bool(mismatch),"EP1 mismatch input prepared");
+        auto changed=docs.front();changed.frame_sha256=std::string(64,'f');changed.embedding={42};
+        Check(!source.EncodePreparedImage(&changed,std::move(mismatch),encoder,&error)&&changed.embedding==std::vector<float>{42},"EP1 wrong identity rejected without output mutation");
+        auto cancelled_image=source.PrepareImage(docs.front(),&error);Check(bool(cancelled_image),"EP1 cancellation input prepared");
+        const auto charged=owner->used();
+        // 값 인수의 소멸이 끝나는 full-expression 뒤에서 반환 계상을 확인한다.
+        const auto cancelled_result=source.EncodePreparedImage(&separated,std::move(cancelled_image),encoder,&error,[]{return true;});
+        std::cout<<"[ep1-return] before="<<charged<<" after="<<owner->used()<<" result="<<cancelled_result<<" error="<<error<<std::endl;
+        Check(!cancelled_result&&error=="visual-cancelled"&&owner->used()+160*90*3<=charged,"EP1 cancelled handoff releases RGB and Hold");
+        Check(holds()==0,"EP1 cancelled inference returns the source hold");
+        auto denied_image=source.PrepareImage(docs.front(),&error);Check(bool(denied_image),"EP1 admission input prepared");
+        auto exhaust=owner->ReserveOwned(owner->limit()-owner->used());Check(bool(exhaust),"EP1 existing owner admission saturated");
+        Check(!source.EncodePreparedImage(&separated,std::move(denied_image),encoder,&error)&&error=="recording-resource-unavailable","EP1 tensor reservation refused safely");
+        auto fill_gap=owner->ReserveOwned(owner->limit()-owner->used());Check(bool(fill_gap),"EP1 fill released input gap");
+        Check(!source.PrepareImage(docs.front(),&error)&&error=="recording-resource-unavailable","EP1 handoff admission refused safely");
+        fill_gap.reset();
+        exhaust.reset();
+        auto recovered=source.PrepareImage(docs.front(),&error);Check(bool(recovered),"EP1 reservation failure allows next preparation");
+        const auto retained=owner->used();recovered.reset();Check(owner->used()+160*90*3<=retained,"EP1 discarded prepared RGB returns reservation");
+        Check(!source.PrepareImage(docs.front(),&error,[]{return true;})&&error=="visual-cancelled","EP1 preparation cancellation");
+        std::cout<<"[ep1-embedding] ";for(float value:actual.embedding)std::cout<<std::hexfloat<<value<<",";std::cout<<std::defaultfloat<<"\n";
         double norm=0;for(float value:actual.embedding){Check(std::isfinite(value),"finite actual source embedding");norm+=double(value)*value;}
         Check(actual.embedding.size()==768&&std::abs(norm-1)<1e-5,"actual source embedding contract");
         struct rusage usage{};Check(::getrusage(RUSAGE_SELF,&usage)==0,"resource observation");
