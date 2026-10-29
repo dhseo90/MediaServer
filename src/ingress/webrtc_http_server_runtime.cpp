@@ -1,3 +1,4 @@
+#include "recording/shutdown_diagnostic.h"
 #include "recording/recording_search_diagnostic.h"
 #include "recording/recording_latency_trace.h"
 // 파일 요약: WebRTC HTTP 서버의 공개 runtime lifecycle과 registry 검증 구현이다.
@@ -5301,7 +5302,9 @@ void WebRtcHttpServer::Stop() {
         return;
     }
 
+    recording::shutdown_probe::Emit("http-flights","before-close",0,impl_->recording_gate->DiagnosticFlights());
     impl_->recording_gate->Close();
+    recording::shutdown_probe::Emit("http-admission","closed");
     if(const char* p=std::getenv("MEDIA_SERVER_VERIFY_MULTIFINALIZE_BLOCKERS");p&&std::strcmp(p,"1")==0)
         std::fprintf(stderr,"[blocker-stop] {\"phase\":\"admission-closed\",\"ns\":%llu}\n",(unsigned long long)recording::latency::Now());
 
@@ -5311,9 +5314,10 @@ void WebRtcHttpServer::Stop() {
         impl_->listen_fd = -1;
     }
     if (impl_->accept_thread.joinable()) {
-        impl_->accept_thread.join();
+        recording::shutdown_probe::Scope phase("http-accept-join");impl_->accept_thread.join();
     }
-    impl_->recording_gate->Drain();
+    {recording::shutdown_probe::Scope phase("http-drain");impl_->recording_gate->Drain();}
+    recording::shutdown_probe::Emit("http-flights","after-drain",0,impl_->recording_gate->DiagnosticFlights());
     if(const char* p=std::getenv("MEDIA_SERVER_VERIFY_MULTIFINALIZE_BLOCKERS");p&&std::strcmp(p,"1")==0)
         std::fprintf(stderr,"[blocker-stop] {\"phase\":\"requests-drained\",\"ns\":%llu}\n",(unsigned long long)recording::latency::Now());
 

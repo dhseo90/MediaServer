@@ -1,3 +1,4 @@
+#include "recording/shutdown_diagnostic.h"
 // 파일 용도: 인증 이후 녹화 검색·스냅샷 재생 요청의 값 파싱과 공개 응답.
 #include "ingress/recording_application_service.h"
 #include "recording/recording_latency_trace.h"
@@ -130,6 +131,7 @@ std::string Url(const std::string& id){return recording::ValidateOpaqueId(id,nul
 }
 ApplicationServiceResult RecordingApplicationService::Search(const Query& raw,const std::string& principal,
     const std::string& scope,const ChannelAuthorizer& authorize) const {
+    recording::shutdown_probe::Scope structured_probe("structured");
     recording::memory_diagnostic::Activity request_activity(recording::memory_diagnostic::StructuredRequests);
     recording::SearchDiagnostic diagnostic(catalog_.SearchResidency().get());
     try {

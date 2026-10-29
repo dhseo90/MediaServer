@@ -1,3 +1,4 @@
+#include "recording/shutdown_diagnostic.h"
 #include "recording/recording_latency_trace.h"
 // 파일 요약: 하나의 source packet을 여러 subscriber에게 fan-out한다.
 // 동작 요약: subscriber별 bounded queue, cached keyframe/audio 재전달, idle 상태를 관리한다.
@@ -71,7 +72,7 @@ bool SharedStream::AddSubscriberWithRole(const std::string& subscriber_id,
         }
         state->cv.notify_one();
         if (state->worker.joinable()) {
-            state->worker.join();
+            {recording::shutdown_probe::Scope phase("subscriber-join");state->worker.join();}
             ReportRecorder(state);
         }
         return false;
@@ -116,7 +117,7 @@ void SharedStream::RemoveSubscriber(const std::string& session_id) {
     }
     state->cv.notify_one();
     if (state->worker.joinable()) {
-        state->worker.join();
+        {recording::shutdown_probe::Scope phase("subscriber-join");state->worker.join();}
         ReportRecorder(state);
     }
 }
@@ -144,7 +145,7 @@ void SharedStream::StopAllSubscribers() {
 
     for (const auto& state : states) {
         if (state->worker.joinable()) {
-            state->worker.join();
+            {recording::shutdown_probe::Scope phase("subscriber-join");state->worker.join();}
             ReportRecorder(state);
         }
     }
@@ -279,7 +280,7 @@ void SharedStream::StopSource() {
         worker = std::move(source_worker_);
         source_running_ = false;
     }
-    worker->Stop();
+    {recording::shutdown_probe::Scope phase("source-worker-stop");worker->Stop();}
 }
 
 bool SharedStream::IsSourceRunning() const {

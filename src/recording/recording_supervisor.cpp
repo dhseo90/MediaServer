@@ -1,3 +1,4 @@
+#include "recording/shutdown_diagnostic.h"
 // 파일 요약: source 정책 revision을 채널별 recorder 수명주기에 반영한다.
 // 동작 요약: global/source/channel opt-in을 모두 만족할 때만 recorder를 유지한다.
 #include "recording/recording_supervisor.h"
@@ -61,7 +62,7 @@ void RecordingSupervisor::Stop() {
         stop_requested_ = true;
     }
     wait_cv_.notify_all();
-    if (safety_thread_.joinable()) safety_thread_.join();
+    if (safety_thread_.joinable()) {recording::shutdown_probe::Scope phase("safety-join");safety_thread_.join();}
     sessions_.StopAll();
     std::lock_guard lock(wait_mu_);
     running_ = false;

@@ -1,3 +1,4 @@
+#include "recording/shutdown_diagnostic.h"
 #include "recording/recording_state_trace.h"
 #include "recording/recording_latency_trace.h"
 // 파일 요약: GStreamer appsrc/parser/muxer로 녹화 segment를 작성한다.
@@ -502,13 +503,16 @@ private:
 
     void FinalizeLocked() {
         if (!segment_open) return;
+        recording::shutdown_probe::Scope finalize_probe("writer-finalize");
         Cost total(*this,4);Cost eos_cost(*this,5);
         if (appsrc != nullptr) gst_app_src_end_of_stream(GST_APP_SRC(appsrc));
         bool eos = false;
         if (pipeline != nullptr) {
             GstBus* bus = gst_element_get_bus(pipeline);
+            recording::shutdown_probe::Scope eos_probe("writer-eos");
             GstMessage* message = gst_bus_timed_pop_filtered(
                 bus, 5 * GST_SECOND, static_cast<GstMessageType>(GST_MESSAGE_EOS | GST_MESSAGE_ERROR));
+            eos_probe.End();
             eos = message != nullptr && GST_MESSAGE_TYPE(message) == GST_MESSAGE_EOS;
             if (message != nullptr) gst_message_unref(message);
             gst_object_unref(bus);

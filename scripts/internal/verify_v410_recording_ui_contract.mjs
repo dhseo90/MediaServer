@@ -98,7 +98,10 @@ export async function stopServer(child, options = {}) {
   }
 
   const gracefulWait = waitForChildExit(child, graceMs);
-  if (!child.kill("SIGTERM") && !observedChildExit(child)) {
+  options.onSignal?.("SIGTERM", "before");
+  const termSent=child.kill("SIGTERM");
+  options.onSignal?.("SIGTERM", "after", termSent);
+  if (!termSent && !observedChildExit(child)) {
     throw new Error("서버 SIGTERM 전달 실패");
   }
   if (await gracefulWait) {
@@ -107,7 +110,10 @@ export async function stopServer(child, options = {}) {
   }
 
   const forcedWait = waitForChildExit(child, forceWaitMs);
-  if (!child.kill("SIGKILL") && !observedChildExit(child)) {
+  options.onSignal?.("SIGKILL", "before");
+  const killSent=child.kill("SIGKILL");
+  options.onSignal?.("SIGKILL", "after", killSent);
+  if (!killSent && !observedChildExit(child)) {
     throw new Error("서버 SIGKILL 전달 실패");
   }
   if (!(await forcedWait)) {

@@ -1,3 +1,4 @@
+#include "recording/shutdown_diagnostic.h"
 #include "recording/recording_state_trace.h"
 // 파일 요약: 녹화 채널을 SharedStream의 독립 Recorder subscriber에 연결한다.
 // 동작 요약: descriptor와 첫 keyframe이 준비된 뒤 writer를 시작하고 detach 순서를 고정한다.
@@ -80,7 +81,7 @@ RecordingSessionService::StartResult RecordingSessionService::StartChannel(
     }
     std::string source_error;
     if (!session_manager_.StartAuxiliaryStream(state->handle, &source_error)) {
-        state->handle.stream->RemoveSubscriber(state->subscriber_id);
+        {recording::shutdown_probe::Scope phase("recorder-subscriber-remove");state->handle.stream->RemoveSubscriber(state->subscriber_id);}
         session_manager_.DiscardAuxiliaryStream(state->handle);
         std::lock_guard lock(mu_);
         channels_.erase(channel_id);
@@ -138,6 +139,7 @@ void RecordingSessionService::OnPacket(const std::shared_ptr<ChannelState>& stat
 }
 
 bool RecordingSessionService::StopChannel(const std::string& channel_id) {
+    recording::shutdown_probe::Scope channel_stop("channel-stop");
     std::shared_ptr<ChannelState> state;
     {
         std::lock_guard lock(mu_);
@@ -155,8 +157,8 @@ bool RecordingSessionService::StopChannel(const std::string& channel_id) {
         state->stopping = true;
         TraceRecordingState(channel_id,"stop-channel","requested");
     }
-    state->handle.stream->RemoveSubscriber(state->subscriber_id);
-    state->writer->Stop();
+    {recording::shutdown_probe::Scope phase("recorder-subscriber-remove");state->handle.stream->RemoveSubscriber(state->subscriber_id);}
+    {recording::shutdown_probe::Scope phase("writer-stop");state->writer->Stop();}
     session_manager_.ReleaseAuxiliaryStreamWhenIdle(state->handle);
     return true;
 }

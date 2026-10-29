@@ -1,3 +1,4 @@
+#include "recording/shutdown_diagnostic.h"
 // 파일 요약: File, RTSP pull, WebRTC, HTTP/HLS URI, YouTube source worker를 생성한다.
 // 동작 요약: GStreamer 기반 source pipeline, descriptor discovery, packet 변환, URI pad 선택을 구현한다.
 // 동작 요약: 다양한 원본 source를 SharedStream으로 공급하는 핵심 factory다.
@@ -854,7 +855,7 @@ private:
 #if MEDIA_SERVER_USE_GSTREAMER
     void JoinThread(std::thread& thread) {
         if (thread.joinable()) {
-            thread.join();
+            {recording::shutdown_probe::Scope phase("source-branch-join");thread.join();}
         }
     }
 
@@ -1085,11 +1086,11 @@ public:
 
         for (auto& branch : branches_) {
             if (branch->sample_thread.joinable()) {
-                branch->sample_thread.join();
+                {recording::shutdown_probe::Scope phase("source-sample-join");branch->sample_thread.join();}
             }
         }
         if (bus_thread_.joinable()) {
-            bus_thread_.join();
+            {recording::shutdown_probe::Scope phase("source-bus-join");bus_thread_.join();}
         }
 
         branches_.clear();
@@ -1676,11 +1677,11 @@ public:
 
         for (auto& branch : branches_) {
             if (branch->sample_thread.joinable()) {
-                branch->sample_thread.join();
+                {recording::shutdown_probe::Scope phase("source-sample-join");branch->sample_thread.join();}
             }
         }
         if (bus_thread_.joinable()) {
-            bus_thread_.join();
+            {recording::shutdown_probe::Scope phase("source-bus-join");bus_thread_.join();}
         }
 
         branches_.clear();
@@ -2220,7 +2221,7 @@ public:
         }
 
         if (monitor_thread_.joinable() && monitor_thread_.get_id() != std::this_thread::get_id()) {
-            monitor_thread_.join();
+            {recording::shutdown_probe::Scope phase("source-monitor-join");monitor_thread_.join();}
         }
     }
 

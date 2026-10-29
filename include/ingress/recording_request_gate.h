@@ -52,6 +52,7 @@ public:
         flights_.emplace(flight.get(), socket_fd);
         return flight;
     }
+    std::size_t DiagnosticFlights() const {std::lock_guard lock(mu_);return flights_.size();}
     void Close() {
         std::lock_guard lock(mu_);
         accepting_ = false;

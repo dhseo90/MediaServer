@@ -1,3 +1,4 @@
+#include "recording/shutdown_diagnostic.h"
 // 파일 요약: EventStorage 이벤트를 상시녹화 segment와 안전하게 연결한다.
 // 동작 요약: 추정 없는 시간축 변환, keyed 비동기 job, source/output hold와 quota를 조정한다.
 #include "recording/event_recording_bridge.h"
@@ -1169,7 +1170,7 @@ void CatalogEventRecordingBridge::StopAndDrain() {
         cv_.notify_all();
     }
     if(derived_worker_)derived_worker_->StopAndDrain();
-    if (worker_.joinable()) worker_.join();
+    if (worker_.joinable()) {recording::shutdown_probe::Scope phase("event-bridge-join");worker_.join();}
 }
 
 RecordingDerivedReferenceResult CatalogEventRecordingBridge::QueryReferenceResult(const std::string& id) {

@@ -1,3 +1,4 @@
+#include "recording/shutdown_diagnostic.h"
 // 파일 요약: GStreamer RTSP server를 실행하고 요청마다 egress session을 연결한다.
 // 동작 요약: media-configure 시 route/query를 해석해 SessionManager session을 생성한다.
 // 동작 요약: RTSP pipeline appsrc와 SharedStream 사이의 생명주기를 조율한다.
@@ -493,7 +494,7 @@ void GStreamerRtspServer::Stop() {
         g_main_loop_quit(impl_->loop);
     }
     if (impl_->loop_thread.joinable()) {
-        impl_->loop_thread.join();
+        {recording::shutdown_probe::Scope phase("rtsp-loop-join");impl_->loop_thread.join();}
     }
     if (impl_->source_id != 0) {
         GMainContext* context_for_source = impl_->loop_context != nullptr ? impl_->loop_context : g_main_context_default();

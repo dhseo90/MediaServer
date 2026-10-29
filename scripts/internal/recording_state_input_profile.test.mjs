@@ -6,7 +6,7 @@ import fs from 'node:fs';
 import crypto from 'node:crypto';
 import os from 'node:os';
 import path from 'node:path';
-import {spawnSync} from 'node:child_process';
+import {spawnSync,execFileSync} from 'node:child_process';
 import {EARLY_STATE_INPUT as p,selectStateInputProfile,requireStateInputExecutable,stateInputArgs,stateInputProbeArgs,
   validateStateInputMedia,stateInputCapacity,assessSyntheticStateWriterSegments,validateQualifiedStateInput,STATE_BINDING_SHA,STATE_PRODUCT_SMOKE_SHA,assessQualifiedStateReview,stateHelperBytes,assertVerifiedStateFreshness,assertEP1StateEvidence,assertStateSourceBytes} from './recording_state_input_profile.mjs';
 import {workspaceBounds,freezeCurrentWorkspace,measureCurrentWorkspace} from './recording_current_observer.mjs';
@@ -114,7 +114,8 @@ test('existing Driver body, duration and protection guard remain bound',()=>{
   assert(driver.includes("num-buffers=120','pattern=ball'"));assert(driver.includes("'pass=quant','quantizer=0'"));
   assert(driver.includes('stateDiagnose?2700000'));assert(driver.includes('stateDiagnose?2880000'));
   const tail=driver.slice(driver.indexOf('  }catch(error){failed++;if(error.workspaceDecision)')).replace('fixtureGenerationEvidence,processIdentityEvidencePass:','processIdentityEvidencePass:');
-  assert.equal(sha(tail),'c1c9880437a77522ce3caa4384df048c01d9e837826e0a28e524a0de482eb12a');
+  // Focused blocker output fields are additional; official duration/protection checks remain.
+  assert.equal(sha(tail),'f08330647a8eeaa8da3aec38e5795a43132781044b81a5168245f63b3c5bdf97');
   const retention=fs.readFileSync(new URL('../../src/recording/retention_coordinator.cpp',import.meta.url),'utf8');
   assert(retention.includes('!candidate.Pinned() && candidate.hold_count == 0'));
 });
@@ -160,10 +161,12 @@ function bindingCli(args,env){
 }
 
 test('required generated helper rejects missing source, changed bytes, size and SHA',()=>{
-  const entry={path:path.resolve('src/recording/recording_catalog.cpp'),generator:'instrumentCatalog',bytes:376755,
+  const dir=fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(),'media-server-state-source-test-')));
+  const legacy=path.join(dir,'legacy-catalog.cpp');
+  fs.writeFileSync(legacy,execFileSync('git',['show','5a3b7b9a0890e2a7950c644ed398092e378a5da5:src/recording/recording_catalog.cpp']));
+  const entry={path:legacy,generator:'instrumentCatalog',bytes:376755,
     sha256:'03dba9c9c535f97202ac40e7c817aeea0c82aae72abe6478da99ec0a3fc00817'};
   assert.equal(stateHelperBytes(entry).length,376755);
-  const dir=fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(),'media-server-state-source-test-')));
   try{
     const changed=path.join(dir,'catalog.cpp');fs.writeFileSync(changed,fs.readFileSync(entry.path,'utf8')+'\n');
     for(const patch of [{path:changed},{bytes:376754},{sha256:'0'.repeat(64)}])
@@ -415,7 +418,7 @@ test('legacy verified schema still performs its original evidence checks',()=>{
     analysis:{fixedBinding:[{root:dir}],helperHashes:Object.fromEntries(['normalize','process-metrics','review-seed','catalog-instrumented.cpp'].map(name=>[name,
       {sha256:name.endsWith('.cpp')?STATE_PRODUCT_SMOKE_SHA.catalogInstrumented:'a'.repeat(64),bytes:name.endsWith('.cpp')?376755:1}]))}};
   const calls=[];
-  const context={result,assert,JSON,Buffer,path,hash:x=>/^[a-f0-9]{64}$/.test(x),need:(v,c)=>assert(v,c),
+  const context={result,MULTIFINALIZE_SCHEMA:'multifinalize-state-binding-v1',assert,JSON,Buffer,path,hash:x=>/^[a-f0-9]{64}$/.test(x),need:(v,c)=>assert(v,c),
     boundFile:(file,digest)=>{calls.push([file,digest]);return Buffer.from(JSON.stringify(file===dir+'/result.json'?result:
       file===dir+'/source-manifest.json'?{'src/example.cpp':sha(Buffer.from('source'))}:file===dir+'/freshness.json'?freshness:
       file==='/baseline/result.json'?{binding:{dynamicLibrariesSHA256:{}}}:file==='/baseline/model-sha256.json'?{}:0));},
@@ -424,7 +427,7 @@ test('legacy verified schema still performs its original evidence checks',()=>{
     assertVerifiedStateFreshness,execFileSync:cmd=>cmd==='git'?'':JSON.stringify(freshness)};
   // Helper payload size is one byte in this synthetic fixture.
   const bound=context.boundFile;context.boundFile=(file,digest)=>/\/(normalize|process-metrics|review-seed)$/.test(file)?Buffer.from('x'):bound(file,digest);
-  vm.createContext(context);vm.runInContext(body.replace('import.meta.url',"'file:///repo/scripts/internal/profile.mjs'")+"; selected=bindVerifiedStateProduct({MEDIA_SERVER_STATE_VERIFIED_RESULT:'/isolated/result.json',MEDIA_SERVER_STATE_VERIFIED_RESULT_SHA256:'a'.repeat(64),MEDIA_SERVER_STATE_PRODUCT_SMOKE:'/baseline'},'/isolated/media_server','/isolated/runtime.a');",context);
+  vm.createContext(context);vm.runInContext(body.replaceAll('import.meta.url',"'file:///repo/scripts/internal/profile.mjs'")+"; selected=bindVerifiedStateProduct({MEDIA_SERVER_STATE_VERIFIED_RESULT:'/isolated/result.json',MEDIA_SERVER_STATE_VERIFIED_RESULT_SHA256:'a'.repeat(64),MEDIA_SERVER_STATE_PRODUCT_SMOKE:'/baseline'},'/isolated/media_server','/isolated/runtime.a');",context);
   assert.equal(context.selected.sha256.product,productSha);assert(calls.some(([file])=>file.endsWith('source-manifest.json')));
   for(const value of ['FAIL',undefined]){result.verdicts.build=value;
     assert.throws(()=>vm.runInContext("bindVerifiedStateProduct({MEDIA_SERVER_STATE_VERIFIED_RESULT:'/isolated/result.json',MEDIA_SERVER_STATE_VERIFIED_RESULT_SHA256:'a'.repeat(64)},'/isolated/media_server','/isolated/runtime.a')",context),/state-verified-result-status/);}

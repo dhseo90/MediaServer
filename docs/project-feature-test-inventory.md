@@ -5637,3 +5637,11 @@ R184-H05 정확한 PID SIGTERM grace5초 및 owner/scratch/FD 관측; 단기 종
 - B03 활성9101 정상 quota64MiB+64KiB Retention, 기존 예약64MiB 유지; journal pending→deleted와 media404,9201survivor206, 최신 Structured/Visual 제외, 기존 snapshot의 삭제대상playable=false, 신규 Finalize와 재시작후삭제 지속. 명시 Segment Delete API는 없음/미실행을 구분한다.
 - B04 매 제품 프로세스에서 명시 Visual 요청200과 실제 ONNX text inference; 최초 Writer background image decode/preprocess/image inference, source/currentness/response 진단 및 flush를 기존4096행/4MiB한도 안에서 확인. 누락/손실은 FAIL 유지.
 - B05 SIGTERM grace5초, Admission Close/Drain 관측, 정상exit/ports/Owner/Scratch/Model 반환. 공식 Shutdown P0, Memory P0, State45,30분/120분/UI는 별도.
+
+### MEDIA-012-MULTIFINALIZE-CLEAN-BINDING — 격리 Clean HEAD 및 증거 결속
+
+기존 State45 2700/2880초·Quota108MiB·예약64MiB·자연삭제·p95≤2000/max≤5000·오류0·5초 grace는 불변이다. 이번에는 공식 실행0회이며 안정화 Native/짧은 제품/실행 전 결속만 수행한다.
+- 정상: 기존 Native/Smoke/Shutdown의 불변 manifest·patch·실행 provenance를 현재 HEAD 제품 바이트에 연결한다. 과거 실행 HEAD는 재작성하지 않는다. 새 build freshness·모델/동적 라이브러리/helper와 실제 TU coverage를 검사한다.
+- 거부: dirty/staged/untracked, HEAD·제품 바이트·manifest SHA 불일치, 필수 evidence 누락/변조, 타 후보 혼용, patch 변조, 미지원 schema. 기존 legacy schema 거부/수용 회귀를 유지한다.
+- 종료 진단: stop 모드는 SIGTERM 이전 bounded counter/시각만 유지하고 record 예산2048행은 수신 뒤 사용한다. signal-safe 수신 및 supervisor 전송, Stop/join/EOS, 활성4종, scope 시작시각·반환, owner/model/snapshot은 기존 경로에서 관측한다. SIGKILL 전 원출력 write, 3초 정체 시 제한된 외부 stack; grace 연장 없음. Native 고빈도 사전 scope에서 로그예산 미소진·handler·처리비용 확인, 실제 짧은 제품 종료 확인.
+- 장시간 성능/삭제/자원 수렴은 RUN_TIME_ONLY이며 사전 PASS로 대체하지 않는다.

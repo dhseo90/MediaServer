@@ -93,6 +93,7 @@ function environment(http,rtsp,stun){const env={PATH:process.env.PATH,HOME:proce
   if(memoryObserve||blockerMode)values.VERIFY_MEMORY_ATTRIBUTION=1;
   if(blockerMode)values.VERIFY_MULTIFINALIZE_BLOCKERS=1;
   if(stateDiagnose)values.VERIFY_MEMORY_COMPACT=1;
+  if(stateDiagnose||blockerMode)values.SHUTDOWN_PROBE="stop";
   if(memoryDiagnose)values.VERIFY_CATALOG_SUBCOSTS=1;
   if(contentionDiagnose||memoryDiagnose)values.VERIFY_CATALOG_HOLDER_WHOLE_REQUESTS='slow-first';
   for(const [k,v] of Object.entries(values))env['MEDIA_SERVER_'+k]=String(v);return env;
@@ -262,7 +263,7 @@ async function launch(stun,requiresFrameTrace=true){const http=await reservePort
   console.log('[decoder-trace-settings] '+JSON.stringify({pid:child.pid,generatedMode:childEnv.MEDIA_SERVER_VERIFY_FRAME_TRACE,expectedMode:frameTraceMode,observationMs:blockerMode?null:duration}));
   const log=path.join(root,`server-${processes.length+1}.private.log`);
   const app={child,http,rtsp,base:`http://127.0.0.1:${http}`,bytes:0,log,logFd:null,requiresFrameTrace,completionTrace:completionCollection(),memoryTrace:memoryAttributionCollector(child.pid,{strict:stateDiagnose}),resourceTrace:resourceTraceCollector(child.pid)};processes.push(app);
-  app.cleanup=createProcessCleanup({child,ports:[{kind:'http',port:http},{kind:'rtsp',port:rtsp}],stopServer,assertPortClosed});
+  app.cleanup=createProcessCleanup({child,ports:[{kind:'http',port:http},{kind:'rtsp',port:rtsp}],stopServer:(child)=>diagnosedStop(child),assertPortClosed});
   child.on('error',()=>{app.error=true;});child.on('close',()=>{app.closed=true;});
   app.logFd=fs.openSync(log,'wx',0o600);
   for(const stream of [child.stdout,child.stderr])stream.on('data',chunk=>{captureBoundedProcessLog(app,chunk,bytes=>fs.writeSync(app.logFd,bytes),()=>child.kill('SIGTERM'));app.completionTrace.append(chunk,stream===child.stdout?'stdout':'stderr');if(stream===child.stderr){collectResourceTrace(app.resourceTrace,chunk);if(memoryObserve)collectMemoryAttribution(app.memoryTrace,chunk);}if(app.completionTrace.error||app.resourceTrace.error||(memoryObserve&&app.memoryTrace.error))child.kill('SIGTERM');});
@@ -274,6 +275,12 @@ async function launch(stun,requiresFrameTrace=true){const http=await reservePort
   if(!auth)auth=await bootstrapRecordingUiAuth(app.base,passwords);
   else{const response=await fetch(app.base+'/login',{method:'POST',body:new URLSearchParams({username:'admin',password:passwords[0]}),redirect:'manual',signal:AbortSignal.timeout(5000)});check(response.status===302,'A restart authenticated login');auth.cookies[0]=response.headers.getSetCookie().map(v=>v.split(';',1)[0]).join('; ');await response.arrayBuffer();}
   app.cookie=auth.cookies[0];assertLocalIceConfig(await request(app,'GET','/webrtc/config'),stun);check(true,'LP26-O05 isolated server healthy');return app;
+}
+async function diagnosedStop(child){
+ if(!stateDiagnose&&!blockerMode)return stopServer(child);
+ const timers=[],samples=[];const mark=v=>console.log('[shutdown-supervisor] '+JSON.stringify({pid:child.pid,ns:String(process.hrtime.bigint()),...v}));
+ try{return await stopServer(child,{onSignal:(signal,edge,sent)=>{mark({signal,edge,sent:sent??null});if(signal==='SIGTERM'&&edge==='after'&&sent){for(const ms of [1000,3000,4800])timers.push(setTimeout(()=>{const exited=child.exitCode!==null||child.signalCode!==null;mark({targetMs:ms,exited,exitCode:child.exitCode,signalCode:child.signalCode});if(ms===3000&&!exited&&process.platform==='darwin'){const file=path.join(root,`shutdown-stack-${child.pid}.txt`);const p=spawn('/usr/bin/sample',[String(child.pid),'1','1','-file',file],{stdio:'ignore'});samples.push(new Promise(resolve=>p.on('close',code=>{mark({stackExit:code,collectorPid:p.pid,intrusive:true,bytes:fs.existsSync(file)?fs.statSync(file).size:null});resolve();})));}},ms));}}});}
+ finally{for(const timer of timers)clearTimeout(timer);mark({edge:'exit-observed',exitCode:child.exitCode,signalCode:child.signalCode});await Promise.all(samples);}
 }
 async function stop(app){if(!app.stopPromise){app.stopStarted=performance.now();console.log('[blocker-stop-request] '+JSON.stringify({pid:app.child.pid,atNs:Number(process.hrtime.bigint()),graceMs:5000}));}if(!app.stopPromise)app.stopPromise=app.cleanup().then(r=>{console.log('[blocker-stop-result] '+JSON.stringify({pid:app.child.pid,elapsedMs:performance.now()-app.stopStarted,exitCode:r.exitCode,normalShutdownPass:r.normalShutdownPass}));app.result=r;console.log('[process-cleanup] '+JSON.stringify(r));if(!r.normalShutdownPass)throw Error('server-stop-failed');return r;});return app.stopPromise;}
 function source(id){return {sourceId:id,displayName:`S11 recording ${id}`,kind:'file',file:`retention-${id}.mp4`,enabled:true,

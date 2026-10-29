@@ -1,3 +1,4 @@
+#include "recording/shutdown_diagnostic.h"
 // 파일 용도: 분석 관측의 표본 선택과 비동기 원장 투영.
 #include "recording/analysis_observation_projector.h"
 #include <algorithm>
@@ -289,7 +290,7 @@ void AnalysisObservationProjector::StopAndDrain() {
           EnqueueLocked(std::move(last),item.second.reference);
       }
       tracks_.clear(); cv_.notify_one(); }
-    if(worker_.joinable()) worker_.join();
+    if(worker_.joinable()) {recording::shutdown_probe::Scope phase("observation-join");worker_.join();}
 }
 AnalysisObservationProjector::Status AnalysisObservationProjector::GetStatus() const {
     std::lock_guard lock(mu_);

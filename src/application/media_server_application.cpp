@@ -1,3 +1,4 @@
+#include "recording/shutdown_diagnostic.h"
 #include "recording/recording_resource_trace.h"
 // 파일 요약: MediaServer 프로세스의 composition root 구현이다.
 // 동작 요약: 설정, registry/session, RTSP/HTTP 서버를 조립하고 기존 시작·정리 순서를 보존한다.
@@ -55,7 +56,10 @@ namespace {
 
 std::atomic<bool> g_running{true};
 
-void HandleSignal(int /*signal*/) {
+volatile std::sig_atomic_t shutdown_probe_enabled=0;
+static_assert(std::atomic<bool>::is_always_lock_free);
+void HandleSignal(int signal) {
+    if(shutdown_probe_enabled)recording::shutdown_probe::Signal(signal);
     g_running.store(false);
 }
 
@@ -614,6 +618,7 @@ int RunMediaServerApplication(int argc, char** argv) {
               << "?file=" << default_file_token << "\n";
     std::cout << "running... (SIGINT/SIGTERM to stop)\n";
 
+    shutdown_probe_enabled=recording::shutdown_probe::Enabled()?1:0;
     std::signal(SIGINT, HandleSignal);
     std::signal(SIGTERM, HandleSignal);
 
@@ -625,20 +630,21 @@ int RunMediaServerApplication(int argc, char** argv) {
         std::this_thread::sleep_for(std::chrono::seconds(1));
     }
 
-    evidence_packages.Stop();
-    va_reviews.Stop();
-    webrtc_http_server.Stop();
-    visual_search.Stop();
+    recording::shutdown_probe::Scope stop_scope("main-stop");
+    {recording::shutdown_probe::Scope phase("evidence-stop");evidence_packages.Stop();}
+    {recording::shutdown_probe::Scope phase("review-stop");va_reviews.Stop();}
+    {recording::shutdown_probe::Scope phase("http-stop");webrtc_http_server.Stop();}
+    {recording::shutdown_probe::Scope phase("visual-stop");visual_search.Stop();}
     if(recording::memory_diagnostic::Enabled())visual_search.ObserveMemory();
-    gst_rtsp_server.Stop();
-    if(event_recording_bridge)event_recording_bridge->StopAndDrain();
-    recording_supervisor.Stop();
-    analysis_sessions.Shutdown();
-    analysis::StopEventStorage();
+    {recording::shutdown_probe::Scope phase("rtsp-stop");gst_rtsp_server.Stop();}
+    {recording::shutdown_probe::Scope phase("event-bridge-stop");if(event_recording_bridge)event_recording_bridge->StopAndDrain();}
+    {recording::shutdown_probe::Scope phase("recording-supervisor-stop");recording_supervisor.Stop();}
+    {recording::shutdown_probe::Scope phase("analysis-stop");analysis_sessions.Shutdown();}
+    {recording::shutdown_probe::Scope phase("event-storage-stop");analysis::StopEventStorage();}
     analysis::SetEventRecordingBridge(nullptr);
-    stop_observations();
+    {recording::shutdown_probe::Scope phase("observations-stop");stop_observations();}
     session_manager.SetAuxiliaryStreamRuntimeProvider({});
-    if(!finish_recording_storage()||!recording_resource_trace_ok)return 1;
+    {recording::shutdown_probe::Scope phase("storage-finish");if(!finish_recording_storage()||!recording_resource_trace_ok)return 1;}
     return 0;
 }
 

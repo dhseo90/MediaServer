@@ -1,3 +1,4 @@
+#include "recording/shutdown_diagnostic.h"
 // 파일 용도: 내부 검증 전용: 원본 mutex/제품 계약을 바꾸지 않는 bounded steady-clock 계측.
 #pragma once
 #include <array>
@@ -407,6 +408,7 @@ class VisualPhase {
     inline static std::atomic<unsigned> sequence_{0},lines_{0};
     inline static std::atomic<bool> failed_{false};
     inline static thread_local unsigned current_{0};
+    shutdown_probe::Scope shutdown_scope_;
     const char* name_;unsigned id_=0,parent_=0;bool active_=false;std::uint64_t summaryStart_=0;bool summary_=false;
     void Emit(bool end) noexcept {
         const auto n=lines_.fetch_add(1);
@@ -420,7 +422,7 @@ class VisualPhase {
     }
 public:
     static bool Enabled() noexcept {static const bool yes=[] {const char* p=std::getenv("MEDIA_SERVER_VERIFY_VISUAL_LATENCY_TRACE");return p&&std::strcmp(p,"1")==0;}();return yes;}
-    explicit VisualPhase(const char* name,bool selected=true,bool detailed=true) noexcept:name_(name){
+    explicit VisualPhase(const char* name,bool selected=true,bool detailed=true) noexcept:shutdown_scope_(name,!std::strcmp(name,"index-rebuild")||!std::strcmp(name,"visual-search")||!std::strcmp(name,"image-session-run")||!std::strcmp(name,"text-session-run")),name_(name){
         summary_=selected&&VisualRequestSummary::current;if(summary_)summaryStart_=Now();
         if(!(active_=selected&&detailed&&Enabled()))return;
         id_=++sequence_;parent_=current_;current_=id_;Emit(false);

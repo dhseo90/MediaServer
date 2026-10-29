@@ -1,3 +1,4 @@
+#include "recording/shutdown_diagnostic.h"
 // 파일 용도: snapshot pool과 SHA-256 질의 결박, HMAC 인증 불투명 cursor.
 #include "recording/recording_search_snapshots.h"
 #include <algorithm>
@@ -47,7 +48,7 @@ RecordingSearchSnapshots::RecordingSearchSnapshots(SearchSnapshotLimits limits,b
 RecordingSearchSnapshots::~RecordingSearchSnapshots(){
     {std::lock_guard<std::mutex> lock(mutex_);stopping_=true;}
     expiry_changed_.notify_all();
-    if(expiry_worker_.joinable())expiry_worker_.join();
+    if(expiry_worker_.joinable()){recording::shutdown_probe::Scope phase("snapshot-expiry-join");expiry_worker_.join();}
     memory_diagnostic::RemovePool(diagnostic_key_);
 }
 void RecordingSearchSnapshots::RunExpiry(){

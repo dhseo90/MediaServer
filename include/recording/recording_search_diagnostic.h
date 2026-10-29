@@ -1,3 +1,4 @@
+#include "recording/shutdown_diagnostic.h"
 // 파일 용도: 검증 모드의 요청별 bounded 검색 실패 사유. 공개 응답/원문 payload와 독립이다.
 #pragma once
 #include <array>
@@ -95,7 +96,7 @@ struct SearchDiagnostic {
         if(active->cost_count==active->costs.size()){active->cost_loss=true;return;}
         active->costs[active->cost_count++]={name,begin,end};
     }
-    struct Phase {const char* name;std::uint64_t begin;explicit Phase(const char* value):name(value),begin(active&&active->id?Tick():0){}~Phase(){if(begin)CostRow(name,begin,Tick());}};
+    struct Phase {shutdown_probe::Scope shutdown_scope;const char* name;std::uint64_t begin;explicit Phase(const char* value):shutdown_scope(value),name(value),begin(active&&active->id?Tick():0){}~Phase(){if(begin)CostRow(name,begin,Tick());}};
     unsigned attempt=0,channels=0;int status=503;const char* exception="none";
     const SearchModelResidency* resources=nullptr;std::size_t rejection_start=0;
     SearchDiagnostic* previous=nullptr;

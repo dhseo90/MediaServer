@@ -1,3 +1,4 @@
+#include "recording/shutdown_diagnostic.h"
 #include "recording/recording_latency_trace.h"
 // 파일 용도: 준비 실패에서 이전 완성 색인을 보존하고 한 개 작업만 재개하는 worker.
 #include "recording/visual_index_worker.h"
@@ -54,7 +55,7 @@ bool VisualIndexWorker::Start(){
 }
 void VisualIndexWorker::Stop(){
     {std::lock_guard lock(mutex_);stopping_=true;changed_.notify_all();}
-    if(worker_.joinable())worker_.join();
+    if(worker_.joinable()){recording::shutdown_probe::Scope phase("visual-worker-join");worker_.join();}
     std::lock_guard lock(mutex_);status_.state="stopped";
     if(status_.attempt_state=="running"){status_.attempt_state="cancelled";status_.attempt_finished_ms=NowMs();}
 }

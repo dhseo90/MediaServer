@@ -1,3 +1,4 @@
+import {bindMultifinalizeStateProduct,MULTIFINALIZE_SCHEMA} from './recording_multifinalize_state_binding.mjs';
 // State 입력 후보 전용. 입력 Decode와 실제 Writer Segment 적격성은 서로 다른 증거다.
 import assert from 'node:assert/strict';
 import crypto from 'node:crypto';
@@ -244,6 +245,7 @@ function bindVerifiedStateProduct(env,product,runtime){
   const digest=env.MEDIA_SERVER_STATE_VERIFIED_RESULT_SHA256;
   need(hash(digest),'state-verified-result-expectation');
   const result=JSON.parse(boundFile(resultPath,digest)),directory=path.dirname(resultPath);
+  if(result.schema===MULTIFINALIZE_SCHEMA)return bindMultifinalizeStateProduct(env,product,runtime,result,{repo:path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../..'),assertVerifiedStateFreshness,stateHelperBytes,STATE_PRODUCT_SMOKE_SHA});
   if(result.schema==='ep1-product-review-result-v1')return bindEP1StateProduct(env,product,runtime,result,directory,digest);
   need(result.schema==='preparation-product-review-result-v1','state-verified-result-schema');
   need(result.verdicts?.review==='PREPARATION_REVIEW_VERIFIED'&&
