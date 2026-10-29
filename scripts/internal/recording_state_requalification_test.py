@@ -35,10 +35,13 @@ class Contract(unittest.TestCase):
             execution=dict(exit=0,forced=False,stopMs=100,portsClosed=True,groupAbsent=True),
             finalOwner=dict(phase='after-storage-destruction',readerCleanupHealthy=True,ram=0,scratchRam=0,scratchDisk=0,scratchFd=0,preservedDisk=0,preservedFd=0))
         review['rawArtifacts'] += [p, review['rows'],review['recovery']]
-        ss=dict(head=self.src['head'],binarySha256=binary['sha256'])
+        ss=dict(head=self.src['head'],binarySha256=binary['sha256'],sourceSha256=hashlib.sha256(json.dumps(sorted(self.src['sources'].items()),separators=(',',':')).encode()).hexdigest())
+        model_files=[]
+        for name in ['tokenizer.model','image_encoder.onnx','text_encoder.onnx','libonnxruntime.dylib']:
+            f=self.ev/name;f.write_bytes(b'synthetic-model');model_files.append(artifact(f))
         self.b=dict(schema=SCHEMA,officialAdoption=False,gates=GATES.copy(),source=source,binary=binary,runtime=runtime,input=inp,
             freshness=self.put('freshness',dict(status='PASS_TARGET_AWARE_PREFLIGHT',targets=dict(media_server=dict(artifactSha256=binary['sha256']),media_server_runtime=dict(artifactSha256=runtime['sha256'])))),
-            models=self.put('models',dict(files=[model])),plan=p,writer=self.put('writer',review),
+            models=self.put('models',dict(files=model_files)),plan=p,writer=self.put('writer',review),
             smokeExecution=self.put('smokeExecution',dict(status='PASS',exit=0,childExit=0,timedOut=False,processGroupAbsent=True,registeredGroupsAbsent=True,source=ss,sourceEnd=ss)),
             smokeReport=self.put('smokeReport',dict(failed=0,passed=1,blockerResults=dict(retention=dict(status='VERIFIED')))))
         for role in ['smokeRaw','native','shutdown']:self.b[role]=self.put(role,dict(files=[inp,self.b['smokeExecution'],self.b['smokeReport']]))
@@ -81,6 +84,11 @@ class Contract(unittest.TestCase):
     def test_smoke_missing(self): Path(self.b['smokeExecution']['path']).unlink();self.reject('No such file')
     def test_smoke_source(self):
         self.change('smokeExecution',lambda v:v['source'].update(head='0'*40));self.reject('smoke-source')
+    def test_smoke_same_head_different_bytes(self):
+        self.change('smokeExecution',lambda v:(v['source'].update(sourceSha256='0'*64),v['sourceEnd'].update(sourceSha256='0'*64)))
+        self.reject('smoke-source-bytes')
+    def test_model_missing_member(self):
+        self.change('models',lambda v:v['files'].pop());self.reject('model-coverage')
     def test_schema(self): self.b['schema']='future';self.reject('schema')
     def test_gate(self): self.b['gates']['shutdownGraceMs']=6000;self.reject('gate-change')
     def test_official_adoption(self): self.b['officialAdoption']=True;self.reject('schema-or-adoption')

@@ -103,6 +103,8 @@ def validate(repo, bundle, expected_sha):
          fresh['targets']['media_server']['artifactSha256']==b['binary']['sha256'] and
          fresh['targets']['media_server_runtime']['artifactSha256']==b['runtime']['sha256'],'build-freshness')
     models=read(b['models']); need(models['files'],'models-empty')
+    names={Path(e['path']).name for e in models['files']}
+    need(len(models['files'])==4 and {'tokenizer.model','image_encoder.onnx','text_encoder.onnx'}<=names and any(n.startswith('libonnxruntime.') for n in names),'model-coverage')
     for entry in models['files']: bound(entry)
     plan=read(b['plan']); review=read(b['writer'])
     need(plan['generator']==artifact(Path(repo)/'scripts/internal/collect_state_writer_requalification.py'),'writer-generator')
@@ -123,6 +125,9 @@ def validate(repo, bundle, expected_sha):
          not execution['timedOut'] and execution['processGroupAbsent'] and execution['registeredGroupsAbsent'],'smoke-execution')
     need(execution['source']==execution['sourceEnd'] and execution['source']['head']==current['head'] and
          execution['source']['binarySha256']==b['binary']['sha256'],'smoke-source')
+    source_rows=[[p,h] for p,h in sorted(current['sources'].items()) if not p.startswith('docs/release-artifacts/')]
+    expected_source_sha=hashlib.sha256(json.dumps(source_rows,separators=(',',':')).encode()).hexdigest()
+    need(execution['source']['sourceSha256']==expected_source_sha,'smoke-source-bytes')
     need(report['failed']==0 and report['passed']>0 and report['blockerResults']['retention']['status']=='VERIFIED','smoke-result')
     # 원출력 전체가 별도 Manifest에 결속돼야 한다. 요약 PASS만으로 수용하지 않는다.
     validate_lineage(repo,b)
