@@ -5645,3 +5645,14 @@ R184-H05 정확한 PID SIGTERM grace5초 및 owner/scratch/FD 관측; 단기 종
 - 거부: dirty/staged/untracked, HEAD·제품 바이트·manifest SHA 불일치, 필수 evidence 누락/변조, 타 후보 혼용, patch 변조, 미지원 schema. 기존 legacy schema 거부/수용 회귀를 유지한다.
 - 종료 진단: stop 모드는 SIGTERM 이전 bounded counter/시각만 유지하고 record 예산2048행은 수신 뒤 사용한다. signal-safe 수신 및 supervisor 전송, Stop/join/EOS, 활성4종, scope 시작시각·반환, owner/model/snapshot은 기존 경로에서 관측한다. SIGKILL 전 원출력 write, 3초 정체 시 제한된 외부 stack; grace 연장 없음. Native 고빈도 사전 scope에서 로그예산 미소진·handler·처리비용 확인, 실제 짧은 제품 종료 확인.
 - 장시간 성능/삭제/자원 수렴은 RUN_TIME_ONLY이며 사전 PASS로 대체하지 않는다.
+
+### R184-RQ — State45 재자격검증 제안 v1 (공식 정책 미채택)
+
+`recording_state_requalification.py --prototype`는 공식 binding/State45 경로에서 호출하지 않는다.
+과거 고정 SHA 계약과 기존 실패는 그대로 유지하며 아래 판정은 State45 PASS가 아니다.
+- RQ01: Clean HEAD 전체 tracked source·binary/runtime/freshness·입력·모델의 실제 SHA 및 실행 ID 결속. Dirty/staged/HEAD/source/model/input 변조·Schema 불일치는 거부.
+- RQ02: `collect_state_writer_requalification.py`가 사전 Plan, 134초 실제 2채널 2초 Writer, 채널당 정상 Segment 최소65개, 평균51200..61440B·전체 최대71237B, Raw/Binding chain·파일 SHA/크기·unmapped/partial 0, 복사본 실제 Catalog 복구·media resolve, 5초 정상 종료·owner 반환을 검증한다. 초기·오류 원출력은 보존한다. 최대180초, RSS4GiB/Workspace448MiB/로그4MiB. 과거 Plan/Review와 동일하다고 주장하지 않는다.
+- RQ03: 현재 HEAD 실제 blocker Smoke의 인증·권한·검색·Playback·재시작·삭제 결과 및 원출력 결속. Smoke 누락/실패/다른 HEAD 혼용은 거부. 단기 강제 용량 삭제는 공식 자연 Retention을 대신하지 않는다.
+- RQ04: 실제 자료 종단 Positive와 별도 합성 결속기 테스트를 구분한다. Plan 누락/변조, Writer 실패, 다른 실행/Source, 입력/모델 변조, Native/Shutdown 증거 누락을 거부한다. 합성 단위 검사는 제품 증거로 등록하지 않는다.
+- 네 검증 영역: 단기 도구/실제 Writer/Smoke 범위만 해당. 30분·120분·실제 UI는 미실행. 모든 기존 성능·자원·Retention·종료 Gate와64/32/60초를 유지한다.
+- 승인 대상: 과거 특정 실행 SHA 요구를 현재 HEAD의 새 실행 원출력 결속으로 대체할지, 새 Writer 샘플 최소값·범위 판정, Native/Shutdown lineage 검토 방법. Prototype의 `stateReady=false`를 승인 없이 변경하지 않는다.
