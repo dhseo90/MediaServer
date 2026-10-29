@@ -9,6 +9,12 @@
 #include "domain/strict_json.h"
 #include <future>
 #include <limits>
+#include <sys/resource.h>
+#ifdef RECORDING_SEARCH_TESTING
+#include "../../src/recording/recording_catalog_history.h"
+#define RECORDING_METRICS_NO_MAIN
+#include "recording_process_metrics.cpp"
+#endif
 #ifdef RECORDING_SEARCH_TESTING
 namespace {
 std::array<char,512> http_line{};std::size_t http_size=0;
@@ -31,6 +37,8 @@ struct RecordingSearchRetryTestProbe {
  static std::size_t Spans(const SearchSourceBatch& b){return b.segment_spans_.size();}
  static std::size_t Reused(const SearchSourceBatch& b){return b.reused_segments_;}
 #ifdef RECORDING_SEARCH_TESTING
+ static void FailDurableApply(){RecordingCatalog::generation_apply_fault_=1;}
+ static bool DurableFaultConsumed(){return RecordingCatalog::generation_apply_fault_==0;}
  static std::string SharedSpan(SearchSourceBatch& b,const std::string& fault) {
   if(fault=="instance")++b.catalog_instance;
   for(auto& [id,span]:b.segment_spans_)if(span.shared_count){
@@ -44,6 +52,24 @@ struct RecordingSearchRetryTestProbe {
    return id;
   }
   return {};
+ }
+
+ static std::string PublicationId(RecordingCatalog& c){std::lock_guard lock(c.mu_);auto& log=*c.search_invalidations_;return log.receipt_count?log.receipts[(log.receipt_next+log.receipt_capacity-1)%log.receipt_capacity].id:"";}
+ static void DropPublicationReceipt(RecordingCatalog& c){std::lock_guard lock(c.mu_);c.search_invalidations_->Barrier();}
+ static void DamageRaw(RecordingCatalog& c,const std::string& id){
+  std::lock_guard lock(c.mu_);const int fd=c.completed_history_->ProbeIndexFd();struct stat st{};
+  if(fstat(fd,&st))throw std::runtime_error("publication corruption fixture stat");
+  const auto number=[](const unsigned char* p){std::uint64_t n=0;for(unsigned i=0;i<8;++i)n|=std::uint64_t(p[i])<<(8*i);return n;};
+  const auto expected="segment-v2/"+id+"/v0";std::array<unsigned char,512> node{};
+  for(off_t offset=512;offset+512<=st.st_size;offset+=512){
+   if(pread(fd,node.data(),node.size(),offset)!=ssize_t(node.size()))break;
+   const auto length=number(node.data()+40);if(length!=expected.size()||length>256)continue;
+   if(std::string(reinterpret_cast<char*>(node.data()+144),length)!=expected)continue;
+   auto value=number(node.data()+16);if(!value)value=offset+400;
+   unsigned char byte{};if(pread(fd,&byte,1,value)!=1)break;byte^=1;
+   if(pwrite(fd,&byte,1,value)==1)return;break;
+  }
+  throw std::runtime_error("publication corruption fixture raw not found");
  }
  static void RefuseCoverage(RecordingCatalog& c,bool floor) {
   std::lock_guard lock(c.mu_);
@@ -168,6 +194,259 @@ int main(int argc,char** argv){
       std::tie(y.event_facts[j].event_id,y.event_facts[j].event_type,y.event_facts[j].scenario_name))return false;
    }return true;
   };
+
+#ifdef RECORDING_SEARCH_TESTING
+  // Reuse the actual managed Writer fixture. This switch selects only this
+  // focused boundary; the normal retry suite also executes it.
+  for(unsigned round=0;round<4;++round){
+   const bool publication=round==1||round==2;search_membership_test_enabled=publication;
+   std::shared_ptr<SearchModelResidency> owner,reopened_owner;std::shared_ptr<RecordingScratchResidency> scratch,reopened_scratch;
+   {
+    RecordingRuntimeStorage fixture(std::filesystem::path(argv[1])/("publication-"+std::to_string(round)));
+    need(fixture.Open(&error),"publication actual runtime open");auto& c=fixture.catalog();
+    owner=c.SearchResidency();scratch=c.ScratchResidency();
+    const auto append=[&](const std::string& name,const std::string& channel="publication",unsigned duration=100000){
+     GStreamerSegmentWriter writer(fixture.WriterOptions(duration));
+     need(writer.Start(channel,"unused",input.descriptor,[](auto,auto,auto*){return false;},&error),"publication Writer start");
+     for(auto packet:input.packets){packet.observation->source_generation=name;writer.Push(packet,0);}writer.Stop();
+    };
+    for(unsigned i=0;i<64;++i)append("seed-"+std::to_string(i),"publication",1000);
+    need(c.Checkpoint(&error),"publication full authenticated cold checkpoint");
+    RecordingReadService media(c);RecordingSearchReader r(c,media);
+    std::shared_ptr<const RecordingSearchModel> base,next,oracle;
+    need(r.Refresh({"publication"},{},&base,&error,{},false)&&base->authenticated_membership(),"publication initial strict model certified");
+    const auto old_count=base->documents().size();const auto old_revision=base->revision();
+    const auto w0=std::chrono::steady_clock::now();append("one-accepted");
+    const auto writer_ms=std::chrono::duration<double,std::milli>(std::chrono::steady_clock::now()-w0).count();
+    search_projection_work_test={};search_membership_work_test=0;
+    struct rusage cpu_before{},cpu_after{};getrusage(RUSAGE_SELF,&cpu_before);
+    const auto decode0=latency::segment_decode_cost[0];const auto t0=std::chrono::steady_clock::now();
+    const bool ok=r.Refresh({"publication"},base,&next,&error,{},false);
+    if(!ok)std::cerr<<"publication refresh error="<<error<<std::endl;
+    need(ok,"publication one bound Finalize Refresh");
+    const auto elapsed=std::chrono::duration<double,std::milli>(std::chrono::steady_clock::now()-t0).count();
+    getrusage(RUSAGE_SELF,&cpu_after);
+    const auto cpu_us=[](const rusage& x){return (x.ru_utime.tv_sec+x.ru_stime.tv_sec)*1000000LL+x.ru_utime.tv_usec+x.ru_stime.tv_usec;};
+    const auto captured_documents=next->documents().size();
+    const auto work=search_projection_work_test;const auto decodes=latency::segment_decode_cost[0]-decode0;
+    need(next->authenticated_membership()&&next->revision()>old_revision&&next->documents().size()>old_count&&base->documents().size()==old_count,
+      "publication immutable old membership and increasing new generation");
+    need(publication?search_membership_work_test==1&&work[0]==1:search_membership_work_test==0&&work[0]>1,
+      "publication reads only the new raw row; baseline traverses all old rows");
+    search_membership_test_enabled=false;
+    need(r.Refresh({"publication"},{},&oracle,&error,{},false)&&same(next->documents(),oracle->documents()),
+      "publication exact IDs Mapping provenance uncertainty order match independent strict model");
+    search_membership_test_enabled=publication;
+    std::shared_ptr<const RecordingSearchModel> warm;
+    need(r.Refresh({"publication"},next,&warm,&error,{},false)&&warm==next,"publication subsequent same key reuses model without duplicate Build");
+    RecordingSearchQuery q;q.channels={"publication"};q.start_time_ms=1789200000000LL;q.end_time_ms=1789200005000LL;q.include_unplaced=true;q.limit=1;
+    std::shared_ptr<const RecordingSearchModel> playback;
+    need(r.WithPlayback(next,q,&playback,&error),"publication existing Playback protection accepts certified current model");
+
+
+    {
+     RecordingSearchSnapshots snapshots;RecordingSearchPage page,resumed;
+     need(snapshots.Begin(base,q,"owner","scope",&page,&error)&&!page.next_cursor.empty(),"publication old snapshot holds original membership");
+     need(snapshots.Resume(page.next_cursor,q,"owner","scope",&resumed,&error)&&resumed.model==base&&resumed.model->documents().size()==old_count,
+       "publication old cursor cannot grow when new generation is published");
+     need(!snapshots.Resume(page.next_cursor,q,"other-owner","scope",&resumed,&error),"publication cursor remains principal bound");
+    }
+    {
+     ingress::RecordingApplicationService application(media,c,true,{});
+     const std::unordered_map<std::string,std::string> query{{"channelIds","publication"},{"startTimeMs","1789200000000"},
+       {"endTimeMs","1789200005000"},{"includeUnplaced","true"},{"limit","1"}};
+     const auto authorized=[](const auto& channel){return channel=="publication";};
+     need(application.Search(query,"owner","scope",authorized).status==200,"publication service strict initial snapshot");
+     append("service-one-accepted");
+     std::array<double,2> times{};std::array<int,2> statuses{};std::array<unsigned,2> builds{},captures{};
+     std::array<std::uint64_t,2> rows{},applied{};std::array<std::exception_ptr,2> exceptions{};std::array<std::string,2> bodies;
+     std::promise<void> start;auto gate=start.get_future().share();
+     const auto request=[&](unsigned client){
+      try{search_membership_test_enabled=publication;search_membership_work_test=0;search_projection_work_test={};
+       search_after_capture_test=[&]{++captures[client];};search_after_build_test=[&]{++builds[client];};gate.wait();
+       SearchDiagnostic::HttpRequest identity("publication-"+std::to_string(round)+"-"+std::to_string(client));
+       const auto begin=std::chrono::steady_clock::now();auto response=application.Search(query,"owner","scope",authorized);
+       times[client]=std::chrono::duration<double,std::milli>(std::chrono::steady_clock::now()-begin).count();
+       statuses[client]=response.status;bodies[client]=std::move(response.body);rows[client]=search_projection_work_test[0];applied[client]=search_membership_work_test;
+      }catch(...){exceptions[client]=std::current_exception();}
+      search_after_capture_test={};search_after_build_test={};
+     };
+     std::thread a(request,0),b(request,1);const auto pair_begin=std::chrono::steady_clock::now();start.set_value();a.join();b.join();
+     const auto pair_ms=std::chrono::duration<double,std::milli>(std::chrono::steady_clock::now()-pair_begin).count();
+     for(const auto& exception:exceptions)if(exception)std::rethrow_exception(exception);
+     need(statuses==std::array<int,2>{200,200}&&builds[0]+builds[1]==1&&captures[0]+captures[1]==2,
+       "publication same-key simultaneous requests retain one Build and one reuse");
+     need(publication?applied[0]+applied[1]==1&&rows[0]+rows[1]==1:applied[0]+applied[1]==0&&rows[0]+rows[1]>1,
+       "publication actual service avoids full old Raw Capture for one Writer update");
+     for(const auto& body:bodies)need(body.find("\"unaccessedRaw\":\"not-revalidated-for-response\"")!=std::string::npos&&
+       body.find("\"background\":\"not-scheduled\"")!=std::string::npos,"publication response distinguishes membership from current global integrity");
+     need(application.Search(query,"owner","scope",[](const auto&){return false;}).status==403,
+       "publication current permission denial survives source reuse");
+     std::cout<<"[publication-service] round="<<round<<" enabled="<<publication<<" requestMs="<<times[0]<<','<<times[1]
+       <<" pairMs="<<pair_ms<<" rawRows="<<rows[0]+rows[1]<<" builds="<<builds[0]+builds[1]
+       <<" ownerPeakBeforeFaults="<<owner->peak()<<" scratchPeakBeforeFaults="<<scratch->peak().disk_bytes
+       <<" scratchFdPeakBeforeFaults="<<scratch->peak().file_descriptors<<std::endl;
+     // Existing complete-round OS observer, sampled after the timed pair. This
+     // is a current sample, not a claimed peak during every Capture instruction.
+     const auto observed=recording_metrics::Collect(getpid());std::uintmax_t named=0;
+     for(const auto& file:std::filesystem::recursive_directory_iterator(std::filesystem::path(argv[1])/("publication-"+std::to_string(round))))
+      if(file.is_regular_file())named+=file.file_size();
+     std::cout<<"[publication-resource-sample] round="<<round<<" pid="<<getpid()<<" identity="<<observed.start
+       <<" rss="<<observed.rss<<" fd="<<observed.fds<<" anonymousAllocated="<<observed.anonymousAllocated
+       <<" anonymousFiles="<<observed.anonymousFiles<<" measured="<<observed.anonymousMeasured<<" fixtureNamedFileBytes="<<named<<std::endl;
+    }
+    // The service appended one additional row; align the private test source
+    // by a strict refresh before testing exactly one-change error boundaries.
+    need(r.Refresh({"publication"},{},&next,&error,{},false),"publication private boundary source realigned strictly");
+    if(publication){
+     const auto new_id=next->documents().back().segment_id;auto segment=c.FindSegmentV2ById(new_id);auto binding=c.FindSourceBinding(new_id);auto path=c.FindSegmentMediaLocation(new_id);bool inserted=true;
+     need(segment&&binding&&path,"publication duplicate fixture authentic binding and path");
+     const bool duplicate=c.RecoverBoundSegmentV2(*segment,*binding,(path->first/path->second).string(),&inserted,&error);
+     std::cout<<"[publication-duplicate] accepted="<<duplicate<<" inserted="<<inserted<<" reason="<<error<<std::endl;
+     need(!inserted,"publication duplicate Finalize is idempotent or safely rejected without insertion");
+     auto conflict=*segment;conflict.size_bytes+=1;inserted=false;
+     need(!c.RecoverBoundSegmentV2(conflict,*binding,(path->first/path->second).string(),&inserted,&error)&&!inserted,
+       "publication conflicting or unauthenticated Finalize cannot publish");
+     need(r.Refresh({"publication"},next,&warm,&error,{},false)&&warm==next,"publication refused Writer leaves existing membership unchanged");
+     append("foreign-owner");search_membership_work_test=0;
+     auto foreign=std::make_shared<SearchModelResidency>();std::shared_ptr<const RecordingSearchModel> isolated;
+     need(r.Refresh({"publication"},next,&isolated,&error,{100000,64*1024*1024,foreign},false)&&!search_membership_work_test,
+       "publication different Owner performs strict rebuild");isolated.reset();need(foreign->used()==0,"publication foreign Owner returned");
+     auto sentinel=next;const auto live=owner->used();
+     auto pressure=owner->ReserveOwned(owner->limit()-live);need(bool(pressure),"publication existing atomic admission pressure");
+     need(!r.Refresh({"publication"},next,&sentinel,&error,{},false)&&error=="search-capacity-exceeded"&&sentinel==next,
+       "publication admission rejection cannot replace existing generation");pressure.reset();need(owner->used()==live,"publication admission failure returns temporary reservations");
+     RecordingSearchRetryTestProbe::DropPublicationReceipt(c);search_membership_work_test=0;
+     need(r.Refresh({"publication"},next,&warm,&error,{},false)&&!search_membership_work_test,
+       "publication lost receipt uses strict fallback even when hint ring remains");
+    }
+    const auto owner_before=owner->used();auto preserved=next;append("failure-before-publish");
+    search_after_build_test=[] {throw std::bad_alloc();};bool threw=false;
+    try{r.Refresh({"publication"},next,&preserved,&error,{},false);}catch(const std::bad_alloc&){threw=true;}
+    search_after_build_test={};need(threw&&preserved==next,"publication exception does not publish partial model");
+    search_after_capture_test=[] {throw std::runtime_error("publication-consumer");};bool consumer=false;
+    try{r.Refresh({"publication"},next,&preserved,&error,{},false);}catch(const std::runtime_error& e){consumer=std::string(e.what())=="publication-consumer";}
+    search_after_capture_test={};need(consumer&&preserved==next,"publication consumer failure preserves old output and does not poison original");
+
+    // Writer metadata may have grown since owner_before; compare immediate retry
+    // ownership below, not a falsely exact pre-Writer memory equality.
+    (void)owner_before;
+    need(r.Refresh({"publication"},next,&preserved,&error,{},false),"publication Writer and Search remain available after consumer exception");
+    if(publication){
+     append("outside-before");const auto before=preserved;bool outside_ran=false;
+     search_outside_raw_cut_test=[&]{if(!outside_ran){outside_ran=true;append("outside-writer");}};
+     const bool raced=r.Refresh({"publication"},before,&preserved,&error,{},false);
+     search_outside_raw_cut_test={};
+     need(outside_ran&&!raced&&error=="search-source-changed"&&preserved==before,
+       "publication unlocked immutable row survives Writer while stale publication is rejected");
+     need(r.Refresh({"publication"},before,&preserved,&error,{},false),
+       "publication bounded strict fallback after unlocked Writer race");
+    }
+    search_membership_work_test=0;append("gap-one");append("gap-two");
+    need(r.Refresh({"publication"},preserved,&preserved,&error,{},false)&&search_membership_work_test==unsigned(publication),
+      "publication multiple accepted Finalize mutations use bounded coverage");
+    const auto id=preserved->documents().front().segment_id;
+    need(c.MarkSegmentCorrupt(id,"container-invalid",&error),"publication actual lifecycle invalidation");
+    search_membership_work_test=0;
+    need(r.Refresh({"publication"},preserved,&preserved,&error,{},false)&&!search_membership_work_test&&
+      std::any_of(preserved->documents().begin(),preserved->documents().end(),[&](const auto& d){return d.segment_id==id&&d.unavailable_reason=="corrupt";}),
+      "publication known corruption cannot retain old healthy membership");
+    append("unselected","other-publication");search_membership_work_test=0;
+    need(r.Refresh({"publication"},preserved,&preserved,&error,{},false)&&!search_membership_work_test,
+      "publication other channel does not create erroneous rejection or leak membership");
+
+    if(publication){
+     // Physical byte damage in a private fixture: changed detection timing is
+     // intentional only for an old, unaccessed Raw. A later strict read must fail.
+     std::shared_ptr<const RecordingSearchModel> trusted;
+     need(r.Refresh({"publication"},{},&trusted,&error,{},false),"publication corruption boundary starts with full authentication");
+     append("before-latent-damage");
+     const auto old_id=trusted->documents().back().segment_id;
+     RecordingSearchRetryTestProbe::DamageRaw(c,old_id);search_membership_work_test=0;
+     need(r.Refresh({"publication"},trusted,&trusted,&error,{},false)&&search_membership_work_test==1,
+       "publication unaccessed old Raw latent damage is not falsely claimed revalidated");
+     auto retained=trusted;
+     need(!r.Refresh({"publication"},{},&retained,&error,{},false)&&retained==trusted,
+       "publication independent strict read discovers latent Raw corruption");
+     need(!r.Refresh({"publication"},trusted,&retained,&error,{},false),
+       "publication known Raw corruption rejects even unchanged certified membership");
+     need(fixture.Finish(&error),"publication damaged private history Finish");
+     const auto old_instance=trusted->membership_instance();
+     RecordingRuntimeStorage restarted(std::filesystem::path(argv[1])/("publication-"+std::to_string(round)));
+     need(restarted.Open(&error),"publication fresh owner restart reloads durable accepted source");
+     reopened_owner=restarted.catalog().SearchResidency();reopened_scratch=restarted.catalog().ScratchResidency();
+     RecordingReadService reopened_media(restarted.catalog());RecordingSearchReader reopened(restarted.catalog(),reopened_media);
+     search_membership_work_test=0;
+     need(reopened.Refresh({"publication"},trusted,&retained,&error,{},false)&&!search_membership_work_test&&retained->membership_instance()!=old_instance,
+       "publication restart discards volatile receipt and authenticates entire new instance");
+     const auto target=retained->documents().back().segment_id;const auto file=restarted.catalog().FindSegmentMediaLocation(target);
+     need(bool(file)&&bool(reopened_media.ResolveMedia("publication",target)),"publication current returned media initially verified");
+     const int media_fd=open((file->first/file->second).c_str(),O_RDWR);need(media_fd>=0,"publication private media mutation opened");
+     struct stat status{};unsigned char byte{};const bool stat_ok=fstat(media_fd,&status)==0&&status.st_size>0;
+     const auto at=stat_ok?status.st_size-1:0;const bool read_ok=pread(media_fd,&byte,1,at)==1;byte^=1;
+     const bool write_ok=pwrite(media_fd,&byte,1,at)==1;const bool close_ok=close(media_fd)==0;
+     need(stat_ok&&read_ok&&write_ok&&close_ok&&!reopened_media.ResolveMedia("publication",target),
+       "publication returned media physical corruption still fails current verification");
+
+     need(reopened.Refresh({"publication"},{},&retained,&error,{},false),"publication current source remains readable after media rejection");
+     GStreamerSegmentWriter new_writer(restarted.WriterOptions(100000));
+     need(new_writer.Start("publication","unused",input.descriptor,[](auto,auto,auto*){return false;},&error),"publication new Raw corruption Writer start");
+     for(auto packet:input.packets){packet.observation->source_generation="new-raw-corruption";new_writer.Push(packet,0);}new_writer.Stop();
+     const auto new_id=RecordingSearchRetryTestProbe::PublicationId(restarted.catalog());need(!new_id.empty(),"publication exact accepted new ID observed");
+     RecordingSearchRetryTestProbe::DamageRaw(restarted.catalog(),new_id);auto original=retained;
+     need(!reopened.Refresh({"publication"},retained,&retained,&error,{},false)&&retained==original,
+       "publication new Raw corruption cannot publish or replace previous generation");
+     need(restarted.Finish(&error),"publication restarted fixture Finish");
+
+    }else{
+    append("stop-before-publish");auto before_stop=preserved;
+    search_after_build_test=[&]{need(fixture.Finish(&error),"publication Stop before pointer exchange");};
+    need(!r.Refresh({"publication"},preserved,&preserved,&error,{},false)&&preserved==before_stop,
+      "publication Stop rejects late complete model and preserves old pointer");search_after_build_test={};
+    }
+    std::cout<<"[publication-work] round="<<round<<" enabled="<<publication<<" initialDocuments="<<old_count<<" newDocuments="<<captured_documents
+      <<" rawRows="<<work[0]<<" decodeCalls="<<(latency::SubcostEnabled()?std::to_string(decodes):"null")<<" refreshMs="<<elapsed<<" writerMs="<<writer_ms
+      <<" cpuUs="<<cpu_us(cpu_after)-cpu_us(cpu_before)<<" processMaxRss="<<cpu_after.ru_maxrss<<" ownerPeakIncludesFaultInjection=1"
+      <<" ownerPeak="<<owner->peak()<<" scratchPeak="<<scratch->peak().disk_bytes<<" fdPeak="<<scratch->peak().file_descriptors<<std::endl;
+   }
+   need(owner->used()==0&&scratch->usage().disk_bytes==0&&scratch->usage().file_descriptors==0&&scratch->usage().ram_bytes==0,
+     "publication final Owner Scratch FD returned");
+   if(reopened_owner)need(reopened_owner->used()==0&&reopened_scratch->usage().disk_bytes==0&&
+     reopened_scratch->usage().file_descriptors==0&&reopened_scratch->usage().ram_bytes==0,"publication fresh restart Owner Scratch FD returned");
+  }
+  {
+   search_membership_test_enabled=true;
+   std::shared_ptr<SearchModelResidency> failed_owner;std::shared_ptr<RecordingScratchResidency> failed_scratch;
+   {
+    RecordingRuntimeStorage failed(std::filesystem::path(argv[1])/"publication-durable-failure");
+    need(failed.Open(&error),"publication durable failure fixture open");
+    failed_owner=failed.catalog().SearchResidency();failed_scratch=failed.catalog().ScratchResidency();
+    RecordingReadService media(failed.catalog());RecordingSearchReader reader(failed.catalog(),media);
+    std::shared_ptr<const RecordingSearchModel> before,output;
+    const auto produce=[&](bool inject){
+     GStreamerSegmentWriter writer(failed.WriterOptions(100000));
+     need(writer.Start("publication","unused",input.descriptor,[](auto,auto,auto*){return false;},&error),"publication durable failure Writer start");
+     for(auto packet:input.packets){packet.observation->source_generation=inject?"failure":"seed";writer.Push(packet,0);}
+     if(inject)RecordingSearchRetryTestProbe::FailDurableApply();
+     writer.Stop();
+    };
+    produce(false);
+    need(reader.Refresh({"publication"},{},&before,&error,{},false)&&before->authenticated_membership(),"publication durable failure starts with authenticated model");
+    produce(true);output=before;
+    need(RecordingSearchRetryTestProbe::DurableFaultConsumed(),"publication actual Writer post-durable apply fault consumed");
+    need(!reader.Refresh({"publication"},before,&output,&error,{},false)&&output==before,
+      "publication failed Writer durable apply loses authority and cannot publish stale success");
+    need(failed.Finish(&error),"publication failed Writer fixture Finish");
+   }
+   need(failed_owner->used()==0&&failed_scratch->usage().disk_bytes==0&&failed_scratch->usage().ram_bytes==0&&failed_scratch->usage().file_descriptors==0,
+     "publication failed Writer Owner Scratch FD returned");
+  }
+  search_membership_test_enabled=false;
+  if(std::getenv("MEDIA_SERVER_VERIFY_PUBLICATION_ONLY")){
+   need(runtime.Finish(&error),"publication focused fixture Finish");
+   std::cout<<"[search-publication] pass="<<passed<<" fail=0"<<std::endl;return 0;
+  }
+#endif
   need(same(second.delta.upserts,fresh.delta.upserts),"all recording source fields agree with independent full capture");
   std::size_t bytes=sizeof(SearchSourceBatch),peak=bytes,capacity=0,count=0;
   for(const auto& d:fresh.delta.upserts){need(AccountOwnedSearchDocument(d,&bytes,SIZE_MAX),"independent owned document charge");
@@ -471,6 +750,7 @@ int main(int argc,char** argv){
     const auto applied=search_retention_delta_work_test[1];
     if(mode=="deleted"||mode=="checkpoint") {
       need(ok&&applied==1,"delta applies authenticated deletion or checkpoint plus state change");
+      need(!result->authenticated_membership(),"retention rebase withholds optional Finalize certificate");
       const auto delta_peak=owner->peak();auto oracle_owner=std::make_shared<SearchModelResidency>();
       need(reader.Refresh({"channel-1"},{},&independent,&error,{limits.max_documents,limits.max_bytes,oracle_owner},false)&&same(result->documents(),independent->documents()),
         "delta model all fields and ordering equal independent current capture");
@@ -692,6 +972,10 @@ int main(int argc,char** argv){
         const auto request=[&](unsigned client) {
           try {
             SearchDiagnostic::HttpRequest request_id("native-capture-"+std::to_string(round)+"-"+std::to_string(client));
+            // This A/B isolates strict Capture retry-span reuse. New threads
+            // must explicitly disable the separate membership optimization;
+            // multiple Finalizes no longer disable it implicitly.
+            search_membership_test_enabled=false;
             search_retry_projection_test_enabled=reuse;search_projection_work_test={};
             const auto before=latency::segment_decode_cost[0];
             search_after_capture_test=[&]{

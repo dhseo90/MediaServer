@@ -175,7 +175,7 @@ bool CommitFinalizeReadyV2(RecordingCatalog& catalog,const std::filesystem::path
         catalog.ValidateBoundFinalizeRecoveryV2(*ticket.segment_v2,*ticket.source_binding,final_path,error):
         catalog.ValidateFinalizeRecoveryV2(*ticket.segment_v2,final_path,error);},
         [&]{return PublishValidatedReady(root,ticket,error);},
-        [&]{return ticket.source_binding?catalog.RecoverBoundSegmentV2(*ticket.segment_v2,*ticket.source_binding,final_path,&inserted,error):
+        [&]{return ticket.source_binding?catalog.CommitActiveBoundSegmentV2(*ticket.segment_v2,*ticket.source_binding,final_path,&inserted,error):
          catalog.RecoverFinalizedSegmentV2(*ticket.segment_v2,final_path,&inserted,error);},
         [&]{return ClearValidatedReady(root,ticket,error);});
 }

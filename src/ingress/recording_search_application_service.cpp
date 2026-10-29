@@ -198,6 +198,10 @@ ApplicationServiceResult RecordingApplicationService::Search(const Query& raw,co
         json.Raw("{\"schema\":\"media-server.recording-search.v1\",\"snapshotId\":").Text(page.snapshot_id)
             .Raw(",\"nextCursor\":");
         if(page.next_cursor.empty())json.Raw("null");else json.Text(page.next_cursor);
+        // The snapshot binds membership, not the present integrity of every old Raw.
+        // No background scanner is scheduled by this bounded vertical. Actual
+        // returned media still takes the existing per-item checks below.
+        json.Raw(",\"integrity\":{\"membership\":\"authenticated\",\"coverage\":\"snapshot\",\"unaccessedRaw\":\"not-revalidated-for-response\",\"background\":\"not-scheduled\",\"media\":\"per-item-current-check\"}");
         json.Raw(",\"knownCount\":").Raw(std::to_string(page.known_count))
             .Raw(",\"unplacedCount\":").Raw(std::to_string(page.unplaced_count)).Raw(",\"items\":[");
         bool first=true;

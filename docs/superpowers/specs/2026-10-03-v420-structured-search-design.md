@@ -193,3 +193,32 @@ Refresh는 한 요청의 준비 순서를 channel/source/generation/order/track/
 허용 오차는 응답의 frame duration이며 실제 표시 frame 정확성 증명은 아니다.
 현재 위치가 목표와 같아 seeked가 생기지 않는 경우에는 현재 데이터가 준비됐는지 확인한다.
 선택마다 미디어 요소를 교체하여 같은 URL의 오래된 이벤트도 새 선택에 적용하지 않는다.
+
+
+## 2026-10-29 제한된 게시 멤버십 계약
+
+사용자 승인은 검색 멤버십 인증과 현재 미디어 안전성의 분리다. 기존 요청 기준점 B안의
+미채택을 뒤집는 구현이 아니다. recordings-only의 인증된 불변 모델 이후 정상 bound Finalize
+한 건만 인증해 다음 모델에 반영하는 후보의 소규모 Native 검증을 완료했다. 제품 채택·실제 HTTP 성능은 미확정이다.
+
+- 최초 모델은 기존 전체 Raw 인증으로 생성한다. Catalog가 내부 인증 상태를 발급하며 외부
+  `BuildOwned`나 순서 힌트만으로 이를 만들지 않는다. 현재 두 Source 슬롯과 Snapshot을 사용한다.
+- 성공한 적용 한 건의 휘발성 범위와 실제 신규 Raw·accepted SourceBinding을 함께 대조한다.
+  기존 1024 링/`new_bound_segment`는 완전한 원장이 아니다. 그 밖의 변경·범위 유실·Instance/Owner
+  불일치는 기존 strict 재구축 또는 거부다. 신규 영구 로그/History COW는 도입하지 않는다.
+- 이 수직 단위는 최신성 지연을 실제 허용하지 않는다. 기존 최종 현재성 검사와 최대 3회 시도를
+  유지한다. 완성 모델의 교환도 Catalog 검사와 같은 임계 구역에서 수행하며 Stop 이후 게시를 거부한다.
+- 게시 이후 미접근 과거 Raw의 잠재 손상은 다음 접근/strict 순회 전까지 발견되지 않을 수 있다.
+  알려진 손상·Authority 오류, 삭제·Lifecycle·권한 및 실제 반환/재생 대상의 검증은 유지한다.
+  승인된 차이는 손상 발견 시점이지, 모든 현재 원본이 정상이라는 주장이 아니다.
+- 검색 응답의 추가 `integrity`는 `membership: authenticated`, `coverage: snapshot`,
+  `unaccessedRaw: not-revalidated-for-response`, `background: not-scheduled`,
+  `media: per-item-current-check`를 구분한다. 기존 Snapshot ID가 멤버십 범위를 결속하며
+  `playable`과 실제 재생의 현재 검사는 별개다. 알려진 오류/coverage 상실은 기존 거부 또는
+  재구축 경로를 따른다. 오류를 이 성공 메타데이터로 대체하지 않는다.
+- 백그라운드 무결성 작업은 이 후보에서 **미실행**이다. 큐·주기·추가 예산은 0이며 보장 기간을
+  주장하지 않는다. 재시작은 새 Instance에서 전체 인증으로 시작한다. 별도 scanner 도입 시
+  범위·진행·유한 예약·Stop/restart 및 미검증/지연 상태를 승인받아야 한다.
+
+현행 실행 계획과 Inventory의 `SEARCH-PUBLICATION-VERTICAL-01`을 따른다. Native와 공식
+State45는 별도이며 State45 FAIL / Memory P0·Readiness120·Release HOLD를 유지한다.

@@ -161,6 +161,8 @@ public:
     std::optional<std::size_t> FindPosition(const std::string& id) const;
     const std::string& source_instance() const { return source_instance_; }
     std::uint64_t revision() const { return revision_; }
+    bool authenticated_membership() const { return membership_instance_ != 0; }
+    std::uint64_t membership_instance() const { return membership_instance_; }
     std::size_t accounted_bytes() const { return accounted_bytes_; }
     const std::shared_ptr<SearchModelResidency>& residency()const{return residency_;}
 
@@ -185,6 +187,8 @@ private:
     bool QueryImpl(const RecordingSearchQuery&, RecordingSearchMatches*, std::string*, bool skip_behaviour) const;
     std::string source_instance_;
     std::uint64_t revision_{0};
+    // Issued only by Catalog to a complete unpublished source model.
+    std::uint64_t membership_instance_{0}, membership_epoch_{0};
     std::size_t accounted_bytes_{0};
     std::vector<SearchDocument> documents_;
     SearchModelResidency::Reservation shared_index_memory_;

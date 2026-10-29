@@ -546,6 +546,9 @@ bool RecordingSearchModel::BuildShared(std::vector<SearchDocument>& added,
     std::vector<std::shared_ptr<const SearchDocument>>& reused,const RecordingSearchModel* base,
     const std::string& instance,std::uint64_t revision,std::shared_ptr<const RecordingSearchModel>* output,
     std::string* error,SearchModelLimits limits) {
+#ifdef RECORDING_SEARCH_TESTING
+    struct Measure {std::uint64_t begin=SearchDiagnostic::Tick();~Measure(){search_build_shared_ns_test+=SearchDiagnostic::Tick()-begin;}} measure;
+#endif
     const auto optional=[&]() -> std::shared_ptr<const RecordingSearchModel> {
 #ifdef RECORDING_SEARCH_TESTING
         if(search_projection_build_refused_test)return {};

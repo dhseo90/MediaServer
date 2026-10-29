@@ -5582,3 +5582,58 @@ MEDIA-012-STATE-INPUT-F01 합성 계약 보충: `assessSyntheticStateWriterSegme
 - `MEDIA_SERVER_NATIVE_JSON_COST=1`은 Native에서만 중복 key 집합 삽입(해시·비교·할당 포함), 멤버 구성/삽입(raw 복사·vector 성장 포함), 숫자 문법 검사 및 key 문자열 시간을 집계한다. Key 문자열은 전체 문자열 시간에 포함되며 DTO 변환은 JSON 시간에 포함된다. Object/멤버/숫자/문자열 수, raw·key 논리 복사 bytes, vector 성장·이동 원소 수·새 capacity bytes, hash bucket 성장·새 capacity bytes를 같은 Cold 구간에서 대조한다. 이는 malloc 전체 횟수·실제 할당 bytes·독립 allocator 시간이 아니다. 계측 on/off 비용을 구분하고 후보가 있을 때만 동일 Fixture의 A/B·B/A 및 기존 canonical/오류 회귀를 실행한다. 제품 비활성 빌드에는 이 계측이 포함되지 않는다.
 - ObjectArray 임시 문서의 vector capacity 재사용 후보는 callback 이후 참조 보유 금지 계약 안에서만 평가한다. 각 행의 모든 값과 중복 key 집합은 폐기·재검증하며 첫 행 이후 더 작은 행·빈 행·다른 key 집합·동일 key 재사용·후기 중복 거부·두 번째 consumer의 `bad_alloc` 전파와 이후 정상 parse를 검증한다. 값/문서 공유 또는 장기 Cache는 추가하지 않는다.
 - 최종 수명 경계는 512개 멤버의 Object 다음 작은 Object 64개에서 멤버 누적·이전 값 잔존이 없고 capacity가 최초 최대값을 넘지 않으며 consumer가 소유한 문자열 복사본이 보존되는지 기존 Parser smoke로 확인한다.
+
+
+### SEARCH-PUBLICATION-VERTICAL-01 — 인증된 단일 bound Finalize 멤버십 게시
+
+2026-10-29 승인 범위: recordings-only의 최초 전체 인증 모델 → 정상 bound Finalize 1건 → 기존 Source 슬롯의 새 불변 모델 → 동일 키 최초 검색. 현재 권한·삭제·Lifecycle·Authority·반환 미디어/Playback 증명은 유지한다. 게시 후 미접근 과거 Raw의 잠재 손상은 즉시 검출을 보장하지 않는 명시적 계약 변경이며 현재 전체 Raw 무결성으로 표시하지 않는다. 새 Background 검사기는 도입하지 않고 미실행 상태를 응답과 계약에 구분한다.
+
+- 기존 retry/managed Writer Fixture와 Source·Playback·Concurrent 검사를 사용한다. 정상 신규 멤버십/Mapping·정렬/건수/includeUnplaced는 독립 strict Capture 결과와 대조하고 이전 Snapshot 불변, 현재 권한/미디어 거부를 확인한다.
+- 단일 인증 변경의 누락·중복·역순/다중 변경, Instance/Owner·삭제·상태·손상·Authority·Stop·Restart는 증분 게시를 거부하거나 기존 strict 경로로 돌아간다. Writer durable 적용 실패를 정상 검색 성공으로 바꾸지 않는다. bad_alloc·consumer 실패·admission 거부·부분 게시에서 이전 모델 불변과 Owner/Scratch/FD 반환을 확인한다.
+- 기존 링의 new_bound_segment는 증명이 아니다. 별도 bounded 단일 receipt는 성공한 Catalog 적용에 결속하며 미지원 mutation·실패는 연속성 자격을 무효화한다. 새 영구 Journal·History COW·모델 Session·Worker·Queue 없음.
+- 기존 Generation apply fault를 Search Native 빌드에서도 사용해 실제 Writer의 durable 완료 후 적용 실패를 주입한다. Authority 상실 뒤 이전 모델을 성공으로 게시하지 않고 Finish 및 Owner/Scratch/FD 반환을 확인한다. 기본 제품 빌드에는 이 fault 분기가 없다.
+- 개발 비교는 같은 Fixture의 strict/후보 A/B·B/A, 최초 모델과 Append 갱신을 구분한다. 과거 Raw 방문/해시/Decode·Refresh/Preparation/요청/Writer 시간, 게시 지연·CPU·Owner/RSS/Scratch/FD/Anonymous/Workspace 및 반환을 가능한 계측 범위에서 명시한다. 원본 행 순회 감소만으로 시스템 성능 개선이라 하지 않는다. 공식 p95/Timeout·자원 상한은 불변이며 HTTP/State45·장시간은 미실행이다.
+- strict 대조군은 단일 Writer 확정 뒤 과거 행을 포함한 전체 방문, 후보는 `publication reads only the new raw row`를 각각 기대한다. 동일 입력의 독립 결과와 비교하며 빌드/환경 실패를 예상 RED로 취급하지 않는다.
+- cold row의 불변 소유권 아래 Catalog 잠금 밖에서 문서 참조를 준비한다. 기존 outside-cut hook에서 실제 Writer를 완료시켜 오래된 게시 거부와 strict 재시도를 결정적으로 확인한다. 새 Thread/Queue나 sleep 기반 경쟁은 만들지 않는다.
+
+
+### 격리 Native Prototype: Bounded Multi-Finalize (R184)
+
+원본 저장소에 반영하지 않는 2026-10-29 격리 후보 정의. 기존 R183 단일 Receipt 결과를
+이번 결과로 대체하지 않는다. 내부 기능으로 UI 대상 없음. 아래 Native만 이번 승인 범위이며
+30분/120분/실제 UI/HTTP/State45는 미실행·별도 gate다.
+
+| ID | 경로/동작 | 정상·오류·경계 기대값 |
+| --- | --- | --- |
+| R184-C01 | Catalog durable bound Finalize → Receipt → Capture → Publish | 1건/동일 채널 복수/2채널 교차/여러 epoch가 정확한 strict oracle과 일치. 신규 Raw/Binding 재인증, 이전 모델·snapshot 불변 |
+| R184-C02 | Receipt coverage/Barrier | 중간 누락·중복·역순·epoch/ordinal 오류·TTL·64 경계/65 overflow·32 Raw 한도 초과는 strict fallback. durable 후 receipt 기록 누락은 Writer 성공과 strict를 함께 보장 |
+| R184-C03 | 지원 외 mutation | observation/lifecycle/retention/delete/recovery/restart/authority 변경은 strict 또는 명확한 거부. source 권한·미디어·신규 Raw/Binding 손상 거부 유지 |
+| R184-C04 | Capture/Publish 경쟁 | 준비 중 선택 채널 변경·Stop은 stale 게시 거부; 다른 채널 정상 Finalize는 전체 tail 인증 이후만 게시. 게시 직후 변경은 다음 조회에 반영 |
+| R184-C05 | Native Search service/수명 | 같은 키 pair는 1 build+reuse; 다른 키 동시 검색의 scope 분리. 예외/overflow/정상 종료 후 Owner/Hold/scratch 반환, snapshot 이전 generation 보호 |
+| R184-C06 | 기존 Native 회귀 | Retry/Source/Playback/Concurrent의 독립 기대값 유지. focused subset을 중복 집계하지 않음 |
+| R184-P01 | strict vs multi (정합성 통과 이후) | 동일 바이너리 A/B/B/A, 192 및 ≥1200 Raw, 단일/복수/교차·같은 키 pair·미지원/overflow. 선택/이유/Raw/Decode/Refresh/Preparation/BuildShared/전체 service/Writer/Owner를 관측. 소표본 p95 및 제품 성능 주장 금지 |
+
+고정 제한: 64 receipts, 요청 신규 Raw 32, monotonic 유효기간 60초. 실제 ABI sizeof와
+전체 고정 저장소 bytes는 Native 출력으로 기록한다. receipt가 과거 DTO/Raw/model을 보유하지
+않고 기존 Owner에 계상된다. 모델·snapshot 상한은 기존 계약 유지. 안전성 실패 시 원인/증거만
+보존하며 추가 구현·성능 실행을 중단한다.
+
+
+### R184-PRODUCT 제한 실제 HTTP Smoke (격리 검증 사본 전용)
+
+R184-H01 제품 기본 CMake Build/Link와 정상 startup/listener/authenticated Structured/Visual/Playback/integrity/invalid query.
+R184-H02 실제 2채널 2초 Writer의 검색 사이 복수 Finalize, 같은 키 pair, 배경 Visual 색인 공존: 중복·누락 없는 최신 결과와 bounded receipt 진단 대조.
+R184-H03 실제 가능한 lifecycle/deletion/TTL/restart barrier는 strict 또는 계약상 거부; 32/64/overflow 오류주입은 기존 Native 증거를 재사용하고 HTTP 미실행을 구분.
+R184-H04 owner 사용자와 무권한 접근, media integrity, 이전 snapshot 보호; 인증 우회 금지.
+R184-H05 정확한 PID SIGTERM grace5초 및 owner/scratch/FD 관측; 단기 종료는 Shutdown P0 해결 아님.
+안정화 영역의 짧은 HTTP 검사이며 30분/120분/실제 UI/공식 State45는 미실행이다. 실제 실행한 범위만 PASS로 기록한다.
+
+
+### R184-B01~B05 — Multi-Finalize product smoke blocker resolution
+
+격리 검증 사본 전용. 기존 authenticated mixed fixture의 명시 opt-in 집중 분기이며 원 mixed/State45 suite를 대체하지 않는다.
+- B01 재시작 전/후 admin200, 유효 scoped operator403, viewer403, anonymous401; 이전 쿠키는 재시작 후401. 실제 status/body/안전한 headers를 assertion 전에 기록하고 request ID로 서버 auth/scope 판정과 결속한다.
+- B02 두 Writer의 초기 Strict→복수 Finalize→같은 키 pair200, 전체 cursor 중복/누락 없음, 정지 후 durable journal observer와 정확한 Segment 집합 대조.
+- B03 활성9101 정상 quota64MiB+64KiB Retention, 기존 예약64MiB 유지; journal pending→deleted와 media404,9201survivor206, 최신 Structured/Visual 제외, 기존 snapshot의 삭제대상playable=false, 신규 Finalize와 재시작후삭제 지속. 명시 Segment Delete API는 없음/미실행을 구분한다.
+- B04 매 제품 프로세스에서 명시 Visual 요청200과 실제 ONNX text inference; 최초 Writer background image decode/preprocess/image inference, source/currentness/response 진단 및 flush를 기존4096행/4MiB한도 안에서 확인. 누락/손실은 FAIL 유지.
+- B05 SIGTERM grace5초, Admission Close/Drain 관측, 정상exit/ports/Owner/Scratch/Model 반환. 공식 Shutdown P0, Memory P0, State45,30분/120분/UI는 별도.

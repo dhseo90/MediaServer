@@ -234,7 +234,7 @@ bool RecordingSearchReader::RefreshImpl(const std::vector<std::string>& channels
     std::vector<std::shared_ptr<const SearchDocument>>{}.swap(batch.shared_documents_);batch.sharing_memory_={};
     if(allow_document_sharing&&!include_observations&&next.use_count()==1)
         std::const_pointer_cast<RecordingSearchModel>(next)->PromoteSourceStorage(limits);
-    *output = std::move(next);if(error)error->clear();return true;
+    return catalog_.PublishSearchMembership(batch,std::move(next),output,error);
 }
 bool RecordingSearchReader::WithEventFacts(const RecordingSearchModel& source,
     std::shared_ptr<const RecordingSearchModel>* output, std::string* error, SearchModelLimits limits,

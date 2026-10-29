@@ -280,6 +280,9 @@ public:
 #endif
     inline static thread_local int probe_fault=0;
 #endif
+#if defined(RECORDING_SEARCH_TESTING) && !defined(MEDIA_SERVER_RECORDING_GENERATION_TESTING)
+    int ProbeFd()const{return fd_;}
+#endif
 private:
     static constexpr std::size_t kWorkingBytes=kDepth*(4*kNodeBytes+4*kKeyBytes)+kValueBytes+kKeyBytes;
     std::shared_ptr<RecordingScratchResidency> resources_;

@@ -23,6 +23,7 @@ inline thread_local std::function<void()> search_outside_raw_cut_test;
 inline thread_local std::function<void()> search_after_build_test;
 // Focused build TU only: actual sorting/merge work, never a product trace.
 inline thread_local std::array<std::size_t,3> search_order_work_test{};
+inline thread_local std::uint64_t search_build_shared_ns_test=0;
 // Existing focused TU hooks: authenticated V2 raw rows, new projections,
 // shared projections, optional sharing fallback. Never a product trace.
 inline thread_local std::array<std::size_t,4> search_projection_work_test{};

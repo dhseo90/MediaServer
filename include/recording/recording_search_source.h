@@ -22,6 +22,8 @@ private:
     friend class RecordingCatalog;
     friend struct RecordingSearchRetryTestProbe;
     friend class RecordingSearchReader;
+    std::uint64_t membership_epoch_=0;
+    bool membership_append_=false;
     SearchModelResidency::Reservation sharing_memory_;
     std::vector<std::shared_ptr<const SearchDocument>> shared_documents_;
     std::shared_ptr<const RecordingSearchModel> retry_model_;
@@ -40,6 +42,7 @@ public:
     SearchSourceBatch(const SearchSourceBatch&)=default;
     SearchSourceBatch(SearchSourceBatch&&) noexcept=default;
     SearchSourceBatch& operator=(SearchSourceBatch other) noexcept {
+        std::swap(membership_epoch_,other.membership_epoch_);std::swap(membership_append_,other.membership_append_);
         sharing_memory_.swap(other.sharing_memory_);shared_documents_.swap(other.shared_documents_);retry_model_.swap(other.retry_model_);
         std::swap(append_order_hint,other.append_order_hint);
         memory.swap(other.memory);std::swap(rebuild,other.rebuild);std::swap(catalog_instance,other.catalog_instance);std::swap(resolution_revision,other.resolution_revision);std::swap(channels,other.channels);std::swap(delta,other.delta);std::swap(pending,other.pending);segment_spans_.swap(other.segment_spans_);std::swap(residency_,other.residency_);std::swap(max_documents_,other.max_documents_);std::swap(max_bytes_,other.max_bytes_);std::swap(reused_segments_,other.reused_segments_);return *this;

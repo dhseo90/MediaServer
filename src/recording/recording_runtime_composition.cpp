@@ -34,7 +34,7 @@ bool RecordingRuntimeStorage::ResetOwner(std::string* error)try{
     catalog_=std::make_unique<RecordingCatalog>(*journal_,RuntimeCatalogOptions(root_));
     return true;
 }catch(const RecordingResourceUnavailable& e){if(error)*error=e.what();return false;}
-bool RecordingRuntimeStorage::Finish(std::string* error){opened_=false;return !journal_||journal_->Finish(error);}
+bool RecordingRuntimeStorage::Finish(std::string* error){opened_=false;if(catalog_)catalog_->StopSearchPublication();return !journal_||journal_->Finish(error);}
 bool RecordingRuntimeStorage::Open(std::string* error){
     // 시작 구성 전용이다. 실패한/복구한 owner를 외부 생산자에 재사용하지 않는다.
     if(open_attempted_){

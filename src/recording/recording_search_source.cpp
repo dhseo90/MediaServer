@@ -1,6 +1,9 @@
 // 파일 용도: 카탈로그의 검증된 resident/cold 행에서 일관된 검색 snapshot/관측 변화분을 내보낸다.
 #include "recording/recording_catalog.h"
 #include "recording/recording_search_diagnostic.h"
+#ifdef RECORDING_SEARCH_TESTING
+#include "recording/recording_search_reader.h"
+#endif
 #include "recording/recording_latency_trace.h"
 #include <algorithm>
 #include "domain/strict_json.h"
@@ -133,6 +136,38 @@ bool RecordingCatalog::ValidateSearchSource(const SearchSourceBatch& batch, std:
     return true;
 }
 
+// Publication and runtime Finish serialize through Catalog. The successful
+// pointer exchange allocates nothing; displaced models release after unlocking.
+void RecordingCatalog::StopSearchPublication() {
+    latency::Lock lock(mu_,latency::Source::Catalog,__LINE__,false,__func__);
+    source_snapshot_revision_valid_=false;
+}
+bool RecordingCatalog::PublishSearchMembership(const SearchSourceBatch& batch,
+    std::shared_ptr<const RecordingSearchModel> next,std::shared_ptr<const RecordingSearchModel>* output,std::string* error) const {
+    {
+        latency::Lock lock(mu_,latency::Source::Catalog,__LINE__,false,__func__);
+        if(!output||!next||!opened_||!CanReadLocked(error)||!source_snapshot_revision_valid_||
+           batch.catalog_instance!=search_instance_||SearchChangedLocked(batch.channels,batch.resolution_revision,false))
+            return Fail(error,"search-source-changed");
+        if(next.use_count()!=1)return Fail(error,"search-source-changed");
+        auto* owned=const_cast<RecordingSearchModel*>(next.get());
+        if(batch.delta.source_instance.rfind("recordings:",0)==0&&search_invalidations_&&batch.membership_epoch_){
+            if(batch.membership_epoch_!=search_invalidations_->membership_epoch) {
+                std::array<SearchInvalidations::Receipt,SearchInvalidations::receipt_capacity> tail{};std::size_t count=0;
+                auto memory=SearchResidency()->ReserveOwned(sizeof(tail),SearchModelResidency::Category::Preparation);
+                if(!memory||search_invalidations_->Cover(batch.membership_epoch_,batch.resolution_revision,
+                    source_snapshot_revision_,&tail,&count))return Fail(error,"search-source-changed");
+                for(std::size_t i=0;i<count;++i)
+                    if(std::find(batch.channels.begin(),batch.channels.end(),tail[i].channel)!=batch.channels.end())
+                        return Fail(error,"search-source-changed");
+            }
+            owned->membership_instance_=search_instance_;owned->membership_epoch_=search_invalidations_->membership_epoch;
+        }
+        output->swap(next);
+    }
+    if(error)error->clear();return true;
+}
+
 bool RecordingCatalog::RebaseRetentionSearchSource(SearchSourceBatch* batch,SearchModelLimits limits,std::string* error) const {
 #ifdef RECORDING_SEARCH_TESTING
     ++search_retention_delta_work_test[0];
@@ -225,6 +260,10 @@ bool RecordingCatalog::RebaseRetentionSearchSource(SearchSourceBatch* batch,Sear
             if(removed)docs.swap(compact);
             batch->segment_spans_.clear();batch->retry_model_.reset();batch->append_order_hint=false;
             batch->resolution_revision=revision;batch->delta.revision=revision;
+            // Existing strict retention rebase proves current query contents,
+            // not the global bound-Finalize interval. Keep its result usable but
+            // withhold the optional membership certificate for subsequent reuse.
+            batch->membership_epoch_=0;
         }
         if(!opened_||!CanReadLocked(error)||batch->catalog_instance!=search_instance_||!source_snapshot_revision_valid_||
            recovery_report_.projection_error_count||recovery_report_.corrupt_line_count||
@@ -303,8 +342,34 @@ bool RecordingCatalog::CaptureSearchSourceImpl(const std::vector<std::string>& c
         const auto selected = [&](const std::string& channel) {
             return std::find(channels.begin(), channels.end(), channel) != channels.end();
         };
+        batch.membership_epoch_=search_invalidations_->membership_epoch;
+        // Copied proof is Owner-accounted separately and never pins Raw or a model.
+        std::array<SearchInvalidations::Receipt,SearchInvalidations::receipt_capacity> receipts{};
+        std::size_t receipt_count=0,selected_receipts=0;
+        auto proof_memory=limits.residency->ReserveOwned(sizeof(receipts),SearchModelResidency::Category::Preparation);
+        const char* receipt_reason="ineligible";
+        bool membership_append=segments_v2_.cold()&&!include_observations&&allow_document_sharing&&previous&&
+            previous->membership_instance_==search_instance_&&previous->membership_epoch_&&
+            proof_memory&&batch.rebuild&&
+            previous->source_instance()==batch.delta.source_instance&&previous->residency()==limits.residency&&
+            !previous->shared_documents_.empty()&&previous->revision()<batch.resolution_revision&&
+            previous->revision()>=search_invalidations_->floor&&previous->revision()>=search_rebuild_revision_;
+        if(membership_append){
+            receipt_reason=search_invalidations_->Cover(previous->membership_epoch_,previous->revision(),
+                batch.resolution_revision,&receipts,&receipt_count);
+            if(!receipt_reason) {
+                for(std::size_t i=0;i<receipt_count;++i)if(selected(receipts[i].channel))++selected_receipts;
+                if(!selected_receipts||selected_receipts>SearchInvalidations::raw_limit)receipt_reason="raw-limit";
+            }
+            membership_append=!receipt_reason;
+        }
+#ifdef RECORDING_SEARCH_TESTING
+        if(!search_membership_test_enabled){membership_append=false;receipt_reason="test-strict";}
+        search_membership_reason_test=membership_append?"selected":receipt_reason;
+#endif
+        if(membership_append)batch.append_order_hint=true;
         batch.residency_=limits.residency.get();batch.max_documents_=limits.max_documents;batch.max_bytes_=limits.max_bytes;
-        const bool remember=retry_capture&&!include_observations&&batch.rebuild;
+        const bool remember=retry_capture&&!include_observations&&batch.rebuild&&!membership_append;
         const bool reuse=remember&&prior_capture.rebuild&&prior_capture.pending.empty()&&
             prior_capture.catalog_instance==batch.catalog_instance&&
             prior_capture.delta.source_instance==batch.delta.source_instance&&
@@ -339,6 +404,23 @@ bool RecordingCatalog::CaptureSearchSourceImpl(const std::vector<std::string>& c
                     }
                 }
             }
+        }
+
+        membership_append=membership_append&&shared_source==previous;
+        // Local smoke diagnostics only: opt-in stderr, fixed cap; no API fields
+        // or path-selection switches. Selection is not publication success.
+        if(SearchDiagnostic::Enabled()&&SearchDiagnostic::active&&SearchDiagnostic::active->id) {
+            static std::atomic<unsigned> reported{0};const auto number=reported.fetch_add(1);
+            if(number<128) {
+                char line[768];const int length=std::snprintf(line,sizeof(line),
+                    "[membership-proof] {\"request\":%u,\"instance\":%llu,\"from\":%llu,\"through\":%llu,\"revision\":%llu,\"receipts\":%zu,\"selectedRaw\":%zu,\"fastSelected\":%s,\"reason\":\"%s\",\"stored\":%zu,\"receiptBytes\":%zu,\"capacity\":%zu}\n",
+                    SearchDiagnostic::active->id,(unsigned long long)batch.catalog_instance,
+                    (unsigned long long)(previous?previous->membership_epoch_:0),(unsigned long long)batch.membership_epoch_,
+                    (unsigned long long)batch.resolution_revision,receipt_count,selected_receipts,membership_append?"true":"false",
+                    membership_append?"selected":receipt_reason?receipt_reason:"sharing-admission",
+                    search_invalidations_->receipt_count,sizeof(SearchInvalidations::Receipt),SearchInvalidations::receipt_capacity);
+                if(length>0&&length<int(sizeof(line)))SearchDiagnostic::Write(line,static_cast<std::size_t>(length));
+            } else if(number==128)SearchDiagnostic::Write("[membership-proof-cap]\n",23);
         }
 
         const auto drop_spans=[&] {batch.segment_spans_.clear();bytes-=span_bytes;span_bytes=0;remember_spans=false;};
@@ -421,6 +503,7 @@ bool RecordingCatalog::CaptureSearchSourceImpl(const std::vector<std::string>& c
         };
         if (batch.rebuild) {
             for (const auto& [id,s] : segments_) {
+                if(membership_append)break; // The certified base already contains these unchanged legacy rows.
                 if (!selected(s.channel_id) || s.lifecycle == RecordingLifecycle::Deleted || tombstones_.count(id)) continue;
                 SearchDocument d;d.id="s1:"+Key(id);d.channel_id=s.channel_id;d.segment_id=id;
                 d.source_id=s.source_id;d.media_epoch_id=s.stream_epoch_id;d.stream_epoch_id=s.stream_epoch_id;d.media_end_pts=s.end.pts;d.start_ns=Ns(s.start.utc_ms);d.end_ns=Ns(s.end.utc_ms);
@@ -443,7 +526,7 @@ bool RecordingCatalog::CaptureSearchSourceImpl(const std::vector<std::string>& c
             std::optional<decltype(segments_v2_)> view;
             std::size_t cut_bytes=0;
             bool detached=false;
-            if(allow_raw_cut&&!include_observations&&segments_v2_.cold()){
+            if(!membership_append&&allow_raw_cut&&!include_observations&&segments_v2_.cold()){
                 const auto count=segments_v2_.size();
                 if(count<=limits.max_bytes/sizeof(CutRow)){
                     const auto meta=count*sizeof(CutRow);
@@ -480,7 +563,7 @@ bool RecordingCatalog::CaptureSearchSourceImpl(const std::vector<std::string>& c
                 }
             }
             RecordingLifecycle cut_lifecycle=RecordingLifecycle::Unknown;
-            const auto current_lifecycle=[&](const auto& id){return detached?cut_lifecycle:EffectiveLifecycleV2Locked(id,true);};
+            const auto current_lifecycle=[&](const auto& id){return detached||membership_append?cut_lifecycle:EffectiveLifecycleV2Locked(id,true);};
             const auto add_shared=[&](std::shared_ptr<const SearchDocument> document) {
                 if(batch.delta.upserts.size()+batch.shared_documents_.size()>=limits.max_documents)return false;
                 auto next=bytes;if(!AccountOwnedSearchDocument(*document,&next,limits.max_bytes))return false;
@@ -587,7 +670,45 @@ bool RecordingCatalog::CaptureSearchSourceImpl(const std::vector<std::string>& c
                 return remember_span(id,lifecycle,begin,shared_begin);
             };
             bool complete=true;
-            if(detached){
+            if(membership_append){
+                {
+                    latency::Lock::Unlocked outside(lock);
+                    CaptureCost::Interval outside_cost(costs.outside_ns,costs.outside_observed,costs.enabled);
+                    for(const auto& document:previous->shared_documents_){
+                        for(std::size_t i=0;i<receipt_count;++i)
+                            if(document->segment_id==receipts[i].id)return Fail(error,"search-source-changed");
+                        if(!add_shared(document))throw OptionalCaptureCapacity{};
+                    }
+                }
+                for(std::size_t i=0;i<receipt_count&&complete;++i) {
+                    if(!selected(receipts[i].channel))continue;
+                    // Every selected receipt reacquires current Raw and the
+                    // accepted binding envelope under Catalog. One cold row and
+                    // one binding are held while preparing outside Catalog.
+                    if(!CanReadLocked(error)||!source_snapshot_revision_valid_||batch.catalog_instance!=search_instance_||
+                       SearchChangedLocked(channels,batch.resolution_revision,false))return Fail(error,"search-source-changed");
+                    const std::string id=receipts[i].id;
+                    const auto current=segments_v2_.find(id);SourceBindingHandle binding;
+                    if(current==segments_v2_.end()||current->second.channel_id!=receipts[i].channel||
+                       EffectiveLifecycleV2Locked(id)!=RecordingLifecycle::Finalized||
+                       !AcquireSourceBindingOwnedLocked(id,&binding,error)||!binding)
+                        return Fail(error,"search-source-unavailable");
+                    const auto& segment=current->second;cut_lifecycle=RecordingLifecycle::Finalized;
+                    latency::Lock::Unlocked outside(lock);
+                    CaptureCost::Interval outside_cost(costs.outside_ns,costs.outside_observed,costs.enabled);
+#ifdef RECORDING_SEARCH_TESTING
+                    if(search_outside_raw_cut_test)search_outside_raw_cut_test();
+#endif
+                    complete=consume(id,segment);
+#ifdef RECORDING_SEARCH_TESTING
+                    ++search_projection_work_test[0];
+#endif
+                }
+                batch.membership_append_=true;
+#ifdef RECORDING_SEARCH_TESTING
+                ++search_membership_work_test;
+#endif
+            } else if(detached){
                 latency::Lock::Unlocked outside(lock);
                 CaptureCost::Interval outside_cost(costs.outside_ns,costs.outside_observed,costs.enabled);
 #ifdef RECORDING_SEARCH_TESTING

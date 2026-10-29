@@ -440,6 +440,14 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                     request_opt ? std::string_view(request_opt->method) : std::string_view{},
                     request_opt ? std::string_view(request_opt->path) : std::string_view{}, accepted_at);
                 site_diagnostic.Emit(SiteOperationsRequestDiagnostic::Phase::Parsed);
+                // Validation copy only: bounded, opt-in request/authorization correlation.
+                // No credentials, usernames, URLs, query text or public response changes.
+                static const bool smoke_enabled=[] {const char* p=std::getenv("MEDIA_SERVER_VERIFY_MULTIFINALIZE_BLOCKERS");return p&&std::strcmp(p,"1")==0;}();
+                std::string smoke_id=smoke_enabled&&request_opt?HeaderValue(*request_opt,"X-Media-Search-Request-Id"):std::string{};
+                if(smoke_id.size()>64||smoke_id.compare(0,4,"mfb-")!=0||
+                   !std::all_of(smoke_id.begin(),smoke_id.end(),[](unsigned char c){return (c>='a'&&c<='z')||(c>='A'&&c<='Z')||(c>='0'&&c<='9')||c=='-';}))smoke_id.clear();
+                const auto smoke_begin=smoke_id.empty()?0:recording::latency::Now();
+                const char* smoke_auth="not-evaluated";unsigned smoke_allowed=0,smoke_denied=0;
                 const bool recording_request = request_opt &&
                     request_opt->path.compare(0, 20, "/ops/api/recordings/") == 0;
                 std::unique_ptr<RecordingRequestGate::Flight> recording_flight;
@@ -536,6 +544,7 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             return result;
                         };
                         const auth::AuthResult principal_result = build_request_principal();
+                        if(!smoke_id.empty())smoke_auth=principal_result.ok?"authenticated":"unauthenticated";
                         const std::string route_path = "/" + config.stream_route;
                         auto create_auth_session = [&](const auth::Principal& principal,
                                                        std::string* error_message) -> std::optional<std::string> {
@@ -769,7 +778,9 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             if (!recording_service)
                                 return JsonResponse(503, "Service Unavailable", "{\"error\":\"recording unavailable\"}");
                             const auto authorize_channel = [&](const std::string& channel) {
-                                return auth::RequireScope(principal_result.principal, "source:read:" + channel);
+                                const bool ok=auth::RequireScope(principal_result.principal, "source:read:" + channel);
+                                if(!smoke_id.empty()){auto& n=ok?smoke_allowed:smoke_denied;if(n<65535)++n;}
+                                return ok;
                             };
                             const auto api_response = [](ApplicationServiceResult result) {
                                 HttpResponse response{result.status,std::move(result.status_text),"application/json; charset=utf-8",{},std::move(result.body)};
@@ -5247,6 +5258,13 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                     site_diagnostic.Emit(SiteOperationsRequestDiagnostic::Phase::HandlerEnd);
                 }
 
+                if(!smoke_id.empty()) {
+                    static std::atomic<unsigned> smoke_rows{0};const auto n=smoke_rows.fetch_add(1);
+                    if(n<128)std::fprintf(stderr,"[blocker-http] {\"id\":\"%s\",\"status\":%d,\"auth\":\"%s\",\"allowed\":%u,\"denied\":%u,\"thread\":%u,\"beginNs\":%llu,\"endNs\":%llu}\n",
+                        smoke_id.c_str(),response.status,smoke_auth,smoke_allowed,smoke_denied,recording::latency::local.thread,
+                        (unsigned long long)smoke_begin,(unsigned long long)recording::latency::Now());
+                    else if(n==128)std::fputs("[blocker-http-loss] cap\n",stderr);
+                }
                 search_http.Prepared(response.status);
                 if (!response_sent) {
                     SuppressSocketSigPipe(client_fd);
@@ -5284,6 +5302,8 @@ void WebRtcHttpServer::Stop() {
     }
 
     impl_->recording_gate->Close();
+    if(const char* p=std::getenv("MEDIA_SERVER_VERIFY_MULTIFINALIZE_BLOCKERS");p&&std::strcmp(p,"1")==0)
+        std::fprintf(stderr,"[blocker-stop] {\"phase\":\"admission-closed\",\"ns\":%llu}\n",(unsigned long long)recording::latency::Now());
 
     if (impl_->listen_fd >= 0) {
         shutdown(impl_->listen_fd, SHUT_RDWR);
@@ -5294,6 +5314,8 @@ void WebRtcHttpServer::Stop() {
         impl_->accept_thread.join();
     }
     impl_->recording_gate->Drain();
+    if(const char* p=std::getenv("MEDIA_SERVER_VERIFY_MULTIFINALIZE_BLOCKERS");p&&std::strcmp(p,"1")==0)
+        std::fprintf(stderr,"[blocker-stop] {\"phase\":\"requests-drained\",\"ns\":%llu}\n",(unsigned long long)recording::latency::Now());
 
     std::vector<Impl::SessionEntry> sessions;
     std::vector<Impl::SourceSessionEntry> source_sessions;

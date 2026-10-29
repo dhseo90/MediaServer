@@ -1,6 +1,9 @@
 // 파일 요약: 녹화 JSONL mutation을 memory/SQLite projection에 적용한다.
 // 동작 요약: idempotent replay, FK 검증, 손상 DB 격리와 range query parity를 구현한다.
 #include "recording/recording_catalog.h"
+#ifdef RECORDING_SEARCH_TESTING
+#include "recording/recording_search_reader.h"
+#endif
 #include "recording/recording_search_model.h"
 #include "recording/recording_latency_trace.h"
 #include "recording/recording_completion_trace.h"
@@ -1736,6 +1739,15 @@ void RecordingCatalog::NoteSearchMutationLocked(const RecordingMutationV1& mutat
         }
         log.next=(log.next+1)%log.entries.size();
     }
+    if(search_invalidations_&&mutation.mutation_type==RecordingMutationType::SegmentV2BoundFinalized&&
+       search_invalidations_->membership_epoch>1&&!mutation.entity_id.empty()&&mutation.entity_id.size()<128&&
+       !channel.empty()&&channel.size()<128) {
+        auto& publication=*search_invalidations_;
+        auto& receipt=publication.pending;
+        receipt.epoch=publication.membership_epoch;receipt.revision=source_snapshot_revision_;
+        std::memcpy(receipt.id,mutation.entity_id.c_str(),mutation.entity_id.size()+1);
+        std::memcpy(receipt.channel,channel.c_str(),channel.size()+1);
+    }
     if (!observation) return;
     // 이 부가 index의 allocation 실패가 원본 녹화 쓰기를 실패시키면 안 된다.
     try {
@@ -1759,6 +1771,11 @@ bool RecordingCatalog::ApplyMutationLocked(const RecordingMutationV1& mutation,
                                            const RecordingJournalOwnedViewHandle& view,const RecordingGenerationRecoveryRow* generation_row,bool apply,GenerationDelta* delta) try {
     const auto touch=[&](const char* kind,const std::string& id){if(apply){NoteRetentionChangeLocked(kind,id);if(delta)delta->emplace(kind,id);}};
     if(apply) {
+    if(search_invalidations_&&mutation.mutation_type!=RecordingMutationType::RecordingOrderReserved){
+        auto& publication=*search_invalidations_;publication.pending={};
+        if(publication.membership_epoch==UINT64_MAX)publication.membership_epoch=0;
+        else if(publication.membership_epoch)++publication.membership_epoch;
+    }
     if(source_snapshot_revision_==std::numeric_limits<std::uint64_t>::max())source_snapshot_revision_valid_=false;
     else ++source_snapshot_revision_;
 
@@ -2130,8 +2147,10 @@ bool RecordingCatalog::ApplyMutationLocked(const RecordingMutationV1& mutation,
 } catch(const CatalogHistoryError& failure) { return Fail(error,failure.what()); }
   catch(const RecordingResourceUnavailable& failure) { return Fail(error,failure.what()); }
 
-#if MEDIA_SERVER_RECORDING_GENERATION_TESTING
+#if MEDIA_SERVER_RECORDING_GENERATION_TESTING || defined(RECORDING_SEARCH_TESTING)
 thread_local int RecordingCatalog::generation_apply_fault_=0;
+#endif
+#if MEDIA_SERVER_RECORDING_GENERATION_TESTING
 thread_local std::function<void()> RecordingCatalog::source_binding_unlocked_hook_;
 thread_local std::function<void()> RecordingCatalog::source_binding_acquire_hook_;
 thread_local void (*RecordingCatalog::generation_checkpoint_prepared_hook_)()=nullptr;
@@ -2223,7 +2242,7 @@ bool RecordingCatalog::AppendGenerationLocked(RecordingMutationV1 mutation,std::
     }
     if(row->retry){if(error)error->clear();return true;}
     try {
-#if MEDIA_SERVER_RECORDING_GENERATION_TESTING
+#if MEDIA_SERVER_RECORDING_GENERATION_TESTING || defined(RECORDING_SEARCH_TESTING)
         const int fault=generation_apply_fault_;generation_apply_fault_=0;
         if(fault==1){Fail(error,"B test current apply 실패");return PoisonGenerationLocked(error);}
         if(fault==2)throw std::runtime_error("B test post-fsync exception");
@@ -2253,6 +2272,13 @@ bool RecordingCatalog::AppendGenerationLocked(RecordingMutationV1 mutation,std::
         if(!ProjectGenerationDeltaLocked(delta,*row,error))return PoisonGenerationLocked(error);
         if(prepared)prepared->phase=PreparedDerivedMutation::Phase::Consumed;
         if(!EvictCompletedJobLocked(mutation.entity_id,error))return PoisonGenerationLocked(error);
+        if(search_invalidations_) {
+#ifdef RECORDING_SEARCH_TESTING
+            if(search_receipt_drop_test){search_receipt_drop_test=false;search_invalidations_->pending={};}
+#endif
+            if(mutation.mutation_type==RecordingMutationType::SegmentV2BoundFinalized)
+                search_invalidations_->Complete(row->global_ordinal);
+        }
         if(error)error->clear();
         return true;
     }catch(const std::exception& exception){std::cerr<<"[recording] durable apply exception: "<<std::string(exception.what()).substr(0,256)<<'\n';Fail(error,"B durable 후 적용/투영 예외");return PoisonGenerationLocked(error);}
@@ -2562,7 +2588,17 @@ bool RecordingCatalog::FinalizeBoundSegmentV2(const RecordingSegmentV2& s,const 
 }
 bool RecordingCatalog::RecoverBoundSegmentV2(const RecordingSegmentV2& s,const RecordingSourceBindingV1& b,
                                              const std::string& path,bool* inserted,std::string* error) {
-    recording::latency::Lock lock(mu_,recording::latency::Source::Catalog,__LINE__,false,__func__);return CommitBoundLocked(s,b,path,true,inserted,error);
+    recording::latency::Lock lock(mu_,recording::latency::Source::Catalog,__LINE__,false,__func__);
+    // Recovery has a different provenance from the live Writer. Clear both
+    // before and after, including duplicate/no-op and exceptional completion.
+    struct Barrier {SearchInvalidations* log;~Barrier(){if(log)log->Barrier();}} barrier{search_invalidations_.get()};
+    if(barrier.log)barrier.log->Barrier();
+    return CommitBoundLocked(s,b,path,true,inserted,error);
+}
+bool RecordingCatalog::CommitActiveBoundSegmentV2(const RecordingSegmentV2& s,const RecordingSourceBindingV1& b,
+    const std::string& path,bool* inserted,std::string* error) {
+    recording::latency::Lock lock(mu_,recording::latency::Source::Catalog,__LINE__,false,__func__);
+    return CommitBoundLocked(s,b,path,true,inserted,error);
 }
 RecordingCatalog::SourceBindingHandle RecordingCatalog::FindSourceBindingOwned(const SourceBindingPool& pool,const std::string& id) {
     const auto found=pool.find(id);return found==pool.end()?SourceBindingHandle{}:found->second.WarmOwned();

@@ -23,6 +23,9 @@ public:
     }
 #endif
 #endif
+#if defined(RECORDING_SEARCH_TESTING) && !defined(MEDIA_SERVER_RECORDING_GENERATION_TESTING) && MEDIA_SERVER_USE_OPENSSL && !defined(_WIN32)
+    int ProbeIndexFd()const{return index_.ProbeFd();}
+#endif
     using Visitor=std::function<bool(const std::string&,const std::string&,std::string*)>;
     bool Create(std::string* error,std::uint64_t slot_limit=UINT64_MAX) {
         std::lock_guard<std::recursive_mutex> lock(mu_);

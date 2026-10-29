@@ -3,6 +3,8 @@
 #pragma once
 
 #include <cstdint>
+#include <chrono>
+#include <cstring>
 #include <atomic>
 #include <condition_variable>
 #include <deque>
@@ -29,6 +31,7 @@
 struct sqlite3;
 
 namespace recording {
+struct FinalizeReadyTicket;
 struct RecordingIdentityChainResult;
 struct SearchDocument;
 struct RecordingCatalogSnapshot;
@@ -103,6 +106,9 @@ struct RecordingOriginalResult {
 class RecordingCatalogHistoryRows;
 class RecordingCatalog final : public RecordingStorePort {
     friend class RecordingRuntimeStorage;
+    friend bool CommitFinalizeReadyV2(RecordingCatalog&, const std::filesystem::path&, const FinalizeReadyTicket&, std::string*);
+    bool CommitActiveBoundSegmentV2(const RecordingSegmentV2&, const RecordingSourceBindingV1&,
+        const std::string&, bool*, std::string*);
     friend struct RecordingAggregateResourceProbe;
 #ifdef RECORDING_SEARCH_TESTING
     friend struct RecordingSearchRetryTestProbe;
@@ -292,6 +298,9 @@ public:
 
 private:
     bool RebaseRetentionSearchSource(SearchSourceBatch*, SearchModelLimits, std::string*) const;
+    bool PublishSearchMembership(const SearchSourceBatch&, std::shared_ptr<const RecordingSearchModel>,
+        std::shared_ptr<const RecordingSearchModel>*, std::string*) const;
+    void StopSearchPublication();
     bool CaptureSearchSourceImpl(const std::vector<std::string>& channels,
         const RecordingSearchModel* previous, SearchSourceBatch* result, std::string* error,
         SearchModelLimits limits, bool include_observations, SearchSourceBatch* retry_capture, bool allow_raw_cut, bool allow_document_sharing = true) const;
@@ -564,8 +573,10 @@ private:
     bool PrepareGenerationSnapshotStreamLocked(const RecordingIdentityChainResult&,std::uint64_t,std::uint64_t,
         GenerationSnapshotStream*,std::string*,const GenerationSnapshotView* frozen=nullptr) const;
     bool PoisonGenerationLocked(std::string* error);
-#if MEDIA_SERVER_RECORDING_GENERATION_TESTING
+#if MEDIA_SERVER_RECORDING_GENERATION_TESTING || defined(RECORDING_SEARCH_TESTING)
     static thread_local int generation_apply_fault_;
+#endif
+#if MEDIA_SERVER_RECORDING_GENERATION_TESTING
     static thread_local std::function<void()> source_binding_unlocked_hook_;
     static thread_local std::function<void()> source_binding_acquire_hook_;
     static thread_local void (*generation_checkpoint_prepared_hook_)();
@@ -677,6 +688,58 @@ private:
         std::array<Entry,1024> entries{};
         std::size_t next=0, count=0;
         std::uint64_t floor=0;
+        // Volatile global coverage, not a second authority. Every non-order
+        // application advances epoch; only fully applied durable bound Finalize
+        // completes a receipt. Unsupported/failed/recovery applications leave gaps.
+        static constexpr std::size_t receipt_capacity=64, raw_limit=32;
+        static constexpr std::uint64_t receipt_lifetime_ns=60000000000ULL;
+        struct Receipt {
+            std::uint64_t epoch=0, revision=0, ordinal=0, issued_ns=0;
+            char id[129]{}, channel[129]{};
+        };
+        std::array<Receipt,receipt_capacity> receipts{};
+        Receipt pending{};
+        std::size_t receipt_next=0, receipt_count=0;
+        std::uint64_t membership_epoch=1;
+        static std::uint64_t Now() noexcept {
+            return std::chrono::duration_cast<std::chrono::nanoseconds>(
+                std::chrono::steady_clock::now().time_since_epoch()).count();
+        }
+        void Barrier() noexcept {
+            receipt_count=receipt_next=0;pending={};
+            if(membership_epoch==UINT64_MAX)membership_epoch=0;
+            else if(membership_epoch)++membership_epoch;
+        }
+        void Complete(std::uint64_t ordinal) noexcept {
+            if(!pending.epoch||pending.epoch!=membership_epoch)return;
+            pending.ordinal=ordinal;pending.issued_ns=Now();
+            receipts[receipt_next]=pending;receipt_next=(receipt_next+1)%receipt_capacity;
+            if(receipt_count<receipt_capacity)++receipt_count;
+            pending={};
+        }
+        // Return a fixed reason, useful to Native diagnostics. No allocation,
+        // pointers into Catalog state, or unbounded work on either side.
+        const char* Cover(std::uint64_t from,std::uint64_t since,std::uint64_t through,
+            std::array<Receipt,receipt_capacity>* copy,std::size_t* copied) const noexcept {
+            *copied=0;
+            if(!from||!membership_epoch||from>=membership_epoch)return "epoch";
+            if(membership_epoch-from>receipt_capacity)return "overflow";
+            if(receipt_count>receipt_capacity||receipt_next>=receipt_capacity)return "index";
+            auto expected=from;auto revision=since;std::uint64_t ordinal=0;
+            const auto now=Now();
+            for(std::size_t n=0;n<receipt_count;++n) {
+                const auto& receipt=receipts[(receipt_next+receipt_capacity-receipt_count+n)%receipt_capacity];
+                if(receipt.epoch<=from)continue;
+                if(expected==UINT64_MAX||receipt.epoch!=expected+1||receipt.epoch>membership_epoch)return "gap-order";
+                if(receipt.revision<=revision||receipt.revision>through||!receipt.ordinal||receipt.ordinal<=ordinal)return "binding";
+                if(!receipt.issued_ns||now<receipt.issued_ns||now-receipt.issued_ns>receipt_lifetime_ns)return "expired";
+                if(!receipt.id[0]||!receipt.channel[0]||receipt.id[128]||receipt.channel[128])return "identity";
+                for(std::size_t i=0;i<*copied;++i)if(std::strcmp((*copy)[i].id,receipt.id)==0)return "duplicate";
+                (*copy)[(*copied)++]=receipt;
+                expected=receipt.epoch;revision=receipt.revision;ordinal=receipt.ordinal;
+            }
+            return expected==membership_epoch?nullptr:"gap";
+        }
     };
     mutable std::unique_ptr<SearchInvalidations> search_invalidations_;
     mutable bool derived_job_state_authoritative_{true};

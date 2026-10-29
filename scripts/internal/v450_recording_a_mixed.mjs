@@ -26,6 +26,8 @@ import {removeDiagnosticRoot} from "./recording_failure_capture.mjs";
 const repo=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../..');
 const root=process.argv[2],args=process.argv.slice(3),short=args.length===1&&args[0]==='--app-observe';
 // 명시 State opt-in은 보존된 실제 Writer 증거와 실행 자산을 제품 시작 전에 결속한다.
+const blockerMode=process.env.MEDIA_SERVER_BLOCKER_RESOLUTION==='1';
+if(blockerMode&&!short)throw Error('blocker-short-only');
 const stateExecution=requireStateInputExecutable(selectStateInputProfile(args,process.env.MEDIA_SERVER_STATE_INPUT_PROFILE));
 const stateDiagnose=args.length===1&&args[0]==='--state-diagnostic';
 const contentionDiagnose=args.length===1&&args[0]==='--contention-diagnostic';
@@ -84,11 +86,12 @@ function environment(http,rtsp,stun){const env={PATH:process.env.PATH,HOME:proce
     SOURCE_REGISTRY:path.join(root,'state/sources.json'),PUBLISHED_VIEWS:path.join(root,'state/views.json'),ANALYSIS_REGISTRY:path.join(root,'state/analysis.json'),
     ANALYSIS_EVENT_STORAGE_ENABLED:0,ANALYSIS_EVENT_STORAGE_PATH:path.join(root,'events/events.jsonl'),ANALYSIS_EVENT_POST_ENABLED:0,
     ANALYSIS_EVENT_CLIP_HOOK_ENABLED:0,ANALYSIS_EVENT_CLIP_DIR:path.join(root,'events/clips'),ANALYSIS_EVENT_SNAPSHOT_HOOK_ENABLED:0,ANALYSIS_EVENT_SNAPSHOT_DIR:path.join(root,'events/snapshots'),
-    VA_REVIEW_ENABLED:1,VA_REVIEW_LOCAL_ENDPOINT:'http://127.0.0.1:1',VISUAL_SEARCH_ENABLED:1,VISUAL_SEARCH_MODEL_DIRECTORY:path.join(repo,'models/v430-siglip2'),VISUAL_SEARCH_SCAN_SECONDS:1,VISUAL_SEARCH_SAMPLE_SECONDS:1,EVIDENCE_ENABLED:1,RECORDING_ENABLED:1,RECORDING_STORAGE_ROOT:path.join(root,'recordings'),RECORDING_SEGMENT_DURATION_SECONDS:2,RECORDING_RESERVED_FREE_BYTES:0,RECORDING_RETENTION_INTERVAL_MS:1000,
+    VA_REVIEW_ENABLED:1,VA_REVIEW_LOCAL_ENDPOINT:'http://127.0.0.1:1',VISUAL_SEARCH_ENABLED:1,VISUAL_SEARCH_MODEL_DIRECTORY:'/Users/dhseo/Workspace/mediaServer/models/v430-siglip2',VISUAL_SEARCH_SCAN_SECONDS:1,VISUAL_SEARCH_SAMPLE_SECONDS:1,EVIDENCE_ENABLED:1,RECORDING_ENABLED:1,RECORDING_STORAGE_ROOT:path.join(root,'recordings'),RECORDING_SEGMENT_DURATION_SECONDS:2,RECORDING_RESERVED_FREE_BYTES:0,RECORDING_RETENTION_INTERVAL_MS:1000,
     VERIFY_RECORDING_STATE_TRACE:1,VERIFY_CATALOG_HOLDER_TRACE:diagnose&&!stateDiagnose?1:0,VERIFY_VISUAL_REQUEST_TRACE:1,VERIFY_RECORDING_SEARCH_TRACE:1,VERIFY_VISUAL_LATENCY_TRACE:short?1:0,VERIFY_RECORDING_RESOURCE_TRACE:1,VERIFY_FRAME_TRACE:frameTraceMode,VERIFY_RECORDING_LATENCY_TRACE:1,VERIFY_RECORDING_LATENCY_SLOW_ONLY:1,
     GST_CACHE_DIR:path.join(root,'gst-cache'),GST_PLUGIN_PROFILE:'headless',WEBRTC_STUN_SERVER:`stun://127.0.0.1:${stun}`,WEBRTC_TURN_SERVER:''};
   if(stateExecution){values.BIN_PATH=stateExecution.product;values.BUILD_DIR=path.dirname(stateExecution.runtime);}
-  if(memoryObserve)values.VERIFY_MEMORY_ATTRIBUTION=1;
+  if(memoryObserve||blockerMode)values.VERIFY_MEMORY_ATTRIBUTION=1;
+  if(blockerMode)values.VERIFY_MULTIFINALIZE_BLOCKERS=1;
   if(stateDiagnose)values.VERIFY_MEMORY_COMPACT=1;
   if(memoryDiagnose)values.VERIFY_CATALOG_SUBCOSTS=1;
   if(contentionDiagnose||memoryDiagnose)values.VERIFY_CATALOG_HOLDER_WHOLE_REQUESTS='slow-first';
@@ -164,11 +167,99 @@ async function evidenceLoad(app){
  }
  mixed.cycles++;console.log('[mixed-cycle-progress] '+JSON.stringify({elapsedMs:observationStart===null?null:performance.now()-observationStart,searchClients:mixed.searchSuccessByClient,evidenceCreated:mixed.createSuccess,visualCreated:mixed.visualCreated}));await verifySavedEvidence(app);console.log('[evidence-load] '+JSON.stringify({cycles:mixed.cycles,searchSuccess:mixed.searchSuccess,createSuccess:mixed.createSuccess,createBusy:mixed.createBusy,retainedChecks:mixed.retainedChecks,deletedSourceObserved:mixed.deletedSourceObserved}));
 }
+// R184-B: focused cases using the existing authenticated product fixture.
+let blockerResults={scope:'three blockers only; no State45/startup-suite claim',requests:[],auth:null,retention:null};
+let blockerSequence=0;
+async function bfetch(app,label,route,{cookie=app.cookie,method='GET',body,range}={}) {
+ const id='mfb-'+(++blockerSequence),started=performance.now();
+ const headers={'X-Media-Search-Request-Id':id,...(cookie?{Cookie:cookie}:{}),...(body?{'Content-Type':'application/json'}:{}),...(range?{Range:range}:{})};
+ try{
+  const response=await fetch(app.base+route,{method,headers,body:body?JSON.stringify(body):undefined,redirect:'manual',signal:AbortSignal.timeout(5000)});
+  const bytes=Buffer.from(await response.arrayBuffer());check(bytes.length<=4*1024*1024,'R184-B response bound');
+  const selected={};for(const k of ['content-type','content-length','content-range','cache-control','www-authenticate','x-content-type-options'])if(response.headers.has(k))selected[k]=response.headers.get(k);
+  const json=selected['content-type']?.includes('json');const value={id,label,pid:app.child.pid,method,route,status:response.status,elapsedMs:performance.now()-started,headers:selected,bytes:bytes.length,body:json?bytes.toString():null,bodySha256:crypto.createHash('sha256').update(bytes).digest('hex'),clientError:null};
+  console.log('[blocker-response] '+JSON.stringify(value));blockerResults.requests.push({id,label,pid:value.pid,status:value.status,elapsedMs:value.elapsedMs});return {...value,json:json?JSON.parse(bytes):null};
+ }catch(error){console.log('[blocker-client-error] '+JSON.stringify({id,label,pid:app.child.pid,method,route,elapsedMs:performance.now()-started,name:error.name,code:error.cause?.code??null,status:null}));throw error;}
+}
+async function blogin(app,index) {
+ const account=auth.accounts[index],response=await fetch(app.base+'/login',{method:'POST',body:new URLSearchParams({username:account.username,password:account.password}),redirect:'manual',signal:AbortSignal.timeout(5000)});
+ const cookie=response.headers.getSetCookie().map(v=>v.split(';',1)[0]).join('; ');await response.arrayBuffer();
+ console.log('[blocker-login] '+JSON.stringify({pid:app.child.pid,accountIndex:index,status:response.status,cookiePresent:!!cookie}));check(response.status===302&&cookie,'R184-B fresh session login');auth.cookies[index]=cookie;return cookie;
+}
+async function bpage(app,label,query,{first=null}={}) {
+ let initial=first,items=first?[...first.items]:[],cursor=first?.nextCursor??null;
+ for(let i=0;i<32;++i){const q=new URLSearchParams(query);if(cursor)q.set('cursor',cursor);
+  if(first&&!cursor)break;
+  const r=await bfetch(app,label+'-page-'+i,'/ops/api/recordings/search?'+q);check(r.status===200,'R184-B '+label+' status200');const p=r.json;
+  check(Array.isArray(p.items)&&p.integrity.membership==='authenticated'&&p.searchBasis&&p.appliedQuery,'R184-B response consumer contract');
+  if(!initial)initial=p;else check(p.snapshotId===initial.snapshotId&&p.knownCount===initial.knownCount&&p.unplacedCount===initial.unplacedCount,'R184-B cursor binding');
+  items.push(...p.items);cursor=p.nextCursor;if(!cursor)break;
+ }
+ check(!cursor&&items.length===initial.knownCount+initial.unplacedCount&&new Set(items.map(x=>x.id)).size===items.length,'R184-B complete unique membership');
+ console.log('[blocker-membership] '+JSON.stringify({label,pid:app.child.pid,snapshotId:initial.snapshotId,items:items.length,segments:[...new Set(items.map(x=>x.segmentId))]}));return {...initial,items};
+}
+async function bvisual(app,label,channelIds='9101,9201') {
+ const r=await bfetch(app,label,'/ops/api/recordings/visual-search?'+new URLSearchParams({channelIds,text:'ball',threshold:'-1',limit:'200'}));
+ check(r.status===200&&r.json.kind==='visual-frame'&&r.json.items.length>0&&r.json.items.every(x=>Number.isFinite(x.score)),'R184-B actual Visual200');return r.json;
+}
+async function bmetrics(app,label){const m=await collectProcess(collector,app.child.pid);assertLaunchMetrics(app.identity,m);console.log('[blocker-metrics] '+JSON.stringify({label,...m,owner:currentResourceTrace(app.resourceTrace),workspace:storageNow()}));}
+async function bdisable(app){await settings(app,false);await until(async()=>{const v=await request(app,'GET','/ops/api/recordings/status');return ['9101','9201'].every(id=>v.channels.some(x=>x.channelId===id&&!x.active));});progress.setActive(performance.now(),false);await drain(performance.now());}
+function bexact(page,label){const expected=[...progress.records.values()].filter(x=>['9101','9201'].includes(x.channel)&&x.state==='finalized').map(x=>x.id).sort();const actual=[...new Set(page.items.map(x=>x.segmentId))].sort();console.log('[blocker-oracle] '+JSON.stringify({label,expected,actual,records:[...progress.records.values()].map(x=>({id:x.id,channel:x.channel,order:x.order,state:x.state,knownMappings:x.knownMappings,unknownMappings:x.unknownMappings}))}));check(JSON.stringify(expected)===JSON.stringify(actual),'R184-B '+label+' exact journal membership');}
+async function bauth(app,label,route,media){
+ for(const [role,cookie,status] of [['owner',app.cookie,200],['scoped-operator',auth.cookies[1],403],['viewer',auth.cookies[2],403],['anonymous',null,401]]){const r=await bfetch(app,label+'-'+role,route,{cookie});check(r.status===status,'R184-B '+label+' '+role+' expected '+status+' actual '+r.status);}
+ if(media)for(const [role,cookie,status] of [['owner',app.cookie,206],['scoped-operator',auth.cookies[1],404],['anonymous',null,401]]){const r=await bfetch(app,label+'-media-'+role,media,{cookie,range:'bytes=0-31'});check(r.status===status&&(status!==206||r.bytes===32),'R184-B '+label+' media '+role+' expected '+status+' actual '+r.status);}
+}
+async function runBlockers(stun){
+ const query=new URLSearchParams({channelIds:'9101,9201',startTimeMs:String(Date.now()-3600000),endTimeMs:String(Date.now()+3600000),includeUnplaced:'true',limit:'200'}),route='/ops/api/recordings/search?'+query;
+ const first=await launch(stun);for(const id of ['9101','9201'])await request(first,'POST','/ops/api/sources',source(id));
+ const began=performance.now(),ob=new CurrentObservationBudget();progress=new CurrentLongrunProgress(began,['9101','9201'],ob);observer=new CurrentRecordingObserver(path.join(root,'recordings'),native,ob);
+ await until(async()=>{await drain(performance.now());return Object.values(progress.channels).every(c=>c.finalized>=2);});
+ await request(first,'GET','/ops/api/recordings/status',undefined,true);await bmetrics(first,'first-ready');
+ const prime=await bpage(first,'initial-strict',query);await bvisual(first,'visual-before-restart');
+ const beforeCounts=Object.fromEntries(Object.entries(progress.channels).map(([id,c])=>[id,c.finalized]));
+ await until(async()=>{await drain(performance.now());return Object.entries(progress.channels).every(([id,c])=>c.finalized>=beforeCounts[id]+2);});
+ const pair=await Promise.all([bpage(first,'multi-pair-0',query),bpage(first,'multi-pair-1',query)]);
+ check(pair.every(p=>new Set(p.items.map(x=>x.segmentId)).size>new Set(prime.items.map(x=>x.segmentId)).size),'R184-B multi finalize both requests');
+ await bdisable(first);const stable=await bpage(first,'before-restart-stable',query);bexact(stable,'before-restart');const media=stable.items.find(x=>x.playable).playbackUrl;
+ await bauth(first,'before-restart',route,media);const staleCookies=[...auth.cookies];await bmetrics(first,'before-restart-stop');await stop(first);
+ const second=await launch(stun,false);
+ // launch intentionally reauthenticates only admin, matching the previous harness.
+ const oldOwner=await bfetch(second,'after-restart-stale-owner',route,{cookie:staleCookies[0]});
+ const oldOperator=await bfetch(second,'after-restart-stale-operator',route,{cookie:staleCookies[1]});
+ check(oldOwner.status===401&&oldOperator.status===401,'R184-B restarted process rejects old sessions401');
+ await blogin(second,1);await blogin(second,2);await bauth(second,'after-restart-fresh',route,media);
+ blockerResults.auth={classification:'AUTH_FIXTURE_OR_RESTART_STATE_MISMATCH',secondary:'AUTH_TEST_HARNESS_DEFECT missing status before assertion',staleOwnerStatus:oldOwner.status,staleOperatorStatus:oldOperator.status,freshOperatorStatus:403};
+ const recovered=await bpage(second,'restart-strict',query);bexact(recovered,'after-restart');check(new Set(stable.items.map(x=>x.segmentId)).size===new Set(recovered.items.map(x=>x.segmentId)).size,'R184-B stable recovered membership');
+ // Keep an actual old snapshot and verify current per-item media after retention.
+ const one=new URLSearchParams(query);one.set('limit','50');const oldPage=await bfetch(second,'old-snapshot-prime','/ops/api/recordings/search?'+one);check(oldPage.status===200&&oldPage.json.nextCursor,'R184-B old snapshot cursor exists');
+ const visualBefore=await bvisual(second,'visual-before-retention','9101');const visualCandidates=new Set(visualBefore.items.map(x=>x.playbackUrl.split('/').at(-1)));
+ const candidates=[...progress.records.values()].filter(x=>x.channel==='9101'&&x.state==='finalized'&&visualCandidates.has(x.id));check(candidates.length>=2,'R184-B actual Visual deletion candidates');
+ const survivor=recovered.items.find(x=>x.channelId==='9201'&&x.playable);check(survivor,'R184-B survivor channelB exists');
+ const registry=await request(second,'GET','/ops/api/sources'),body=source('9101');body.recording=nextRecordingSettings(registry,'9101',true,fixtureProfile.name);body.recording.continuousMaxBytes=64*1024*1024+65536;
+ const policy=await request(second,'PUT','/ops/api/sources/9101',body);check(policy.source.recording.continuousMaxBytes===body.recording.continuousMaxBytes,'R184-B bounded capacity retention setting');
+ let victim;await until(async()=>{await drain(performance.now());victim=candidates.find(x=>progress.records.get(x.id)?.state==='deleted');return victim;},10000);
+ // Restore original profile and stop before exact membership comparison; no Catalog/file edits.
+ await bdisable(second);const deleted=await bfetch(second,'retention-deleted-media','/ops/api/recordings/media/'+victim.id,{range:'bytes=0-31'});check(deleted.status===404,'R184-B durable deleted media404');
+ const live=await bfetch(second,'retention-surviving-media',survivor.playbackUrl,{range:'bytes=0-31'});check(live.status===206&&live.bytes===32,'R184-B surviving media206');
+ const after=await bpage(second,'after-delete-strict',query);bexact(after,'after-delete');check(!after.items.some(x=>x.segmentId===victim.id),'R184-B latest excludes deleted');
+ const old=await bpage(second,'old-snapshot-after-delete',one,{first:oldPage.json});const oldVictim=old.items.filter(x=>x.segmentId===victim.id);check(old.snapshotId===oldPage.json.snapshotId&&oldVictim.length,'R184-B historical snapshot retained membership');
+ const seek=new URLSearchParams(one);seek.set('snapshotId',oldPage.json.snapshotId);seek.set('hitId',oldVictim[0].id);const oldSeek=await bfetch(second,'old-snapshot-deleted-seek','/ops/api/recordings/search/seek?'+seek);check(oldSeek.status===200&&!oldSeek.json.playable&&!oldSeek.json.playbackUrl,'R184-B historical membership never grants deleted playback');
+ check(old.items.slice(oldPage.json.items.length).filter(x=>x.segmentId===victim.id).every(x=>!x.playable&&!x.playbackUrl),'R184-B resumed historical page current media check');
+ const visualAfter=await bvisual(second,'visual-after-delete','9101,9201');check(!visualAfter.items.some(x=>x.playbackUrl.split('/').at(-1)===victim.id),'R184-B Visual excludes formerly returned deleted media');
+ const known=Object.fromEntries(Object.entries(progress.channels).map(([id,c])=>[id,c.finalized]));await settings(second,true);progress.setActive(performance.now(),true);
+ await until(async()=>{await drain(performance.now());return Object.entries(progress.channels).every(([id,c])=>c.finalized>=known[id]+1);});
+ await bdisable(second);const resumed=await bpage(second,'new-finalize-after-strict',query);bexact(resumed,'new-finalize-after-strict');
+ blockerResults.retention={status:'VERIFIED',explicitDeleteApi:'NOT_APPLICABLE no public Segment DELETE route',victim:victim.id,victimJournalState:progress.records.get(victim.id).state,deletedMediaStatus:deleted.status,survivorMediaStatus:live.status,visualTargetPreviouslyReturned:true,oldSnapshotDeniedPlayback:true,channels:progress.status(performance.now()).channels};
+ await bmetrics(second,'before-final-stop');await stop(second);check(closedJournalComplete(await drain(performance.now())),'R184-B durable journal complete after stop');
+ const third=await launch(stun,false);const again=await bfetch(third,'restart-after-delete-media','/ops/api/recordings/media/'+victim.id,{range:'bytes=0-31'});check(again.status===404,'R184-B deletion survives restart');const last=await bpage(third,'restart-after-delete-strict',query);bexact(last,'restart-after-delete');await bvisual(third,'visual-final-restart');await bmetrics(third,'final-restart');await stop(third);
+ console.log('[blocker-complete] '+JSON.stringify(blockerResults));
+}
+
 async function launch(stun,requiresFrameTrace=true){const http=await reservePort(),rtsp=await reservePort();ports.push(http,rtsp);
   const childEnv=environment(http,rtsp,stun);assertMixedFrameTraceMode(childEnv,frameTraceMode);
   const child=spawn(path.join(repo,'server.sh'),['foreground'],{cwd:repo,env:childEnv,stdio:['ignore','pipe','pipe']});
   const spawnObservedAt=short?new Date().toISOString():null;
-  console.log('[decoder-trace-settings] '+JSON.stringify({pid:child.pid,generatedMode:childEnv.MEDIA_SERVER_VERIFY_FRAME_TRACE,expectedMode:frameTraceMode,observationMs:duration}));
+  console.log('[decoder-trace-settings] '+JSON.stringify({pid:child.pid,generatedMode:childEnv.MEDIA_SERVER_VERIFY_FRAME_TRACE,expectedMode:frameTraceMode,observationMs:blockerMode?null:duration}));
   const log=path.join(root,`server-${processes.length+1}.private.log`);
   const app={child,http,rtsp,base:`http://127.0.0.1:${http}`,bytes:0,log,logFd:null,requiresFrameTrace,completionTrace:completionCollection(),memoryTrace:memoryAttributionCollector(child.pid,{strict:stateDiagnose}),resourceTrace:resourceTraceCollector(child.pid)};processes.push(app);
   app.cleanup=createProcessCleanup({child,ports:[{kind:'http',port:http},{kind:'rtsp',port:rtsp}],stopServer,assertPortClosed});
@@ -184,7 +275,7 @@ async function launch(stun,requiresFrameTrace=true){const http=await reservePort
   else{const response=await fetch(app.base+'/login',{method:'POST',body:new URLSearchParams({username:'admin',password:passwords[0]}),redirect:'manual',signal:AbortSignal.timeout(5000)});check(response.status===302,'A restart authenticated login');auth.cookies[0]=response.headers.getSetCookie().map(v=>v.split(';',1)[0]).join('; ');await response.arrayBuffer();}
   app.cookie=auth.cookies[0];assertLocalIceConfig(await request(app,'GET','/webrtc/config'),stun);check(true,'LP26-O05 isolated server healthy');return app;
 }
-async function stop(app){if(!app.stopPromise)app.stopPromise=app.cleanup().then(r=>{app.result=r;console.log('[process-cleanup] '+JSON.stringify(r));if(!r.normalShutdownPass)throw Error('server-stop-failed');return r;});return app.stopPromise;}
+async function stop(app){if(!app.stopPromise){app.stopStarted=performance.now();console.log('[blocker-stop-request] '+JSON.stringify({pid:app.child.pid,atNs:Number(process.hrtime.bigint()),graceMs:5000}));}if(!app.stopPromise)app.stopPromise=app.cleanup().then(r=>{console.log('[blocker-stop-result] '+JSON.stringify({pid:app.child.pid,elapsedMs:performance.now()-app.stopStarted,exitCode:r.exitCode,normalShutdownPass:r.normalShutdownPass}));app.result=r;console.log('[process-cleanup] '+JSON.stringify(r));if(!r.normalShutdownPass)throw Error('server-stop-failed');return r;});return app.stopPromise;}
 function source(id){return {sourceId:id,displayName:`S11 recording ${id}`,kind:'file',file:`retention-${id}.mp4`,enabled:true,
   recording:mixedRecordingSettings(fixtureProfile.name,1,true)};}
 async function settings(app,enabled){const registry=await request(app,'GET','/ops/api/sources');for(const id of ['9101','9201']){const body=source(id);body.recording=nextRecordingSettings(registry,id,enabled,fixtureProfile.name);
@@ -342,6 +433,7 @@ try{
   check(new Set(['9101','9201'].map(id=>fs.realpathSync(path.join(root,'input',source(id).file)))).size===2,'LP26-O05 distinct canonical sources');
   fs.writeFileSync(path.join(root,'state/sources.json'),JSON.stringify({sources:[{sourceId:'1',displayName:'Synthetic A observations',kind:'file',file:'a-seed.mp4',enabled:false,recording:{enabled:false}}]}));fs.writeFileSync(path.join(root,'state/views.json'),JSON.stringify({views:[]}));
   udp=dgram.createSocket('udp4');await new Promise((resolve,reject)=>{udp.once('error',reject);udp.bind(0,'127.0.0.1',resolve);});const stun=udp.address().port;
+  if(blockerMode){await runBlockers(stun);}else{
   const first=await launch(stun),initial=await request(first,'GET','/ops/api/recordings/status');
   const initialIds=initial.channels?.map(c=>c.channelId);
   check(Array.isArray(initialIds)&&initialIds.every(id=>/^[A-Za-z0-9_-]+$/.test(id)&&!['9101','9201'].includes(id))&&
@@ -381,6 +473,7 @@ try{
   const third=await launch(stun);const known=Object.fromEntries(Object.entries(progress.channels).map(([id,c])=>[id,c.finalized]));await settings(third,true);progress.setActive(performance.now(),true);
   await until(async()=>{await drain(performance.now());return Object.entries(progress.channels).every(([id,c])=>c.finalized>known[id]);},30000);check(true,'LP26-O05 reenabled recording after restart');await evidenceLoad(third);await aLoad.reactivate(third);await stop(third);
   check(closedJournalComplete(await drain(performance.now())),'LP26-O02 final restart closed journal no partial tail');await snapshot();}
+  }
   }catch(error){failed++;if(error.workspaceDecision)workspaceFailure.capture(error);console.log('[workspace-first-failure] '+JSON.stringify(workspaceFailure.summary()));try{rootDiagnostic('failure-live',storageNow(),true);}catch{console.log('[root-storage] '+JSON.stringify({reason:'failure-live',final:true,measurementAvailable:false,journalMutationTypes:observer?{...observer.typeCounts}:null,journalMutationTypesCoverage:observer?'drained-prefix-only; unread-or-partial-tail-excluded':'observer-unavailable',rawPathsPublished:false}));}console.error('[fail] current observation: '+(error?.message?.match(/^[a-zA-Z0-9 .:-]+$/)?error.message:'redacted-error'));}
 finally{
   observationStart=null;summary=summarizeAvailableSamples(samples);
@@ -416,8 +509,8 @@ finally{
     completion:app.identityCompletion??null,resource:app.identityResource??null,sampleIndexes:app.identitySampleIndexes??[],
     statusSamples:app.identityStatusSamples??0,cleanup:app.result??null})),artifacts.outputDir):null;
   const resultFailed=failed>0||(short&&identityCoverage.status!=='PASS');
-  const final={workspaceFailure:workspaceFailure.summary(),decoderTraceMode:frameTraceMode,preparationContract,mode:memoryDiagnose?'v450-memory-attribution-diagnostic':short?'v450-startup-preparation-v2':contentionDiagnose?'v450-contention-diagnostic':stateDiagnose?'v450-state-diagnostic':diagnose?'v450-frame-diagnostic':'v450-recording-search-evidence-A-mixed-120',passed,failed,elapsedMs:Math.round(performance.now()-start),verifiedDurationMs:phaseResult?.elapsedMs??null,
-    longrunObservationCompleted:!short&&!diagnose&&failed===0&&!!phaseResult,shortPreparationPass:false,startupPreparationPass:short&&failed===0,cyclicRecoveryStatus:short?'not-run-in-this-process':null,contentionDiagnosticPass:contentionDiagnose&&failed===0&&!!phaseResult,memoryAttributionDiagnosticCompleted:memoryDiagnose&&failed===0&&!!phaseResult,frameDiagnosticPass:diagnose&&!memoryDiagnose&&!stateDiagnose&&!contentionDiagnose&&failed===0&&!!phaseResult,stateDiagnosticPass:stateDiagnose&&failed===0&&!!phaseResult,fixtureProfile,resourceTrendPass:false,reviewRequired:true,uiFulltestPass:false,
+  const final={...(blockerMode?{blockerResults,verificationScope:'focused blocker resolution; not original mixed startup suite'}:{}),workspaceFailure:workspaceFailure.summary(),decoderTraceMode:frameTraceMode,preparationContract,mode:blockerMode?'multifinalize-blocker-resolution':memoryDiagnose?'v450-memory-attribution-diagnostic':short?'v450-startup-preparation-v2':contentionDiagnose?'v450-contention-diagnostic':stateDiagnose?'v450-state-diagnostic':diagnose?'v450-frame-diagnostic':'v450-recording-search-evidence-A-mixed-120',passed,failed,elapsedMs:Math.round(performance.now()-start),verifiedDurationMs:phaseResult?.elapsedMs??null,
+    longrunObservationCompleted:!short&&!diagnose&&failed===0&&!!phaseResult,shortPreparationPass:false,startupPreparationPass:short&&!blockerMode&&failed===0,cyclicRecoveryStatus:short?'not-run-in-this-process':null,contentionDiagnosticPass:contentionDiagnose&&failed===0&&!!phaseResult,memoryAttributionDiagnosticCompleted:memoryDiagnose&&failed===0&&!!phaseResult,frameDiagnosticPass:diagnose&&!memoryDiagnose&&!stateDiagnose&&!contentionDiagnose&&failed===0&&!!phaseResult,stateDiagnosticPass:stateDiagnose&&failed===0&&!!phaseResult,fixtureProfile,resourceTrendPass:false,reviewRequired:true,uiFulltestPass:false,
     recordingStatusFailure:statusCapture.failure(),evidenceLoad:mixed,aLoad:aLoad?.report()??null,phase:phaseResult??null,resources:summary??null,processCount:processes.length,processesClosed:processes.every(p=>p.result?.normalShutdownPass),udpClosed,
     ...(stateDiagnose?{activeHistory:progress?.activeHistorySnapshot()??null}:{}),
     ...(short?{fixtureGenerationEvidence,processIdentityEvidencePass:identityCoverage.status==='PASS',identityCoverage}:{}),

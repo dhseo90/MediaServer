@@ -5,6 +5,13 @@
 #include "recording/recording_search_precedence.h"
 
 namespace recording {
+#ifdef RECORDING_SEARCH_TESTING
+inline thread_local bool search_membership_test_enabled=true;
+inline thread_local std::uint64_t search_membership_work_test=0;
+inline thread_local bool search_receipt_drop_test=false;
+inline thread_local const char* search_membership_reason_test="not-attempted";
+#endif
+
 struct SearchSeekTarget {
     double seconds{0}, frame_duration_seconds{0};
     std::uint64_t sample_ordinal{0};
