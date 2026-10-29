@@ -73,6 +73,24 @@ def writer_review(plan, rows, recovery, execution, final_owner):
         channels[channel]=dict(count=len(c),normal=len(normal),mean=mean,max=max(r['bytes'] for r in c))
     return channels
 
+
+# 현재 제품 바이트를 기존 실제 Native/Shutdown 결과와 연결한다. 이 anchor는 새 실행으로 위장하지 않는다.
+LINEAGE_HEAD='eb06321cb6bde1d3ec87c462a1f0473f4cacc533'
+LINEAGE_SHA={'native':'f7db282d76aea58f989310a833b1f68b760b2107b8e885e909283e2fb7e96a23',
+             'shutdown':'751c01633a934ea1aae1704477cf11d4221bb9b8b0b89d5d81668282aad995b4'}
+
+def validate_lineage(repo,b):
+    need(git(repo,'diff',LINEAGE_HEAD,'HEAD','--','CMakeLists.txt','src','include')=='','lineage-product-changed')
+    for role in ['native','shutdown']:
+        entry=b[role];need(entry['sha256']==LINEAGE_SHA[role],'lineage-anchor:'+role)
+        origin=bound(entry); m=json.loads(origin.read_text())
+        rows=m['evidence' if role=='native' else 'files'];need(rows,'lineage-empty')
+        if role=='native':need(m['verdict']=='MULTI_FINALIZE_BOUNDED_NATIVE_VERIFIED','native-verdict')
+        for r in rows:
+            relative=Path(r['path']);need(not relative.is_absolute() and '..' not in relative.parts,'lineage-path')
+            bound(dict(path=str(origin.parent/relative),sha256=r['sha256'],bytes=r['bytes']))
+
+
 def validate(repo, bundle, expected_sha):
     need(sha(bundle)==expected_sha,'bundle-sha')
     b=json.loads(Path(bundle).read_text())
@@ -87,6 +105,8 @@ def validate(repo, bundle, expected_sha):
     models=read(b['models']); need(models['files'],'models-empty')
     for entry in models['files']: bound(entry)
     plan=read(b['plan']); review=read(b['writer'])
+    need(plan['generator']==artifact(Path(repo)/'scripts/internal/collect_state_writer_requalification.py'),'writer-generator')
+    bound(plan['helper'])
     need(plan['runId']==review['runId'] and plan['source']==b['source'] and
          plan['binary']==b['binary'] and plan['input']==b['input'],'writer-plan-binding')
     need(review['planSha256']==b['plan']['sha256'] and review['sourceEnd']==current,'writer-source-binding')
@@ -95,6 +115,8 @@ def validate(repo, bundle, expected_sha):
     rows=read(review['rows']); recovery=read(review['recovery'])
     for r in rows:
         need(artifact(bound(r['file']))['sha256']==r['sha256'] and r['file']['bytes']==r['bytes'],'writer-media')
+    raw_paths={entry['path'] for entry in review['rawArtifacts']}
+    need({b['plan']['path'],review['rows']['path'],review['recovery']['path']} <= raw_paths,'writer-raw-coverage')
     channels=writer_review(plan,rows,recovery,review['execution'],review['finalOwner'])
     execution=read(b['smokeExecution']); report=read(b['smokeReport'])
     need(execution['status']=='PASS' and execution['exit']==0 and execution['childExit']==0 and
@@ -103,14 +125,17 @@ def validate(repo, bundle, expected_sha):
          execution['source']['binarySha256']==b['binary']['sha256'],'smoke-source')
     need(report['failed']==0 and report['passed']>0 and report['blockerResults']['retention']['status']=='VERIFIED','smoke-result')
     # 원출력 전체가 별도 Manifest에 결속돼야 한다. 요약 PASS만으로 수용하지 않는다.
-    for role in ['smokeRaw','native','shutdown']:
+    validate_lineage(repo,b)
+    for role in ['smokeRaw']:
         manifest=read(b[role]); need(manifest['files'],'evidence-empty:'+role)
         for entry in manifest['files']: bound(entry)
+        paths={entry['path'] for entry in manifest['files']}
+        need({b['smokeExecution']['path'],b['smokeReport']['path']}<=paths,'smoke-raw-coverage')
     # Prototype는 실제 선행 검증의 바이트/측정값 결속만 판정한다. 공식 Gate는 절대 승격하지 않는다.
     need(identity(repo)==current and sha(binary)==b['binary']['sha256'],'postflight-changed')
     return dict(schema=SCHEMA,qualification='PROTOTYPE_BINDING_VALID',stateReady=False,
                 officialAdoption=False,officialRuns=0,writerChannels=channels,
-                limitations=['Native/Shutdown provenance requires explicit policy review',
+                limitations=['Historical Native/Shutdown lineage preserved; no new Native/Shutdown full-suite claim',
                              'short Smoke is not State45 or natural-retention qualification'])
 
 if __name__=='__main__':
