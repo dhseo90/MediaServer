@@ -351,6 +351,19 @@ export function assessQualifiedStateReview(review){
   need(review.cleanup?.workAbsent===true&&review.cleanup.processGroupAbsent===true,'state-writer-cleanup');
 }
 export function requireStateInputExecutable(profile,env=process.env){
+  const contract=env.MEDIA_SERVER_STATE_CONTRACT??'v1';
+  need(contract==='v1'||contract==='v2','state-contract-version');
+  if(contract==='v2'){
+    need(profile===EARLY_STATE_INPUT,'state-v2-profile');
+    need(!['MEDIA_SERVER_STATE_WRITER_REVIEW','MEDIA_SERVER_STATE_INPUT_MEDIA','MEDIA_SERVER_STATE_PRODUCT','MEDIA_SERVER_STATE_RUNTIME','MEDIA_SERVER_STATE_PRODUCT_SMOKE','MEDIA_SERVER_STATE_VERIFIED_RESULT','MEDIA_SERVER_STATE_VERIFIED_RESULT_SHA256'].some(k=>env[k]!==undefined),'state-v1-v2-mixed');
+    const file=env.MEDIA_SERVER_STATE_V2_BUNDLE,digest=env.MEDIA_SERVER_STATE_V2_BUNDLE_SHA256;
+    need(typeof file==='string'&&path.isAbsolute(file)&&hash(digest),'state-v2-bundle-required');
+    const repo=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../..');
+    const binding=JSON.parse(execFileSync('python3',['-B',path.join(repo,'scripts/internal/recording_state_binding_v2.py'),'--binding',repo,file,digest],{encoding:'utf8',timeout:20000,maxBuffer:131072}));
+    need(binding.contractVersion==='v2'&&binding.profile===profile.name,'state-v2-result');
+    validateQualifiedStateInput(boundFile(binding.input,binding.sha256.input));return binding;
+  }
+  need(env.MEDIA_SERVER_STATE_V2_BUNDLE===undefined&&env.MEDIA_SERVER_STATE_V2_BUNDLE_SHA256===undefined,'state-v2-explicit-selection-required');
   if(!profile)return null;
   need(profile===EARLY_STATE_INPUT,'state-input-profile');
   const reviewDir=env.MEDIA_SERVER_STATE_WRITER_REVIEW,input=env.MEDIA_SERVER_STATE_INPUT_MEDIA,
@@ -363,7 +376,7 @@ export function requireStateInputExecutable(profile,env=process.env){
   if(env.MEDIA_SERVER_STATE_PRODUCT_SMOKE!==undefined||env.MEDIA_SERVER_STATE_VERIFIED_RESULT!==undefined){
     need(plan.productSha===STATE_BINDING_SHA.product&&plan.inputSha===STATE_BINDING_SHA.input,'state-writer-plan-binding');
     validateQualifiedStateInput(boundFile(input,STATE_BINDING_SHA.input));
-    return {profile:profile.name,input,product,runtime,writerReview:reviewDir,
+    return {contractVersion:'v1',profile:profile.name,input,product,runtime,writerReview:reviewDir,
       ...(env.MEDIA_SERVER_STATE_VERIFIED_RESULT!==undefined?bindVerifiedStateProduct(env,product,runtime):
         bindCurrentStateProduct(env.MEDIA_SERVER_STATE_PRODUCT_SMOKE,product,runtime))};
   }
@@ -385,7 +398,7 @@ export function requireStateInputExecutable(profile,env=process.env){
     const files=Object.keys(plan.hashes).filter(f=>f.includes('/artifacts/')&&path.basename(f)===name);need(files.length===1,'state-helper-binding');
     boundFile(files[0],plan.hashes[files[0]]);helpers[name]={path:files[0],sha256:plan.hashes[files[0]]};
   }
-  return {profile:profile.name,input,product,runtime,helpers,matched,sha256:STATE_BINDING_SHA,writerReview:reviewDir};
+  return {contractVersion:'v1',profile:profile.name,input,product,runtime,helpers,matched,sha256:STATE_BINDING_SHA,writerReview:reviewDir};
 }
 // 기존 Wrapper의 opt-in 자산 설치만 담당한다. 프로세스/미디어 생성·감독 기능은 없다.
 if(process.argv[1]&&path.resolve(process.argv[1])===fileURLToPath(import.meta.url)){

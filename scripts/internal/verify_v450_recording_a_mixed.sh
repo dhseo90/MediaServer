@@ -2,7 +2,7 @@
 # 파일 용도: v4.5.0 녹화·검색·증거·A 혼합120분 및 단기 준비 관측. 짧은 실행은 장시간 PASS가 아니다.
 set -euo pipefail
 case "$*" in
-  --memory-attribution-diagnostic|--app-observe|--contention-diagnostic|--state-diagnostic|--frame-diagnostic|"--duration-minutes 120") ;;
+  --qualify-helpers|--memory-attribution-diagnostic|--app-observe|--contention-diagnostic|--state-diagnostic|--frame-diagnostic|"--duration-minutes 120") ;;
   *) echo 'usage: verify_v450_recording_a_mixed.sh --app-observe | --contention-diagnostic | --state-diagnostic | --frame-diagnostic | --duration-minutes 120' >&2; exit 2 ;;
 esac
 observer_driver="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -28,6 +28,7 @@ if [[ "$*" = --state-diagnostic && -n "${MEDIA_SERVER_STATE_INPUT_PROFILE:-}" ]]
   node "$observer_script/recording_state_input_profile.mjs" --install-helpers "$observer_run"
 else
 observer_build="$observer_repo/build-gst-onnx"
+if [[ "$*" = --qualify-helpers ]]; then python3 -B "$observer_script/recording_state_binding_v2.py" --helpers-begin "$observer_repo" "$observer_run"; fi
 python3 "$observer_script/recording_build_freshness.py" --repo "$observer_repo" --build "$observer_build"
 read -r -a observer_link < "$observer_build/CMakeFiles/media_server.dir/link.txt"
 observer_libs=();observer_found=0
@@ -51,6 +52,10 @@ c++ -std=c++17 "$observer_script/recording_process_metrics.cpp" -o "$observer_ru
 "${CXX:-c++}" -std=c++17 -Wall -Wextra -Werror -pthread -I"$observer_repo/include" "${observer_flags[@]}" \
   -DMEDIA_SERVER_USE_GSTREAMER=1 -DMEDIA_SERVER_USE_OPENSSL=1 -DMEDIA_SERVER_USE_SQLITE3=1 \
   -DMEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND=1 "$observer_script/va_review_smoke.cpp" "${observer_libs[@]}" -o "$observer_run/review-seed"
+fi
+if [[ "$*" = --qualify-helpers ]]; then
+  python3 -B "$observer_script/recording_state_binding_v2.py" --helpers-end "$observer_repo" "$observer_run"
+  exit 0
 fi
 export MEDIA_SERVER_VA_REVIEW_FIXTURE_BIN="$observer_run/review-seed"
 node "$observer_driver/v450_recording_a_mixed.mjs" "$observer_run" "$@"

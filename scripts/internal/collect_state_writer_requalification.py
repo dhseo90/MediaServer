@@ -24,7 +24,7 @@ def closed(n):
     with socket.socket() as s:
         return s.connect_ex(('127.0.0.1',n))!=0
 
-def collect(repo, output, source_input, helper):
+def collect(repo, output, source_input, helper, *, v2=False):
     repo=Path(repo).resolve(); root=Path(output)
     need(root.is_absolute() and not root.exists() and root.parent.resolve()==root.parent and
          root.name.startswith('media-server-current-observer-'),'new-owned-root')
@@ -45,6 +45,7 @@ def collect(repo, output, source_input, helper):
               minimumNormalPerChannel=65,maxSegmentBytes=71237,continuousMaxBytes=113246208,
               reservationBytes=67108864,observeSeconds=134,deadlineSeconds=180,ports=[http,rtsp],
               workspaceBytes=469762048,peakRssBytes=4294967296,expected='65+ normal segments/channel; all files/hash/catalog; recovery; owner=0; stop<=5s')
+    if v2:plan.update(qualificationContract='v2',qualificationGeneratorVersion=2,minimumBasis='65 normal segments/channel exceeds receipt capacity64; not a long-run or fast-path proof')
     save(root/'plan.json',plan)
     values=dict(SKIP_LOCAL_ENV=1,SKIP_BUILD=1,SKIP_ENV_CHECK=1,BUILD_DIR=str(binary.parent),BIN_PATH=str(binary),
                 AUTH_MODE='auto',ENABLE_AI=0,ENABLE_LAB=0,ENABLE_OPS=1,ENABLE_CLIENT=0,ENABLE_YOUTUBE_SOURCE=0,
@@ -61,7 +62,7 @@ def collect(repo, output, source_input, helper):
     env=dict(PATH=os.environ['PATH'],HOME=os.environ['HOME'],TMPDIR=str(root/'tmp'),
              **{'MEDIA_SERVER_'+k:str(v) for k,v in values.items()})
     save(root/'environment.json',env)
-    began=time.monotonic(); child=None; forced=False; metrics=[]; failure=None; stop_ms=None
+    began=time.monotonic(); child=None; forced=False; metrics=[]; failure=None; stop_ms=None; signal_at=None
     try:
         with (root/'server.log').open('xb') as log:
             child=subprocess.Popen([str(repo/'server.sh'),'foreground'],cwd=repo,env=env,stdout=log,stderr=log,start_new_session=True)
@@ -77,7 +78,7 @@ def collect(repo, output, source_input, helper):
         failure=type(e).__name__+': '+str(e)
     finally:
         if child is not None:
-            stop=time.monotonic()
+            stop=time.monotonic(); signal_at=int(time.time()*1000)
             if child.poll() is None:
                 os.killpg(child.pid,signal.SIGTERM)
                 try: child.wait(timeout=5)
@@ -91,7 +92,7 @@ def collect(repo, output, source_input, helper):
         except ProcessLookupError: group_absent=True
     execution=dict(exit=child.returncode if child else None,forced=forced,stopMs=stop_ms,
                    portsClosed=all(closed(p) for p in [http,rtsp]),groupAbsent=group_absent,
-                   elapsedSeconds=time.monotonic()-began,error=failure)
+                   elapsedSeconds=time.monotonic()-began,error=failure,signalAtMs=signal_at)
     save(root/'execution.json',execution)
     need(failure is None,'writer-execution:'+str(failure))
     need(execution['exit']==0 and not forced and group_absent and execution['portsClosed'],'writer-cleanup')
@@ -110,13 +111,22 @@ def collect(repo, output, source_input, helper):
     for r in segments:
         s=r['segment']; f=(root/'recordings'/r['mediaRelpath']).resolve()
         need(f.is_relative_to(root/'recordings'),'media-path')
-        result.append(dict(id=s['id'],channel=s['channel'],order=int(s['order']),file=artifact(f),
+        result.append(dict(id=s['id'],channel=s['channel'],order=int(s['order']),finalizedAtMs=int(r['occurredAtMs']),file=artifact(f),
                            bytes=f.stat().st_size,catalogBytes=int(s['sizeBytes']),sha256=sha(f),catalogSha256=s['sha256'],
                            duration=(int(s['endPts'])-int(s['startPts']))*s['timeBaseNum']/s['timeBaseDen']))
     result.sort(key=lambda r:(r['channel'],r['order']));save(root/'rows.json',result)
     actual={p.resolve() for p in (root/'recordings').rglob('*.mp4')}
     need(actual=={Path(r['file']['path']) for r in result},'unmapped-media')
     need(not list((root/'recordings').rglob('*.partial')),'pending-media')
+    if v2:
+        probes={}
+        for row in result:
+            command=['ffprobe','-v','error','-select_streams','v:0','-count_frames','-show_entries',
+                     'stream=codec_name,width,height,avg_frame_rate,duration,nb_read_frames','-of','json',row['file']['path']]
+            p=subprocess.run(command,capture_output=True,timeout=min(3,max(0.1,180-(time.monotonic()-began))))
+            probes[row['id']]=dict(command=command,exit=p.returncode,stderr=p.stderr.decode(),result=json.loads(p.stdout) if p.returncode==0 else None)
+            need(p.returncode==0 and not p.stderr,'media-decode-probe')
+        save(root/'media-probes.json',probes)
     # 원출력은 그대로 유지하고 복사본에 실제 Catalog Open/Recover/ResolveMedia를 실행한다.
     copy=root/'media-server-current-observer-recovery'; copy.mkdir(); shutil.copytree(root/'recordings',copy/'recordings')
     p=subprocess.run([helper,'--snapshot',str(copy/'recordings')],capture_output=True,timeout=max(1,min(20,180-(time.monotonic()-began))),
@@ -129,12 +139,20 @@ def collect(repo, output, source_input, helper):
     channels=writer_review(plan,result,recovered,execution,owners[-1])
     need(identity(repo)==current and artifact(binary)==plan['binary'],'source-changed')
     raw=[artifact(p) for p in sorted(root.rglob('*')) if p.is_file() and not p.is_symlink()]
-    save(root/'review.json',dict(status='MEASURED',synthetic=False,runId=plan['runId'],planSha256=sha(root/'plan.json'),
+    review=dict(status='MEASURED',synthetic=False,runId=plan['runId'],planSha256=sha(root/'plan.json'),
          sourceEnd=current,rows=artifact(root/'rows.json'),recovery=artifact(root/'recovery.json'),
          execution=execution,finalOwner=owners[-1],channels=channels,rawArtifacts=raw,
-         limits='No natural retention, full mixed-load, crash-recovery, or State45 claim'))
+         limits='No natural retention, full mixed-load, crash-recovery, or State45 claim')
+    if v2:
+        review['mediaProbes']=artifact(root/'media-probes.json')
+        review['segmentCounts']={c:dict(finalized=sum(x['channel']==c for x in result),normal=sum(x['channel']==c and 1.95<=x['duration']<=2.1 for x in result),tail=sum(x['channel']==c and x['duration']<1.95 for x in result)) for c in plan['channels']}
+        from recording_state_binding_v2 import check_writer
+        check_writer(plan,review)
+    save(root/'review.json',review)
     print(json.dumps(dict(status='MEASURED',root=str(root),channels=channels,execution=execution)))
 
 if __name__=='__main__':
+    if len(sys.argv)==6 and sys.argv[1]=='--v2':
+        collect(*sys.argv[2:],v2=True);raise SystemExit(0)
     if len(sys.argv)!=5: raise SystemExit('usage: collect_state_writer_requalification.py REPO NEW_ROOT INPUT HELPER')
     collect(*sys.argv[1:])

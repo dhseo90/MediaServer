@@ -5656,3 +5656,15 @@ R184-H05 정확한 PID SIGTERM grace5초 및 owner/scratch/FD 관측; 단기 종
 - RQ04: 실제 자료 종단 Positive와 별도 합성 결속기 테스트를 구분한다. Plan 누락/변조, Writer 실패, 다른 실행/Source, 입력/모델 변조, Native/Shutdown 증거 누락을 거부한다. 합성 단위 검사는 제품 증거로 등록하지 않는다.
 - 네 검증 영역: 단기 도구/실제 Writer/Smoke 범위만 해당. 30분·120분·실제 UI는 미실행. 모든 기존 성능·자원·Retention·종료 Gate와64/32/60초를 유지한다.
 - 승인 대상: 과거 특정 실행 SHA 요구를 현재 HEAD의 새 실행 원출력 결속으로 대체할지, 새 Writer 샘플 최소값·범위 판정, Native/Shutdown lineage 검토 방법. Prototype의 `stateReady=false`를 승인 없이 변경하지 않는다.
+
+### R184-RQ2 — 승인된 격리 State45 v2 자격검증
+
+2026-10-30 사용자 승인 범위는 격리 Clone만이다. 원본 반영/Push/Release 승인이 아니다.
+기본 v1 고정 SHA 계약은 그대로이며 `MEDIA_SERVER_STATE_CONTRACT=v2`와 외부 bundle SHA를 모두 지정해야 신규 경로에 진입한다. v1/v2 환경 혼용·미지원 버전은 거부한다.
+- Q201 Writer: 사전 Plan의 정상 Segment 최소65개/채널을 유지한다. 제안64개보다 하나 더 많은 정상 Finalize로 Receipt64 경계를 넘는 유한 표본을 확보한다. 실제 검색의 overflow/인과 검증은 별도 Native·Smoke다. 과거 관측66/67을 합격선으로 사용하지 않는다. 2채널·2초·평균51200..61440B·전체최대71237B 및 quota/reservation은 유지한다.
+- Q202 전체 Finalize=정상+Stop tail. 모든 Raw/Binding 원출력을 별도 rows/file SHA·Catalog 크기/PTS/order와 대조하고 모든 미디어를 ffprobe decode/count한다. 비정상 길이 행은 채널당 마지막1개만 허용하며 SIGTERM 시각±기존5초 종료 경계의 확정이어야 한다. 제외된 실패/누락·중복ID/파일·계수 불일치 거부. 실제 Catalog 복사본 Recover/ResolveMedia, 원본 partial/unmapped0 및 owner 반환을 요구한다.
+- Q203 Smoke: assertion 개수 대신 startup, Structured·실제 ONNX/SigLIP2 Visual, 시작/재시작 owner/operator/viewer/anonymous, Playback206/404/401, 정확한 Raw membership, 복수 Finalize pair, Fast/Strict 관측, Retention 삭제 후 최신·이전 snapshot·재시작 정합성, 3개 정상 Stop≤5초·공통 owner0을 요구한다. 별도 Segment DELETE API는 없으며 작은 용량으로 유도한 정상 Retention 검증이다. 공식 자연 Retention을 대체하지 않는다.
+- Q204 Source·Binary·Runtime·모델3파일/ONNX library·실제입력·설정/Fixture·서로 다른 qualification/Writer/Smoke UUID를 결속한다. 현재 Build freshness를 다시 확인하며 현재 HEAD에서 생성한 Helper receipt/4파일을 설치한다. Native/Shutdown 원본 anchor와 제품 C++ 바이트 동일성은 기존 증거 범위로 유지한다.
+- Q205 Negative: dirty/staged/HEAD/source/binary, Plan·Review 누락/변조/실패, Raw/Finalize/Segment 계수, 입력·모델 SHA, Smoke 누락/실패/기능 범위 누락, 다른 run/HEAD 혼용, Manifest 변조, unsupported schema, 중복UUID, v1/v2 혼용. 합성 단위 검사와 실제 자료 종단 거부를 구분한다. v1 실제 과거 증거 누락 FAIL은 숨기지 않는다.
+- Q206 공식 CLI 종단 PASS → helper 설치/입력검증/고정파일 freeze → source clean/current build/자원/독립포트/기존진단 preflight 뒤 단회 State45. 2700/2880초, p95≤2000/max≤5000, Timeout/오류0, 2채널·자연삭제·자원·5초종료 및64/32/60초 불변. 장시간 상세 trace의 기존 선택/128행 cap을 유지하며 부분 관측 Fast Path 비율을 전체 선택률로 확대하지 않는다.
+- 네 영역: 내부 단기 qualification과 명시 승인45분 State45만 해당. 120분·실제 UI·Release는 미승인/미실행이다.

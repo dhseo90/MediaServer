@@ -695,6 +695,20 @@ def source_binding(repo):
             'binarySha256': hashlib.sha256((Path(state['product']) if state else repo / 'build-gst-onnx/media_server').read_bytes()).hexdigest()}
 
 
+def claim_state_v2(binding, directory):
+    # 같은 qualification UUID로 공식 부하를 두 번 시작하지 않는다. 실패해도 claim을 보존한다.
+    import uuid
+    run_id=binding['runId']
+    if str(uuid.UUID(run_id))!=run_id or binding['contractVersion']!='v2':raise ValueError('v2-run-claim')
+    file=Path(binding['verifiedResult']).parent/('state45-'+run_id+'.started.json')
+    fd=os.open(file,os.O_WRONLY|os.O_CREAT|os.O_EXCL,0o600)
+    with os.fdopen(fd,'w') as output:
+        json.dump({'contractVersion':'v2','runId':run_id,'directory':str(directory),
+                   'source':binding['sourceBinding'],'startedAt':utc_now()},output,indent=2)
+        output.flush();os.fsync(output.fileno())
+    return str(file)
+
+
 def main():
     if len(sys.argv)==3 and sys.argv[1]=='--limited-search-diagnostic':
         raise SystemExit(limited_entry(Path(sys.argv[2])))
@@ -703,8 +717,9 @@ def main():
     repo = Path(__file__).resolve().parents[2]
     if os.environ.get('MEDIA_SERVER_STATE_INPUT_PROFILE') and sys.argv[1] != '--state-diagnostic':
         raise SystemExit('state-input-mode')
+    binding=None
     if os.environ.get('MEDIA_SERVER_STATE_INPUT_PROFILE'):
-        state_execution_binding(repo)
+        binding=state_execution_binding(repo)
     directory = Path(sys.argv[2])
     if not directory.is_absolute() or not str(directory).startswith('/private/tmp/media-server-') or directory.exists():
         raise SystemExit('new owned parent run required')
@@ -712,6 +727,7 @@ def main():
         raise SystemExit('parent ownership')
     if sys.argv[1] in ('--120', '--state-diagnostic') and subprocess.check_output(['git', 'status', '--porcelain'], cwd=repo):
         raise SystemExit('commit source before long observation')
+    claim=claim_state_v2(binding,directory) if binding and binding.get('contractVersion')=='v2' else None
     directory.mkdir(mode=0o700)
     timeout = 780 if sys.argv[1] == '--memory-attribution-diagnostic' else 1080 if sys.argv[1] == '--contention-diagnostic' else 2880 if sys.argv[1] == '--state-diagnostic' else 180 if sys.argv[1] == '--prepare' else 780 if sys.argv[1] == '--frame-diagnostic' else 7380
     command = ['bash', str(repo / 'scripts/internal/verify_v450_recording_a_mixed.sh')] + (
@@ -720,6 +736,16 @@ def main():
               'timeoutSeconds': timeout, 'observationSeconds': 600 if sys.argv[1] == '--memory-attribution-diagnostic' else 900 if sys.argv[1] == '--contention-diagnostic' else 2700 if sys.argv[1] == '--state-diagnostic' else 30 if sys.argv[1] == '--prepare' else 600 if sys.argv[1] == '--frame-diagnostic' else 7200,
               'wrapperSha256': hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
               'resourceTrendPass': False, 'reviewRequired': True, 'uiFulltestPass': False}
+    if os.environ.get('MEDIA_SERVER_STATE_V2_SMOKE_RUN_ID'):
+        import uuid
+        from recording_state_requalification import artifact
+        run_id=os.environ['MEDIA_SERVER_STATE_V2_SMOKE_RUN_ID']
+        if str(uuid.UUID(run_id))!=run_id or sys.argv[1]!='--prepare' or os.environ.get('MEDIA_SERVER_BLOCKER_RESOLUTION')!='1':
+            raise ValueError('v2-smoke-mode')
+        record['qualification']={'contract':'v2','runId':run_id,
+            'input':artifact(os.environ['MEDIA_SERVER_STATE_V2_SMOKE_INPUT']),
+            'modelDirectory':os.environ['MEDIA_SERVER_STATE_V2_SMOKE_MODELS']}
+    if binding:record.update(contractVersion=binding.get('contractVersion','v1'),qualificationRunId=binding.get('runId'),oneShotClaim=claim)
     receipt = directory / 'execution.json'
     registry = directory / 'owned-recovery-groups.jsonl'
     registry.write_text('')

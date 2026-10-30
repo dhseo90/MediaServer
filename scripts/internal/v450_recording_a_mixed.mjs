@@ -29,6 +29,15 @@ const root=process.argv[2],args=process.argv.slice(3),short=args.length===1&&arg
 const blockerMode=process.env.MEDIA_SERVER_BLOCKER_RESOLUTION==='1';
 if(blockerMode&&!short)throw Error('blocker-short-only');
 const stateExecution=requireStateInputExecutable(selectStateInputProfile(args,process.env.MEDIA_SERVER_STATE_INPUT_PROFILE));
+const qualificationRunId=process.env.MEDIA_SERVER_STATE_V2_SMOKE_RUN_ID;
+let qualification=null;
+if(qualificationRunId!==undefined){
+  if(!blockerMode||!short||stateExecution||!/^[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/.test(qualificationRunId))throw Error('v2-smoke-mode');
+  const input=process.env.MEDIA_SERVER_STATE_V2_SMOKE_INPUT,modelDirectory=process.env.MEDIA_SERVER_STATE_V2_SMOKE_MODELS;
+  if(!input||!modelDirectory||fs.realpathSync(input)!==input||fs.realpathSync(modelDirectory)!==modelDirectory)throw Error('v2-smoke-path');
+  const bytes=fs.readFileSync(input);validateQualifiedStateInput(bytes);
+  qualification={contract:'v2',runId:qualificationRunId,input:{path:input,sha256:crypto.createHash('sha256').update(bytes).digest('hex'),bytes:bytes.length},modelDirectory};
+}
 const stateDiagnose=args.length===1&&args[0]==='--state-diagnostic';
 const contentionDiagnose=args.length===1&&args[0]==='--contention-diagnostic';
 const memoryDiagnose=args.length===1&&args[0]==='--memory-attribution-diagnostic';
@@ -86,7 +95,7 @@ function environment(http,rtsp,stun){const env={PATH:process.env.PATH,HOME:proce
     SOURCE_REGISTRY:path.join(root,'state/sources.json'),PUBLISHED_VIEWS:path.join(root,'state/views.json'),ANALYSIS_REGISTRY:path.join(root,'state/analysis.json'),
     ANALYSIS_EVENT_STORAGE_ENABLED:0,ANALYSIS_EVENT_STORAGE_PATH:path.join(root,'events/events.jsonl'),ANALYSIS_EVENT_POST_ENABLED:0,
     ANALYSIS_EVENT_CLIP_HOOK_ENABLED:0,ANALYSIS_EVENT_CLIP_DIR:path.join(root,'events/clips'),ANALYSIS_EVENT_SNAPSHOT_HOOK_ENABLED:0,ANALYSIS_EVENT_SNAPSHOT_DIR:path.join(root,'events/snapshots'),
-    VA_REVIEW_ENABLED:1,VA_REVIEW_LOCAL_ENDPOINT:'http://127.0.0.1:1',VISUAL_SEARCH_ENABLED:1,VISUAL_SEARCH_MODEL_DIRECTORY:'/Users/dhseo/Workspace/mediaServer/models/v430-siglip2',VISUAL_SEARCH_SCAN_SECONDS:1,VISUAL_SEARCH_SAMPLE_SECONDS:1,EVIDENCE_ENABLED:1,RECORDING_ENABLED:1,RECORDING_STORAGE_ROOT:path.join(root,'recordings'),RECORDING_SEGMENT_DURATION_SECONDS:2,RECORDING_RESERVED_FREE_BYTES:0,RECORDING_RETENTION_INTERVAL_MS:1000,
+    VA_REVIEW_ENABLED:1,VA_REVIEW_LOCAL_ENDPOINT:'http://127.0.0.1:1',VISUAL_SEARCH_ENABLED:1,VISUAL_SEARCH_MODEL_DIRECTORY:stateExecution?.modelDirectory??qualification?.modelDirectory??'/Users/dhseo/Workspace/mediaServer/models/v430-siglip2',VISUAL_SEARCH_SCAN_SECONDS:1,VISUAL_SEARCH_SAMPLE_SECONDS:1,EVIDENCE_ENABLED:1,RECORDING_ENABLED:1,RECORDING_STORAGE_ROOT:path.join(root,'recordings'),RECORDING_SEGMENT_DURATION_SECONDS:2,RECORDING_RESERVED_FREE_BYTES:0,RECORDING_RETENTION_INTERVAL_MS:1000,
     VERIFY_RECORDING_STATE_TRACE:1,VERIFY_CATALOG_HOLDER_TRACE:diagnose&&!stateDiagnose?1:0,VERIFY_VISUAL_REQUEST_TRACE:1,VERIFY_RECORDING_SEARCH_TRACE:1,VERIFY_VISUAL_LATENCY_TRACE:short?1:0,VERIFY_RECORDING_RESOURCE_TRACE:1,VERIFY_FRAME_TRACE:frameTraceMode,VERIFY_RECORDING_LATENCY_TRACE:1,VERIFY_RECORDING_LATENCY_SLOW_ONLY:1,
     GST_CACHE_DIR:path.join(root,'gst-cache'),GST_PLUGIN_PROFILE:'headless',WEBRTC_STUN_SERVER:`stun://127.0.0.1:${stun}`,WEBRTC_TURN_SERVER:''};
   if(stateExecution){values.BIN_PATH=stateExecution.product;values.BUILD_DIR=path.dirname(stateExecution.runtime);}
@@ -169,7 +178,7 @@ async function evidenceLoad(app){
  mixed.cycles++;console.log('[mixed-cycle-progress] '+JSON.stringify({elapsedMs:observationStart===null?null:performance.now()-observationStart,searchClients:mixed.searchSuccessByClient,evidenceCreated:mixed.createSuccess,visualCreated:mixed.visualCreated}));await verifySavedEvidence(app);console.log('[evidence-load] '+JSON.stringify({cycles:mixed.cycles,searchSuccess:mixed.searchSuccess,createSuccess:mixed.createSuccess,createBusy:mixed.createBusy,retainedChecks:mixed.retainedChecks,deletedSourceObserved:mixed.deletedSourceObserved}));
 }
 // R184-B: focused cases using the existing authenticated product fixture.
-let blockerResults={scope:'three blockers only; no State45/startup-suite claim',requests:[],auth:null,retention:null};
+let blockerResults={...(qualification?{qualification}:{}),scope:'three blockers only; no State45/startup-suite claim',requests:[],auth:null,retention:null};
 let blockerSequence=0;
 async function bfetch(app,label,route,{cookie=app.cookie,method='GET',body,range}={}) {
  const id='mfb-'+(++blockerSequence),started=performance.now();
@@ -421,18 +430,19 @@ try{
     return capture.result??{status:null,signal:null,stdout:null,stderr:null};
   };
   let generated;
-  if(stateExecution){
-    const bytes=fs.readFileSync(stateExecution.input);validateQualifiedStateInput(bytes);
+  if(stateExecution||qualification){
+    const bytes=fs.readFileSync(stateExecution?.input??qualification.input.path);validateQualifiedStateInput(bytes);
     fs.writeFileSync(path.join(root,'input/retention.mp4'),bytes,{flag:'wx',mode:0o600});
     validateQualifiedStateInput(fs.readFileSync(path.join(root,'input/retention.mp4')));
     generated={status:0,error:null,signal:null};
+    if(qualification)fixtureGenerationEvidence={ok:true,kind:'qualified-input-reuse-v2',input:qualification.input,regenerated:false};
   }else generated=generate('gst-launch-1.0',['-q','-e','videotestsrc','num-buffers=120','pattern=ball','!','video/x-raw,format=I420,width=160,height=90,framerate=30/1','!','x264enc','tune=zerolatency','speed-preset=ultrafast','pass=quant','quantizer=0','key-int-max=30','!','h264parse','!','mp4mux','!','filesink',`location=${path.join(root,'input/retention.mp4')}`],{encoding:'utf8',timeout:30000,maxBuffer:65536,env:{...process.env,TMPDIR:path.join(root,'tmp')}});
   let generatedBytes=null;try{const s=fs.lstatSync(path.join(root,'input/retention.mp4'));if(s.isFile()&&s.nlink===1)generatedBytes=s.size;}catch{}
-  if(stateExecution)console.log('[fixture-input-reuse] '+JSON.stringify({profile:stateExecution.profile,regenerated:false,outputBytes:generatedBytes}));
+  if(stateExecution||qualification)console.log('[fixture-input-reuse] '+JSON.stringify({profile:stateExecution?.profile??'state-early-cbr224-v1',regenerated:false,outputBytes:generatedBytes}));
   else console.log('[fixture-generation] '+JSON.stringify(summarizeFixtureGeneration(generated,{elapsedMs:short?generationElapsedMs:Math.round(performance.now()-generationStart),outputBytes:generatedBytes})));
   if(short){console.log('[fixture-evidence] '+JSON.stringify(fixtureGenerationEvidence));if(!fixtureGenerationEvidence.ok)throw Error(fixtureGenerationEvidence.fixtureFailure??'fixture-evidence-failed');}
   check(generated.status===0&&!generated.error&&!generated.signal&&generatedBytes!==null&&generatedBytes>0&&generatedBytes<96*1024*1024,'LP26-O05 original bounded retention fixture');
-  console.log('[fixture-input] '+JSON.stringify(stateExecution?validateQualifiedStateInput(fs.readFileSync(path.join(root,'input/retention.mp4'))):assertMixedFixtureInput(fs.readFileSync(path.join(root,'input/retention.mp4')),fixtureProfile.name)));
+  console.log('[fixture-input] '+JSON.stringify(stateExecution?validateQualifiedStateInput(fs.readFileSync(path.join(root,'input/retention.mp4'))):qualification?validateQualifiedStateInput(fs.readFileSync(path.join(root,'input/retention.mp4'))):assertMixedFixtureInput(fs.readFileSync(path.join(root,'input/retention.mp4')),fixtureProfile.name)));
   budget();
   for(const id of ['9101','9201']){fs.copyFileSync(path.join(root,'input/retention.mp4'),path.join(root,'input',source(id).file),fs.constants.COPYFILE_EXCL);budget();}
   fs.unlinkSync(path.join(root,'input/retention.mp4'));
