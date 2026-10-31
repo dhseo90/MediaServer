@@ -13,6 +13,7 @@
 #include <iostream>
 
 #include <chrono>
+#include <atomic>
 #include <algorithm>
 #include <cctype>
 #include <fstream>
@@ -148,6 +149,8 @@ public:
 
     void Push(const media::Packet& packet, std::int64_t utc_ms) {
         std::lock_guard lock(mu);
+        const auto context=std::atomic_load(&stop_context);
+        if(context && context->CancelBeforeAccept()) { ++cancelled_total; return; }
         if (recovery_pending) return;
         if (!started || packet.kind != media::MediaKind::Video || packet.codec != video_track.codec) return;
 #if MEDIA_SERVER_USE_GSTREAMER
@@ -206,6 +209,36 @@ public:
                 (unsigned long long)costs[i][0],(unsigned long long)costs[i][1],(unsigned long long)costs[i][2],(unsigned long long)costs[i][3],(unsigned long long)costs[i][4]);}
     }
 
+    std::uint64_t AcceptedPacketCount() const { return accepted_total.load(); }
+    void RequestStop(std::shared_ptr<const StopContext> context) {
+        std::shared_ptr<const StopContext> empty;
+        std::atomic_compare_exchange_strong(&stop_context,&empty,std::move(context));
+    }
+    PacketResult PushObserved(const media::Packet& packet,std::int64_t utc_ms) {
+        const auto before=accepted_total.load(), cancelled=cancelled_total.load();
+        try { Push(packet,utc_ms); }
+        catch (...) { operation_failed=true; return {accepted_total>before ? PacketOutcome::AcceptedThenFailed : PacketOutcome::FailedBeforeAccept}; }
+        if(accepted_total>before) return {operation_failed ? PacketOutcome::AcceptedThenFailed : PacketOutcome::Accepted};
+        return {cancelled_total>cancelled ? PacketOutcome::CancelledBeforeAccept : PacketOutcome::RejectedBeforeAccept};
+    }
+    WriterStopResult StopObserved() {
+        try { Stop(); } catch (...) { operation_failed=true; }
+        std::lock_guard lock(mu);
+#if MEDIA_SERVER_USE_GSTREAMER
+        if(reservation_active) PreserveReservationLocked();
+#endif
+        WriterStopResult result;
+        result.accepted=accepted_total;result.cancelled_before_accept=cancelled_total;
+        result.finalized=finalized_total;result.durable_ready=durable_ready;
+        result.catalog_applied=catalog_applied;result.reservation_retained=reservation_active || reservation_handed_off;
+        result.operation_complete=true;result.accepted_known=true;
+        const auto context=std::atomic_load(&stop_context);
+        result.outcome=context && context->Expired() ? StopOutcome::DeadlineUnconfirmed :
+            (operation_failed || recovery_pending || result.reservation_retained ? StopOutcome::Failed :
+             (result.cancelled_before_accept ? StopOutcome::CompletedWithCancellation : StopOutcome::Completed));
+        return result;
+    }
+
     std::shared_ptr<const RecordingTimeSnapshot> TimeSnapshot() const {
         return time_snapshot.Get();
     }
@@ -213,6 +246,12 @@ public:
 private:
     std::array<std::array<std::uint64_t,5>,12> writer_costs{};
     bool costs_reported{false};
+    std::shared_ptr<const StopContext> stop_context;
+    std::atomic<std::uint64_t> accepted_total{0}, cancelled_total{0};
+    std::atomic<bool> operation_failed{false};
+    std::uint64_t finalized_total{0};
+    bool durable_ready{false},catalog_applied{false},reservation_notified{false},reservation_handed_off{false};
+
     struct Cost {
         std::array<std::uint64_t,5>& row;std::uint64_t begin;
         Cost(Impl& owner,unsigned stage):row(owner.writer_costs[stage]),begin(latency::SubcostEnabled()?latency::Now():0){}
@@ -231,6 +270,7 @@ private:
     void InputFailureLocked(const char* reason) {
         if(!input_failed)std::cerr<<"[recording-v2] input rejected reason="<<reason<<'\n';
         input_failed=true;
+        operation_failed=true;
     }
     void PushV2Locked(const media::Packet& packet) {
         Cost cost(*this,0);
@@ -326,6 +366,7 @@ private:
                 return false;
             }
             reservation_active = true;
+        reservation_notified=false;reservation_handed_off=false;durable_ready=false;catalog_applied=false;
             current_reserved_bytes = decision.reserved_bytes;
             if (!v2_mode && (admission_blocked || decision.start_new_epoch)) {
                 ++epoch_revision;
@@ -449,6 +490,8 @@ private:
 
     void PushBufferLocked(const media::Packet& packet, std::int64_t utc_ms) {
         if (!segment_open || appsrc == nullptr || packet.payload.empty()) return;
+        const auto context=std::atomic_load(&stop_context);
+        if(context && context->CancelBeforeAccept()) { ++cancelled_total; return; }
         GstBuffer* buffer = gst_buffer_new_allocate(nullptr, packet.payload.size(), nullptr);
         gst_buffer_fill(buffer, 0, packet.payload.data(), packet.payload.size());
         if(v2_mode) {
@@ -465,6 +508,8 @@ private:
         }
         if (!packet.is_key_frame) GST_BUFFER_FLAG_SET(buffer, GST_BUFFER_FLAG_DELTA_UNIT);
         bool accepted=gst_app_src_push_buffer(GST_APP_SRC(appsrc), buffer)==GST_FLOW_OK;
+        // appsrc 수락 뒤 후속 metadata/observer 실패도 수락 사실을 지우지 않는다.
+        if(accepted)++accepted_total;
         if(v2_mode)accepted=detail::AcceptSourceSample(accepted,current_source,
             {packet.observation->ordinal,*packet.observation->pts_ns});
         if (!accepted) {
@@ -511,7 +556,14 @@ private:
             GstBus* bus = gst_element_get_bus(pipeline);
             recording::shutdown_probe::Scope eos_probe("writer-eos");
             GstMessage* message = gst_bus_timed_pop_filtered(
-                bus, 5 * GST_SECOND, static_cast<GstMessageType>(GST_MESSAGE_EOS | GST_MESSAGE_ERROR));
+                bus, RemainingEosBudget(), static_cast<GstMessageType>(GST_MESSAGE_EOS | GST_MESSAGE_ERROR));
+            if(message==nullptr && std::atomic_load(&stop_context)) {
+                // Deadline을 넘은 accepted mux 작업은 강제로 flush하지 않는다.
+                // 호출자는 DrainHandle의 deadline에서 실패를 받으며 worker/owner는 유지된다.
+                operation_failed=true;
+                message=gst_bus_timed_pop_filtered(bus,GST_CLOCK_TIME_NONE,
+                    static_cast<GstMessageType>(GST_MESSAGE_EOS | GST_MESSAGE_ERROR));
+            }
             eos_probe.End();
             eos = message != nullptr && GST_MESSAGE_TYPE(message) == GST_MESSAGE_EOS;
             if (message != nullptr) gst_message_unref(message);
@@ -530,7 +582,7 @@ private:
             output_status.st_ino == path_status.st_ino;
         ResetPipelineLocked();fsync_cost.End();
         if (!output_binding_ok) {
-            AbortSegmentFileLocked(partial_path, 0);
+            operation_failed=true;BlockForRecoveryLocked();
             return;
         }
         current.size_bytes = static_cast<std::uint64_t>(output_status.st_size);
@@ -550,7 +602,7 @@ private:
         {Cost cost(*this,7);current.checksum_sha256 = FileSha256(partial_path);}
         current.lifecycle = RecordingLifecycle::Finalized;
         current.finalized_at_ms = NowMs();
-        if(current.checksum_sha256.size()!=64){AbortSegmentFileLocked(partial_path,current.size_bytes);return;}
+        if(current.checksum_sha256.size()!=64){operation_failed=true;BlockForRecoveryLocked();return;}
         if(v2_mode) {
             current_v2.size_bytes=current.size_bytes;current_v2.checksum_sha256=current.checksum_sha256;
             current_v2.finalized_at_ms=current.finalized_at_ms;v2_time.Finish(&current_v2);
@@ -568,11 +620,16 @@ private:
             ready.partial_relative=partial_path.lexically_relative(options.storage_root);
             ready.final_relative=final_path.lexically_relative(options.storage_root);
             const bool ticket_ok=[&]{Cost cost(*this,9);return WriteFinalizeReadyTicket(options.storage_root,ready,&error);}();
-            if(!ticket_ok || ![&]{Cost cost(*this,10);return CommitFinalizeReadyV2(*options.managed_catalog,options.storage_root,ready,&error);}()) {
+            durable_ready=ticket_ok;
+            FinalizeCommitObservation observation;
+            const bool committed=ticket_ok && [&]{Cost cost(*this,10);return CommitFinalizeReadyV2(*options.managed_catalog,options.storage_root,ready,&error,&observation);}();
+            catalog_applied=observation.catalog_applied;
+            if(catalog_applied) { ++finalized_total; ReleaseReservationLocked(current_v2.size_bytes); }
+            if(!committed) {
                 std::cerr<<"[recording] bound finalize failed: "<<error.substr(0,256)<<'\n';
                 BlockForRecoveryLocked();return;
             }
-            {Cost cost(*this,11);ReleaseReservationLocked(current_v2.size_bytes);}segment_open=false;return;
+            durable_ready=false;segment_open=false;return;
         }
         // 양수 시간구간이 없는 단일 packet은 ready 작성 전의 미완결 출력이다.
         // ticket 작성을 시도한 이후의 불확실 보존/차단 경계와 구분한다.
@@ -582,7 +639,8 @@ private:
         }
         FinalizeReadyTicket ready{current,partial_path.lexically_relative(options.storage_root),final_path.lexically_relative(options.storage_root),std::nullopt,std::nullopt};
         std::string ready_error;
-        if(!WriteFinalizeReadyTicket(options.storage_root,ready,&ready_error)||
+        durable_ready=WriteFinalizeReadyTicket(options.storage_root,ready,&ready_error);
+        if(!durable_ready||
            !PublishFinalizeReady(options.storage_root,ready,&ready_error)){
             BlockForRecoveryLocked();
             return;
@@ -600,19 +658,40 @@ private:
             BlockForRecoveryLocked();
             return;
         }
+        catalog_applied=true;++finalized_total;
+        ReleaseReservationLocked(current.size_bytes);
         if (!ClearFinalizeReady(options.storage_root,ready,&ready_error)) {
             BlockForRecoveryLocked();
             return;
         }
-        ReleaseReservationLocked(current.size_bytes);
+        durable_ready=false;
         segment_open = false;
     }
 
+    GstClockTime RemainingEosBudget() const {
+        const auto context=std::atomic_load(&stop_context);
+        if(!context) return 5 * GST_SECOND;
+        const auto remaining=std::chrono::duration_cast<std::chrono::nanoseconds>(context->deadline-StopContext::Clock::now()).count();
+        return remaining>0 ? static_cast<GstClockTime>(remaining) : 0;
+    }
+    void PreserveReservationLocked() {
+        if(!reservation_active || reservation_notified) return;
+        reservation_notified=true;
+        if(options.complete_reservation) {
+            try {
+                reservation_handed_off=options.complete_reservation(channel_id,
+                    {durable_ready ? ReservationDisposition::RetainedForRecovery : ReservationDisposition::RetainedNotRecoverable, current.size_bytes});
+                if(reservation_handed_off)reservation_active=false;
+            } catch (...) { operation_failed=true; }
+        }
+    }
     void BlockForRecoveryLocked() {
+        operation_failed=true;
+        PreserveReservationLocked();
         recovery_pending=true;
         admission_blocked=true;
         segment_open=false;
-        std::cerr<<"[recording] finalize recovery pending; writer admission blocked until restart\n";
+        std::cerr<<"[recording] finalize failed ready="<<durable_ready<<" catalogApplied="<<catalog_applied<<" reservationRetained="<<(reservation_active||reservation_handed_off)<<"\n";
     }
 
     bool ClearCleanupMarkerLocked() {
@@ -624,6 +703,7 @@ private:
 
     void AbortSegmentFileLocked(const std::filesystem::path& path,
                                 std::uint64_t observed_bytes) {
+        operation_failed=true;
         std::string cleanup_error;
         const bool removed = RemoveContainedMediaFile(
             options.storage_root, path, &cleanup_error);
@@ -640,17 +720,20 @@ private:
     }
 
     void ReleaseReservationLocked(std::uint64_t actual_segment_bytes) {
-        if (!reservation_active) return;
-        reservation_active = false;
-        current_reserved_bytes = 0;
-        current_payload_bytes = 0;
-        reported_on_disk_bytes = 0;
-        if (options.complete_segment) {
-            try {
-                options.complete_segment(channel_id, actual_segment_bytes);
-            } catch (...) {
-            }
+        if (!reservation_active || reservation_notified) return;
+        reservation_notified=true;
+        bool completed=true;
+        try {
+            if(options.complete_reservation) completed=options.complete_reservation(channel_id,{ReservationDisposition::Release,actual_segment_bytes});
+            else if(options.complete_segment) options.complete_segment(channel_id, actual_segment_bytes);
+        } catch (...) { completed=false; }
+        if(!completed) {
+            // Callback의 외부 side effect는 되돌리거나 재시도하지 않는다.
+            // 완료 확인 전에는 같은 channel의 다음 예약으로 덮어쓰지 않는다.
+            operation_failed=true;recovery_pending=true;admission_blocked=true;return;
         }
+        reservation_active=false;
+        current_reserved_bytes=0;current_payload_bytes=0;reported_on_disk_bytes=0;
     }
 
     void ResetPipelineLocked() {
@@ -738,6 +821,15 @@ void GStreamerSegmentWriter::Push(const media::Packet& packet, std::int64_t obse
 
 void GStreamerSegmentWriter::Stop() {
     recording::latency::WorkScope holder_work_scope(recording::latency::Work::Writer); impl_->Stop(); }
+
+std::optional<std::uint64_t> GStreamerSegmentWriter::AcceptedPacketCount() const { return impl_->AcceptedPacketCount(); }
+void GStreamerSegmentWriter::RequestStop(std::shared_ptr<const StopContext> context) { impl_->RequestStop(std::move(context)); }
+PacketResult GStreamerSegmentWriter::PushObserved(const media::Packet& packet,std::int64_t utc_ms) {
+    latency::WorkScope scope(latency::Work::Writer);return impl_->PushObserved(packet,utc_ms);
+}
+WriterStopResult GStreamerSegmentWriter::StopObserved() {
+    latency::WorkScope scope(latency::Work::Writer);return impl_->StopObserved();
+}
 
 std::shared_ptr<const RecordingTimeSnapshot> GStreamerSegmentWriter::TimeSnapshot() const {
     return impl_->TimeSnapshot();

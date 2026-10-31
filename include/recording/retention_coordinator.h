@@ -178,6 +178,7 @@ public:
     DerivedJobAdmissionResult AdmitDerivedJob(RecordingCatalog&,const DerivedJobIntentV1&,std::int64_t now_ms);
     void UpdateContinuousWriteProgress(const std::string& channel_id,
                                        std::uint64_t written_bytes);
+    bool RetainFailedContinuousWrite(const std::string& channel_id);
     void CompleteContinuousWrite(const std::string& channel_id,
                                  std::uint64_t actual_segment_bytes);
     void UpdateEventWriteProgress(const std::string& reservation_id,

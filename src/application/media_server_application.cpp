@@ -55,10 +55,20 @@ namespace media_server::application {
 namespace {
 
 std::atomic<bool> g_running{true};
+std::atomic<std::int64_t> first_stop_signal_ns{0};
+static_assert(std::atomic<std::int64_t>::is_always_lock_free);
+std::int64_t MonotonicNs() {
+    timespec time{};
+    if(::clock_gettime(CLOCK_MONOTONIC,&time)!=0)return 0;
+    return static_cast<std::int64_t>(time.tv_sec)*1000000000LL+time.tv_nsec;
+}
+
 
 volatile std::sig_atomic_t shutdown_probe_enabled=0;
 static_assert(std::atomic<bool>::is_always_lock_free);
 void HandleSignal(int signal) {
+    std::int64_t empty=0;
+    first_stop_signal_ns.compare_exchange_strong(empty,MonotonicNs());
     if(shutdown_probe_enabled)recording::shutdown_probe::Signal(signal);
     g_running.store(false);
 }
@@ -411,11 +421,12 @@ int RunMediaServerApplication(int argc, char** argv) {
                 recording_retention.UpdateContinuousWriteProgress(
                     channel_id, written_bytes);
             };
-            options.complete_segment = [&recording_retention](
-                                           const std::string& channel_id,
-                                           std::uint64_t actual_segment_bytes) {
-                recording_retention.CompleteContinuousWrite(
-                    channel_id, actual_segment_bytes);
+            options.complete_reservation = [&recording_retention](const std::string& channel_id,
+                                                                  recording::ReservationCompletion completion) {
+                if(completion.disposition==recording::ReservationDisposition::Release) {
+                    recording_retention.CompleteContinuousWrite(channel_id,completion.bytes);return true;
+                }
+                return recording_retention.RetainFailedContinuousWrite(channel_id);
             };
             return std::make_unique<recording::GStreamerSegmentWriter>(std::move(options));
         });
@@ -630,6 +641,11 @@ int RunMediaServerApplication(int argc, char** argv) {
         std::this_thread::sleep_for(std::chrono::seconds(1));
     }
 
+    const auto signal_time=first_stop_signal_ns.load();
+    const auto elapsed=signal_time ? std::max<std::int64_t>(0,MonotonicNs()-signal_time) : 0;
+    const auto stop_context=std::make_shared<const recording::StopContext>(
+        recording::StopContext::Clock::now()+std::chrono::seconds(5)-std::chrono::nanoseconds(elapsed));
+    recording_supervisor.BeginStop(stop_context);
     recording::shutdown_probe::Scope stop_scope("main-stop");
     {recording::shutdown_probe::Scope phase("evidence-stop");evidence_packages.Stop();}
     {recording::shutdown_probe::Scope phase("review-stop");va_reviews.Stop();}
@@ -638,13 +654,20 @@ int RunMediaServerApplication(int argc, char** argv) {
     if(recording::memory_diagnostic::Enabled())visual_search.ObserveMemory();
     {recording::shutdown_probe::Scope phase("rtsp-stop");gst_rtsp_server.Stop();}
     {recording::shutdown_probe::Scope phase("event-bridge-stop");if(event_recording_bridge)event_recording_bridge->StopAndDrain();}
-    {recording::shutdown_probe::Scope phase("recording-supervisor-stop");recording_supervisor.Stop();}
+    recording::RecorderStopResult recorder_stop;
+    {recording::shutdown_probe::Scope phase("recording-supervisor-stop");recorder_stop=recording_supervisor.Stop(stop_context);}
+    // 실패를 먼저 게시한다. 실제 종료 전에는 Writer/Storage의 수명을 끝내지 않는다.
+    if(!recorder_stop.Succeeded()) {
+        std::fprintf(stderr,"[shutdown-failed] recorder=%s unfinished=%zu\n",recording::StopOutcomeName(recorder_stop.outcome),recorder_stop.unfinished);
+        recording_supervisor.JoinOwned();
+    }
     {recording::shutdown_probe::Scope phase("analysis-stop");analysis_sessions.Shutdown();}
     {recording::shutdown_probe::Scope phase("event-storage-stop");analysis::StopEventStorage();}
     analysis::SetEventRecordingBridge(nullptr);
     {recording::shutdown_probe::Scope phase("observations-stop");stop_observations();}
     session_manager.SetAuxiliaryStreamRuntimeProvider({});
     {recording::shutdown_probe::Scope phase("storage-finish");if(!finish_recording_storage()||!recording_resource_trace_ok)return 1;}
+    if(!recorder_stop.Succeeded() || stop_context->Expired())return 1;
     return 0;
 }
 

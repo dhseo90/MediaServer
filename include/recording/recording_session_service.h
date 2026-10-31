@@ -37,6 +37,12 @@ public:
                              bool enabled);
     bool StopChannel(const std::string& channel_id);
     void StopAll();
+    RecorderStopResult StopChannel(const std::string&, std::shared_ptr<const StopContext>);
+    void BeginStopAll(std::shared_ptr<const StopContext>);
+    RecorderStopResult StopAll(std::shared_ptr<const StopContext>);
+    // timeout 뒤에도 객체 수명을 보장한다. bounded 성공을 반환하는 API가 아니다.
+    void JoinOwned();
+
     std::size_t ActiveChannelCount() const;
     bool IsChannelRecording(const std::string& channel_id) const;
     // 시작 완료된 유일한 녹화 채널만 반환한다. handle/epoch는 외부에 노출하지 않는다.
@@ -49,6 +55,10 @@ public:
 private:
     struct ChannelState;
     static std::int64_t NowMs();
+    void BeginStop(const std::shared_ptr<ChannelState>&, std::shared_ptr<const StopContext>);
+    RecorderStopResult WaitStop(const std::shared_ptr<ChannelState>&);
+    void FinishChannel(const std::shared_ptr<ChannelState>&);
+
     void OnPacket(const std::shared_ptr<ChannelState>& state, const media::Packet& packet);
 
     core::SessionManager& session_manager_;

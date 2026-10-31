@@ -161,6 +161,11 @@ bool ClearFinalizeReady(const std::filesystem::path& root,const FinalizeReadyTic
 }
 bool CommitFinalizeReadyV2(RecordingCatalog& catalog,const std::filesystem::path& root,
                            const FinalizeReadyTicket& ticket,std::string* error){
+    return CommitFinalizeReadyV2(catalog,root,ticket,error,nullptr);
+}
+bool CommitFinalizeReadyV2(RecordingCatalog& catalog,const std::filesystem::path& root,
+                           const FinalizeReadyTicket& ticket,std::string* error, FinalizeCommitObservation* observation){
+    if(observation)*observation={};
     if(!ticket.segment_v2 || !Validate(ticket,error))
         return Fail(error,"active ready에는 정확한 V2 ticket 필요");
     FinalizeReadyTicket persisted;
@@ -175,8 +180,9 @@ bool CommitFinalizeReadyV2(RecordingCatalog& catalog,const std::filesystem::path
         catalog.ValidateBoundFinalizeRecoveryV2(*ticket.segment_v2,*ticket.source_binding,final_path,error):
         catalog.ValidateFinalizeRecoveryV2(*ticket.segment_v2,final_path,error);},
         [&]{return PublishValidatedReady(root,ticket,error);},
-        [&]{return ticket.source_binding?catalog.CommitActiveBoundSegmentV2(*ticket.segment_v2,*ticket.source_binding,final_path,&inserted,error):
-         catalog.RecoverFinalizedSegmentV2(*ticket.segment_v2,final_path,&inserted,error);},
+        [&]{const bool applied=ticket.source_binding?catalog.CommitActiveBoundSegmentV2(*ticket.segment_v2,*ticket.source_binding,final_path,&inserted,error):
+         catalog.RecoverFinalizedSegmentV2(*ticket.segment_v2,final_path,&inserted,error);
+         if(observation)observation->catalog_applied=applied;return applied;},
         [&]{return ClearValidatedReady(root,ticket,error);});
 }
 bool RecoverFinalizeReadyTickets(RecordingCatalog& catalog,const std::filesystem::path& root,FinalizeRecoveryReport* report,std::string* error){

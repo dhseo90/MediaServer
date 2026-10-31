@@ -1,6 +1,7 @@
 #include "recording/shutdown_diagnostic.h"
 // 파일 용도: 내부 검증 전용: 원본 mutex/제품 계약을 바꾸지 않는 bounded steady-clock 계측.
 #pragma once
+#include "recording/recording_recorder_probe.h"
 #include <array>
 #include <atomic>
 #include <chrono>
@@ -335,12 +336,15 @@ class Lock {
     bool owned_=false,always_;Lock* enclosing_=nullptr;
     bool holder_=false,retention_costs_=false;const char* site_=nullptr;HolderTrace::Event event_;std::array<std::uint64_t,4> begin_counts_{};
     inline static thread_local Lock* current_=nullptr;
+    bool p1_=false;std::uint64_t p1_begin_=0,p1_acquired_=0;
     void Acquire() {
         if(holder_)++Holder().inflight;
         if(enabled_){row_.b=Now();row_.e=0;}
         auto* capture=CaptureLockCost::active;
         if(capture&&capture->mutex==&mutex_)capture->waiting=Now();
+        if(p1_)p1_begin_=recorder_probe::Now();
         mutex_.lock();owned_=true;retention_costs_=false;
+        if(p1_)p1_acquired_=recorder_probe::Now();
         if(capture&&capture->mutex==&mutex_){capture->acquired=Now();capture->ns[capture->acquisitions?2:0]+=capture->acquired-capture->waiting;++capture->acquisitions;}
         if(enabled_){row_.a=Now();previous_=local.mutex;local.mutex=row_.m;++local.depth;}
         if(holder_){event_.b=row_.b;event_.a=row_.a;event_.m=row_.m;event_.t=local.thread;event_.r=VisualRequestSummary::CurrentId();event_.line=row_.l;event_.site=site_;event_.work=static_cast<unsigned>(holder_work);begin_counts_=SubcostEnabled()?journal_subcost:holder_counts;}
@@ -350,13 +354,16 @@ class Lock {
         if(enabled_)row_.e=Now();
         if(holder_){event_.e=row_.e;for(unsigned i=retention_costs_?4:0;i<4;++i)event_.counts[i]=(SubcostEnabled()?journal_subcost[i]:holder_counts[i])-begin_counts_[i];}
         if(auto* capture=CaptureLockCost::active;capture&&capture->mutex==&mutex_)capture->ns[capture->acquisitions>1?3:1]+=Now()-capture->acquired;
+        const auto p1_end=p1_?recorder_probe::Now():0;
         mutex_.unlock();owned_=false;
+        if(p1_&&p1_acquired_&&(p1_end-p1_begin_>=1000000))recorder_probe::Record(site_?site_:"Catalog",p1_begin_,p1_end,p1_acquired_-p1_begin_,p1_end-p1_acquired_,static_cast<unsigned>(holder_work));
         if(holder_){Holder().Add(event_);--Holder().inflight;}
         if(enabled_){--local.depth;local.mutex=previous_;Append(row_,always_);if(!local.request&&local.fast_events>=256)FlushFast();else Flush();}
     }
 public:
     Lock(std::mutex& mutex,Source source,unsigned line,bool always=false,const char* site=nullptr,bool catalog_holder=false):mutex_(mutex),enabled_(Enabled()),always_(always),holder_(Enabled()&&HolderEnabled()&&(source==Source::Catalog||catalog_holder)),site_(site){
         if(enabled_){row_.o=1;row_.s=static_cast<unsigned>(source);row_.l=line;row_.m=MutexId(&mutex);}
+        p1_=recorder_probe::Enabled()&&source==Source::Catalog;
         Acquire();enclosing_=current_;current_=this;
     }
     Lock(std::mutex& mutex,Source source,unsigned line,std::try_to_lock_t,const char* site):mutex_(mutex),enabled_(Enabled()),always_(false),holder_(Enabled()&&HolderEnabled()&&source==Source::Catalog),site_(site){

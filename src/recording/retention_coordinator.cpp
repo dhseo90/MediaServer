@@ -910,6 +910,7 @@ RetentionAdmissionResult RetentionCoordinator::AdmitContinuousWrite(
     const std::string& channel_id,
     std::uint64_t expected_segment_bytes,
     std::int64_t now_ms) {
+    recorder_probe::Span p1_admission("admission");
     AdmissionCosts costs;
     std::unique_lock admission_lock(admission_mu_,std::defer_lock);
     RetentionPolicy policy;
@@ -1246,6 +1247,12 @@ std::uint64_t RetentionCoordinator::EventReservationsLocked(const std::string& c
     for(const auto& [_,reservation]:event_inflight_reservations_)if(reservation.channel_id==channel)
         bytes=SaturatingAdd(bytes,reservation.reserved_bytes);
     return bytes;
+}
+
+bool RetentionCoordinator::RetainFailedContinuousWrite(const std::string& channel_id) {
+    std::lock_guard reservation_lock(reservation_mu_);
+    // 기존 reservation이 남아 신규 admission을 막는다. startup recovery 전에는 반환하지 않는다.
+    return inflight_reservations_.count(channel_id)!=0;
 }
 
 void RetentionCoordinator::CompleteContinuousWrite(

@@ -49,24 +49,50 @@ bool RecordingSupervisor::Start(std::string* error) {
         return false;
     }
     for (const auto& source : sources) ReconcileSource(source);
+    { std::lock_guard lock(wait_mu_);safety_done_=false; }
     safety_thread_ = std::thread(&RecordingSupervisor::SafetyLoop, this);
     if (error != nullptr) error->clear();
     return true;
 }
 
-void RecordingSupervisor::Stop() {
-    sources_.SetSourceMutationCallback({});
+void RecordingSupervisor::BeginStop(std::shared_ptr<const StopContext> context) {
     {
         std::lock_guard lock(wait_mu_);
-        if (!running_) return;
-        stop_requested_ = true;
+        if(terminal_result_)return;
+        if(!stop_context_)stop_context_=context;
+        stop_requested_=true;
+        context=stop_context_;
     }
     wait_cv_.notify_all();
-    if (safety_thread_.joinable()) {recording::shutdown_probe::Scope phase("safety-join");safety_thread_.join();}
-    sessions_.StopAll();
-    std::lock_guard lock(wait_mu_);
-    running_ = false;
+    sessions_.BeginStopAll(context);
 }
+RecorderStopResult RecordingSupervisor::Stop(std::shared_ptr<const StopContext> context) {
+    BeginStop(context);
+    { std::lock_guard lock(wait_mu_);if(terminal_result_)return *terminal_result_;context=stop_context_; }
+    sources_.SetSourceMutationCallback({});
+    bool done=false;
+    {
+        std::unique_lock lock(wait_mu_);
+        done=wait_cv_.wait_until(lock,context->deadline,[&]{return safety_done_;});
+    }
+    if(done) { std::lock_guard join_lock(join_mu_);if(safety_thread_.joinable())safety_thread_.join(); }
+    auto result=sessions_.StopAll(context);
+    if(!done || context->Expired()) {
+        result.outcome=StopOutcome::DeadlineUnconfirmed;
+        result.unfinished+=done?0:1;
+        result.joined=result.joined&&done;
+        result.owner_released=false;
+    }
+    { std::lock_guard lock(wait_mu_);if(result.joined){running_=false;terminal_result_=result;} }
+    std::fprintf(stderr,"[recording-supervisor-stop] result=%s unfinished=%zu joined=%d ownerReleased=%d\n",
+        StopOutcomeName(result.outcome),result.unfinished,result.joined,result.owner_released);
+    return result;
+}
+void RecordingSupervisor::JoinOwned() {
+    {std::lock_guard join_lock(join_mu_);if(safety_thread_.joinable())safety_thread_.join();}
+    sessions_.JoinOwned();
+}
+void RecordingSupervisor::Stop() { (void)Stop(StopContext::Grace());JoinOwned(); }
 
 void RecordingSupervisor::ReconcileNow() {
     std::vector<ingress::SourceViewApplicationService::SourceRecord> sources;
@@ -77,12 +103,22 @@ void RecordingSupervisor::ReconcileNow() {
 
 void RecordingSupervisor::ReconcileSource(
     const ingress::SourceViewApplicationService::SourceRecord& source) {
+    if(stop_requested_)return;
     std::lock_guard lock(reconcile_mu_);
+    if(stop_requested_)return;
     auto& state = runtime_[source.source_id];
+    const auto stop_channel=[&] {
+        const auto result=sessions_.StopChannel(source.source_id,StopContext::Grace());
+        if(!result.Succeeded()) {
+            state.last_error=std::string("recorder stop ")+StopOutcomeName(result.outcome);
+            return false;
+        }
+        state.active=false;return true;
+    };
     const bool desired = core::ShouldStartRecording(
         config_.recording_enabled, source.enabled, source.recording.enabled);
     if (!desired) {
-        if (state.active) (void)sessions_.StopChannel(source.source_id);
+        if (state.active && !stop_channel())return;
         retention_.RemoveChannelPolicy(source.source_id);
         state.active = false;
         state.revision = source.recording.revision;
@@ -96,7 +132,7 @@ void RecordingSupervisor::ReconcileSource(
     policy.event_max_age_ms = source.recording.event_max_age_ms;
     std::string policy_error;
     if (!retention_.UpdateChannelPolicy(source.source_id, policy, &policy_error)) {
-        if (state.active) (void)sessions_.StopChannel(source.source_id);
+        if (state.active && !stop_channel())return;
         state.active = false;
         state.revision = source.recording.revision;
         state.last_error = policy_error;
@@ -104,8 +140,7 @@ void RecordingSupervisor::ReconcileSource(
     }
     if (state.active && state.revision == source.recording.revision) return;
     if (state.active) {
-        (void)sessions_.StopChannel(source.source_id);
-        state.active = false;
+        if(!stop_channel())return;
     }
     const auto result = sessions_.StartChannel(
         source.source_id,
@@ -147,12 +182,14 @@ void RecordingSupervisor::SafetyLoop() {
                               : std::chrono::duration_cast<std::chrono::milliseconds>(
                                     fallback_interval);
     while (!stop_requested_) {
-        if (wait_cv_.wait_for(lock, interval, [this] { return stop_requested_; })) break;
+        if (wait_cv_.wait_for(lock, interval, [this] { return stop_requested_.load(); })) break;
         lock.unlock();
         ReconcileNow();
         retention_.RunPeriodic(NowMs());
         lock.lock();
     }
+    safety_done_=true;
+    wait_cv_.notify_all();
 }
 
 }  // namespace recording

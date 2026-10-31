@@ -26,6 +26,10 @@ public:
     ~RecordingSupervisor();
     bool Start(std::string* error);
     void Stop();
+    void BeginStop(std::shared_ptr<const StopContext>);
+    RecorderStopResult Stop(std::shared_ptr<const StopContext>);
+    void JoinOwned();
+
     void ReconcileNow();
 
 private:
@@ -48,9 +52,14 @@ private:
     RetentionCoordinator& retention_;
     std::mutex reconcile_mu_;
     std::mutex wait_mu_;
+    std::mutex join_mu_;
+    std::optional<RecorderStopResult> terminal_result_;
     std::condition_variable wait_cv_;
     bool running_{false};
-    bool stop_requested_{false};
+    std::atomic<bool> stop_requested_{false};
+    bool safety_done_{true};
+    std::shared_ptr<const StopContext> stop_context_;
+
     std::thread safety_thread_;
     std::unordered_map<std::string, RuntimeState> runtime_;
 };

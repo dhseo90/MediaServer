@@ -31,6 +31,7 @@
 struct sqlite3;
 
 namespace recording {
+struct FinalizeCommitObservation;
 struct FinalizeReadyTicket;
 struct RecordingIdentityChainResult;
 struct SearchDocument;
@@ -107,6 +108,7 @@ class RecordingCatalogHistoryRows;
 class RecordingCatalog final : public RecordingStorePort {
     friend class RecordingRuntimeStorage;
     friend bool CommitFinalizeReadyV2(RecordingCatalog&, const std::filesystem::path&, const FinalizeReadyTicket&, std::string*);
+    friend bool CommitFinalizeReadyV2(RecordingCatalog&, const std::filesystem::path&, const FinalizeReadyTicket&, std::string*, FinalizeCommitObservation*);
     bool CommitActiveBoundSegmentV2(const RecordingSegmentV2&, const RecordingSourceBindingV1&,
         const std::string&, bool*, std::string*);
     friend struct RecordingAggregateResourceProbe;

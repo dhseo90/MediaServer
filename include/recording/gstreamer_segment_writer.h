@@ -21,6 +21,9 @@ public:
         AdmissionCallback admit_segment;
         SegmentProgressCallback report_segment_progress;
         SegmentCompletionCallback complete_segment;
+        // terminal 통지는 release와 미확정 파일의 기존 Retention 소유권 인계를 구별한다.
+        std::function<bool(const std::string&, ReservationCompletion)> complete_reservation;
+
         // 내부 opt-in. 세 객체 수명은 writer보다 길어야 하며 서버 기본값은 미변경이다.
         RecordingJournal* managed_journal{nullptr};
         RecordingCatalog* managed_catalog{nullptr};
@@ -43,6 +46,11 @@ public:
                std::string* error) override;
     void Push(const media::Packet& packet, std::int64_t observed_utc_ms) override;
     void Stop() override;
+    void RequestStop(std::shared_ptr<const StopContext>) override;
+    PacketResult PushObserved(const media::Packet&, std::int64_t) override;
+    WriterStopResult StopObserved() override;
+    std::optional<std::uint64_t> AcceptedPacketCount() const override;
+
     std::shared_ptr<const RecordingTimeSnapshot> TimeSnapshot() const override;
 
 private:

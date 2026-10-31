@@ -5,6 +5,7 @@
 
 #include <condition_variable>
 #include <deque>
+#include "recording/recording_stop.h"
 
 #include "core/source_worker.h"
 #include "media_types.h"
@@ -13,7 +14,27 @@
 namespace core {
 
 class SharedStream : public std::enable_shared_from_this<SharedStream> {
+private:
+    struct SubscriberState;
 public:
+    struct DrainObservation {
+        bool joined{false}, failed{false};
+        std::uint64_t enqueued{0}, dequeued{0}, overflow{0}, cancelled{0}, after_cutoff{0};
+    };
+    // 소유자가 deadline 뒤에도 보관한다. 소멸은 실제 Join까지 기다린다.
+    class DrainHandle {
+    public:
+        ~DrainHandle();
+        DrainObservation WaitUntil(recording::StopContext::Clock::time_point deadline);
+        DrainObservation Join();
+    private:
+        friend class SharedStream;
+        explicit DrainHandle(std::shared_ptr<SubscriberState> state) : state_(std::move(state)) {}
+        std::shared_ptr<SubscriberState> state_;
+    };
+    std::shared_ptr<DrainHandle> BeginDrain(const std::string& id,
+        std::shared_ptr<const recording::StopContext> context);
+
     enum class SubscriberRole {
         Client,
         Analysis,
@@ -27,7 +48,8 @@ public:
 
     bool AddSubscriber(const std::string& session_id, SubscriberCallback callback);
     bool AddAnalysisSubscriber(const std::string& subscriber_id, SubscriberCallback callback);
-    bool AddRecordingSubscriber(const std::string& subscriber_id, SubscriberCallback callback);
+    bool AddRecordingSubscriber(const std::string& subscriber_id, SubscriberCallback callback,
+                                std::function<void()> on_drained = {});
     void RemoveSubscriber(const std::string& session_id);
     // RefCount는 relay client 수만 센다. source 제거 판단은 analysis tap까지 포함한 TotalSubscriberCount를 쓴다.
     std::size_t RefCount() const;
@@ -67,13 +89,19 @@ private:
         std::size_t dropped_packets{0};
         bool recorder_video_loss_pending{false};
         bool stop{false};
+        bool done{false}, callback_failed{false};
+        std::uint64_t total_enqueued{0}, total_dequeued{0}, cancelled{0}, after_cutoff{0};
+        std::shared_ptr<const recording::StopContext> stop_context;
+        std::function<void()> on_drained;
+        std::mutex join_mu;
+
         std::thread worker;
     };
 
     // 각 subscriber queue를 별도 worker에서 소비해 느린 클라이언트의 backpressure를 격리한다.
     bool AddSubscriberWithRole(const std::string& subscriber_id,
                                SubscriberCallback callback,
-                               SubscriberRole role);
+                               SubscriberRole role, std::function<void()> on_drained = {});
     static void ReportRecorder(const std::shared_ptr<SubscriberState>& state);
     static void WorkerLoop(const std::shared_ptr<SubscriberState>& state);
     void EnqueuePacket(const std::shared_ptr<SubscriberState>& state, const media::Packet& packet) const;

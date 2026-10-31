@@ -9,8 +9,11 @@ struct FinalizeRecoveryReport { std::size_t recovered{0}, already_committed{0}, 
 bool PublishFinalizeReady(const std::filesystem::path& root,const FinalizeReadyTicket& ticket,std::string* error);
 bool ClearFinalizeReady(const std::filesystem::path& root,const FinalizeReadyTicket& ticket,std::string* error);
 // 실행 중 writer의 정확한 ticket 한 개만 검증·publish·commit·정리한다. 전체 root를 스캔하지 않는다.
+struct FinalizeCommitObservation { bool catalog_applied{false}; };
 bool CommitFinalizeReadyV2(RecordingCatalog& catalog,const std::filesystem::path& root,
                            const FinalizeReadyTicket& ticket,std::string* error);
+bool CommitFinalizeReadyV2(RecordingCatalog& catalog,const std::filesystem::path& root,
+                           const FinalizeReadyTicket& ticket,std::string* error, FinalizeCommitObservation* observation);
 // Catalog.Open 이후, writer/bridge/retention 시작 전에만 호출한다. 예약은 복원하지 않는다.
 bool RecoverFinalizeReadyTickets(RecordingCatalog& catalog,const std::filesystem::path& root,FinalizeRecoveryReport* report,std::string* error);
 }
