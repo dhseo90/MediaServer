@@ -8,6 +8,7 @@ def number(n):
 def parse(raw):
  if len(raw.encode())>CAP:raise ValueError('output cap')
  if raw and not raw.endswith('\n'):raise ValueError('partial terminal')
+ mutex_summary=False
  groups={'calls':[],'rows':[],'end':[],'slow':[],'complete':[]}
  prefixes={'[R158-call] ':'calls','[recording-latency] ':'rows','[R158-end] ':'end','[recording-slow-summary] ':'slow','[recording-complete-summary] ':'complete'}
  for line in raw.splitlines():
@@ -18,6 +19,12 @@ def parse(raw):
    if line.startswith('[catalog-holder-end] '):
     end=json.loads(line.split(' ',1)[1])
     if end['loss'] or end['inflight']:raise ValueError('holder loss')
+   elif line.startswith('[recording-mutex-summary] '):
+    summary=json.loads(line.split(' ',1)[1])
+    if mutex_summary or set(summary)!=set('capacity registered active peak lossCount'.split()):raise ValueError('mutex summary shape')
+    for value in summary.values():number(value)
+    if summary['capacity']!=128 or summary['registered']>4294967294 or summary['active'] or summary['lossCount'] or summary['peak']>min(128,summary['registered']):raise ValueError('mutex summary loss/range')
+    mutex_summary=True
    elif line.startswith('[catalog-holder] '):raise ValueError('unexpected selected holder')
    elif line:raise ValueError('unknown output')
  if len(groups['end'])!=1:raise ValueError('missing/duplicate terminal')

@@ -20,4 +20,11 @@ class Negative(unittest.TestCase):
  def test_no_call_fabrication(self):
   r,e=self.raw()
   with self.assertRaises(ValueError):q.qualify(self.text(r,e))
+ def test_mutex_lifetime_terminal(self):
+  r,e=self.raw();base=self.text(r,e);summary=dict(capacity=128,registered=129,active=0,peak=128,lossCount=0)
+  line=lambda v:'[recording-mutex-summary] '+json.dumps(v)+'\n'
+  q.parse(base+line(summary))
+  for bad in [dict(summary,active=1),dict(summary,lossCount=1),dict(summary,peak=129),dict(summary,registered=2**32)]:
+   with self.assertRaises(ValueError):q.parse(base+line(bad))
+  with self.assertRaises(ValueError):q.parse(base+line(summary)*2)
 if __name__=='__main__':unittest.main()
