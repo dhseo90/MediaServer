@@ -1,13 +1,40 @@
 import test from 'node:test';import assert from 'node:assert/strict';import fs from 'node:fs';import os from 'node:os';import path from 'node:path';import crypto from 'node:crypto';import{execFileSync}from'node:child_process';import{fileURLToPath}from'node:url';
 import{MULTIFINALIZE_SCHEMA,validateCandidateIdentity,boundArtifact,verifyEvidenceManifest}from'./recording_multifinalize_state_binding.mjs';
 const repo=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../..'),sha=b=>crypto.createHash('sha256').update(b).digest('hex');
-function fixture(){const root=fs.mkdtempSync(path.join(fs.realpathSync(os.tmpdir()),'multi-binding-negative-')),clone=path.join(root,'repo');execFileSync('git',['clone','--quiet','--no-hardlinks',repo,clone]);const git=args=>execFileSync('git',args,{cwd:clone,encoding:'utf8'});const head=git(['rev-parse','HEAD']).trim(),sources={};for(const p of git(['ls-tree','-r','--name-only','HEAD','--','CMakeLists.txt','src','include']).trim().split('\n'))sources[p]=sha(fs.readFileSync(path.join(clone,p)));const file=path.join(root,'sources.json');fs.writeFileSync(file,JSON.stringify(sources));return{root,clone,git,result:{schema:MULTIFINALIZE_SCHEMA,head,productHead:head,branch:git(['branch','--show-current']).trim(),sourceManifest:{path:file,sha256:sha(fs.readFileSync(file)),bytes:fs.statSync(file).size}},sources};}
+function ownedRoot(t,prefix){
+  const root=fs.mkdtempSync(path.join(fs.realpathSync(os.tmpdir()),prefix));
+  const owner=fs.lstatSync(root);assert(!owner.isSymbolicLink()&&owner.isDirectory());
+  t.after(()=>{
+    const current=fs.lstatSync(root);
+    assert(current.dev===owner.dev&&current.ino===owner.ino&&current.uid===owner.uid,'fixture ownership changed');
+    fs.rmSync(root,{recursive:true});assert(!fs.existsSync(root),'fixture cleanup incomplete');
+    console.log('[fixture-cleanup] '+JSON.stringify({root,absent:true}));
+  });
+  return root;
+}
+function fixture(t){
+  const root=ownedRoot(t,'multi-binding-negative-'),clone=path.join(root,'repo');
+  // Immutable Git objects are read through alternates; no source/evidence file
+  // hardlinks. Each checkout/index/new object is privately owned and removed
+  // after its test. Assertions do not depend on inter-test concurrency.
+  execFileSync('git',['clone','--quiet','--shared','--no-hardlinks',repo,clone]);
+  const git=args=>execFileSync('git',args,{cwd:clone,encoding:'utf8'});
+  const head=git(['rev-parse','HEAD']).trim(),sources={};
+  for(const p of git(['ls-tree','-r','--name-only','HEAD','--','CMakeLists.txt','src','include']).trim().split('\n')){
+    const target=path.join(clone,p),original=fs.statSync(path.join(repo,p)),local=fs.statSync(target);
+    assert(local.nlink===1&&!(local.dev===original.dev&&local.ino===original.ino),'shared mutable fixture file');
+    sources[p]=sha(fs.readFileSync(target));
+  }
+  const file=path.join(root,'sources.json');fs.writeFileSync(file,JSON.stringify(sources));
+  console.log('[fixture-created] '+JSON.stringify({root,head,products:Object.keys(sources).length,allocatedKiB:Number(execFileSync('du',['-sk',root],{encoding:'utf8'}).split(/\s+/)[0]),mode:'shared immutable Git objects; private checkout/index'}));
+  return{root,clone,git,result:{schema:MULTIFINALIZE_SCHEMA,head,productHead:head,branch:git(['branch','--show-current']).trim(),sourceManifest:{path:file,sha256:sha(fs.readFileSync(file)),bytes:fs.statSync(file).size}},sources};
+}
 // All fixtures are independently owned local clones; original and evidence remain untouched.
-test('clean HEAD exact sources accepted',()=>{const f=fixture();assert.deepEqual(validateCandidateIdentity(f.clone,f.result),f.sources);});
-test('dirty Worktree rejected',()=>{const f=fixture();fs.appendFileSync(path.join(f.clone,'CMakeLists.txt'),'\n# dirty\n');assert.throws(()=>validateCandidateIdentity(f.clone,f.result),/multi-dirty/);});
-test('staged modification rejected',()=>{const f=fixture();fs.appendFileSync(path.join(f.clone,'CMakeLists.txt'),'\n# staged\n');f.git(['add','--','CMakeLists.txt']);assert.throws(()=>validateCandidateIdentity(f.clone,f.result),/multi-dirty/);});
-test('untracked and HEAD mismatch rejected',()=>{const f=fixture();assert.throws(()=>validateCandidateIdentity(f.clone,{...f.result,head:'0'.repeat(40)}),/multi-head/);fs.writeFileSync(path.join(f.clone,'unexpected-binding-file'),'x');assert.throws(()=>validateCandidateIdentity(f.clone,f.result),/multi-dirty/);});
-test('product bytes mismatch with rehashed manifest rejected',()=>{const f=fixture();f.sources['CMakeLists.txt']='0'.repeat(64);const bytes=Buffer.from(JSON.stringify(f.sources));fs.writeFileSync(f.result.sourceManifest.path,bytes);f.result.sourceManifest={...f.result.sourceManifest,sha256:sha(bytes),bytes:bytes.length};assert.throws(()=>validateCandidateIdentity(f.clone,f.result),/multi-source-bytes/);});
-test('manifest SHA mismatch and missing evidence rejected',()=>{const f=fixture();assert.throws(()=>boundArtifact({...f.result.sourceManifest,sha256:'0'.repeat(64)}),/multi-artifact-sha/);assert.throws(()=>boundArtifact({...f.result.sourceManifest,path:path.join(f.root,'missing')}));});
-test('other evidence manifest and tampered patch rejected',()=>{const root=fs.mkdtempSync(path.join(fs.realpathSync(os.tmpdir()),'multi-binding-evidence-'));fs.writeFileSync(path.join(root,'artifact-manifest.json'),'{}');assert.throws(()=>verifyEvidenceManifest(root,'0'.repeat(64)),/multi-evidence-manifest/);const p=path.join(root,'candidate.patch');fs.writeFileSync(p,'verified patch');const entry={path:p,sha256:sha(fs.readFileSync(p)),bytes:fs.statSync(p).size};fs.appendFileSync(p,' tampered');assert.throws(()=>boundArtifact(entry),/multi-artifact-sha/);});
-test('unsupported schema rejected',()=>{const f=fixture();assert.throws(()=>validateCandidateIdentity(f.clone,{...f.result,schema:'future-v99'}),/multi-schema/);});
+test('clean HEAD exact sources accepted',t=>{const f=fixture(t);assert.deepEqual(validateCandidateIdentity(f.clone,f.result),f.sources);});
+test('dirty Worktree rejected',t=>{const f=fixture(t);fs.appendFileSync(path.join(f.clone,'CMakeLists.txt'),'\n# dirty\n');assert.throws(()=>validateCandidateIdentity(f.clone,f.result),/multi-dirty/);});
+test('staged modification rejected',t=>{const f=fixture(t);fs.appendFileSync(path.join(f.clone,'CMakeLists.txt'),'\n# staged\n');f.git(['add','--','CMakeLists.txt']);assert.throws(()=>validateCandidateIdentity(f.clone,f.result),/multi-dirty/);});
+test('untracked and HEAD mismatch rejected',t=>{const f=fixture(t);assert.throws(()=>validateCandidateIdentity(f.clone,{...f.result,head:'0'.repeat(40)}),/multi-head/);fs.writeFileSync(path.join(f.clone,'unexpected-binding-file'),'x');assert.throws(()=>validateCandidateIdentity(f.clone,f.result),/multi-dirty/);});
+test('product bytes mismatch with rehashed manifest rejected',t=>{const f=fixture(t);f.sources['CMakeLists.txt']='0'.repeat(64);const bytes=Buffer.from(JSON.stringify(f.sources));fs.writeFileSync(f.result.sourceManifest.path,bytes);f.result.sourceManifest={...f.result.sourceManifest,sha256:sha(bytes),bytes:bytes.length};assert.throws(()=>validateCandidateIdentity(f.clone,f.result),/multi-source-bytes/);});
+test('manifest SHA mismatch and missing evidence rejected',t=>{const f=fixture(t);assert.throws(()=>boundArtifact({...f.result.sourceManifest,sha256:'0'.repeat(64)}),/multi-artifact-sha/);assert.throws(()=>boundArtifact({...f.result.sourceManifest,path:path.join(f.root,'missing')}));});
+test('other evidence manifest and tampered patch rejected',t=>{const root=ownedRoot(t,'multi-binding-evidence-');fs.writeFileSync(path.join(root,'artifact-manifest.json'),'{}');assert.throws(()=>verifyEvidenceManifest(root,'0'.repeat(64)),/multi-evidence-manifest/);const p=path.join(root,'candidate.patch');fs.writeFileSync(p,'verified patch');const entry={path:p,sha256:sha(fs.readFileSync(p)),bytes:fs.statSync(p).size};fs.appendFileSync(p,' tampered');assert.throws(()=>boundArtifact(entry),/multi-artifact-sha/);});
+test('unsupported schema rejected',t=>{const f=fixture(t);assert.throws(()=>validateCandidateIdentity(f.clone,{...f.result,schema:'future-v99'}),/multi-schema/);});

@@ -1,6 +1,7 @@
 // R139: 제품/장시간 실행 없이 고정45분 collector 계약을 검증한다.
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
+import vm from 'node:vm';
 import {memoryObservationMode,memoryAttributionCollector,collectMemoryAttribution,memoryAttributionSnapshot,finishMemoryAttribution} from './recording_memory_attribution.mjs';
 import {captureBoundedProcessLog,processLogCaptureComplete,mixedPreparationContract} from './recording_longrun_progress.mjs';
 const names=['unattributed','model','sourceBatch','retryBatch','sourceCut','preparation','matches','page','response','preparedNative','retainedRaw','catalogRow','scratch'];
@@ -38,5 +39,13 @@ const app={bytes:0};let stopped=0,written=0;const write=b=>(written+=b.length,b.
 assert.equal(memoryObservationMode(['--state-diagnostic']),true);assert.equal(memoryObservationMode(['--memory-attribution-diagnostic']),true);for(const m of ['--contention-diagnostic','--frame-diagnostic','--app-observe'])assert.equal(memoryObservationMode([m]),false);
 assert.equal(mixedPreparationContract(['--state-diagnostic']).requiresDeletion,true);
 const mixed=fs.readFileSync(new URL('./v450_recording_a_mixed.mjs',import.meta.url),'utf8');
-for(const text of ['stateDiagnose?2700000','stateDiagnose?2880000','if(!memoryDiagnose)check(orderedLatencies','VERIFY_CATALOG_HOLDER_TRACE:diagnose&&!stateDiagnose?1:0','if(memoryDiagnose)values.VERIFY_CATALOG_SUBCOSTS=1','strict:stateDiagnose','if(memoryObserve)collectMemoryAttribution','memoryObserve&&app.memoryTrace.error','if(memoryObserve)console.log(\'[memory-attribution-summary]','if(memoryObserve)values.VERIFY_MEMORY_ATTRIBUTION=1'])assert(mixed.includes(text),text);
-console.log(JSON.stringify({status:'PASS',syntheticRows:580,negativeCollectorCases:bad.length,overflowStops:true,modeAndFunctionalGateAssertions:true,productOrLongrunExecuted:false}));
+for(const text of ['stateDiagnose?2700000','stateDiagnose?2880000','if(!memoryDiagnose)check(orderedLatencies','VERIFY_CATALOG_HOLDER_TRACE:diagnose&&!stateDiagnose?1:0','if(memoryDiagnose)values.VERIFY_CATALOG_SUBCOSTS=1','strict:stateDiagnose','if(memoryObserve)collectMemoryAttribution','memoryObserve&&app.memoryTrace.error','if(memoryObserve)console.log(\'[memory-attribution-summary]','if(memoryObserve||blockerMode)values.VERIFY_MEMORY_ATTRIBUTION=1'])assert(mixed.includes(text),text);
+// The existing blocker diagnostic also needs attribution; State memory gates
+// remain unchanged. Check the complete statement and its four input cases.
+const memorySetup='if(memoryObserve||blockerMode)values.VERIFY_MEMORY_ATTRIBUTION=1;';
+assert.equal(mixed.split(memorySetup).length-1,1);
+for(const [memoryObserve,blockerMode,expected] of [[false,false,undefined],[true,false,1],[false,true,1],[true,true,1]]){
+  const values={};vm.runInNewContext(memorySetup,{memoryObserve,blockerMode,values});
+  assert.equal(values.VERIFY_MEMORY_ATTRIBUTION,expected);
+}
+console.log(JSON.stringify({status:'PASS' ,syntheticRows:580,negativeCollectorCases:bad.length,overflowStops:true,modeAndFunctionalGateAssertions:true,productOrLongrunExecuted:false}));

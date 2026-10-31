@@ -6,7 +6,7 @@ import subprocess
 from pathlib import Path
 import tempfile
 import unittest
-from recording_build_freshness import check, depfile, Unverified
+from recording_build_freshness import check, depfile, older, Unverified
 
 
 class Fixture:
@@ -88,6 +88,39 @@ class FreshnessTest(unittest.TestCase):
     def rejects(self, change, expected):
         change()
         with self.assertRaisesRegex(Unverified,expected):self.f.run()
+
+    def test_edge_mtime_is_resampled_after_changes(self):
+        older(self.f.header, self.f.app_header)
+        self.f.time(self.f.header, 7)
+        with self.assertRaisesRegex(Unverified, 'stale-product-build'):
+            older(self.f.header, self.f.app_header)
+        self.f.time(self.f.header, 1)
+        self.f.time(self.f.app_header, 0)
+        with self.assertRaisesRegex(Unverified, 'stale-product-build'):
+            older(self.f.header, self.f.app_header)
+
+    def test_edge_symlink_target_and_type_changes(self):
+        link = self.f.repo / 'edge-link'
+        link.symlink_to(self.f.header)
+        older(link, self.f.app_header)
+        link.unlink(); link.symlink_to(self.f.observer)
+        with self.assertRaisesRegex(Unverified, 'stale-product-build'):
+            older(link, self.f.app_header)
+        link.unlink(); link.symlink_to(self.f.repo)
+        with self.assertRaisesRegex(Unverified, 'missing-file'):
+            older(link, self.f.app_header)
+        link.unlink(); link.symlink_to(self.f.repo / 'absent')
+        with self.assertRaisesRegex(Unverified, 'missing-file'):
+            older(self.f.header, link)
+
+    def test_edge_nonregular_and_symlink_loop_rejected(self):
+        fifo = self.f.repo / 'edge-fifo'; os.mkfifo(fifo)
+        loop = self.f.repo / 'edge-loop'; loop.symlink_to(loop)
+        for path in (self.f.repo, fifo, loop, self.f.repo / 'absent'):
+            for dependency, output in ((path, self.f.header), (self.f.header, path)):
+                with self.subTest(dependency=str(dependency), output=str(output)):
+                    with self.assertRaisesRegex(Unverified, 'missing-file'):
+                        older(dependency, output)
 
     def test_repository_inputs_from_same_verified_walk(self):
         inputs = set()

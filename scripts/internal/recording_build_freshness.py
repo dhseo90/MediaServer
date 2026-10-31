@@ -11,6 +11,7 @@ import os
 from pathlib import Path
 import re
 import shlex
+import stat
 import sys
 
 
@@ -38,8 +39,19 @@ def text(path):
     return file(path).read_text(encoding='utf-8', errors='strict')
 
 
+def regular_mtime(path):
+    # Follow symlinks as file() does, but sample type and time together. Every
+    # edge still reads current metadata; no path, stat, or content-hash cache.
+    try:
+        current = Path(path).stat()
+    except OSError as error:
+        raise Unverified('missing-file: ' + str(path)) from error
+    require(stat.S_ISREG(current.st_mode), 'missing-file: ' + str(path))
+    return current.st_mtime_ns
+
+
 def older(dependency, output):
-    require(file(dependency).stat().st_mtime_ns <= file(output).stat().st_mtime_ns,
+    require(regular_mtime(dependency) <= regular_mtime(output),
             'stale-product-build: ' + str(dependency) + ' newer than ' + str(output))
 
 
