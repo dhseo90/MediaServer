@@ -5684,3 +5684,14 @@ R192-FIXTURE-FINAL: 2026-10-31 후속 승인. 정상9201과 실패/재시도9101
 
 - V450-RECORDER-LINEAGE-01: 기존 v1 fixed 증거·v2 eb06321c 제품 guard 유지. 별도 명시 계약에서 공식 v2→Recorder 3Commit·독립 리뷰 patch·405 Source·Native 원출처·진단 한정 delta를 검증한다. 최종 Clean HEAD에서 Build/Writer65+tail/Smoke29를 새로 결속한다. dirty/staged/HEAD/제품/patch/native/Writer/Smoke/model/input/binary/누락/schema/계약 혼용은 거부한다. Native 단위 및 실제 CLI 반례와 실행 없는 Preflight; 공식45분·120분·UI는 미실행.
 - V450-MUTEX-LIFETIME-01: 동시128 상한 유지,127/128·순차129회수·동시129명시loss·주소재사용 세대 분리·등록/회수 경쟁·collector 중 종료·다중thread·마지막flush·loss/parser거부·registry 반환을 검사한다. 제품 lock order와 Recorder 의미는 불변. 진단off/on 비용과 고정 메모리·행량·식별률 기록; 짧은 focused 검사이며 장시간 Gate 대체 금지.
+
+
+### STATE45-RETENTION-PUBLICATION-01 — 다른 채널 Retention과 선택적 인증서 게시
+
+- 정상 기대값: 9101/observations=false의 완전한 strict Capture/Build 뒤 9201의 실제 Retention Plan/Apply가 pending·unlink·retired를 완료해도 9101 Source currentness가 유지되면 결과는 독립 최신 전체 Capture와 같아야 한다. 전역 Receipt coverage가 무효면 optional certificate를 발급하지 않는다. 다음 strict Capture가 인증서를 다시 만든다.
+- 오류·경계: 같은 9101 삭제는 기존 search-source-changed와 기존 output 보존을 유지한다. 삭제 mapping은 최신 모델에서 제외하고 기존 모델은 불변이다. 동일 키 동시2요청은 첫 Build barrier를 사용하며 인증되지 않은 결과·중복 Build·Owner 잔존을 검사한다. 기존 retry/publication fixture의 capacity·authority·손상·receipt 상한·Retention 회귀는 유지한다.
+- 예상 RED: 기준 89108bd2에서는 `unrelated retention must not reject fully authenticated current requested scope`가 실패해야 한다. compile/environment 실패는 RED로 간주하지 않는다. Native `MEDIA_SERVER_RETENTION_PUBLICATION_ONLY=1` 경계와 제한된 제품 HTTP를 구분한다. State45·120분·UI·Release PASS는 주장하지 않는다.
+
+### SEARCH-PREPARATION-RETENTION-RETRY-01
+
+실제 Retention Plan/Apply 후 post-Build Finalize가 현재성을 거부하면 unpublished Capture의 유효 span만 유지한다. 다음 Capture는 현재 Raw digest/Lifecycle/Source/Owner를 재인증하고 재사용하며, strict oracle·삭제 제외·Snapshot 불변·Owner 반환을 확인한다. 상한 부족 시 optional span을 해제하고 기존 strict fallback을 유지한다. Native 정상/오류/경계 및 집중 Structured HTTP 대상, UI·장시간은 이 항목에서 미실행한다.

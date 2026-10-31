@@ -34,6 +34,7 @@ void ResetDetailBudget() {
 #endif
 namespace recording {
 struct RecordingSearchRetryTestProbe {
+ static bool Rebase(RecordingCatalog& c,SearchSourceBatch* b,SearchModelLimits limits,std::string* error){return c.RebaseRetentionSearchSource(b,limits,error);}
  static std::size_t Spans(const SearchSourceBatch& b){return b.segment_spans_.size();}
  static std::size_t Reused(const SearchSourceBatch& b){return b.reused_segments_;}
 #ifdef RECORDING_SEARCH_TESTING
@@ -175,6 +176,130 @@ int main(int argc,char** argv){
    GStreamerSegmentWriter writer(runtime.WriterOptions(1000));need(writer.Start(channel,"unused",input.descriptor,[](auto,auto,auto*){return false;},&error),"actual writer start");
    for(auto packet:input.packets){packet.observation->source_generation=generation;writer.Push(packet,0);}writer.Stop();
   };
+
+#ifdef RECORDING_SEARCH_TESTING
+  if(std::getenv("MEDIA_SERVER_RETENTION_PUBLICATION_ONLY")) {
+    write("scope-base","9101");write("other-base","9201");
+    need(catalog.Checkpoint(&error),"scope publication cold generation checkpoint");
+    RecordingReadService reads(catalog);RecordingSearchReader reader(catalog,reads);
+    auto owner=std::make_shared<SearchModelResidency>();SearchModelLimits limits{100000,64*1024*1024,owner};
+    std::shared_ptr<const RecordingSearchModel> base,result,oracle;
+    need(reader.Refresh({"9101"},{},&base,&error,limits,false)&&base->authenticated_membership(),"scope publication authenticated initial source");
+    const auto original=std::vector<SearchDocument>(base->documents().begin(),base->documents().end());
+    RetentionCoordinator retention(catalog,
+      [](std::uint64_t* free,std::string*){*free=UINT64_MAX;return true;},
+      [](const std::filesystem::path& path,std::string*){return std::filesystem::remove(path);},
+      {0,64*1024*1024,(std::filesystem::path(argv[1])/"recording")});
+    const auto remove_one=[&](const std::string& channel) {
+      const auto snapshot=catalog.RetentionSnapshot();std::uint64_t total=0,first_size=0;
+      std::size_t count=0;
+      for(const auto& c:snapshot.candidates)if(c.Channel()==channel&&c.Class()==RecordingRetentionClass::Continuous){total+=c.Size();if(!first_size)first_size=c.Size();++count;}
+      need(count>=2&&total>first_size,"scope retention has independent live candidates");
+      RetentionPlanRequest request;request.channel_id=channel;request.policy.continuous_max_bytes=total-first_size;
+      request.now_ms=1793422500000LL;request.free_bytes=UINT64_MAX;
+      const auto plan=RetentionCoordinator::Plan(snapshot,request);
+      need(!plan.deletions.empty(),"scope retention actual policy selected deletion");
+      const auto applied=retention.Apply(plan,request.now_ms);
+      need(applied.ok&&applied.deleted_count==plan.deletions.size(),"scope retention durable pending unlink retired completion");
+      for(const auto& deletion:plan.deletions)need(catalog.IsDeletedSegmentId(deletion.candidate.Id())&&!std::filesystem::exists(deletion.candidate.media_path),"scope retention removed media remains deleted");
+      return plan.deletions.front().candidate.Id();
+    };
+    unsigned hooks=0;std::string gone;
+    search_after_build_test=[&]{++hooks;gone=remove_one("9201");};
+    result=base;const bool ok=reader.Refresh({"9101"},{},&result,&error,limits,false);
+    search_after_build_test={};
+    std::cout<<"[retention-publication] case=other-channel-retired ok="<<ok<<" error="<<error<<" hooks="<<hooks<<" oldRevision="<<base->revision()<<" resultRevision="<<result->revision()<<std::endl;
+    need(ok&&hooks==1,"unrelated retention must not reject fully authenticated current requested scope");
+    need(!result->authenticated_membership(),"global barrier withholds optional membership certificate");
+    need(reader.Refresh({"9101"},{},&oracle,&error,limits,false)&&oracle->authenticated_membership(),"settled full capture restores certificate");
+    const auto equal=[](const auto& a,const auto& b){
+      if(a.size()!=b.size())return false;
+      for(std::size_t i=0;i<a.size();++i){const auto& x=a[i];const auto& y=b[i];
+        const auto fields=[](const auto& d){return std::tie(d.id,d.channel_id,d.segment_id,d.source_id,d.store_id,d.media_epoch_id,d.stream_epoch_id,d.kind,d.start_ns,d.end_ns,d.media_pts,d.media_end_pts,d.time_base_num,d.time_base_den,d.time_provenance,d.uncertainty_ns,d.unavailable_reason,d.playback_segment_id,d.playback_event_id,d.playback_job_id,d.observation_id,d.reference_id,d.analysis_namespace,d.track_id,d.object,d.event_ids,d.zone_ids,d.rule_ids);};
+        if(fields(x)!=fields(y)||!x.event_facts.empty()||!y.event_facts.empty())return false;
+      }return true;};
+    need(equal(result->documents(),oracle->documents())&&equal(base->documents(),original),"unrelated retirement result equals strict current oracle and prior model is immutable");
+    result.reset();oracle.reset();
+    search_after_build_test=[&]{gone=remove_one("9101");};result=base;
+    const bool own_ok=reader.Refresh({"9101"},{},&result,&error,limits,false);search_after_build_test={};
+    need(!own_ok&&error=="search-source-changed"&&result==base,"requested-channel retirement still refuses stale post-Build publication");
+    need(reader.Refresh({"9101"},{},&oracle,&error,limits,false)&&std::none_of(oracle->documents().begin(),oracle->documents().end(),[&](const auto& d){return d.segment_id==gone;}),"fresh source excludes deleted requested-channel mappings");
+    oracle.reset();result.reset();base.reset();need(owner->used()==0,"scope publication all model and preparation owners returned");
+
+    // Actual cause: retention rebase succeeds, then Finalize invalidates Build.
+    write("rebase-retry-seed-a","9101");write("rebase-retry-seed-b","9101");
+    need(reader.Refresh({"9101"},{},&base,&error,limits,false),"rebase retry immutable baseline");
+    const auto retained=std::vector<SearchDocument>(base->documents().begin(),base->documents().end());
+    SearchSourceBatch retry,carried,strict;search_retention_delta_work_test={};
+    search_after_capture_test=[&]{gone=remove_one("9101");};
+    search_after_build_test=[&]{write("rebase-retry-finalize","9101");};result=base;
+    const bool rebase_ok=reader.Refresh({"9101"},{},&result,&error,limits,false,&retry);
+    search_after_capture_test={};search_after_build_test={};
+    need(!rebase_ok&&error=="search-source-changed"&&result==base&&search_retention_delta_work_test[1]==1,
+      "rebase succeeds but later actual Finalize still rejects stale Build");
+    need(RecordingSearchRetryTestProbe::Spans(retry)>0&&retry.memory.bytes()>0,
+      "retention rebase preserves charged retry spans after post-Build invalidation");
+    need(catalog.CaptureSearchSource({"9101"},nullptr,&carried,&error,limits,false,&retry)&&
+      RecordingSearchRetryTestProbe::Reused(carried)>0&&retry.memory.bytes()==0,
+      "retry reauthenticates current Raw then consumes preserved spans once");
+    need(catalog.CaptureSearchSource({"9101"},nullptr,&strict,&error,limits,false)&&
+      equal(carried.delta.upserts,strict.delta.upserts),"retention retry complete fields equal strict fresh oracle");
+    need(std::none_of(carried.delta.upserts.begin(),carried.delta.upserts.end(),[&](const auto& d){return d.segment_id==gone;})&&
+      equal(base->documents(),retained),"retry does not revive deleted mappings or mutate existing snapshot");
+    std::cout<<"[rebase-retry] reused="<<RecordingSearchRetryTestProbe::Reused(carried)<<" documents="<<carried.delta.upserts.size()<<std::endl;
+    retry={};carried={};strict={};result.reset();base.reset();
+    need(owner->used()==0,"rebase retry all owners returned");
+
+    {
+      SearchSourceBatch pending,reused,fresh,empty;
+      need(catalog.CaptureSearchSource({"9101"},nullptr,&pending,&error,limits,false,&empty)&&RecordingSearchRetryTestProbe::Spans(pending)>0,
+        "pending rebase starts with charged authenticated spans");
+      const auto live=std::find_if(pending.delta.upserts.begin(),pending.delta.upserts.end(),[](const auto& d){return d.unavailable_reason=="media-not-checked";});
+      need(live!=pending.delta.upserts.end(),"pending rebase live victim");const auto victim=live->segment_id;
+      need(catalog.RequestDeletion(victim,"continuous-capacity",&error)&&RecordingSearchRetryTestProbe::Rebase(catalog,&pending,limits,&error),
+        "pending lifecycle is authenticated during rebase");
+      need(catalog.CaptureSearchSource({"9101"},nullptr,&reused,&error,limits,false,&pending)&&RecordingSearchRetryTestProbe::Reused(reused)>0&&
+        catalog.CaptureSearchSource({"9101"},nullptr,&fresh,&error,limits,false)&&equal(reused.delta.upserts,fresh.delta.upserts)&&
+        std::any_of(reused.delta.upserts.begin(),reused.delta.upserts.end(),[&](const auto& d){return d.segment_id==victim&&d.unavailable_reason=="deletion-pending";}),
+        "pending retry retains exact lifecycle and equals fresh full capture");
+    }
+    {
+      SearchSourceBatch tight,empty;
+      need(catalog.CaptureSearchSource({"9101"},nullptr,&tight,&error,limits,false,&empty)&&RecordingSearchRetryTestProbe::Spans(tight)>0,
+        "tight rebase starts with optional spans");
+      remove_one("9101");std::size_t bytes=sizeof(SearchSourceBatch)+32*RecordingSearchRetryTestProbe::InvalidationBytes()+1024,removed=0;
+      for(const auto& d:tight.delta.upserts){need(AccountOwnedSearchDocument(d,&bytes,SIZE_MAX),"tight rebase independent document charge");if(catalog.IsDeletedSegmentId(d.segment_id))++removed;}
+      const auto extra=tight.delta.upserts.capacity()-tight.delta.upserts.size()+(removed?tight.delta.upserts.size()-removed:0);
+      SearchModelLimits bounded=limits;bounded.max_bytes=bytes+extra*sizeof(SearchDocument);
+      need(RecordingSearchRetryTestProbe::Rebase(catalog,&tight,bounded,&error)&&RecordingSearchRetryTestProbe::Spans(tight)==0,
+        "tight compaction drops optional spans without exceeding unchanged envelope");
+      need(std::none_of(tight.delta.upserts.begin(),tight.delta.upserts.end(),[&](const auto& d){return catalog.IsDeletedSegmentId(d.segment_id);}),
+        "tight fallback never revives retired mappings");
+    }
+    need(owner->used()==0,"pending and tight boundary owners returned");
+    write("concurrent-other","9201");
+    {
+      ingress::RecordingApplicationService application(reads,catalog,true,{});
+      const std::unordered_map<std::string,std::string> query{{"channelIds","9101"},{"startTimeMs","1793422470000"},{"endTimeMs","1793422500000"},{"includeUnplaced","true"}};
+      const auto allowed=[](const auto& c){return c=="9101";};
+      std::promise<void> built,release,second_started;auto ready=release.get_future();
+      unsigned calls=0;
+      auto first=std::async(std::launch::async,[&]{
+        search_after_build_test=[&]{if(++calls==1){built.set_value();ready.wait();remove_one("9201");}};
+        auto response=application.Search(query,"owner","scope",allowed);search_after_build_test={};return response;});
+      if(built.get_future().wait_for(std::chrono::seconds(10))!=std::future_status::ready){release.set_value();throw std::runtime_error("scope publication build barrier");}
+      auto second=std::async(std::launch::async,[&]{second_started.set_value();return application.Search(query,"owner","scope",allowed);});
+      second_started.get_future().wait();release.set_value();
+      const auto a=first.get(),b=second.get();
+      need(a.status==200&&b.status==200&&calls==1,"same-key queued request and first request complete after one unrelated retention Build");
+      std::cout<<"[retention-publication] concurrentStatus="<<a.status<<','<<b.status<<" builds="<<calls<<std::endl;
+    }
+    need(runtime.Finish(&error),"scope publication runtime Finish");
+    need(catalog.ScratchResidency()->ReaderCleanupHealthy(),"scope publication runtime reader cleanup healthy");
+    std::cout<<"[retention-publication] pass="<<passed<<" fail=0"<<std::endl;return 0;
+  }
+#endif
+
   write("first");need(catalog.Checkpoint(&error),"actual cold checkpoint");
   SearchSourceBatch first,empty,second,fresh;
   need(catalog.CaptureSearchSource({"channel-1"},nullptr,&first,&error,{},false,&empty)&&RecordingSearchRetryTestProbe::Spans(first)>0,"actual cold raw span path entered");
