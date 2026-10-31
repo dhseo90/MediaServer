@@ -705,12 +705,15 @@ int main(int argc, char** argv) {
                 marker_remove_failure_writer.Push(
                     packet, 58000 + (packet.pts - base_pts) / 1000000);
             }
-            marker_remove_failure_writer.Stop();
+            const auto marker_stop=marker_remove_failure_writer.StopObserved();
+            marker_remove_failure_writer.StopObserved();
             Expect(marker_remove_permission_changed &&
-                       marker_remove_failure_completions == 0 &&
+                       marker_stop.outcome==recording::StopOutcome::Failed &&
+                       marker_stop.operation_complete && marker_stop.catalog_applied && marker_stop.durable_ready &&
+                       !marker_stop.reservation_retained && marker_remove_failure_completions == 1 &&
                        CountSuffix(marker_remove_failure_root, ".mp4") == 1 &&
                        CountSuffix(marker_remove_failure_root, ".cleanup-pending") == 1,
-                   "catalog 성공 뒤 marker 제거 실패 시 예약과 marker를 유지");
+                   "catalog 성공 뒤 marker 제거 실패: 완료 통지1회·media/marker 보존·명시 Failed");
             std::error_code marker_remove_cleanup_error;
             std::filesystem::permissions(
                 marker_remove_failure_root / "channel-marker-remove",

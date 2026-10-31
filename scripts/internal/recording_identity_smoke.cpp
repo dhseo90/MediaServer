@@ -4,6 +4,7 @@
 #include "event_recording_link_smoke.cpp"
 #undef main
 #include "recording/recording_session_service.h"
+#include "recording/recording_supervisor.h"
 #include "app_config.h"
 
 namespace identity_test {
@@ -59,6 +60,9 @@ public:
         writer_cv.wait_for(lock, std::chrono::seconds(2), [] { return writer_released; });
     }
     void Stop() override {}
+    recording::WriterStopResult StopObserved() override {
+        Stop();recording::WriterStopResult r;r.outcome=recording::StopOutcome::Completed;r.operation_complete=true;return r;
+    }
 private:
     bool fail_;
     bool block_;
@@ -77,14 +81,18 @@ public:
         publisher_.Invalidate();
         if (callback_) {
             std::string error;
-            callback_({}, {}, &error);
+            stop_ok_=callback_({}, {}, &error);
             callback_ = {};
         }
+    }
+    recording::WriterStopResult StopObserved() override {
+        Stop();recording::WriterStopResult r;r.outcome=stop_ok_?recording::StopOutcome::Completed:recording::StopOutcome::Failed;r.operation_complete=true;return r;
     }
     std::shared_ptr<const recording::RecordingTimeSnapshot> TimeSnapshot() const override {
         return publisher_.Get();
     }
 private:
+    bool stop_ok_{true};
     std::string channel_, epoch_;
     FinalizedCallback callback_;
     recording::RecordingTimeSnapshotPublisher publisher_;
@@ -259,6 +267,22 @@ void VerifySessions(recording::RecordingCatalog& catalog) {
     Check(push_entered && nonblocking && mapped == std::optional<std::string>("9110"),
           "V410-IDMAP-I13");
     Check(push_entered && time_nonblocking && !time_mapped, "S07-time-session-blocked-writer-null-nonblocking");
+    // R190: Source Start 중에도 cutoff를 닫고, deadline 실패를 Supervisor까지 전달한다.
+    { std::lock_guard lock(source_mu);source_entered=false;source_released=false; }
+    recording::RecordingSessionService starting(manager,catalog,[]{return std::make_unique<ControlledWriter>(false);});
+    auto start_pending=std::async(std::launch::async,[&]{return starting.StartChannel("9190","starting-stop",Request("blocked"),true);});
+    { std::unique_lock lock(source_mu);Check(source_cv.wait_for(lock,std::chrono::seconds(1),[]{return source_entered;}),"R190-start-latched"); }
+    recording::RetentionCoordinator retention(catalog,[](auto* bytes,auto*){*bytes=1ULL<<30;return true;},[](const auto&,auto*){return false;},{});
+    core::RecordingRuntimeConfigData config;
+    recording::RecordingSupervisor supervisor(config,ingress::SourceViewApplicationService::Instance(),starting,retention,"stream");
+    const auto context=std::make_shared<const recording::StopContext>(recording::StopContext::Clock::now()+std::chrono::milliseconds(40));
+    const auto stop=supervisor.Stop(context);
+    Check(stop.outcome==recording::StopOutcome::DeadlineUnconfirmed&&!stop.joined&&stop.unfinished==1&&starting.ActiveChannelCount()==1,"R190-supervisor-deadline-keeps-live-owner");
+    {std::lock_guard lock(source_mu);source_released=true;}source_cv.notify_all();
+    (void)start_pending.get();supervisor.JoinOwned();
+    const auto joined=supervisor.Stop(context),duplicate=supervisor.Stop(recording::StopContext::Grace());
+    Check(joined.joined&&joined.outcome==recording::StopOutcome::DeadlineUnconfirmed&&duplicate.outcome==joined.outcome&&starting.ActiveChannelCount()==0,"R190-late-join-not-retroactive-pass");
+
 }
 }  // namespace identity_test
 
@@ -305,7 +329,9 @@ int main(int argc, char** argv) {
         const auto resolved = bridge.TryResolve(result, event, media_options);
         const auto link = catalog.FindEventLinkByEventId("identity-event");
         if (!link || link->source_id != "9101" || link->channel_id != "9101") {
-            throw std::runtime_error("V410-IDMAP-I01: 숫자 channel의 신규 내구 link 없음: " + resolved.error);
+            std::string detail;
+            resolved.error.Visit([&](std::string_view text,std::string*) { detail.append(text.substr(0,256-detail.size()));return true; },nullptr);
+            throw std::runtime_error("V410-IDMAP-I01: 숫자 channel의 신규 내구 link 없음: " + detail);
         }
         identity_test::Check(resolved.handled, "V410-IDMAP-I01");
         identity_test::Check(event.stream_id == "file::/isolated/input.mp4" &&
