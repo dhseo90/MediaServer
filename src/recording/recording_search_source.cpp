@@ -152,16 +152,23 @@ bool RecordingCatalog::PublishSearchMembership(const SearchSourceBatch& batch,
         if(next.use_count()!=1)return Fail(error,"search-source-changed");
         auto* owned=const_cast<RecordingSearchModel*>(next.get());
         if(batch.delta.source_instance.rfind("recordings:",0)==0&&search_invalidations_&&batch.membership_epoch_){
+            bool certified=true;
             if(batch.membership_epoch_!=search_invalidations_->membership_epoch) {
                 std::array<SearchInvalidations::Receipt,SearchInvalidations::receipt_capacity> tail{};std::size_t count=0;
                 auto memory=SearchResidency()->ReserveOwned(sizeof(tail),SearchModelResidency::Category::Preparation);
-                if(!memory||search_invalidations_->Cover(batch.membership_epoch_,batch.resolution_revision,
-                    source_snapshot_revision_,&tail,&count))return Fail(error,"search-source-changed");
-                for(std::size_t i=0;i<count;++i)
+                if(!memory)return Fail(error,"search-source-changed");
+                certified=!search_invalidations_->Cover(batch.membership_epoch_,batch.resolution_revision,
+                    source_snapshot_revision_,&tail,&count);
+                // The requested scope passed currentness under this same lock.
+                // An unrelated channel's barrier invalidates the optional global
+                // certificate, not this fully authenticated immutable model.
+                // Without coverage the next request must capture strictly again.
+                for(std::size_t i=0;certified&&i<count;++i)
                     if(std::find(batch.channels.begin(),batch.channels.end(),tail[i].channel)!=batch.channels.end())
                         return Fail(error,"search-source-changed");
             }
-            owned->membership_instance_=search_instance_;owned->membership_epoch_=search_invalidations_->membership_epoch;
+            owned->membership_instance_=certified?search_instance_:0;
+            owned->membership_epoch_=certified?search_invalidations_->membership_epoch:0;
         }
         output->swap(next);
     }
@@ -219,9 +226,8 @@ bool RecordingCatalog::RebaseRetentionSearchSource(SearchSourceBatch* batch,Sear
             }
         }
         const auto revision=source_snapshot_revision_;
-        // Optional retry spans are not needed for the new cut; release their
-        // actual storage before budgeting the private edit/compaction workspace.
-        batch->segment_spans_.clear();
+        // Preserve optional retry proofs only within the same capture envelope.
+        // A later Finalize may invalidate Build even after this rebase succeeds.
         {
             // Document scanning/compaction never extends Catalog/History lock
             // hold time. Owned change identities survive ring wrap while unlocked.
@@ -246,6 +252,13 @@ bool RecordingCatalog::RebaseRetentionSearchSource(SearchSourceBatch* batch,Sear
             // Exact compaction releases removed payload and slack before Build.
             const auto extra=docs.capacity()-docs.size()+(removed?docs.size()-removed:0);
             if(bytes>limits.max_bytes||extra>(limits.max_bytes-bytes)/sizeof(SearchDocument))return refused();
+            std::size_t span_bytes=0;
+            const auto available=limits.max_bytes-bytes-extra*sizeof(SearchDocument);
+            for(const auto& entry:batch->segment_spans_) {
+                const auto charge=sizeof(entry)+4*sizeof(void*)+2*(entry.first.size()+1);
+                if(charge>available-span_bytes){batch->segment_spans_.clear();break;}
+                span_bytes+=charge;
+            }
             std::vector<SearchDocument> compact;
             if(removed){compact.reserve(docs.size()-removed);if(compact.capacity()!=docs.size()-removed)return refused();}
             for(auto& d:docs) {
@@ -258,7 +271,25 @@ bool RecordingCatalog::RebaseRetentionSearchSource(SearchSourceBatch* batch,Sear
 #endif
             }
             if(removed)docs.swap(compact);
-            batch->segment_spans_.clear();batch->retry_model_.reset();batch->append_order_hint=false;
+            // Compaction preserves segment grouping. Rebuild offsets without
+            // allocating; digests still describe the captured immutable Raw.
+            // Deleted spans disappear; pending spans carry the proven lifecycle.
+            for(auto it=batch->segment_spans_.begin();it!=batch->segment_spans_.end();) {
+                std::size_t at=0;for(;at<count_changes;++at)if(it->first==id(changes[at]))break;
+                if(at<count_changes&&changes[at].retention==2){it=batch->segment_spans_.erase(it);continue;}
+                auto& span=it->second;span.begin=span.count=span.shared_begin=span.shared_count=0;
+                if(at<count_changes)span.lifecycle=RecordingLifecycle::DeletionPending;
+                ++it;
+            }
+            if(!batch->segment_spans_.empty())for(std::size_t i=0;i<docs.size();++i) {
+                auto found=batch->segment_spans_.find(docs[i].segment_id);
+                if(found==batch->segment_spans_.end()){batch->segment_spans_.clear();break;}
+                auto& span=found->second;
+                if(!span.count)span.begin=i;
+                else if(span.begin+span.count!=i){batch->segment_spans_.clear();break;}
+                ++span.count;
+            }
+            batch->retry_model_.reset();batch->append_order_hint=false;
             batch->resolution_revision=revision;batch->delta.revision=revision;
             // Existing strict retention rebase proves current query contents,
             // not the global bound-Finalize interval. Keep its result usable but
