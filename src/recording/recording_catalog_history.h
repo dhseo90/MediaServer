@@ -52,14 +52,20 @@ public:
     // caller는 Catalog mu_를 보유한다. 두 store lock도 copy 완료까지 유지한다.
     bool CloneRetentionFrom(RecordingCatalogHistoryRows& source,std::string* error) {
         if(this==&source)return Fail(error,"retention clone aliases source");
+        recorder_probe::Span p1_total("history-clone");
+        const auto p1_wait=recorder_probe::Enabled()?recorder_probe::Now():0;
         std::scoped_lock lock(mu_,source.mu_);
+        if(p1_wait)recorder_probe::Record("history-lock-wait",p1_wait,recorder_probe::Now());
+        recorder_probe::Span p1_hold("history-clone-held");
 #if MEDIA_SERVER_USE_OPENSSL && !defined(_WIN32)
         bool ok=false;std::exception_ptr copy_exception;
+        std::uint64_t p1_insert_ns=0,p1_rows=0;
+        struct P1CopyCost {std::uint64_t& ns;std::uint64_t& rows;~P1CopyCost(){if(recorder_probe::Enabled())recorder_probe::Record("history-insert-total",0,ns,rows);}} p1_cost{p1_insert_ns,p1_rows};
         try {
             if(!source.healthy_||source.retention_cut_||!source.index_.Healthy(error))return Fail(error,"retention clone source unavailable");
             if(!index_.Create(std::filesystem::canonical(std::filesystem::temp_directory_path()).string(),
                 RecordingHistoryIndex::BytesForRows(0),error,source.index_.resources()))return Fail(error,"retention clone allocation failed");
-            ok=index_.BeginBufferedBuild(error)&&source.index_.Visit([&](const std::string& key,const std::string& value,std::string* detail){
+            ok=index_.BeginOrderedBuild(error)&&source.index_.Visit([&](const std::string& key,const std::string& value,std::string* detail){
                 try {
                 const auto slash=key.find('/');
                 if(slash==std::string::npos)return source.Fail(detail,"retention clone key namespace missing");
@@ -71,13 +77,15 @@ public:
                 if(!rows&&probe_retention_copy_step)probe_retention_copy_step(0);
 #endif
                 if(rows==UINT64_MAX||rows>=source.slot_limit_)return Fail(detail,"retention clone row capacity");
+                const auto p1_insert=recorder_probe::Enabled()?recorder_probe::Now():0;
                 if(!index_.ReserveRows(rows+1,detail)||!index_.Put(key,value,false,detail))return false;
+                if(p1_insert){p1_insert_ns+=recorder_probe::Now()-p1_insert;++p1_rows;}
 #if defined(MEDIA_SERVER_RECORDING_GENERATION_TESTING)
                 if(probe_retention_copy_step)probe_retention_copy_step(rows+1);
 #endif
                 return true;
                 }catch(...){copy_exception=std::current_exception();return false;}
-            },error)&&source.index_.Healthy(error)&&index_.SealBufferedBuild(error);
+            },error)&&source.index_.Healthy(error)&&index_.SealOrderedBuild(error);
             // Visit(false) is failure without poisoning the source. Read/Value authentication
             // still occurs outside this callback and retains the index's original error policy.
             if(copy_exception)std::rethrow_exception(copy_exception);

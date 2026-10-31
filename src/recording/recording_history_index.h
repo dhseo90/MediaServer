@@ -112,7 +112,7 @@ public:
     // Caller serializes source mutation. The process trust root is copied, never read from the header.
     bool CopyFrom(RecordingHistoryIndex& source,std::string* error) {
         try {
-            Check();if(sequential_||source.sequential_||build_||source.build_||this==&source||rows_||root_.offset||size_!=kNodeBytes)
+            Check();if(ordered_||source.ordered_||sequential_||source.sequential_||build_||source.build_||this==&source||rows_||root_.offset||size_!=kNodeBytes)
                 throw Failure("history clone destination not empty");
             if(!source.Healthy(error))return false;
             if(source.size_>budget_||BytesForRows(source.rows_)>budget_)throw Failure("history clone capacity insufficient");
@@ -153,15 +153,29 @@ public:
     // Fixed checkpoint capture only: ordered append, authenticated complete traversal, no lookup.
     // Reuses the anonymous FD, fixed slots, admission and explicit Close. Never a history authority.
     bool BeginSequentialBuild(std::string* error) {
-        try {Check();if(rows_||root_.offset||build_||visiting_||sequential_)throw Failure("sequential capture requires empty private index");
+        try {Check();if(ordered_||rows_||root_.offset||build_||visiting_||sequential_)throw Failure("sequential capture requires empty private index");
             sequential_=true;return true;}catch(const std::exception& e){return Fail(error,e.what());}
     }
     bool SealSequentialBuild(std::string* error) {
         try {Check();if(!sequential_||sequential_sealed_||size_!=BytesForRows(rows_))throw Failure("sequential capture seal mismatch");
             sequential_sealed_=true;return Healthy(error);}catch(const std::exception& e){return Fail(error,e.what());}
     }
+    // 인증된 오름차순 행을 비공개 cut에 한 번씩 쓴 뒤 균형 트리로 봉합한다.
+    // 원본 인증/잠금은 caller가 유지한다. 기존 inline/고정 slot과 예약 상한을 재사용한다.
+    bool BeginOrderedBuild(std::string* error) {
+        try {Check();if(ordered_||sequential_||rows_||root_.offset||build_||visiting_)
+                throw Failure("ordered build requires empty private index");
+            ordered_=true;return true;
+        }catch(const std::exception& e){return Fail(error,e.what());}
+    }
+    bool SealOrderedBuild(std::string* error) {
+        try {Check();if(!ordered_)throw Failure("ordered build missing");
+            const auto balanced=BalanceOrdered();root_=balanced;ordered_=false;
+            std::string{}.swap(sequence_key_);return Healthy(error);
+        }catch(const std::exception& e){return Fail(error,e.what());}
+    }
     bool BeginBufferedBuild(std::string* error) {
-        try {Check();if(sequential_||rows_||root_.offset||build_||visiting_)throw Failure("history buffered build requires empty private index");
+        try {Check();if(ordered_||sequential_||rows_||root_.offset||build_||visiting_)throw Failure("history buffered build requires empty private index");
             auto ticket=resources_->Reserve({0,0,sizeof(BuildBuffer)});
             if(!ticket)throw RecordingResourceUnavailable();
             auto build=std::make_unique<BuildBuffer>();build_reservation_=std::move(*ticket);build_=std::move(build);return true;
@@ -176,7 +190,7 @@ public:
     }
     Lookup Get(const std::string& key,std::string* output,std::string* error) {
         try {
-            Check();Key(key);if(sequential_||build_)throw Failure("history lookup before build seal/sequential capture");if(!output)throw Failure("history index output missing");
+            Check();Key(key);if(ordered_||sequential_||build_)throw Failure("history lookup before build seal/sequential capture");if(!output)throw Failure("history index output missing");
             Ref ref=root_;std::string lower,upper;
             for(std::size_t depth=0;ref.offset;++depth) {
                 if(depth>=kDepth)throw Failure("history index depth invalid");
@@ -192,6 +206,17 @@ public:
     bool Put(const std::string& key,const std::string& value,bool overwrite,std::string* error) {
         try {
             Check();if(visiting_||(build_&&overwrite))throw Failure("history mutation during visit/buffered overwrite");Key(key);if(value.size()>kValueBytes)throw Failure("history index row admission");
+            if(ordered_) {
+                if(overwrite||(!sequence_key_.empty()&&key<=sequence_key_)||
+                   rows_>=(budget_-kNodeBytes)/(kNodeBytes+kValueBytes))
+                    throw Failure("ordered build mutation/order/capacity invalid");
+                Node node;node.key=key;node.left=root_;node.value_size=value.size();
+                node.value_hash=Digest(value.data(),value.size());
+                if(value.size()>kInlineBytes){std::array<unsigned char,kValueBytes> slot{};
+                    std::copy(value.begin(),value.end(),slot.begin());node.value_offset=Append(slot.data(),slot.size());}
+                else std::copy(value.begin(),value.end(),node.inline_value.begin());
+                root_=Save(node,{});++rows_;sequence_key_=key;if(error)error->clear();return true;
+            }
             if(sequential_) {
                 if(overwrite||sequential_sealed_||(!sequence_key_.empty()&&key<=sequence_key_))throw Failure("sequential capture mutation/order invalid");
                 Node node;node.key=key;node.left=root_;node.value_size=value.size();node.value_hash=Digest(value.data(),value.size());
@@ -207,7 +232,7 @@ public:
     }
     bool Visit(const Visitor& visitor,std::string* error) {
         try {
-            Check();if(build_||(sequential_&&!sequential_sealed_)||!visitor)throw Failure("history index visitor missing/unsealed build");
+            Check();if(ordered_||build_||(sequential_&&!sequential_sealed_)||!visitor)throw Failure("history index visitor missing/unsealed build");
             struct VisitGuard { bool& flag; ~VisitGuard(){flag=false;} } guard{visiting_};
             if(visiting_)throw Failure("history recursive visit");
             visiting_=true;
@@ -223,14 +248,14 @@ public:
     // Caller retains its independently maintained namespace coverage count.
     bool VisitRange(const std::string& begin,const std::string& end,const Visitor& visitor,std::string* error) {
         try {
-            Check();Key(begin);Key(end);if(sequential_||build_||begin>=end||!visitor||visiting_)throw Failure("history range invalid");
+            Check();Key(begin);Key(end);if(ordered_||sequential_||build_||begin>=end||!visitor||visiting_)throw Failure("history range invalid");
             struct Guard {bool& flag;~Guard(){flag=false;}} guard{visiting_};visiting_=true;
             if(!WalkRange(root_,{}, {},0,begin,end,visitor,error))return false;
             Check();if(error)error->clear();return true;
         }catch(const std::exception& e){return Fail(error,e.what());}
     }
     bool Healthy(std::string* error) {
-        try{Check();if(build_||(sequential_&&!sequential_sealed_))throw Failure("history health before build seal");if(root_.offset)(void)Read(root_);return true;}
+        try{Check();if(ordered_||build_||(sequential_&&!sequential_sealed_))throw Failure("history health before build seal");if(root_.offset)(void)Read(root_);return true;}
         catch(const std::exception& e){return Fail(error,e.what());}
     }
     Usage usage()const{struct stat st{};const bool valid=fd_>=0&&!fstat(fd_,&st);return {rows_,size_,reads_,writes_,build_?sizeof(BuildBuffer):0,valid?static_cast<std::uint64_t>(st.st_blocks)*512:0};}
@@ -293,7 +318,7 @@ private:
     struct BuildBuffer {std::array<BuildEntry,256> entries{};std::uint64_t clock{0};};
     static_assert(sizeof(BuildBuffer)<=160*1024,"bounded checkpoint node writer");
     std::unique_ptr<BuildBuffer> build_;
-    bool sequential_=false,sequential_sealed_=false;std::string sequence_key_;
+    bool ordered_=false,sequential_=false,sequential_sealed_=false;std::string sequence_key_;
     void Flush(BuildEntry& entry) {
         if(!entry.offset)return;
         std::array<unsigned char,kNodeBytes> actual{};ReadBytes(entry.offset,actual.data(),actual.size());
@@ -448,6 +473,37 @@ private:
             result=Rebalance(frame.node,frame.ref);
         }
         return result;
+    }
+    Ref BalanceOrdered() {
+        // 역순 chain을 인증하며 기존 node slot을 재사용한다. 재귀/증가하는 cache는 없다.
+        struct Result {Ref ref;std::uint64_t height{0};};
+        struct Frame {std::uint64_t count{0};unsigned stage{0};Ref prior;Node node;Result right;};
+        using Path=std::array<Frame,kDepth>;
+        static_assert(sizeof(Path)+8*kNodeBytes+2*kValueBytes+4*kKeyBytes<kWorkingBytes,
+                      "ordered build path fits existing work reservation");
+        auto path=std::make_unique<Path>();std::size_t depth=1;(*path)[0].count=rows_;
+        Ref cursor=root_;Result result;std::string previous;std::uint64_t seen=0;
+        while(depth){auto& frame=(*path)[depth-1];
+            if(!frame.count){result={};--depth;continue;}
+            if(frame.stage==0){frame.stage=1;
+                if(depth>=kDepth)throw Failure("ordered build depth");
+                (*path)[depth++]={frame.count/2,0,{},{},{}};continue;
+            }
+            if(frame.stage==1){frame.right=result;frame.prior=cursor;frame.node=Read(cursor);
+                if(frame.node.right.offset||frame.node.height!=1||
+                   (seen?frame.node.key>=previous:frame.node.key!=sequence_key_))
+                    throw Failure("ordered build chain/order mismatch");
+                (void)Value(frame.node);previous=frame.node.key;++seen;cursor=frame.node.left;
+                frame.stage=2;
+                if(depth>=kDepth)throw Failure("ordered build depth");
+                (*path)[depth++]={frame.count-1-frame.count/2,0,{},{},{}};continue;
+            }
+            frame.node.left=result.ref;frame.node.right=frame.right.ref;
+            frame.node.height=1+std::max(result.height,frame.right.height);
+            result={Save(frame.node,frame.prior),frame.node.height};--depth;
+        }
+        if(cursor.offset||cursor.hash!=Hash{}||seen!=rows_)throw Failure("ordered build count mismatch");
+        Check();return result.ref;
     }
     bool WalkSequence(const Visitor& visitor,std::string* error) {
         if(size_!=BytesForRows(rows_))throw Failure("sequential capture size/count mismatch");
