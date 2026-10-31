@@ -22,6 +22,19 @@ inline bool SlowOnly() noexcept {static const bool enabled=[] {const char* p=std
 inline std::uint64_t Now() noexcept {static const auto epoch=std::chrono::steady_clock::now();return 1+static_cast<std::uint64_t>(std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::steady_clock::now()-epoch).count());}
 // Diagnostic-only selected windows. No allocation, output or diagnostic mutex under
 // the product lock. Completed intervals are published after unlock; never an owner guess.
+// Lifetime tokens are independent of reusable storage slots. Consumers copy the
+// token and never retain an owner pointer. UINT_MAX is the publication sentinel.
+inline constexpr unsigned MutexCapacity=128,MaxMutexIdentity=std::numeric_limits<unsigned>::max()-1;
+struct MutexRegistry {
+    static constexpr unsigned Reserved=std::numeric_limits<unsigned>::max();
+    struct Slot {std::atomic<const void*> address{nullptr};std::atomic<unsigned> identity{0};};
+    std::array<Slot,MutexCapacity> slots{};
+    std::atomic<std::uint64_t> next{1},registered{0},loss_count{0};
+    std::atomic<unsigned> active{0},peak{0};
+    void Lose() noexcept {loss_count.fetch_add(1,std::memory_order_relaxed);}
+    ~MutexRegistry() noexcept;
+};
+inline MutexRegistry mutex_registry;
 enum class Work : unsigned { Other=0, Visual=1, Structured=2, Retention=3, Index=4, Writer=5, Evidence=6 };
 inline thread_local Work holder_work=Work::Other;
 struct WorkScope {Work previous;explicit WorkScope(Work work):previous(holder_work){holder_work=work;}~WorkScope(){holder_work=previous;}};
@@ -148,7 +161,7 @@ struct HolderTrace {
     }
     void PrintSlow() noexcept {
         if(SubcostEnabled()&&std::fputs("[catalog-subcost-basis] journal-wait,managed-authority,identity-lookup,cold-read-inclusive\n",stderr)==EOF)loss=true;
-        const auto begin=slow_begin.load(),end=slow_end.load();bool good=!loss.load()&&inflight.load()==0;
+        const auto begin=slow_begin.load(),end=slow_end.load();bool good=!loss.load()&&inflight.load()==0&&!mutex_registry.loss_count.load();
         if(selected.load()&&(!(tickets.load()&Frozen)||!begin||end<begin||overwritten_end.load()>begin))good=false;
         unsigned emitted=0;
         for(auto& slot:slots){const auto state=slot.state.load(std::memory_order_acquire);
@@ -162,7 +175,7 @@ struct HolderTrace {
     ~HolderTrace() noexcept {
         if(slow){PrintSlow();return;}
         if(SubcostEnabled()&&std::fputs("[catalog-subcost-basis] journal-wait,managed-authority,identity-lookup,cold-read-inclusive\n",stderr)==EOF)loss=true;
-        bool good=!loss.load()&&inflight.load()==0;const unsigned total=count.load();
+        bool good=!loss.load()&&inflight.load()==0&&!mutex_registry.loss_count.load();const unsigned total=count.load();
         const char* setting=std::getenv("MEDIA_SERVER_VERIFY_CATALOG_HOLDER_WHOLE_REQUESTS");
         if(setting&&std::strcmp(setting,"1")!=0&&std::strcmp(setting,"late")!=0&&std::strcmp(setting,"mixed-late")!=0)good=false;
         if(whole)for(unsigned i=0;i<3;++i)if(!windows[i].load()||ends[i].load()<windows[i].load())good=false;
@@ -247,10 +260,57 @@ public:
 inline std::atomic<unsigned> next_thread{0},next_request{0},emitted{0};
 inline std::atomic<std::size_t> emitted_bytes{0};
 inline std::atomic<bool> loss_emitted{false};
-inline std::array<std::atomic<const void*>,128> mutexes{};
 struct Local {unsigned thread=++next_thread,request=0,depth=0;std::uint64_t mutex=0;std::array<Row,128> rows{};std::size_t used=0;std::array<Row,32> fast{};unsigned fast_events=0;bool loss=false;~Local();};
 inline thread_local Local local;
-inline unsigned MutexId(const void* p) noexcept {for(unsigned i=0;i<mutexes.size();++i){auto value=mutexes[i].load();if(value==p)return i+1;if(!value&&mutexes[i].compare_exchange_strong(value,p))return i+1;if(value==p)return i+1;}local.loss=true;return 0;}
+// One guard must share the lifetime of every observed mutex. Declaring the
+// guard immediately after the mutex releases its slot before mutex destruction.
+// Neither registration nor lookup acquires a product/diagnostic mutex or writes.
+class MutexIdentity {
+    unsigned slot_=MutexCapacity,identity_=0;
+public:
+    explicit MutexIdentity(const void* address) noexcept {
+        if(!Enabled())return;
+        // Exactly one guard owns an observed mutex. Reject accidental duplicate
+        // owners; concurrent construction of guards for one object is unsupported.
+        for(auto& slot:mutex_registry.slots){
+            const auto prior=slot.identity.load();
+            if(prior&&prior!=MutexRegistry::Reserved&&slot.address.load()==address&&slot.identity.load()==prior){mutex_registry.Lose();return;}
+        }
+        auto id=mutex_registry.next.load(std::memory_order_relaxed);
+        while(id<=MaxMutexIdentity&&!mutex_registry.next.compare_exchange_weak(id,id+1,std::memory_order_relaxed)){}
+        if(!address||id>MaxMutexIdentity){mutex_registry.Lose();return;}
+        for(unsigned i=0;i<MutexCapacity;++i){
+            auto& slot=mutex_registry.slots[i];unsigned empty=0;
+            if(!slot.identity.compare_exchange_strong(empty,MutexRegistry::Reserved))continue;
+            slot_=i;identity_=static_cast<unsigned>(id);
+            slot.address.store(address);
+            const auto active=mutex_registry.active.fetch_add(1)+1;
+            auto peak=mutex_registry.peak.load();
+            while(peak<active&&!mutex_registry.peak.compare_exchange_weak(peak,active)){}
+            ++mutex_registry.registered;
+            slot.identity.store(identity_);return;
+        }
+        mutex_registry.Lose();
+    }
+    ~MutexIdentity() noexcept {
+        if(slot_==MutexCapacity)return;
+        auto& slot=mutex_registry.slots[slot_];
+        // Invalidate before clearing/reusing the address. Lookup validates the
+        // token twice, so a recycled slot/address cannot acquire the prior ID.
+        slot.identity.store(MutexRegistry::Reserved);
+        slot.address.store(nullptr);--mutex_registry.active;
+        slot.identity.store(0);
+    }
+    MutexIdentity(const MutexIdentity&)=delete;
+    MutexIdentity& operator=(const MutexIdentity&)=delete;
+};
+inline unsigned MutexId(const void* address) noexcept {
+    for(auto& slot:mutex_registry.slots){
+        const auto id=slot.identity.load();
+        if(id&&id!=MutexRegistry::Reserved&&slot.address.load()==address&&slot.identity.load()==id)return id;
+    }
+    mutex_registry.Lose();local.loss=true;return 0;
+}
 #ifdef RECORDING_LATENCY_TRACE_TEST
 using Sink=void(*)(const char*,std::size_t) noexcept;
 inline Sink test_sink=nullptr;
@@ -260,6 +320,13 @@ inline void SinkLine(const char* text,std::size_t bytes) noexcept {
     if(test_sink){test_sink(text,bytes);return;}
 #endif
     (void)std::fwrite(text,1,bytes,stderr);
+}
+inline MutexRegistry::~MutexRegistry() noexcept {
+    if(!Enabled())return;
+    char row[256];const int n=std::snprintf(row,sizeof(row),
+        "[recording-mutex-summary] {\"capacity\":%u,\"registered\":%llu,\"active\":%u,\"peak\":%u,\"lossCount\":%llu}\n",
+        MutexCapacity,(unsigned long long)registered.load(),active.load(),peak.load(),(unsigned long long)loss_count.load());
+    if(n>0&&n<int(sizeof(row)))SinkLine(row,static_cast<std::size_t>(n));
 }
 inline int FormatRow(char (&text)[512],const Row& v) noexcept {
     return std::snprintf(text,sizeof(text),"[recording-latency] {\"k\":%llu,\"o\":%llu,\"s\":%llu,\"l\":%llu,\"m\":%llu,\"t\":%llu,\"r\":%llu,\"b\":%llu,\"a\":%llu,\"e\":%llu,\"n\":%llu,\"w\":%llu,\"h\":%llu,\"x\":%llu,\"y\":%llu}\n",
@@ -304,6 +371,7 @@ inline void Emit(const Row& v) noexcept {
 }
 inline void Flush() noexcept {
     if(local.depth)return;
+    if(mutex_registry.loss_count.load())local.loss=true;
     for(std::size_t i=0;i<local.used;++i)Emit(local.rows[i]);
     local.used=0;
     if(local.loss&&!loss_emitted.exchange(true)){Row loss;loss.k=3;loss.n=1;Emit(loss);}

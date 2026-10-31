@@ -19,6 +19,7 @@
 #include <unordered_set>
 #include <utility>
 
+#include "recording/recording_latency_trace.h"
 #include "recording/recording_journal.h"
 #include "recording/recording_catalog_snapshot.h"
 #include "recording/recording_retained_rows.h"
@@ -667,6 +668,7 @@ private:
     RecordingJournal& journal_;
     Options options_;
     mutable std::mutex mu_;
+    latency::MutexIdentity latency_mutex_identity_{&mu_};
     bool opened_{false};
     bool generation_read_only_{false};
     bool generation_backend_{false};

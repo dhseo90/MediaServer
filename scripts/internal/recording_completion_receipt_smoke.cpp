@@ -20,7 +20,7 @@ int main(int argc,char** argv){
     if(argc!=2)return 2;
     recording::latency::local.request=1;
     const std::string mode=argv[1];
-    std::mutex mutex;{recording::latency::Lock lock(mutex,recording::latency::Source::Test,__LINE__,true);}
+    std::mutex mutex;recording::latency::MutexIdentity mutex_identity(&mutex);{recording::latency::Lock lock(mutex,recording::latency::Source::Test,__LINE__,true);}
 #ifdef RECORDING_COMPLETION_LINKED
     // Link the real Evidence producer from the rebuilt archive, with no test sinks.
     if(mode!="normal"&&mode!="abnormal"&&mode!="missing")return 2;

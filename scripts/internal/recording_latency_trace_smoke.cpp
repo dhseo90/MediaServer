@@ -10,7 +10,7 @@ namespace L=recording::latency;
 static void Sink(const char* text,std::size_t bytes) noexcept {if(L::local.depth)std::abort();(void)std::fwrite(text,1,bytes,stdout);}
 int main(int argc,char** argv){
  assert(L::Now()>0); // first observation must not alias the unselected sentinel
- L::test_sink=Sink;const std::string mode=argc>1?argv[1]:"contention";std::mutex mutex,other;
+ L::test_sink=Sink;const std::string mode=argc>1?argv[1]:"contention";std::mutex mutex,other;L::MutexIdentity mutex_identity(&mutex),other_identity(&other);
  if(mode=="visual-row-cost"){
   for(unsigned n=0;n<3;++n){L::VisualRequestSummary request;
    for(unsigned i=0;i<6;++i){L::CatalogRowCost cost(i);}

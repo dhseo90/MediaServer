@@ -32,7 +32,7 @@ struct Call {
  ~Call() noexcept {row.rb=L::Now();lock.reset();row.re=L::Now();const auto n=count.fetch_add(1);if(n>=records.size())std::abort();records[n]=row;L::local.request=prior;}
 };
 int main(int argc,char** argv){
- const std::string mode=argc>1?argv[1]:"normal";std::mutex mutex,other;std::uint64_t ownerBegin=0,ownerRelease=0;bool contention=false;
+ const std::string mode=argc>1?argv[1]:"normal";std::mutex mutex,other;L::MutexIdentity mutex_identity(&mutex),other_identity(&other);std::uint64_t ownerBegin=0,ownerRelease=0;bool contention=false;
  try {
   if(mode=="lost-output")::close(STDERR_FILENO);
   if(mode=="cap")L::emitted=16384;

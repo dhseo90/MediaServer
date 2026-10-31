@@ -1,0 +1,25 @@
+{
+  "schema": "state45-recorder-policy-v1",
+  "scope": "functional Native reused only for pinned recorder bytes; two diagnostic-only headers newly tested, final build/writer/smoke required",
+  "diagnosticSources": {
+    "include/recording/recording_latency_trace.h": "fa587f450f24e67322f8133d11adc8d1bd44e761e394f0299ac7ec896e7bcea9",
+    "include/recording/recording_catalog.h": "662f2e89e30c693d6da29fa0347b5232fc415b66d02d2d4d51db178baab68399"
+  },
+  "requiredDiagnosticCases": [
+    "active127",
+    "active128",
+    "sequential129",
+    "active129-loss",
+    "address-reuse-buffered",
+    "concurrent-register-release",
+    "shared-thread-token",
+    "disabled",
+    "unregistered-loss",
+    "identity-exhaustion",
+    "summary-invalid",
+    "holder-lifetime",
+    "release-at-capacity",
+    "duplicate-owner",
+    "oversized-summary"
+  ]
+}

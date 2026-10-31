@@ -18,7 +18,7 @@ int main(int argc,char** argv){
  }else if(mode=="byte-before"||mode=="byte-over"){
   L::emitted_bytes=2097152-512-size+(mode=="byte-over"?1:0);L::Emit(row);L::Flush();calls=1;
  }else if(mode=="single"){
-  std::mutex mutex;{L::Lock lock(mutex,L::Source::Catalog,1,true);}
+  std::mutex mutex;L::MutexIdentity mutex_identity(&mutex);{L::Lock lock(mutex,L::Source::Catalog,1,true);}
   {L::Scope scope(L::Operation::Query,L::Source::Test,2,true);}L::FinishThread();calls=2;
  }else if(mode=="aggregate"||mode=="slow"){
   // Deterministic synthetic windows through original Append, not measured lock costs.
@@ -26,7 +26,7 @@ int main(int argc,char** argv){
   if(mode=="slow"){row.e=20000002;L::Append(row,true);}
   L::FinishThread();calls=mode=="slow"?4:3;
  }else if(mode=="thread"){
-  std::thread thread([]{std::mutex mutex;L::Lock lock(mutex,L::Source::Catalog,3,true);});thread.join();calls=1;
+  std::thread thread([]{std::mutex mutex;L::MutexIdentity mutex_identity(&mutex);L::Lock lock(mutex,L::Source::Catalog,3,true);});thread.join();calls=1;
  }else if(mode=="output-failure"){
   if(::close(STDERR_FILENO)!=0)return 3;L::Emit(row);L::Flush();calls=1;
  }else return 2;

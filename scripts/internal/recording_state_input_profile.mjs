@@ -351,6 +351,18 @@ export function assessQualifiedStateReview(review){
   need(review.cleanup?.workAbsent===true&&review.cleanup.processGroupAbsent===true,'state-writer-cleanup');
 }
 export function requireStateInputExecutable(profile,env=process.env){
+  const recorderContract='v2-recorder-1';
+  if(env.MEDIA_SERVER_STATE_CONTRACT===recorderContract){
+    need(profile===EARLY_STATE_INPUT,'recorder-profile');
+    need(!Object.keys(env).some(k=>k.startsWith('MEDIA_SERVER_STATE_')&&!['MEDIA_SERVER_STATE_CONTRACT','MEDIA_SERVER_STATE_INPUT_PROFILE','MEDIA_SERVER_STATE_RECORDER_BUNDLE','MEDIA_SERVER_STATE_RECORDER_BUNDLE_SHA256'].includes(k)),'recorder-contract-mixed');
+    const file=env.MEDIA_SERVER_STATE_RECORDER_BUNDLE,digest=env.MEDIA_SERVER_STATE_RECORDER_BUNDLE_SHA256;
+    need(typeof file==='string'&&path.isAbsolute(file)&&hash(digest),'recorder-bundle-required');
+    const repo=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../..');
+    const binding=JSON.parse(execFileSync('python3',['-B',path.join(repo,'scripts/internal/recording_state_binding_recorder.py'),'--binding',repo,file,digest],{encoding:'utf8',timeout:20000,maxBuffer:131072}));
+    need(binding.contractVersion===recorderContract&&binding.profile===profile.name,'recorder-result');
+    validateQualifiedStateInput(boundFile(binding.input,binding.sha256.input));return binding;
+  }
+  need(env.MEDIA_SERVER_STATE_RECORDER_BUNDLE===undefined&&env.MEDIA_SERVER_STATE_RECORDER_BUNDLE_SHA256===undefined,'recorder-explicit-selection-required');
   const contract=env.MEDIA_SERVER_STATE_CONTRACT??'v1';
   need(contract==='v1'||contract==='v2','state-contract-version');
   if(contract==='v2'){

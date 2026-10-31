@@ -100,11 +100,14 @@ def check_smoke(b,inner):
                 fastSelections=sum(x['fastSelected'] for x in membership),scope='focused short HTTP; capacity retention, no Segment Delete API; not natural State45 retention')
 
 def bind(repo,file,expected):
+    return _bind_current(repo,file,expected,SCHEMA,"v2",validate)
+
+def _bind_current(repo,file,expected,schema,contract,qualifier):
     need(sha(file)==expected,'v2-bundle-sha');b=json.loads(Path(file).read_text())
-    need(b['schema']==SCHEMA and b['contractVersion']=='v2' and b['gates']==GATES,'v2-schema-gates')
+    need(b['schema']==schema and b['contractVersion']==contract and b['gates']==GATES,'v2-schema-gates')
     run_ids(b['runId'],b['writerRunId'],b['smokeRunId'])
     inner_path=bound(b['qualification']);inner=read(b['qualification'])
-    result=validate(repo,inner_path,b['qualification']['sha256'])
+    result=qualifier(repo,inner_path,b['qualification']['sha256'])
     source=read(inner['source']);plan=read(inner['plan']);review=read(inner['writer'])
     need(b['writerRunId']==plan['runId']==review['runId'],'v2-writer-run')
     counts=check_writer(plan,review);smoke=check_smoke(b,inner)
@@ -133,7 +136,7 @@ def bind(repo,file,expected):
             if library.startswith('/opt/'):
                 need(str(Path(library).resolve()) in deps,'v2-dynamic-library-coverage')
     need(identity(repo)==source,'v2-source-changed')
-    return dict(contractVersion='v2',evidenceSchema=SCHEMA,runId=b['runId'],profile='state-early-cbr224-v1',
+    return dict(contractVersion=contract,evidenceSchema=schema,runId=b['runId'],profile='state-early-cbr224-v1',
         input=inner['input']['path'],product=inner['binary']['path'],runtime=inner['runtime']['path'],modelDirectory=str(model),
         helpers=helper['helpers'],matched=len(source['sources']),sha256={k:inner[v]['sha256'] for k,v in [('input','input'),('product','binary'),('runtime','runtime')]},
         sourceBinding=dict(head=source['head'],manifestSha256=inner['source']['sha256']),freshness=actual,

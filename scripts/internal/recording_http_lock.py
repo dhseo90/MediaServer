@@ -9,7 +9,7 @@ def call(r,sites):
  for k in r.keys()-{'owned','delta'}:number(r[k])
  if r['schema']!=1 or r['id'] not in (10,11,60) or not 1<=r['ordinal']<=CAP or r['api']>=7:raise ValueError('call bounds')
  if r['identity']!=BASE+r['id']*CAP+r['ordinal'] or r['line']!=sites[r['api']]:raise ValueError('call identity/line')
- if r['owned'] is not True or not r['thread'] or not 1<=r['mutex']<=128:raise ValueError('call ownership')
+ if r['owned'] is not True or not r['thread'] or not 1<=r['mutex']<=4294967294:raise ValueError('call ownership')
  if type(r['delta'])!=int or r['delta'] not in ((1,) if r['api']==4 else (-1,0,1) if r['api']==6 else (0,)):raise ValueError('hold direction')
  if not 0<r['cb']<=r['ce']<=r['rb']<=r['re']:raise ValueError('call order')
  return r

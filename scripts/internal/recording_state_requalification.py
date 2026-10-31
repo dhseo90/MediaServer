@@ -81,6 +81,9 @@ LINEAGE_SHA={'native':'f7db282d76aea58f989310a833b1f68b760b2107b8e885e909283e2fb
 
 def validate_lineage(repo,b):
     need(git(repo,'diff',LINEAGE_HEAD,'HEAD','--','CMakeLists.txt','src','include')=='','lineage-product-changed')
+    validate_fixed_lineage_artifacts(b)
+
+def validate_fixed_lineage_artifacts(b):
     for role in ['native','shutdown']:
         entry=b[role];need(entry['sha256']==LINEAGE_SHA[role],'lineage-anchor:'+role)
         origin=bound(entry); m=json.loads(origin.read_text())
@@ -92,6 +95,9 @@ def validate_lineage(repo,b):
 
 
 def validate(repo, bundle, expected_sha):
+    return _validate_current(repo, bundle, expected_sha, validate_lineage)
+
+def _validate_current(repo, bundle, expected_sha, lineage_validator):
     need(sha(bundle)==expected_sha,'bundle-sha')
     b=json.loads(Path(bundle).read_text())
     need(b['schema']==SCHEMA and b['officialAdoption'] is False,'schema-or-adoption')
@@ -130,7 +136,7 @@ def validate(repo, bundle, expected_sha):
     need(execution['source']['sourceSha256']==expected_source_sha,'smoke-source-bytes')
     need(report['failed']==0 and report['passed']>0 and report['blockerResults']['retention']['status']=='VERIFIED','smoke-result')
     # 원출력 전체가 별도 Manifest에 결속돼야 한다. 요약 PASS만으로 수용하지 않는다.
-    validate_lineage(repo,b)
+    lineage_validator(repo,b)
     for role in ['smokeRaw']:
         manifest=read(b[role]); need(manifest['files'],'evidence-empty:'+role)
         for entry in manifest['files']: bound(entry)
