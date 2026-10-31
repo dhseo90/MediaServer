@@ -19,10 +19,10 @@ const line=v=>'[recording-latency] '+JSON.stringify(v)+'\n';
 test('LP26-O09-C01 slow-only 초기20000행 생략·마지막64·33KiB 상한',()=>{
   const r=spawnSync(binary,['slow-tail'],{encoding:'utf8',timeout:15000,maxBuffer:3*1024*1024,
     env:{PATH:process.env.PATH,MEDIA_SERVER_VERIFY_RECORDING_LATENCY_TRACE:'1',MEDIA_SERVER_VERIFY_RECORDING_LATENCY_SLOW_ONLY:'1'}});
-  assert.equal(r.status,0);assert.equal(r.stdout,'');
+  assert.equal(r.status,0);assert.deepEqual(JSON.parse(r.stdout.trim().slice('[recording-mutex-summary] '.length)),{capacity:128,registered:2,active:0,peak:2,lossCount:0});
   const rows=r.stderr.split('\n').filter(l=>l.startsWith('[recording-latency] ')).map(l=>JSON.parse(l.slice('[recording-latency] '.length)));
   assert.equal(rows.length,64);assert.deepEqual(rows.map(r=>r.l),Array.from({length:64},(_,i)=>i+17));
-  assert(Buffer.byteLength(r.stderr)<=64*512+512);assert.match(r.stderr,/\[recording-slow-summary\]/);
+  assert(Buffer.byteLength(r.stdout+r.stderr)<=64*512+512);assert.match(r.stderr,/\[recording-slow-summary\]/);
 });
 test('LP26-O09-C03 slow flag만으로 trace 활성화 금지',()=>{
   const r=spawnSync(binary,['slow-tail'],{encoding:'utf8',timeout:15000,env:{PATH:process.env.PATH,MEDIA_SERVER_VERIFY_RECORDING_LATENCY_SLOW_ONLY:'1'}});
