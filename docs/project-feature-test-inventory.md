@@ -5695,3 +5695,11 @@ R192-FIXTURE-FINAL: 2026-10-31 후속 승인. 정상9201과 실패/재시도9101
 ### SEARCH-PREPARATION-RETENTION-RETRY-01
 
 실제 Retention Plan/Apply 후 post-Build Finalize가 현재성을 거부하면 unpublished Capture의 유효 span만 유지한다. 다음 Capture는 현재 Raw digest/Lifecycle/Source/Owner를 재인증하고 재사용하며, strict oracle·삭제 제외·Snapshot 불변·Owner 반환을 확인한다. 상한 부족 시 optional span을 해제하고 기존 strict fallback을 유지한다. Native 정상/오류/경계 및 집중 Structured HTTP 대상, UI·장시간은 이 항목에서 미실행한다.
+
+
+### V450-SEARCH-LINEAGE-01 — Search 결합 후보 후속 결속
+
+- 내부 route: `recording_state_input_profile.mjs --binding`, 명시 계약 `v2-recorder-search-1`과 별도 Search bundle/외부 SHA. v1·v2·Recorder validator와 기존 Gate는 유지한다. UI/30분/120분/공식 State45는 이 기능에서 실행하지 않는다.
+- 정상: 고정 이전 Recorder89108의 Clean Source와 기존 validator 전체 계보 검증, 독립 Search 리뷰 Manifest·Publication/Rebase Patch·406 제품 Source·단일 Search delta·최종 fixture 결속, 기존 Native93(69포함)/1250 원출력 exact 재사용을 검증한다. 최종 Clean HEAD의 새 Build/Writer65+tail/Smoke29/helper·입력·모델·UUID 및 검사기 SHA를 기존 공식 검사로 결속한다.
+- 오류/경계: baseline·Publication만·Rebase만·다른 조합/제품 바이트·Patch·독립 리뷰·Native 혼용/누락, 이전 Recorder만으로 승인, 다른 HEAD Writer/Smoke·다른 Binary, dirty/staged·입력/모델·누락/schema·계약 혼용을 거부한다. 기존 Negative 범위와 Legacy 제품 guard를 유지한다. 합성 단위검사와 실제 bundle의 기대 거부를 구분하며 검사기 오류는 Negative PASS가 아니다.
+- 기존 성능·Memory·Shutdown·자연 Retention 및 State45 FAIL/HOLD를 승격하지 않는다. 종단 결속 후 실행 없는 Preflight만 별도로 확인한다.

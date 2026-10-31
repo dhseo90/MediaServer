@@ -699,7 +699,7 @@ def claim_state_v2(binding, directory):
     # 같은 qualification UUID로 공식 부하를 두 번 시작하지 않는다. 실패해도 claim을 보존한다.
     import uuid
     run_id=binding['runId']
-    if str(uuid.UUID(run_id))!=run_id or binding['contractVersion'] not in ('v2','v2-recorder-1'):raise ValueError('v2-run-claim')
+    if str(uuid.UUID(run_id))!=run_id or binding['contractVersion'] not in ('v2','v2-recorder-1','v2-recorder-search-1'):raise ValueError('v2-run-claim')
     file=Path(binding['verifiedResult']).parent/('state45-'+run_id+'.started.json')
     fd=os.open(file,os.O_WRONLY|os.O_CREAT|os.O_EXCL,0o600)
     with os.fdopen(fd,'w') as output:
@@ -727,7 +727,7 @@ def main():
         raise SystemExit('parent ownership')
     if sys.argv[1] in ('--120', '--state-diagnostic') and subprocess.check_output(['git', 'status', '--porcelain'], cwd=repo):
         raise SystemExit('commit source before long observation')
-    claim=claim_state_v2(binding,directory) if binding and binding.get('contractVersion') in ('v2','v2-recorder-1') else None
+    claim=claim_state_v2(binding,directory) if binding and binding.get('contractVersion') in ('v2','v2-recorder-1','v2-recorder-search-1') else None
     directory.mkdir(mode=0o700)
     timeout = 780 if sys.argv[1] == '--memory-attribution-diagnostic' else 1080 if sys.argv[1] == '--contention-diagnostic' else 2880 if sys.argv[1] == '--state-diagnostic' else 180 if sys.argv[1] == '--prepare' else 780 if sys.argv[1] == '--frame-diagnostic' else 7380
     command = ['bash', str(repo / 'scripts/internal/verify_v450_recording_a_mixed.sh')] + (
