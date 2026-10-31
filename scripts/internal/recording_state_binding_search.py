@@ -1,18 +1,19 @@
 #!/usr/bin/env python3
 """Exact reviewed Search successor; historical contracts keep their product guards.
-Recorder lineage is checked by its unchanged validator on the pinned clean prior
-repository. Only the reviewed single-file Search delta is admitted here. Current
+Recorder lineage uses the same conditions as its unchanged historical validator,
+with batched immutable Git blob reads on the pinned clean prior repository. Only the reviewed single-file Search delta is admitted here. Current
 Build/Writer/Smoke/helper/model gates are inherited without replacing any check.
 """
-import importlib.util
 import json
+import hashlib
 from pathlib import Path
 import subprocess
 import sys
 from recording_state_requalification import (artifact, bound, read, sha, identity,
     need, git, GATES, _validate_current, validate_fixed_lineage_artifacts)
 from recording_state_binding_v2 import _bind_current
-from recording_state_binding_recorder import anchored, member
+from recording_state_binding_recorder import (anchored, member, BASE, OFFICIAL,
+    INTEGRATION_SHA, REVIEW_SHA as RECORDER_REVIEW_SHA, PATCH_SHA)
 
 CONTRACT='v2-recorder-search-1'
 SCHEMA='media-server.state45-recorder-search.v1'
@@ -52,6 +53,86 @@ def validate_product_delta(repo, current, reviewed):
     changed=set(git(repo,'diff','--name-only',PREVIOUS_HEAD,'HEAD','--','CMakeLists.txt','src','include').splitlines())
     need(changed=={SOURCE},'search-delta-scope')
 
+def product_blob_digests(repo,names):
+    """Read each exact BASE:path blob once, preserving binary bytes and mapping.
+    This is an invocation-local batch read, not a cache or acceptance receipt.
+    """
+    names=sorted(names)
+    need(all(not Path(p).is_absolute() and '..' not in Path(p).parts and
+             not any(c in p for c in ['\n','\r','\0']) for p in names),'recorder-batch-path')
+    request=''.join(BASE+':'+p+'\n' for p in names).encode()
+    output=subprocess.check_output(['git','cat-file','--batch'],cwd=repo,input=request)
+    return parse_product_blob_digests(output,names)
+
+
+def parse_product_blob_digests(output,names):
+    result={};offset=0
+    for name in names:
+        end=output.find(b'\n',offset)
+        need(end>=offset,'recorder-batch-header')
+        fields=output[offset:end].split(b' ')
+        need(len(fields)==3 and len(fields[0])==40 and
+             all(c in b'0123456789abcdef' for c in fields[0]) and
+             fields[1]==b'blob' and fields[2].isdigit(),'recorder-batch-header')
+        size=int(fields[2]);offset=end+1;data=output[offset:offset+size]
+        need(len(data)==size and output[offset+size:offset+size+1]==b'\n','recorder-batch-size')
+        need(hashlib.sha1(b'blob '+str(size).encode()+b'\0'+data).hexdigest().encode()==fields[0],
+             'recorder-batch-object')
+        need(name not in result,'recorder-batch-duplicate')
+        result[name]=hashlib.sha256(data).hexdigest();offset+=size+1
+    need(offset==len(output),'recorder-batch-trailing')
+    return result
+
+
+def validate_prior_recorder_lineage(repo,b,current):
+    """Recorder v1 conditions; current is the enclosing prior entry snapshot."""
+    policy_path=Path(repo)/'scripts/internal/recording_state_recorder_policy.json'
+    line=read(b['recorderLineage']);policy=json.loads(policy_path.read_text())
+    need(line['schema']=='state45-recorder-lineage-v1','recorder-lineage-schema')
+    need(line['policy']==artifact(policy_path),'recorder-policy')
+    need(line['baseHead']==BASE and line['officialHead']==OFFICIAL,'recorder-base-head')
+    subprocess.run(['git','merge-base','--is-ancestor',BASE,'HEAD'],cwd=repo,check=True,stdout=subprocess.DEVNULL)
+    need(git(repo,'rev-list','--reverse',OFFICIAL+'..'+BASE).splitlines()==[
+      'cbc7fb9538e449a5999745d783d4740498f17577','c0a2cf3f0d71ebb6b6777725bd50fbb540dd8d66',BASE],'recorder-commit-chain')
+    root,entries=anchored(line['integration'],INTEGRATION_SHA)
+    rr,re=anchored(line['independentReview'],RECORDER_REVIEW_SHA)
+    patch=member(root,entries,'candidate.patch');need(sha(patch)==PATCH_SHA,'recorder-patch')
+    need(line['candidatePatch']==artifact(patch),'recorder-patch-binding')
+    need(sha(member(rr,re,'candidate.patch'))==PATCH_SHA,'recorder-review-candidate')
+    member(rr,re,'recorder-latest-independent-review.txt')
+    sources=json.loads(member(root,entries,'evidence/candidate-source-manifest.json').read_text())
+    need(len(sources)==405,'recorder-source-count')
+    product_names={p for p in current['sources'] if p=='CMakeLists.txt' or p.startswith(('src/','include/'))}
+    # Full git product set, including any additions outside the old 405 manifest.
+    baseline_names=set(git(repo,'ls-tree','-r','--name-only',BASE,'--','CMakeLists.txt','src','include').splitlines())
+    need(product_names==baseline_names,'recorder-product-file-set')
+    changed=set(git(repo,'diff','--name-only',BASE,'HEAD','--','CMakeLists.txt','src','include').splitlines())
+    need(changed==set(policy['diagnosticSources']),'recorder-delta-scope')
+    digests=product_blob_digests(repo,baseline_names)
+    for name in baseline_names:
+        digest=digests[name]
+        if name in sources:need(sources[name]==digest,'recorder-reviewed-source')
+        need(current['sources'][name]==policy['diagnosticSources'].get(name,digest),'recorder-product-bytes')
+    need(line['finalHead']==current['head'] and read(line['finalProductSources'])=={p:current['sources'][p] for p in sorted(product_names)},'recorder-final-source')
+    reuse=member(root,entries,'evidence/native-reuse.json')
+    need(line['nativeReuse']==artifact(reuse),'recorder-native-provenance')
+    native=json.loads(reuse.read_text());need(len(native['files'])==39,'recorder-native-coverage')
+    for row in native['files']:
+        p=Path(row['path']);bound(dict(path=str(p),sha256=row['sha256'],bytes=p.stat().st_size))
+    # Preserve exact historical Multi-Finalize/Shutdown artifacts, but not their
+    # old product qualification. New Writer/Smoke below prove final product stop.
+    validate_fixed_lineage_artifacts(b)
+    diagnostic=read(line['diagnostic'])
+    need(diagnostic['schema']=='recorder-mutex-qualification-v1' and diagnostic['source']==current and
+         diagnostic['diagnosticSources']==policy['diagnosticSources'],'recorder-diagnostic-source')
+    need(diagnostic['passed'] is True and diagnostic['cases']==policy['requiredDiagnosticCases'],'recorder-diagnostic-coverage')
+    execution=read(diagnostic['execution']);need(execution['exit']==0 and execution['head']==current['head'] and execution['command']==['node','--test','scripts/internal/recording_mutex_identity.test.mjs'],'recorder-diagnostic-execution')
+    output=bound(diagnostic['output']).read_text();need('# pass 15' in output and '# fail 0' in output,'recorder-diagnostic-result')
+    need(diagnostic['execution'] in diagnostic['artifacts'] and diagnostic['output'] in diagnostic['artifacts'],'recorder-diagnostic-artifacts')
+    for entry in diagnostic['artifacts']:bound(entry)
+    need(bool(diagnostic['artifacts']),'recorder-diagnostic-empty')
+    return dict(functionalNative='reused exact functional bytes; diagnostic delta separately tested')
+
 def validate_previous_recorder(repo, entry):
     need(entry['sha256']==RECORDER_BUNDLE_SHA,'search-recorder-anchor')
     old=read(entry)
@@ -60,16 +141,14 @@ def validate_previous_recorder(repo, entry):
     prior_repo=Path(line['policy']['path']).parents[2]
     previous=identity(prior_repo)
     need(previous==read(inner['source']) and previous['head']==PREVIOUS_HEAD and line['finalHead']==PREVIOUS_HEAD,'search-recorder-source')
-    # Use the actual unchanged historical validator with its own policy path.
-    # Its complete pinned Recorder chain/405-source/native/diagnostic checks run;
-    # no caller-supplied source allowlist or replacement identity is injected.
+    # Keep the prior full-source entry/exit snapshots. The intervening Recorder
+    # conditions are identical to its original validator, with immutable Git
+    # blob reads batched rather than spawning one git process for every file.
     for name in ['recording_state_binding_recorder.py','recording_state_requalification.py',
                  'recording_state_binding_v2.py','recording_state_recorder_policy.json']:
         relative='scripts/internal/'+name
         need(sha(Path(repo)/relative)==previous['sources'][relative], 'search-recorder-validator-bytes')
-    spec=importlib.util.spec_from_file_location('_state45_exact_prior_recorder',prior_repo/'scripts/internal/recording_state_binding_recorder.py')
-    module=importlib.util.module_from_spec(spec);spec.loader.exec_module(module)
-    module.validate_recorder_lineage(prior_repo,inner)
+    validate_prior_recorder_lineage(prior_repo,inner,previous)
     need(identity(prior_repo)==previous,'search-recorder-postflight')
     subprocess.run(['git','merge-base','--is-ancestor',PREVIOUS_HEAD,'HEAD'],cwd=repo,check=True,stdout=subprocess.DEVNULL)
     return previous

@@ -5703,3 +5703,5 @@ R192-FIXTURE-FINAL: 2026-10-31 후속 승인. 정상9201과 실패/재시도9101
 - 정상: 고정 이전 Recorder89108의 Clean Source와 기존 validator 전체 계보 검증, 독립 Search 리뷰 Manifest·Publication/Rebase Patch·406 제품 Source·단일 Search delta·최종 fixture 결속, 기존 Native93(69포함)/1250 원출력 exact 재사용을 검증한다. 최종 Clean HEAD의 새 Build/Writer65+tail/Smoke29/helper·입력·모델·UUID 및 검사기 SHA를 기존 공식 검사로 결속한다.
 - 오류/경계: baseline·Publication만·Rebase만·다른 조합/제품 바이트·Patch·독립 리뷰·Native 혼용/누락, 이전 Recorder만으로 승인, 다른 HEAD Writer/Smoke·다른 Binary, dirty/staged·입력/모델·누락/schema·계약 혼용을 거부한다. 기존 Negative 범위와 Legacy 제품 guard를 유지한다. 합성 단위검사와 실제 bundle의 기대 거부를 구분하며 검사기 오류는 Negative PASS가 아니다.
 - 기존 성능·Memory·Shutdown·자연 Retention 및 State45 FAIL/HOLD를 승격하지 않는다. 종단 결속 후 실행 없는 Preflight만 별도로 확인한다.
+
+- V450-SEARCH-LINEAGE-01 배치 읽기 경계: Recorder 기존 모든 조건·이전 전체 Source 진입/종료 snapshot은 유지한다. 기준406개 Git blob을 단일 `cat-file --batch`로 읽고 개별 `git show` SHA256과 전수 동일해야 한다. Header/type/size/object identity/누락/중복/추가 바이트를 거부한다. 이는 20초 공식 CLI 예산을 유지하기 위한 검사기 내부 읽기 방식 변경이며 제품·한도·성능 Gate 변경이 아니다.

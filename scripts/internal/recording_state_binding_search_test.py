@@ -1,5 +1,6 @@
 """Synthetic routing/guards only; actual artifact positive/negative is separate."""
 import copy
+import hashlib
 import json
 from pathlib import Path
 import subprocess
@@ -82,5 +83,48 @@ class Search(unittest.TestCase):
         with patch.object(s,'git',side_effect=self.accepted_git(rows,s.SOURCE+'\ninclude/recording/recording_catalog.h')):
             with self.assertRaisesRegex(ValueError,'search-delta-scope'):
                 s.validate_product_delta('/repo',current,{'files':rows})
+
+class ProductBlobBatch(unittest.TestCase):
+    def blob(self,data):
+        oid=hashlib.sha1(b'blob '+str(len(data)).encode()+b'\0'+data).hexdigest().encode()
+        return oid+b' blob '+str(len(data)).encode()+b'\n'+data+b'\n'
+    def test_binary_and_empty_blobs_keep_sha256(self):
+        blobs=[b'\0\xff\nabc',b'']
+        result=s.parse_product_blob_digests(b''.join(self.blob(x) for x in blobs),['a','b'])
+        self.assertEqual(result,dict(zip(['a','b'],[hashlib.sha256(x).hexdigest() for x in blobs])))
+    def test_missing_blob(self):
+        with self.assertRaisesRegex(ValueError,'recorder-batch-header'):
+            s.parse_product_blob_digests(self.blob(b'a'),['a','b'])
+    def test_missing_git_object(self):
+        with self.assertRaisesRegex(ValueError,'recorder-batch-header'):
+            s.parse_product_blob_digests(b'BASE:missing missing\n',['a'])
+    def test_non_blob_object(self):
+        with self.assertRaisesRegex(ValueError,'recorder-batch-header'):
+            s.parse_product_blob_digests(self.blob(b'a').replace(b' blob ',b' tree '),['a'])
+    def test_wrong_size(self):
+        with self.assertRaisesRegex(ValueError,'recorder-batch-size'):
+            s.parse_product_blob_digests(self.blob(b'a').replace(b' blob 1',b' blob 10'),['a'])
+    def test_wrong_object_id(self):
+        raw=self.blob(b'a');raw=b'0'*40+raw[40:]
+        with self.assertRaisesRegex(ValueError,'recorder-batch-object'):
+            s.parse_product_blob_digests(raw,['a'])
+    def test_missing_final_separator(self):
+        with self.assertRaisesRegex(ValueError,'recorder-batch-size'):
+            s.parse_product_blob_digests(self.blob(b'a')[:-1],['a'])
+    def test_trailing_blob(self):
+        with self.assertRaisesRegex(ValueError,'recorder-batch-trailing'):
+            s.parse_product_blob_digests(self.blob(b'a')+self.blob(b'b'),['a'])
+    def test_duplicate_name(self):
+        with self.assertRaisesRegex(ValueError,'recorder-batch-duplicate'):
+            s.parse_product_blob_digests(self.blob(b'a')+self.blob(b'a'),['a','a'])
+    def test_request_is_exact_base_path_order(self):
+        with patch.object(s.subprocess,'check_output',return_value=self.blob(b'a')+self.blob(b'b')) as call:
+            s.product_blob_digests('/repo',{'src/b','src/a'})
+            self.assertEqual(call.call_args.args,(['git','cat-file','--batch'],))
+            self.assertEqual(call.call_args.kwargs,dict(cwd='/repo',input=(s.BASE+':src/a\n'+s.BASE+':src/b\n').encode()))
+    def test_request_cannot_escape_or_inject(self):
+        for name in ['/absolute','../outside','src/a\nsrc/b','src/a\0b']:
+            with self.subTest(name=name),self.assertRaisesRegex(ValueError,'recorder-batch-path'):
+                s.product_blob_digests('/repo',[name])
 
 if __name__=='__main__':unittest.main(verbosity=2)
