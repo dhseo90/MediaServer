@@ -373,6 +373,11 @@ UI 사용 흐름은 [UI 가이드](ui-guide.md)에 유지합니다.
 - env 변경은 [config-reference.md](./config-reference.md)를 확인합니다.
 - 테스트 기준 변경은 [stream-verification.md](./stream-verification.md)를 확인합니다.
 
+파일을 생성·수정할 때는 기존 주석 정책, 도구 지시문과 고정 Source/Fixture 결속을 먼저 확인합니다.
+작성 직후와 Commit 전에는 변경한 코드 파일을 `./server.sh verify-code-comments --files scripts/internal/example.py`처럼 지정해 검사하고, 실패는 해당 변경에서 해결합니다.
+선택 검사는 전체 Source PASS를 뜻하지 않습니다. Commit 대상 묶음의 최종 확인과 모든 개발 브랜치 Push/PR CI에서는 무인자 `./server.sh verify-code-comments`로 전체 검사를 수행합니다.
+기존 규칙을 조기에 확인하는 절차이며 새 언어·문체 기준을 추가하지 않습니다.
+
 변경 후에는 승인된 focused 검사와 영향 회귀를 수행하고 실제 결과와 정리 상태를 기록합니다.
 스크립트 연결을 변경했다면 `verify-script-inventory`, workflow 변경이면 `verify-actions-security`를 확인합니다.
 문서만 수정한 경우에는 최소한 diff와 영향받는 링크를 확인합니다.

@@ -88,6 +88,17 @@ check("preflight keeps shell/node syntax gates local and CI-visible", () => {
   }
 });
 
+check("preflight checks existing comment policy on every development branch push", () => {
+  const text = readText(workflowPaths.preflight);
+  const allBranches = value => /^  push:\n    branches:\n      - ["']\*\*["']\s*$/m.test(value);
+  assert(allBranches(text), "preflight must include every branch push");
+  for (const option of ["", " --exact-findings", " --python-comments", " --selected-files"]) {
+    assert(text.includes(`          node scripts/internal/recording_preserved_header.test.mjs${option}\n`), `comment regression missing from CI: ${option || "PH"}`);
+  }
+  const mainOnly = text.replace(/- ["']\*\*["']/, "- main");
+  assert(!allBranches(mainOnly), "main-only negative fixture must be rejected");
+});
+
 check("guardrail workflow publishes source-only release evidence", () => {
   const guardrails = readText(workflowPaths.guardrails);
   for (const snippet of [
