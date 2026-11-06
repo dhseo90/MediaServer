@@ -94,19 +94,24 @@ check("tracked scripts are classified and referenced", () => {
     }
   }
 
+  const pythonTargets = new Set(pythonReferences(texts, trackedScripts).references.map(row => row.target));
   const unclassified = [];
   for (const file of trackedScripts) {
     const basename = path.basename(file);
     const references = [];
     for (const [candidate, text] of texts.entries()) {
       if (candidate === file) continue;
-      if (text.includes(file) || text.includes(basename)) {
+      // file contains basename: the full-path test cannot add a match.
+      // Only existence is consumed below; stop after the first non-self witness.
+      if (text.includes(basename)) {
         references.push(candidate);
+        break;
       }
     }
 
     const classified =
       dispatchTargets.has(file) ||
+      pythonTargets.has(file) ||
       file === "scripts/.media_server.env.example" ||
       file.startsWith("scripts/examples/") ||
       basename === "env_common.sh" ||
@@ -385,14 +390,22 @@ check("critical verifier pass output avoids grouped feature-result wording", () 
     ...gitLsFiles(["docs"]).filter(fileExists),
     "AGENTS.md",
   ].filter(file => !/\.(png|jpe?g|mp4|onnx|pyc)$/i.test(file));
+  // 입력은 매번 읽고, 불변 문구 패턴만 이 callback 안에서 한 번 구성한다.
+  const findLiterals = makeLiteralMatcher(forbiddenSnippets);
   const violations = [];
   for (const file of files) {
     if (file === "scripts/internal/verify_script_inventory.mjs") {
       continue;
     }
     const text = readText(path.join(rootDir, file));
+    let found = findLiterals(text);
+    // PASS 문구 정책은 Python 키워드 인자 문법 자체를 금지하지 않는다.
+    // 문자열/주석/f-string 및 해석 불가 입력은 기존 검출을 유지한다.
+    if (found.size > 0 && file.endsWith(".py")) {
+      found = findLiterals(pythonNonOutputKeywordText(text));
+    }
     for (const snippet of forbiddenSnippets) {
-      if (text.includes(snippet)) {
+      if (found.has(snippet)) {
         violations.push(`${file}: ${snippet}`);
       }
     }
@@ -670,6 +683,7 @@ for (const item of checks) {
   } catch (error) {
     fail += 1;
     console.log(`[fail] ${item.name}: ${error instanceof Error ? error.message : String(error)}`);
+    if (rawArgs.includes("--fail-fast")) break;
   }
 }
 
@@ -714,4 +728,38 @@ function walkDocsAndScripts() {
     .filter(fileExists)
     .filter(file => /\.(md|sh|mjs|py)$/.test(file))
     .map(file => path.join(rootDir, file));
+}
+
+// 실제 module import는 실행하지 않는다. 입력은 기존 허용 텍스트/추적 대상뿐이다.
+function pythonReferences(texts, tracked) {
+  const safe = [...texts].filter(([file]) => file.endsWith('.py') && fileExists(file) &&
+    fs.lstatSync(path.join(rootDir, file)).isFile() && !fs.lstatSync(path.join(rootDir, file)).isSymbolicLink());
+  return JSON.parse(execFileSync('python3', [path.join(scriptDir, 'script_inventory_python_refs.py')], {
+    input: JSON.stringify({texts: Object.fromEntries(safe), tracked}), encoding: 'utf8', timeout: 5000,
+    maxBuffer: 16 * 1024 * 1024,
+  }));
+}
+
+function pythonNonOutputKeywordText(text) {
+  return JSON.parse(execFileSync('python3', [path.join(scriptDir, 'script_inventory_python_refs.py')], {
+    input: JSON.stringify({a12Text: text}), encoding: 'utf8', timeout: 5000,
+    maxBuffer: 16 * 1024 * 1024,
+  })).searchText;
+}
+
+// String.includes와 같은 UTF-16 literal 의미. lookahead로 겹치는 시작점도 검색한다.
+// 같은 시작점의 긴 문구를 먼저 잡고 그 접두사들을 복원해 짧은 문구를 놓치지 않는다.
+function makeLiteralMatcher(literals) {
+  const unique = [...new Set(literals)].sort((a, b) => b.length - a.length);
+  if (unique.length === 0) return () => new Set();
+  const prefixes = new Map(unique.map(value => [value, unique.filter(prefix => value.startsWith(prefix))]));
+  const escape = value => value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const pattern = new RegExp(`(?=(${unique.map(escape).join("|")}))`, "g");
+  return text => {
+    const found = new Set();
+    for (const match of text.matchAll(pattern)) {
+      for (const prefix of prefixes.get(match[1])) found.add(prefix);
+    }
+    return found;
+  };
 }

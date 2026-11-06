@@ -1586,3 +1586,450 @@ UI environment process memory에서 setup/login에 사용하고 exact 424 runner
 env로 전달한 뒤 raw·URI·form·JSON escaped·base64/base64url artifact byte scan을 통과해야 해제합니다.
 실제 release 결과의 source-of-truth는 저장소 canonical `docs/release-artifacts/v3.9.0/test-acceptance-current-final/summary.json`과 `report.md`입니다. Final integrity는 두 파일과 필수 child evidence의 containment·크기·SHA-256을 직접 검증하며 final evidence manifest는 `/tmp`를 참조하지 않습니다. 개별 30분·120분의 OS temp output과 UI의 repository-local transient output은 진단 결과일 뿐 저장소 최종 evidence가 아니며,
 이 설명이나 contract verifier PASS는 actual 30분/UI/120분/final-integrity PASS가 아닙니다.
+
+### 녹화 독립 진단의 입력·종료 계약
+
+아래 등록은 관련 경계가 변경됐을 때 하나씩 선택하는 개발용 사용 안내다.
+문서 계약 확인과 실행 합격은 별개다. 각 항목의 실제 실행 상태는 **NOT_RUN**이며,
+현재 바이너리의 동작·제품 성능·G07 Runtime·릴리즈 합격을 의미하지 않는다.
+R0는 외부 상태를 바꾸지 않는 메모리/읽기 검사, R1은 소유 로컬 파일 변경,
+R2는 자식/OS socket/plugin 자원, R3는 실제 Store/Recorder 또는 HTTP 변경을 포함한다.
+상위 위험을 적용하며, 불명확한 계약은 UNKNOWN으로 남겨 등록하지 않는다.
+
+native 항목의 “결속 fixture 바이너리”는 해당 소스·include·테스트 macro·link 입력·도구체인과
+SHA256을 별도 기록해 준비한 전용 실행 파일이다. 현재 빌드 명령이나 바이너리의 성공을
+인정하는 표현이 아니다. 준비된 바이너리가 없으면 실행 불가로 기록하고 빌드 승인을 별도로 받는다.
+환경 경로 변경은 자식에게만 적용하며 현재 셸의 HOME 등 전역 환경은 바꾸지 않는다.
+외부 감독이 필요한 항목은 실행 전에 유한 deadline, TERM grace, reap와 그룹/port 부재 확인,
+잔존 시 중단·보고 절차를 구체적으로 준비한다. 도구에 없는 timeout 옵션을 추가하지 않는다.
+SIGKILL fallback이 있는 도구도 그 사용을 숨기거나 정상 종료로 바꾸지 않는다.
+모든 등급의 실제 실행은 별도 승인 범위에서 수행한다. 이 목록을 자동 전체 실행에 넣지 않는다.
+
+<!-- standalone-contract:scripts/internal/recording_binding_prepare_smoke.cpp -->
+#### recording_binding_prepare_smoke.cpp
+
+- 대상·용도: `scripts/internal/recording_binding_prepare_smoke.cpp` — 원본 binding 파싱+검증과 fused 파싱의 동등성·오류 경계를 corpus로 비교; 관련 구현을 변경할 때 선택하는 개발 진단.
+- 진입·준비: `int main(int argc,char**argv){try{if(argc!=2)return 2;std::ifstream f(argv[1]);std::string raw,segment_raw,error;std::vector<std::pair<std::string,RecordingSegmentV2>> rows;` (source line 21). C++17 및 해당 소스의 include/link 의존성에 결속된 별도 fixture 바이너리. 컴파일 명령·현재 바이너리 동작은 미검증; 공식 제품 바이너리를 대입하지 않는다. 비어 있지 않은 corpus: binding JSON과 segment JSON을 두 줄씩 쌍으로 제공. 첫 binding은 file_evidence 및 ordinal 수정 반례를 만들 수 있어야 한다.
+- 호출·작업 위치: 소스에 결속된 fixture 바이너리에 corpus 절대경로 1개를 전달한다. cwd: 저장소 루트.
+- 판정: 세 번의 old/fused 비교 timing JSON 및 정상 반환 0. 주요 실패: argc!=2는 2, 파싱·오류문구·동등성·출력 보존 불일치는 1.
+- 부작용·소유권 (R0): corpus 읽기와 stdout/stderr만 사용. 외부 프로세스·listener·port 없음. 호출 프로세스와 내부 메모리/스레드는 실행 담당자 소유.
+- 종료·정리: 정상 반환 후 stdout/stderr를 보존한다. 외부 데이터 정리 대상 없음. 비정상 종료는 실패로 남기며 실행 담당자가 프로세스 종료를 확인한다.
+- 검증 상태: **NOT_RUN**. 미입증/제약: 현재 실행 결과·전체 wall-clock 상한은 미입증. 시간값을 제품 성능 증거로 사용하지 않는다.
+
+<!-- /standalone-contract -->
+
+<!-- standalone-contract:scripts/internal/recording_http_currentness.test.py -->
+#### recording_http_currentness.test.py
+
+- 대상·용도: `scripts/internal/recording_http_currentness.test.py` — R156 schema 반례·currentness inspection 순서·LiveTrace 오류 고정 검사; 관련 구현을 변경할 때 선택하는 개발 진단.
+- 진입·준비: `if __name__=='__main__':unittest.main()` (source line 47). 저장소의 동반 모듈과 Python 3이 필요하다. -B로 원본 pycache 생성을 막는다. 19단계 metric/counter와 LiveTrace 합성 행. 실제 HTTP 입력 없음.
+- 호출·작업 위치: python3 -B scripts/internal/recording_http_currentness.test.py cwd: 저장소 루트.
+- 판정: currentness shape·nested timing·누락/중복/잘못된 행 거부. 모든 unittest assertion 성공 및 exit 0. 예상 거부가 검출되지 않거나 import/assertion 오류면 exit nonzero. 주요 실패: unittest 실패 또는 동반 모듈 import 실패.
+- 부작용·소유권 (R0): 합성 메모리 입력과 출력만; 호출한 validator 경로는 IO/HTTP를 실행하지 않는다. 외부 프로세스·listener·port 없음. 호출 프로세스와 내부 메모리/스레드는 실행 담당자 소유.
+- 종료·정리: 정상 반환 후 stdout/stderr를 보존한다. 외부 데이터 정리 대상 없음. 비정상 종료는 실패로 남기며 실행 담당자가 프로세스 종료를 확인한다.
+- 검증 상태: **NOT_RUN**. 미입증/제약: 현재 실행 결과·전체 wall-clock 상한은 미입증. 시간값을 제품 성능 증거로 사용하지 않는다.
+
+<!-- /standalone-contract -->
+
+<!-- standalone-contract:scripts/internal/recording_http_hold.test.py -->
+#### recording_http_hold.test.py
+
+- 대상·용도: `scripts/internal/recording_http_hold.test.py` — hold schema/중첩/반환 실패·누락·중복 반례 검사; 관련 구현을 변경할 때 선택하는 개발 진단.
+- 진입·준비: `if __name__=='__main__':unittest.main()` (source line 34). 저장소의 동반 모듈과 Python 3이 필요하다. -B로 원본 pycache 생성을 막는다. hold schema/plus-minus/FD-close 합성 행. 실제 Store 입력 없음.
+- 호출·작업 위치: python3 -B scripts/internal/recording_http_hold.test.py cwd: 저장소 루트.
+- 판정: 중첩 metric와 부정확한 minus/duplicate/loss 거부. 모든 unittest assertion 성공 및 exit 0. 예상 거부가 검출되지 않거나 import/assertion 오류면 exit nonzero. 주요 실패: unittest 실패 또는 동반 모듈 import 실패.
+- 부작용·소유권 (R0): 합성 메모리 입력과 출력만; 호출한 validator 경로는 IO/HTTP를 실행하지 않는다. 외부 프로세스·listener·port 없음. 호출 프로세스와 내부 메모리/스레드는 실행 담당자 소유.
+- 종료·정리: 정상 반환 후 stdout/stderr를 보존한다. 외부 데이터 정리 대상 없음. 비정상 종료는 실패로 남기며 실행 담당자가 프로세스 종료를 확인한다.
+- 검증 상태: **NOT_RUN**. 미입증/제약: 현재 실행 결과·전체 wall-clock 상한은 미입증. 시간값을 제품 성능 증거로 사용하지 않는다.
+
+<!-- /standalone-contract -->
+
+<!-- standalone-contract:scripts/internal/recording_lock_timing.test.py -->
+#### recording_lock_timing.test.py
+
+- 대상·용도: `scripts/internal/recording_lock_timing.test.py` — lock timing 수치·설정·미완성·미관측 호출·mutex 수명 반례; 관련 구현을 변경할 때 선택하는 개발 진단.
+- 진입·준비: `if __name__=='__main__':unittest.main()` (source line 30). 저장소의 동반 모듈과 Python 3이 필요하다. -B로 원본 pycache 생성을 막는다. 내장 lock trace 숫자·terminal 합성 문자열.
+- 호출·작업 위치: python3 -B scripts/internal/recording_lock_timing.test.py cwd: 저장소 루트.
+- 판정: 정수 범위·미측정 mutex 주장·불완전 terminal 거부. 모든 unittest assertion 성공 및 exit 0. 예상 거부가 검출되지 않거나 import/assertion 오류면 exit nonzero. 주요 실패: unittest 실패 또는 동반 모듈 import 실패.
+- 부작용·소유권 (R0): 합성 메모리 입력과 출력만; 호출한 validator 경로는 IO/HTTP를 실행하지 않는다. 외부 프로세스·listener·port 없음. 호출 프로세스와 내부 메모리/스레드는 실행 담당자 소유.
+- 종료·정리: 정상 반환 후 stdout/stderr를 보존한다. 외부 데이터 정리 대상 없음. 비정상 종료는 실패로 남기며 실행 담당자가 프로세스 종료를 확인한다.
+- 검증 상태: **NOT_RUN**. 미입증/제약: 현재 실행 결과·전체 wall-clock 상한은 미입증. 시간값을 제품 성능 증거로 사용하지 않는다.
+
+<!-- /standalone-contract -->
+
+<!-- standalone-contract:scripts/internal/test_recording_public_fresh_oracle.py -->
+#### test_recording_public_fresh_oracle.py
+
+- 대상·용도: `scripts/internal/test_recording_public_fresh_oracle.py` — public fresh·broad gate·exact seek/source/currentness 위조 거부; 관련 구현을 변경할 때 선택하는 개발 진단.
+- 진입·준비: `if __name__=='__main__':unittest.main()` (source line 57). 저장소의 동반 모듈과 Python 3이 필요하다. -B로 원본 pycache 생성을 막는다. 내장 visual/public-fresh/exact 응답 dict. URL은 검사 문자열이고 요청하지 않는다.
+- 호출·작업 위치: python3 -B scripts/internal/test_recording_public_fresh_oracle.py cwd: 저장소 루트.
+- 판정: 독립 fresh 선택과 seek/상태 오류 거부. 모든 unittest assertion 성공 및 exit 0. 예상 거부가 검출되지 않거나 import/assertion 오류면 exit nonzero. 주요 실패: unittest 실패 또는 동반 모듈 import 실패.
+- 부작용·소유권 (R0): 합성 메모리 입력과 출력만; 호출한 validator 경로는 IO/HTTP를 실행하지 않는다. 외부 프로세스·listener·port 없음. 호출 프로세스와 내부 메모리/스레드는 실행 담당자 소유.
+- 종료·정리: 정상 반환 후 stdout/stderr를 보존한다. 외부 데이터 정리 대상 없음. 비정상 종료는 실패로 남기며 실행 담당자가 프로세스 종료를 확인한다.
+- 검증 상태: **NOT_RUN**. 미입증/제약: 현재 실행 결과·전체 wall-clock 상한은 미입증. 시간값을 제품 성능 증거로 사용하지 않는다.
+
+<!-- /standalone-contract -->
+
+<!-- standalone-contract:scripts/internal/recording_http_lock_smoke.cpp -->
+#### recording_http_lock_smoke.cpp
+
+- 대상·용도: `scripts/internal/recording_http_lock_smoke.cpp` — 중첩/예외 unwind/overflow 시 lock call TLS와 identity 복원 검사; 관련 구현을 변경할 때 선택하는 개발 진단.
+- 진입·준비: `int main(int argc,char**){` (source line 8). C++17 및 해당 소스의 include/link 의존성에 결속된 별도 fixture 바이너리. 컴파일 명령·현재 바이너리 동작은 미검증; 공식 제품 바이너리를 대입하지 않는다. R159 probe header, 자식 환경 MEDIA_SERVER_VERIFY_RECORDING_LATENCY_TRACE=1, MEDIA_SERVER_VERIFY_RECORDING_LATENCY_SLOW_ONLY=0, MEDIA_SERVER_VERIFY_CATALOG_HOLDER_TRACE=0. 인자 없음은 nested/unwind, 임의 추가 인자 하나는 count overflow 분기.
+- 호출·작업 위치: 결속 fixture 바이너리를 인자 없이 호출하거나 별도 overflow 사례에 위치 인자 1개를 전달한다. 옵션 parser는 없다. cwd: 저장소 루트.
+- 판정: TLS/nested/unwind/release PASS와 exit 0. 주요 실패: Need assertion/스레드 예외 또는 진단 설정 불일치.
+- 부작용·소유권 (R0): 메모리 mutex/TLS와 진단 stdout/stderr만. HTTP 서버 없음. 외부 프로세스·listener·port 없음. 호출 프로세스와 내부 메모리/스레드는 실행 담당자 소유.
+- 종료·정리: 내부 확인 스레드 join 및 mutex release 후 반환. 정상 반환 후 stdout/stderr를 보존한다. 외부 데이터 정리 대상 없음. 비정상 종료는 실패로 남기며 실행 담당자가 프로세스 종료를 확인한다.
+- 검증 상태: **NOT_RUN**. 미입증/제약: 현재 실행 결과·전체 wall-clock 상한은 미입증. 시간값을 제품 성능 증거로 사용하지 않는다.
+
+<!-- /standalone-contract -->
+
+<!-- standalone-contract:scripts/internal/recording_memory_attribution.test.mjs -->
+#### recording_memory_attribution.test.mjs
+
+- 대상·용도: `scripts/internal/recording_memory_attribution.test.mjs` — 메모리 owner attribution schema·fragment·차이·중첩·전용 모드 경계 검사; 관련 구현을 변경할 때 선택하는 개발 진단.
+- 진입·준비: `assert.equal(validateMemoryAttribution(row,42),row);` (source line 6). Node와 저장소의 동반 ES module이 필요하다. 내장 ticket/witness numeric 행; 외부 capture 불필요.
+- 호출·작업 위치: node scripts/internal/recording_memory_attribution.test.mjs cwd: 저장소 루트.
+- 판정: 분류·phase·event tail·unknown/overlap·16KiB 경계 assertion. exit 0. 주요 실패: assertion/import/소스 wiring 문자열 불일치면 nonzero.
+- 부작용·소유권 (R0): 메모리 합성과 읽기만. log writer/stop callback은 합성 함수이며 파일/프로세스를 다루지 않는다. 외부 프로세스·listener·port 없음. 호출 프로세스와 내부 메모리/스레드는 실행 담당자 소유.
+- 종료·정리: 정상 반환 후 stdout/stderr를 보존한다. 외부 데이터 정리 대상 없음. 비정상 종료는 실패로 남기며 실행 담당자가 프로세스 종료를 확인한다.
+- 검증 상태: **NOT_RUN**. 미입증/제약: 현재 실행 결과·전체 wall-clock 상한은 미입증. 시간값을 제품 성능 증거로 사용하지 않는다.
+
+<!-- /standalone-contract -->
+
+<!-- standalone-contract:scripts/internal/recording_memory_state_preflight.test.mjs -->
+#### recording_memory_state_preflight.test.mjs
+
+- 대상·용도: `scripts/internal/recording_memory_state_preflight.test.mjs` — 45분 모드 collector의 합성 schema·로그 cap·loss·종료 조건 검사; 관련 구현을 변경할 때 선택하는 개발 진단.
+- 진입·준비: `assert.equal(finishMemoryAttribution(complete()).resourcePaired,true);` (source line 18). Node와 저장소의 동반 ES module이 필요하다. 내장 580개 합성 행, v450_recording_a_mixed.mjs 소스 텍스트.
+- 호출·작업 위치: node scripts/internal/recording_memory_state_preflight.test.mjs cwd: 저장소 루트.
+- 판정: strict pairing, stale/tail/4MiB cap 및 네 가지 mode wiring assertion. 45분 실제 실행 아님. exit 0. 주요 실패: assertion/import/소스 wiring 문자열 불일치면 nonzero.
+- 부작용·소유권 (R0): 메모리 합성과 읽기만. log writer/stop callback은 합성 함수이며 파일/프로세스를 다루지 않는다. 외부 프로세스·listener·port 없음. 호출 프로세스와 내부 메모리/스레드는 실행 담당자 소유.
+- 종료·정리: 정상 반환 후 stdout/stderr를 보존한다. 외부 데이터 정리 대상 없음. 비정상 종료는 실패로 남기며 실행 담당자가 프로세스 종료를 확인한다.
+- 검증 상태: **NOT_RUN**. 미입증/제약: 현재 실행 결과·전체 wall-clock 상한은 미입증. 시간값을 제품 성능 증거로 사용하지 않는다.
+
+<!-- /standalone-contract -->
+
+<!-- standalone-contract:scripts/internal/recording_memory_attribution_smoke.cpp -->
+#### recording_memory_attribution_smoke.cpp
+
+- 대상·용도: `scripts/internal/recording_memory_attribution_smoke.cpp` — reservation ticket·공유 model·snapshot/수명 비용 귀속의 결정적 기대값 검사; 관련 구현을 변경할 때 선택하는 개발 진단.
+- 진입·준비: `int main(){try{` (source line 20). C++17 및 해당 소스의 include/link 의존성에 결속된 별도 fixture 바이너리. 컴파일 명령·현재 바이너리 동작은 미검증; 공식 제품 바이너리를 대입하지 않는다. MEDIA_SERVER_VERIFY_MEMORY_ATTRIBUTION=1을 자식 환경에 적용. 내장 canary model/snapshot.
+- 호출·작업 위치: 결속 fixture 바이너리를 인자 없이 호출한다. cwd: 저장소 루트.
+- 판정: memory-attribution checks, fail=0, exit 0; payload canary가 진단에 없어야 한다. 주요 실패: opt-in 없음, ticket/owner 합계·수명·출력 정제 assertion 오류면 1.
+- 부작용·소유권 (R0): 실제 메모리 model/snapshot과 4개 내부 스레드; Store/네트워크 없음. 외부 프로세스·listener·port 없음. 호출 프로세스와 내부 메모리/스레드는 실행 담당자 소유.
+- 종료·정리: 4개 thread join, model/page/pool/reservation 소멸과 owner 0 assertion. 정상 반환 후 stdout/stderr를 보존한다. 외부 데이터 정리 대상 없음. 비정상 종료는 실패로 남기며 실행 담당자가 프로세스 종료를 확인한다.
+- 검증 상태: **NOT_RUN**. 미입증/제약: 현재 실행 결과·전체 wall-clock 상한은 미입증. 시간값을 제품 성능 증거로 사용하지 않는다.
+
+<!-- /standalone-contract -->
+
+<!-- standalone-contract:scripts/internal/recording_public_fresh_oracle_smoke.cpp -->
+#### recording_public_fresh_oracle_smoke.cpp
+
+- 대상·용도: `scripts/internal/recording_public_fresh_oracle_smoke.cpp` — fresh 선택과 top200 점수/동률/범위의 독립 oracle 검사; 관련 구현을 변경할 때 선택하는 개발 진단.
+- 진입·준비: `int main(){unsigned pass=0;auto check=[&](bool ok,const char* s){if(!ok)throw std::runtime_error(s);++pass;std::cout<<"[pass] "<<s<<'\n';};auto yes=[](const auto&){return true;};std::set<std::string> old{"old"};` (source line 6). C++17 및 해당 소스의 include/link 의존성에 결속된 별도 fixture 바이너리. 컴파일 명령·현재 바이너리 동작은 미검증; 공식 제품 바이너리를 대입하지 않는다. 내장 synthetic documents, score, binding sample.
+- 호출·작업 위치: 결속 fixture 바이너리를 인자 없이 호출한다. cwd: 저장소 루트.
+- 판정: 개별 [pass]와 pass=N fail=0, 정상 반환. 주요 실패: fresh 선택·half-open bucket·seek/hash/order 반례가 기대와 다르면 예외.
+- 부작용·소유권 (R0): 메모리 oracle만; Search 호출/HTTP/파일 없음. 외부 프로세스·listener·port 없음. 호출 프로세스와 내부 메모리/스레드는 실행 담당자 소유.
+- 종료·정리: 정상 반환 후 stdout/stderr를 보존한다. 외부 데이터 정리 대상 없음. 비정상 종료는 실패로 남기며 실행 담당자가 프로세스 종료를 확인한다.
+- 검증 상태: **NOT_RUN**. 미입증/제약: 현재 실행 결과·전체 wall-clock 상한은 미입증. 시간값을 제품 성능 증거로 사용하지 않는다.
+
+<!-- /standalone-contract -->
+
+<!-- standalone-contract:scripts/internal/recording_source_prepare_parse_smoke.cpp -->
+#### recording_source_prepare_parse_smoke.cpp
+
+- 대상·용도: `scripts/internal/recording_source_prepare_parse_smoke.cpp` — 실제 binding corpus의 strict parse/소유·invalid tuple 및 단위 비용 비교; 관련 구현을 변경할 때 선택하는 개발 진단.
+- 진입·준비: `int main(int argc,char** argv)try{` (source line 11). C++17 및 해당 소스의 include/link 의존성에 결속된 별도 fixture 바이너리. 컴파일 명령·현재 바이너리 동작은 미검증; 공식 제품 바이너리를 대입하지 않는다. 비어 있지 않은 canonical binding JSONL. 첫 row에 file_evidence.samples native tuple 포함.
+- 호출·작업 위치: 결속 fixture 바이너리에 corpus 절대경로 1개를 전달한다. cwd: 저장소 루트.
+- 판정: 3회 parseNs/capacity/FNV JSON 및 strict corpus PASS, exit 0. 주요 실패: 파일 열기·canonical 불일치·잘못된 tuple 수락·실패 시 output 변조면 1.
+- 부작용·소유권 (R0): corpus 읽기와 출력만. 외부 프로세스·listener·port 없음. 호출 프로세스와 내부 메모리/스레드는 실행 담당자 소유.
+- 종료·정리: 정상 반환 후 stdout/stderr를 보존한다. 외부 데이터 정리 대상 없음. 비정상 종료는 실패로 남기며 실행 담당자가 프로세스 종료를 확인한다.
+- 검증 상태: **NOT_RUN**. 미입증/제약: 현재 실행 결과·전체 wall-clock 상한은 미입증. 시간값을 제품 성능 증거로 사용하지 않는다.
+
+<!-- /standalone-contract -->
+
+<!-- standalone-contract:scripts/internal/recording_start_retry_smoke.cpp -->
+#### recording_start_retry_smoke.cpp
+
+- 대상·용도: `scripts/internal/recording_start_retry_smoke.cpp` — StartChannel/SharedStream/Stop 경합을 Source/Writer/Store latch로 통제; 관련 구현을 변경할 때 선택하는 개발 진단.
+- 진입·준비: `int main(int argc,char** argv){assert(argc==2);lifetime_test::Run(argv[1]);}` (source line 168). C++17 및 해당 소스의 include/link 의존성에 결속된 별도 fixture 바이너리. 컴파일 명령·현재 바이너리 동작은 미검증; 공식 제품 바이너리를 대입하지 않는다. assert 활성 빌드(NDEBUG 금지), SESSION_SOURCE를 검토한 recording_session_service.cpp 번역단위에 결속; 동일 구현 중복 link 금지. mode: two, stop-channel, stop-all (그 외 문자열은 기본 재시도 분기지만 여기에 실행 사례로 추가하지 않는다).
+- 호출·작업 위치: 결속 fixture 바이너리에 mode 위치 인자 1개를 전달한다. 모드는 문자열 분기이며 미지원 mode를 reject하는 CLI는 없다. cwd: 저장소 루트.
+- 판정: failed Start의 cleanup 후 단일 재시도, 다른 channel 보존, Stop 이후 재시작 금지 assertion 및 정상 반환. 일부 early-return 사례는 JSON 출력 없이 0. 주요 실패: argc assertion, 3초 readiness/8초 latch, owner/Stop 결과 오류 시 abort/예외.
+- 부작용·소유권 (R0): 실제 service 메모리 상태를 test Source/Writer/Store로 구동. RTSP URL은 stub 식별 문자열이고 접속하지 않는다. 외부 Store 쓰기 없음. 외부 프로세스·listener·port 없음. 호출 프로세스와 내부 메모리/스레드는 실행 담당자 소유.
+- 종료·정리: latch release, future.get, Stop/JoinOwned와 소멸자 수명 assertion. 실행 담당자는 시작 전 별도 유한 deadline과 TERM 후 reap 절차를 승인·설정하고 PID/PGID를 기록한다. 도구 자체의 join/wait가 무한 대기할 수 있으므로 정상 반환을 추정하지 않는다. 정상 반환 후 stdout/stderr를 보존한다. 외부 데이터 정리 대상 없음. 비정상 종료는 실패로 남기며 실행 담당자가 프로세스 종료를 확인한다.
+- 검증 상태: **NOT_RUN**. 미입증/제약: 현재 link recipe와 mode별 실행·bounded 전체 join은 미검증. AppConfig singleton의 설정 읽기는 별도 격리 환경에서만 허용.
+
+<!-- /standalone-contract -->
+
+<!-- standalone-contract:scripts/internal/recording_stop_lifetime_smoke.cpp -->
+#### recording_stop_lifetime_smoke.cpp
+
+- 대상·용도: `scripts/internal/recording_stop_lifetime_smoke.cpp` — Recorder Stop 및 SharedStream 수명 경합을 결정적 latch로 재현; 관련 구현을 변경할 때 선택하는 개발 진단.
+- 진입·준비: `int main(int argc,char** argv){assert(argc==2);lifetime_test::Run(argv[1]);}` (source line 175). C++17 및 해당 소스의 include/link 의존성에 결속된 별도 fixture 바이너리. 컴파일 명령·현재 바이너리 동작은 미검증; 공식 제품 바이너리를 대입하지 않는다. assert 활성 빌드(NDEBUG 금지), SESSION_SOURCE를 검토한 recording_session_service.cpp 번역단위에 결속; 동일 구현 중복 link 금지. mode: normal, reuse, start-fail, source-exception, stop-exception, acquire-fail, stop-channel, stop-all, triple, duplicate, two, deadline, p2-create-fail, p2-normal, p2-after, p2-exception, p2-duplicate, p2-channel-destroy; p2-duplicate와 p2-channel-destroy는 snapshot 경합도 포함.
+- 호출·작업 위치: 결속 fixture 바이너리에 mode 위치 인자 1개를 전달한다. 모드는 문자열 분기이며 미지원 mode를 reject하는 CLI는 없다. cwd: 저장소 루트.
+- 판정: Start/Stop/TimeSnapshot 겹침과 owner 수명 assertion 및 정상 반환. 일부 early-return 사례는 JSON 출력 없이 0. 주요 실패: argc assertion, 3초 readiness/8초 latch, owner/Stop 결과 오류 시 abort/예외.
+- 부작용·소유권 (R0): 실제 service 메모리 상태를 test Source/Writer/Store로 구동. RTSP URL은 stub 식별 문자열이고 접속하지 않는다. 외부 Store 쓰기 없음. 외부 프로세스·listener·port 없음. 호출 프로세스와 내부 메모리/스레드는 실행 담당자 소유.
+- 종료·정리: latch release, future.get, Stop/JoinOwned와 소멸자 수명 assertion. 실행 담당자는 시작 전 별도 유한 deadline과 TERM 후 reap 절차를 승인·설정하고 PID/PGID를 기록한다. 도구 자체의 join/wait가 무한 대기할 수 있으므로 정상 반환을 추정하지 않는다. 정상 반환 후 stdout/stderr를 보존한다. 외부 데이터 정리 대상 없음. 비정상 종료는 실패로 남기며 실행 담당자가 프로세스 종료를 확인한다.
+- 검증 상태: **NOT_RUN**. 미입증/제약: 현재 link recipe와 mode별 실행·bounded 전체 join은 미검증. AppConfig singleton의 설정 읽기는 별도 격리 환경에서만 허용.
+
+<!-- /standalone-contract -->
+
+<!-- standalone-contract:scripts/internal/shutdown_probe_smoke.cpp -->
+#### shutdown_probe_smoke.cpp
+
+- 대상·용도: `scripts/internal/shutdown_probe_smoke.cpp` — SIGTERM 전 진단 무출력·signal 이후 scope/row 수를 검사; 관련 구현을 변경할 때 선택하는 개발 진단.
+- 진입·준비: `int main(){using namespace recording::shutdown_probe;if(!Enabled()||!StopOnly())return 1;std::signal(SIGTERM,handler);auto start=Now();for(unsigned i=0;i<100000;++i){Scope a("structured");Scope b("Capture");}auto elapsed=Now()-start;if(rows.load()!=0||structured.load()!=0)return 2;{Scope active("structured");raise(SIGTERM);if(!signaled.load())return 3;{Scope join("probe-join");}}if(rows.load()!=3||structured.load()!=0)return 4;std::cout<<"{\"iterations\":100000,\"preSignalRows\":0,\"postSignalRows\":"<<rows.load()<<",\"elapsedNs\":"<<elapsed<<"}\n";}` (source line 6). C++17 및 해당 소스의 include/link 의존성에 결속된 별도 fixture 바이너리. 컴파일 명령·현재 바이너리 동작은 미검증; 공식 제품 바이너리를 대입하지 않는다. 자식 환경 MEDIA_SERVER_SHUTDOWN_PROBE=stop.
+- 호출·작업 위치: 결속 fixture 바이너리를 인자 없이 호출한다. cwd: 저장소 루트.
+- 판정: 100000 반복 후 preSignalRows=0, postSignalRows=3 JSON 및 0. 주요 실패: opt-in 불일치 1, 사전 row 2, signal 미관측 3, 사후 row 불일치 4.
+- 부작용·소유권 (R0): 자기 프로세스 SIGTERM handler 등록 및 raise; 외부 PID 신호 없음. 진단 출력만. 외부 프로세스·listener·port 없음. 호출 프로세스와 내부 메모리/스레드는 실행 담당자 소유.
+- 종료·정리: 정상 반환 후 stdout/stderr를 보존한다. 외부 데이터 정리 대상 없음. 비정상 종료는 실패로 남기며 실행 담당자가 프로세스 종료를 확인한다.
+- 검증 상태: **NOT_RUN**. 미입증/제약: 현재 실행 결과·전체 wall-clock 상한은 미입증. 시간값을 제품 성능 증거로 사용하지 않는다.
+
+<!-- /standalone-contract -->
+
+<!-- standalone-contract:scripts/internal/recording_degraded_http_run.test.py -->
+#### recording_degraded_http_run.test.py
+
+- 대상·용도: `scripts/internal/recording_degraded_http_run.test.py` — HTTP 실행 wrapper의 제품 결과·후처리 실패 분리, cleanup/group/private-output 실패 보존; 관련 구현을 변경할 때 선택하는 개발 진단.
+- 진입·준비: `if __name__=='__main__':` (source line 78). 저장소의 동반 모듈과 Python 3이 필요하다. -B로 원본 pycache 생성을 막는다. 동반 recording_degraded_http_run.py의 top-level try/finally AST; 실제 process/OS 호출은 stub으로 치환.
+- 호출·작업 위치: python3 -B scripts/internal/recording_degraded_http_run.test.py cwd: 저장소 루트.
+- 판정: 모든 unittest assertion 성공 및 exit 0. 예상 거부가 검출되지 않거나 import/assertion 오류면 exit nonzero. 주요 실패: finally AST 구조 변경·최초 오류 덮어쓰기·정리 판정 오류.
+- 부작용·소유권 (R1): TemporaryDirectory 안 execution.json 생성; 실제 자식/HTTP 없음. 외부 프로세스·listener·port 없음. 호출 프로세스와 내부 메모리/스레드는 실행 담당자 소유.
+- 종료·정리: unittest의 TemporaryDirectory context가 소유 임시 경로를 정리. 중단 시 남은 temp 소유권을 확인한 실행 담당자가 정리.
+- 검증 상태: **NOT_RUN**. 미입증/제약: 현재 실행 결과·전체 wall-clock 상한은 미입증. 시간값을 제품 성능 증거로 사용하지 않는다.
+
+<!-- /standalone-contract -->
+
+<!-- standalone-contract:scripts/internal/recording_frame_bus_detail_smoke.cpp -->
+#### recording_frame_bus_detail_smoke.cpp
+
+- 대상·용도: `scripts/internal/recording_frame_bus_detail_smoke.cpp` — decoder bus 진단의 정제·형식·오류 전달을 구성 메시지로 검사; 관련 구현을 변경할 때 선택하는 개발 진단.
+- 진입·준비: `int main(){` (source line 4). C++17 및 해당 소스의 include/link 의존성에 결속된 별도 fixture 바이너리. 컴파일 명령·현재 바이너리 동작은 미검증; 공식 제품 바이너리를 대입하지 않는다. GStreamer runtime. MEDIA_SERVER_VERIFY_FRAME_TRACE=1로 bus 진단 활성화. private 분기는 별도 승인된 0600/단일link/O_APPEND 파일 FD>=3을 상속하고 MEDIA_SERVER_VERIFY_FRAME_PRIVATE_FD로 지정할 때만 검사한다.
+- 호출·작업 위치: 결속 fixture 바이너리를 인자 없이 호출한다. 기본 진단과 private FD 분기를 별도 사례로 기록한다. cwd: 저장소 루트.
+- 판정: bus-detail-unit pass=1 decoderCalls=0 및 exit 0. private FD 미제공 시 해당 assertion 실행을 주장하지 않는다. 주요 실패: bus 최초 오류·redaction·truncation/JSON escaping 불일치면 1.
+- 부작용·소유권 (R2): GStreamer 초기화·pipeline 객체, 설정된 private FD 쓰기. plugin cache/scanner는 설치 runtime에 좌우되므로 R0로 단정하지 않는다. fixture PID 및 optional plugin scanner/registry는 실행 담당자 소유. listener/port 없음.
+- 종료·정리: GError/message/pipeline unref. private FD는 빌려 쓰므로 실행 담당자가 close/보존/정리. GStreamer cache·HOME은 자식 전용 root에 격리. 실행 담당자는 시작 전 별도 유한 deadline과 TERM 후 reap 절차를 승인·설정하고 PID/PGID를 기록한다. 도구 자체의 join/wait가 무한 대기할 수 있으므로 정상 반환을 추정하지 않는다.
+- 검증 상태: **NOT_RUN**. 미입증/제약: plugin scanner 사용과 private branch 실행·출력 전달은 NOT_RUN.
+
+<!-- /standalone-contract -->
+
+<!-- standalone-contract:scripts/internal/recording_frame_bus_probe.cpp -->
+#### recording_frame_bus_probe.cpp
+
+- 대상·용도: `scripts/internal/recording_frame_bus_probe.cpp` — 한 파일/target의 decoder 정책·원시 bus 오류·FD offset/파일 불변을 제한 관측; 관련 구현을 변경할 때 선택하는 개발 진단.
+- 진입·준비: `int main(int argc,char** argv){try {` (source line 30). C++17 및 해당 소스의 include/link 의존성에 결속된 별도 fixture 바이너리. 컴파일 명령·현재 바이너리 동작은 미검증; 공식 제품 바이너리를 대입하지 않는다. 0보다 크고 512KiB 이하인 일반 media 파일, nonnegative targetNs 정수, policy automatic 또는 software-only. symlink 금지.
+- 호출·작업 위치: 결속 fixture 바이너리에 file targetNs policy의 3개 위치 인자를 전달한다. 별도 --json-smoke는 문자열 escaping만 검사한다. cwd: 저장소 루트.
+- 판정: JSON ok/unchanged/offset. unchanged=true, offset=37과 decode 성공이면 0. 주요 실패: 입력/정책/identity/offset 오류 2; decode 실패 1.
+- 부작용·소유권 (R2): 읽기 전용 FD로 실제 GStreamer decode; 원시 bus source/message/debug가 stdout에 포함될 수 있어 비공개로 취급. plugin registry/scanner 가능. 소유 fixture PID 및 plugin 자원. HTTP/RTSP 접속 없음.
+- 종료·정리: FD RAII close, decoder pipeline NULL/unref; decode budget 5000ms는 전체 프로세스 상한이 아니다. 실행 담당자는 시작 전 별도 유한 deadline과 TERM 후 reap 절차를 승인·설정하고 PID/PGID를 기록한다. 도구 자체의 join/wait가 무한 대기할 수 있으므로 정상 반환을 추정하지 않는다. 비민감 정제본만 보존하고 소유 private log/cache를 정리.
+- 검증 상태: **NOT_RUN**. 미입증/제약: 현재 decoder/plugin 종료와 runtime 결과 미입증.
+
+<!-- /standalone-contract -->
+
+<!-- standalone-contract:scripts/internal/recording_http_observation_smoke.cpp -->
+#### recording_http_observation_smoke.cpp
+
+- 대상·용도: `scripts/internal/recording_http_observation_smoke.cpp` — socketpair 기반 HTTP 관측의 응답 drain·timeout·오류 경계 검사; 관련 구현을 변경할 때 선택하는 개발 진단.
+- 진입·준비: `int main(){try{` (source line 13). C++17 및 해당 소스의 include/link 의존성에 결속된 별도 fixture 바이너리. 컴파일 명령·현재 바이너리 동작은 미검증; 공식 제품 바이너리를 대입하지 않는다. 내장 HTTP wire 문자열. 외부 URL/port 입력 없음.
+- 호출·작업 위치: 결속 fixture 바이너리를 인자 없이 호출한다. cwd: 저장소 루트.
+- 판정: observation boundaries 9 PASS 및 0; 제품 성능 결과 아님. 주요 실패: receive deadline/EOF/header/출력 지연 assertion 오류 1.
+- 부작용·소유권 (R2): AF_UNIX socketpair, pipe, thread 사용. IP listener/외부 네트워크 없음. 모든 socketpair/pipe/스레드는 단일 fixture 소유.
+- 종료·정리: Pair 소멸자 close, sender/drain join. Drain 1s/30ms/100ms 경계. 실행 담당자는 시작 전 별도 유한 deadline과 TERM 후 reap 절차를 승인·설정하고 PID/PGID를 기록한다. 도구 자체의 join/wait가 무한 대기할 수 있으므로 정상 반환을 추정하지 않는다.
+- 검증 상태: **NOT_RUN**. 미입증/제약: pipe 예외 경로와 join 전체 상한/실제 FD 반환은 미실행.
+
+<!-- /standalone-contract -->
+
+<!-- standalone-contract:scripts/internal/recording_memory_compact.test.mjs -->
+#### recording_memory_compact.test.mjs
+
+- 대상·용도: `scripts/internal/recording_memory_compact.test.mjs` — native compact formatter와 decoder roundtrip·반례·역사 capture replay; 관련 구현을 변경할 때 선택하는 개발 진단.
+- 진입·준비: `const root=process.env.R142_ROOT;assert(root&&fs.realpathSync(root)===root);` (source line 7). Node와 저장소의 동반 ES module이 필요하다. R142_ROOT: 이미 존재하는 canonical 소유 root. CXX 또는 c++와 include 경로. optional root/r137-server.log는 보존된 numeric 원본만.
+- 호출·작업 위치: R142_ROOT를 자식 환경에 설정하고 node scripts/internal/recording_memory_compact.test.mjs 호출. cwd: 저장소 루트.
+- 판정: compact-results.json status PASS, native roundtrip/negative cases; replay는 입력이 있을 때만. 주요 실패: compiler/native nonzero, wire version/gap/cap/phase assertion 오류.
+- 부작용·소유권 (R2): compiler와 compact-native/trace subprocess, root에 build/native/trace logs 및 결과 JSON/optional replay 쓰기. spawnSync 자식은 호출자 소유; 자체 timeout 없다. network/listener 없음.
+- 종료·정리: spawnSync 반환 및 자식 종료를 확인. 실행 담당자는 시작 전 별도 유한 deadline과 TERM 후 reap 절차를 승인·설정하고 PID/PGID를 기록한다. 도구 자체의 join/wait가 무한 대기할 수 있으므로 정상 반환을 추정하지 않는다. 새 소유 root만 사용하고 원본 Store를 연결하지 않는다. 보존할 정제 결과를 먼저 옮긴 뒤 PID/FD/port 부재와 root의 dev/ino/uid·symlink 경계를 대조하여 해당 root만 정리한다. 자동 디렉터리 삭제는 구현돼 있지 않다.
+- 검증 상태: **NOT_RUN**. 미입증/제약: 현재 compiler/플랫폼 allocator 결과·optional 역사 replay는 미검증.
+
+<!-- /standalone-contract -->
+
+<!-- standalone-contract:scripts/internal/recording_multifinalize_state_binding.test.mjs -->
+#### recording_multifinalize_state_binding.test.mjs
+
+- 대상·용도: `scripts/internal/recording_multifinalize_state_binding.test.mjs` — Multi-Finalize source/evidence 결속의 dirty/staged/hash/schema 반례 검사; 관련 구현을 변경할 때 선택하는 개발 진단.
+- 진입·준비: `test('clean HEAD exact sources accepted',t=>{const f=fixture(t);assert.deepEqual(validateCandidateIdentity(f.clone,f.result),f.sources);});` (source line 33). Node와 저장소의 동반 ES module이 필요하다. 읽을 수 있는 저장소 Git objects와 git/du. 내부 임시 clone은 source file hardlink가 아닌 private checkout/index여야 한다.
+- 호출·작업 위치: node --test scripts/internal/recording_multifinalize_state_binding.test.mjs cwd: 저장소 루트.
+- 판정: node:test 정상/부정 identity·artifact/schema 8사례 및 fixture-cleanup absent 출력. 주요 실패: dirty/staged/untracked/hash/path/schema 위조가 허용되거나 cleanup 소유권 변경이면 실패.
+- 부작용·소유권 (R2): git clone --shared --no-hardlinks, 격리 index git add와 파일변조, du. 원본 Git을 stage하지 않는다. execFileSync 자식과 mkdtemp fixture root 소유. 객체 alternates는 원본 읽기만.
+- 종료·정리: t.after에서 dev/ino/uid 재확인 후 root recursive remove 및 부재 assertion. 실행 담당자는 시작 전 별도 유한 deadline과 TERM 후 reap 절차를 승인·설정하고 PID/PGID를 기록한다. 도구 자체의 join/wait가 무한 대기할 수 있으므로 정상 반환을 추정하지 않는다.
+- 검증 상태: **NOT_RUN**. 미입증/제약: 별도 실제 실행 승인에는 임시 clone/stage 및 해당 root 삭제 허용이 필요. 이번에는 모두 NOT_RUN.
+
+<!-- /standalone-contract -->
+
+<!-- standalone-contract:scripts/internal/recording_process_metrics_os_timing_fixture.cpp -->
+#### recording_process_metrics_os_timing_fixture.cpp
+
+- 대상·용도: `scripts/internal/recording_process_metrics_os_timing_fixture.cpp` — macOS FD collector retry round/sleep을 통제 child와 실제 OS로 비교; 관련 구현을 변경할 때 선택하는 개발 진단.
+- 진입·준비: `int main(int argc,char** argv){` (source line 55). C++17 및 해당 소스의 include/link 의존성에 결속된 별도 fixture 바이너리. 컴파일 명령·현재 바이너리 동작은 미검증; 공식 제품 바이너리를 대입하지 않는다. macOS 전용. R149_COLLECTOR_SOURCE는 recording_process_metrics.cpp의 검토된 절대경로를 컴파일 시 결속. candidate 경계는 R149_CANDIDATE 정의 여부도 기록. 바이너리 경로 옆 .trace.json/.native.json은 없어야 한다.
+- 호출·작업 위치: 소유 cwd에서 결속 fixture 바이너리의 절대경로를 argv[0]으로 호출하고 위치 인자 1개를 전달한다. argc==2만 검사하며 argv[1] 값은 사용하지 않는다. PID 입력으로 해석하지 않는다. cwd: 소유 임시 root (바이너리도 그 내부).
+- 판정: collector 원출력 및 바이너리 경로.trace.json/.native.json, childExitedZero 및 반환코드 확인. 주요 실패: nonmac는 2. fork/pipe/child/native/write 또는 O_EXCL 충돌은 실패. collector 반환을 보존.
+- 부작용·소유권 (R2): fork child, pipe, cwd mkstemp 후 즉시 unlink, /dev/null FD128 churn, binary 옆 output 파일 생성. parent가 fork PID reap; listener/port 없음.
+- 종료·정리: child command poll 2초/parent ready1초·stats0.5초, q 전송 후 waitpid. waitpid/collector 자체의 전체 상한은 없음. 실행 담당자는 시작 전 별도 유한 deadline과 TERM 후 reap 절차를 승인·설정하고 PID/PGID를 기록한다. 도구 자체의 join/wait가 무한 대기할 수 있으므로 정상 반환을 추정하지 않는다. 새 소유 root만 사용하고 원본 Store를 연결하지 않는다. 보존할 정제 결과를 먼저 옮긴 뒤 PID/FD/port 부재와 root의 dev/ino/uid·symlink 경계를 대조하여 해당 root만 정리한다. 자동 디렉터리 삭제는 구현돼 있지 않다.
+- 검증 상태: **NOT_RUN**. 미입증/제약: R148 baseline에 요구되는 owned instrumentation 사본은 여기서 제공하지 않는다. 현재 candidate include와 OS 결과는 실행 미검증.
+
+<!-- /standalone-contract -->
+
+<!-- standalone-contract:scripts/internal/recording_http_lock.test.py -->
+#### recording_http_lock.test.py
+
+- 대상·용도: `scripts/internal/recording_http_lock.test.py` — R159 collector·누락/중복·sticky 오류·cap·global loss 반례 검사; 관련 구현을 변경할 때 선택하는 개발 진단.
+- 진입·준비: `if __name__=='__main__':unittest.main()` (source line 67). 저장소의 동반 모듈과 Python 3이 필요하다. -B로 원본 pycache 생성을 막는다. R159_FOCUSED_ROOT: 새 canonical 소유 root; global-loss 하위 경로가 없어야 한다. synthetic seed를 Python shebang으로 생성한다.
+- 호출·작업 위치: R159_FOCUSED_ROOT를 자식 환경에 설정하고 python3 -B scripts/internal/recording_http_lock.test.py 호출. cwd: 저장소 루트.
+- 판정: 모든 unittest assertion 성공 및 exit 0. 예상 거부가 검출되지 않거나 import/assertion 오류면 exit nonzero. global-loss seed 실패 감지 후 fixtureStarts=0/groupsAbsent/cleanup 확인. 주요 실패: loss/terminal/duplicate 거부 누락, 종료 지연 >=0.5초, 예상 실패 rc/cleanup 불일치.
+- 부작용·소유권 (R2): global-loss/seed/build-binding 및 run 로그 생성. base.run은 synthetic seed 1개를 세션으로 spawn; 정상 예상 경로에서는 native fixture/observer 미시작. base.run이 child group 소유, TERM wait5초 후 KILL wait2초 fallback. seed 자체 sleep4초; 전체 base cap180초.
+- 종료·정리: first diagnostic failure 즉시 중단·reap/groupAbsent 확인; 원래 실패 유지. 새 소유 root만 사용하고 원본 Store를 연결하지 않는다. 보존할 정제 결과를 먼저 옮긴 뒤 PID/FD/port 부재와 root의 dev/ino/uid·symlink 경계를 대조하여 해당 root만 정리한다. 자동 디렉터리 삭제는 구현돼 있지 않다.
+- 검증 상태: **NOT_RUN**. 미입증/제약: 실패 전달 회귀가 깨지면 base.run의 뒤 단계까지 도달할 위험이 있다. 별도 실행 시 native 경로 부재와 외부 감독 필요. 이번 NOT_RUN.
+
+<!-- /standalone-contract -->
+
+<!-- standalone-contract:scripts/internal/recording_state_binding_recorder_test.py -->
+#### recording_state_binding_recorder_test.py
+
+- 대상·용도: `scripts/internal/recording_state_binding_recorder_test.py` — Recorder lineage 입력 선택·foreign anchor·path escape·계약 라우팅 반례; 관련 구현을 변경할 때 선택하는 개발 진단.
+- 진입·준비: `if __name__=='__main__':unittest.main(verbosity=2)` (source line 32). 저장소의 동반 모듈과 Python 3이 필요하다. -B로 원본 pycache 생성을 막는다. 합성 /missing bundle 경로와 env dict; Node, 동반 binding validator/profile 모듈. 실제 anchored bundle 불필요.
+- 호출·작업 위치: python3 -B scripts/internal/recording_state_binding_recorder_test.py cwd: 저장소 루트.
+- 판정: 모든 unittest assertion 성공 및 exit 0. 예상 거부가 검출되지 않거나 import/assertion 오류면 exit nonzero. recorder explicit/mixed/anchor/routing 거부. 주요 실패: Node guard 오류 문구 누락, fake lineage/product delta 허용, assertion/import 실패.
+- 부작용·소유권 (R2): subprocess.run node --input-type=module -e로 guard 실행. Git/product binding 호출은 mock, 실제 제품/HTTP 없음. 직접 Node child는 Python이 communicate/wait로 reap; 별도 process group 생성 없음.
+- 종료·정리: 테스트 자체 출력만 보존. 실행 담당자는 시작 전 별도 유한 deadline과 TERM 후 reap 절차를 승인·설정하고 PID/PGID를 기록한다. 도구 자체의 join/wait가 무한 대기할 수 있으므로 정상 반환을 추정하지 않는다.
+- 검증 상태: **NOT_RUN**. 미입증/제약: Node child의 자체 timeout 없음; 실제 trusted bundle positive qualification은 별도 미실행.
+
+<!-- /standalone-contract -->
+
+<!-- standalone-contract:scripts/internal/recording_state_binding_search_test.py -->
+#### recording_state_binding_search_test.py
+
+- 대상·용도: `scripts/internal/recording_state_binding_search_test.py` — Search Rebase lineage·제품 변경 집합·이전 Recorder anchor·Git blob framing 반례; 관련 구현을 변경할 때 선택하는 개발 진단.
+- 진입·준비: `if __name__=='__main__':unittest.main(verbosity=2)` (source line 130). 저장소의 동반 모듈과 Python 3이 필요하다. -B로 원본 pycache 생성을 막는다. 합성 /missing bundle 경로와 env dict; Node, 동반 binding validator/profile 모듈. 실제 anchored bundle 불필요.
+- 호출·작업 위치: python3 -B scripts/internal/recording_state_binding_search_test.py cwd: 저장소 루트.
+- 판정: 모든 unittest assertion 성공 및 exit 0. 예상 거부가 검출되지 않거나 import/assertion 오류면 exit nonzero. search explicit/mixed/anchor/routing 거부. 주요 실패: Node guard 오류 문구 누락, fake lineage/product delta 허용, assertion/import 실패.
+- 부작용·소유권 (R2): subprocess.run node --input-type=module -e로 guard 실행. Git/product binding 호출은 mock, 실제 제품/HTTP 없음. 직접 Node child는 Python이 communicate/wait로 reap; 별도 process group 생성 없음.
+- 종료·정리: 테스트 자체 출력만 보존. 실행 담당자는 시작 전 별도 유한 deadline과 TERM 후 reap 절차를 승인·설정하고 PID/PGID를 기록한다. 도구 자체의 join/wait가 무한 대기할 수 있으므로 정상 반환을 추정하지 않는다.
+- 검증 상태: **NOT_RUN**. 미입증/제약: Node child의 자체 timeout 없음; 실제 trusted bundle positive qualification은 별도 미실행.
+
+<!-- /standalone-contract -->
+
+<!-- standalone-contract:scripts/internal/recording_state_binding_v2_test.py -->
+#### recording_state_binding_v2_test.py
+
+- 대상·용도: `scripts/internal/recording_state_binding_v2_test.py` — v2 writer/smoke bundle·run ID·설정 혼합·누락 Evidence 반례; 관련 구현을 변경할 때 선택하는 개발 진단.
+- 진입·준비: `if __name__=='__main__':unittest.main(verbosity=2)` (source line 87). 저장소의 동반 모듈과 Python 3이 필요하다. -B로 원본 pycache 생성을 막는다. 내장 synthetic 2채널×66 row와 media-probe dict, Node. 실제 media 입력 없음.
+- 호출·작업 위치: python3 -B scripts/internal/recording_state_binding_v2_test.py cwd: 저장소 루트.
+- 판정: 모든 unittest assertion 성공 및 exit 0. 예상 거부가 검출되지 않거나 import/assertion 오류면 exit nonzero. count/tail/source/claim-once/guard 음성 검사. 주요 실패: probe/raw coverage·owner residue·중복 run·v1/v2 혼합 거부 누락.
+- 부작용·소유권 (R2): TemporaryDirectory 파일/합성 media/log/bundle/claim 생성, Node guard subprocess. 임시 root는 testcase 소유, Node는 Python이 reap.
+- 종료·정리: tearDown temp.cleanup. 실행 담당자는 시작 전 별도 유한 deadline과 TERM 후 reap 절차를 승인·설정하고 PID/PGID를 기록한다. 도구 자체의 join/wait가 무한 대기할 수 있으므로 정상 반환을 추정하지 않는다. 중단으로 잔존하면 정확한 소유 temp만 정리.
+- 검증 상태: **NOT_RUN**. 미입증/제약: 실제 writer/ffprobe/제품 run 아님. guard child 전체 반환 상한 미입증.
+
+<!-- /standalone-contract -->
+
+<!-- standalone-contract:scripts/internal/recording_state_requalification_test.py -->
+#### recording_state_requalification_test.py
+
+- 대상·용도: `scripts/internal/recording_state_requalification_test.py` — source/binary/input/model/native/shutdown 증거 tamper·최소량·adoption 반례; 관련 구현을 변경할 때 선택하는 개발 진단.
+- 진입·준비: `if __name__=='__main__':unittest.main(verbosity=2)` (source line 104). 저장소의 동반 모듈과 Python 3이 필요하다. -B로 원본 pycache 생성을 막는다. git와 내장 synthetic evidence. 실제 product/모델 파일 불필요.
+- 호출·작업 위치: python3 -B scripts/internal/recording_state_requalification_test.py cwd: 저장소 루트.
+- 판정: 모든 unittest assertion 성공 및 exit 0. 예상 거부가 검출되지 않거나 import/assertion 오류면 exit nonzero. stateReady/officialAdoption false 유지. 주요 실패: dirty/hash/schema/gate/owner/coverage/lineage 음성 검사 실패.
+- 부작용·소유권 (R2): 임시 repo에서 git init/add/commit, synthetic evidence 파일 생성·변조·unlink. Python이 git 자식 reap; 임시 repo/evidence는 testcase 소유. 원본 git stage/commit 없음.
+- 종료·정리: tearDown TemporaryDirectory cleanup. 실행 담당자는 시작 전 별도 유한 deadline과 TERM 후 reap 절차를 승인·설정하고 PID/PGID를 기록한다. 도구 자체의 join/wait가 무한 대기할 수 있으므로 정상 반환을 추정하지 않는다.
+- 검증 상태: **NOT_RUN**. 미입증/제약: 이 도구의 향후 실행 승인은 격리 git commit까지 포함해야 한다. 이번 모든 동작 NOT_RUN.
+
+<!-- /standalone-contract -->
+
+<!-- standalone-contract:scripts/internal/recording_trace_budget.test.py -->
+#### recording_trace_budget.test.py
+
+- 대상·용도: `scripts/internal/recording_trace_budget.test.py` — budget 산술·cap/loss와 원래 native producer 출력 연계 반례; 관련 구현을 변경할 때 선택하는 개발 진단.
+- 진입·준비: `if __name__=='__main__':unittest.main()` (source line 97). 저장소의 동반 모듈과 Python 3이 필요하다. -B로 원본 pycache 생성을 막는다. R160_FOCUSED_ROOT: 소유 root에 원본 producer에 결속된 focused 바이너리 준비. 10 native mode 및 record-over.stderr를 후속 stream 시험에 사용.
+- 호출·작업 위치: R160_FOCUSED_ROOT 설정 후 python3 -B scripts/internal/recording_trace_budget.test.py 호출. 정상 unittest 순서에서 producer가 stream replay보다 먼저 수행된다. cwd: 저장소 루트.
+- 판정: 모든 unittest assertion 성공 및 exit 0. 예상 거부가 검출되지 않거나 import/assertion 오류면 exit nonzero. 원본 loss byte가 Live에서 즉시 fail; output-failure는 전달 성공이 아닌 기존 한계 관측. 주요 실패: cap·loss·terminal·group 잔존·nonzero·64KiB output 초과면 실패.
+- 부작용·소유권 (R2): focused를 10회 Popen(start_new_session), stdout/stderr/native-results 및 replay seed/run 파일 생성. native communicate timeout5초; 예외는 killpg SIGKILL 후 wait. replay seed는 base.run 소유.
+- 종료·정리: 각 group 부재 assertion, base.run TERM5/KILL2 reap. 새 소유 root만 사용하고 원본 Store를 연결하지 않는다. 보존할 정제 결과를 먼저 옮긴 뒤 PID/FD/port 부재와 root의 dev/ino/uid·symlink 경계를 대조하여 해당 root만 정리한다. 자동 디렉터리 삭제는 구현돼 있지 않다.
+- 검증 상태: **NOT_RUN**. 미입증/제약: 현재 도구는 timeout 시 SIGKILL을 사용하므로 SIGKILL 0 계약의 실행 대체로 쓸 수 없다. 이번 NOT_RUN.
+
+<!-- /standalone-contract -->
+
+<!-- standalone-contract:scripts/internal/recording_index_policy_smoke.cpp -->
+#### recording_index_policy_smoke.cpp
+
+- 대상·용도: `scripts/internal/recording_index_policy_smoke.cpp` — 동일 누적 source에서 automatic/software-only decode 정책 제한 비교; 관련 구현을 변경할 때 선택하는 개발 진단.
+- 진입·준비: `int main(int argc,char**argv){try{` (source line 11). C++17 및 해당 소스의 include/link 의존성에 결속된 별도 fixture 바이너리. 컴파일 명령·현재 바이너리 동작은 미검증; 공식 제품 바이너리를 대입하지 않는다. 소유 복제 recording Store, channels 9101/9201. RecordingWriterTestIsolation 조건: canonical /tmp 아래 media-server- 또는 media_server_ 접두사의 소유 비공유 디렉터리, cwd=root, MEDIA_SERVER_SKIP_LOCAL_ENV=1. SOURCE_REGISTRY/PUBLISHED_VIEWS/ANALYSIS_REGISTRY/AUTH_USERS_FILE/RECORDING_STORAGE_ROOT/ANALYSIS_EVENT_STORAGE_PATH/FILE_ROOT의 MEDIA_SERVER_ 환경과 HOME/XDG_CACHE_HOME/TMPDIR/GST_REGISTRY/GST_REGISTRY_1_0를 root 내부의 올바른 파일/디렉터리로 격리하고 source와 views는 다른 경로로 둔다. 환경은 자식에만 적용한다.
+- 호출·작업 위치: 소유 root에서 결속 fixture 바이너리에 root 절대경로 1개 전달. cwd: root와 동일한 canonical 소유 임시 디렉터리.
+- 판정: policy별 최초320 및 세 역사 ID의 frame 비교 JSON와 explicitFinish=1. exit0에도 decode failures 수를 별도 판단. 주요 실패: 격리/argc 2, runtime/Resolve/180초 deadline/Finish 예외 1.
+- 부작용·소유권 (R3): runtime.Open 복구/Store 변경 가능, decode·진단 출력. 원본 Store 사용 금지. fixture 내부 decoder·Store owner, plugin 자원; listener 없음.
+- 종료·정리: 5000ms decode 및 전체 비교180초 취소; 정상 Finish. 실행 담당자는 시작 전 별도 유한 deadline과 TERM 후 reap 절차를 승인·설정하고 PID/PGID를 기록한다. 도구 자체의 join/wait가 무한 대기할 수 있으므로 정상 반환을 추정하지 않는다. 새 소유 root만 사용하고 원본 Store를 연결하지 않는다. 보존할 정제 결과를 먼저 옮긴 뒤 PID/FD/port 부재와 root의 dev/ino/uid·symlink 경계를 대조하여 해당 root만 정리한다. 자동 디렉터리 삭제는 구현돼 있지 않다.
+- 검증 상태: **NOT_RUN**. 미입증/제약: 동일 input의 두 정책 실제 비교·cleanup 미실행.
+
+<!-- /standalone-contract -->
+
+<!-- standalone-contract:scripts/internal/recording_memory_ticket_smoke.cpp -->
+#### recording_memory_ticket_smoke.cpp
+
+- 대상·용도: `scripts/internal/recording_memory_ticket_smoke.cpp` — ticket witness·History/Evidence owner·allocator 진단을 직접 검사; 관련 구현을 변경할 때 선택하는 개발 진단.
+- 진입·준비: `int main(int argc,char** argv){try{` (source line 92). C++17 및 해당 소스의 include/link 의존성에 결속된 별도 fixture 바이너리. 컴파일 명령·현재 바이너리 동작은 미검증; 공식 제품 바이너리를 대입하지 않는다. canonical 소유 root, MEDIA_SERVER_VERIFY_MEMORY_ATTRIBUTION=1, GStreamer/x264/zlib. 별도 --disabled 모드는 ledger 비활성만 검사.
+- 호출·작업 위치: 결속 fixture 바이너리에 root 1개 또는 --disabled 전달. HOME/TMPDIR/cache/제품 설정을 자식 root로 격리한다. cwd: 저장소 루트.
+- 판정: ticket-owner checks fail=0; History/Evidence 마지막 RAM/scratch/FD 0. disabled 결과는 전체 검사 아님. 주요 실패: opt-in/History truncate/read/actual PNG/allocator/Finish assertion 실패 1.
+- 부작용·소유권 (R3): 실제 scratch history 생성·ftruncate, root/recordings에 writer media/catalog 저장 및 frame extraction. fixture 내부 writer/decoder/Store 자원; OS plugin process 가능, listener 없음.
+- 종료·정리: writer.Stop, runtime.Finish, owner/scratch 소멸 검사; Extract deadline5초. 실행 담당자는 시작 전 별도 유한 deadline과 TERM 후 reap 절차를 승인·설정하고 PID/PGID를 기록한다. 도구 자체의 join/wait가 무한 대기할 수 있으므로 정상 반환을 추정하지 않는다. 새 소유 root만 사용하고 원본 Store를 연결하지 않는다. 보존할 정제 결과를 먼저 옮긴 뒤 PID/FD/port 부재와 root의 dev/ino/uid·symlink 경계를 대조하여 해당 root만 정리한다. 자동 디렉터리 삭제는 구현돼 있지 않다.
+- 검증 상태: **NOT_RUN**. 미입증/제약: macOS allocator와 비mac unsupported 경로를 구분하며 실제 출력·root isolation 강제 여부는 미검증.
+
+<!-- /standalone-contract -->
+
+<!-- standalone-contract:scripts/internal/recording_publication_observer_smoke.cpp -->
+#### recording_publication_observer_smoke.cpp
+
+- 대상·용도: `scripts/internal/recording_publication_observer_smoke.cpp` — 실제 native writer linkat publication 순간을 bounded latch로 관측; 관련 구현을 변경할 때 선택하는 개발 진단.
+- 진입·준비: `int main(int argc,char** argv){` (source line 24). C++17 및 해당 소스의 include/link 의존성에 결속된 별도 fixture 바이너리. 컴파일 명령·현재 바이너리 동작은 미검증; 공식 제품 바이너리를 대입하지 않는다. GStreamer native writer 및 linkat interposition이 결속된 바이너리. RecordingWriterTestIsolation 조건: canonical /tmp 아래 media-server- 또는 media_server_ 접두사의 소유 비공유 디렉터리, cwd=root, MEDIA_SERVER_SKIP_LOCAL_ENV=1. SOURCE_REGISTRY/PUBLISHED_VIEWS/ANALYSIS_REGISTRY/AUTH_USERS_FILE/RECORDING_STORAGE_ROOT/ANALYSIS_EVENT_STORAGE_PATH/FILE_ROOT의 MEDIA_SERVER_ 환경과 HOME/XDG_CACHE_HOME/TMPDIR/GST_REGISTRY/GST_REGISTRY_1_0를 root 내부의 올바른 파일/디렉터리로 격리하고 source와 views는 다른 경로로 둔다. 환경은 자식에만 적용한다.
+- 호출·작업 위치: 소유 root에서 결속 바이너리에 root 1개 전달. 부모가 stdout [R135-linked] same=1 nlink=2를 관측한 뒤 stdin으로 g 1바이트를 보내야 한다. cwd: root와 동일한 canonical 소유 임시 디렉터리.
+- 판정: publications=1 durable=1 finish=1 latchTimeout=0, exit0. 주요 실패: 격리 실패2, linkat 실패/5초 latch timeout/완료·Finish 불일치1.
+- 부작용·소유권 (R3): root/recording에 실제 MP4 partial hardlink publication·catalog 쓰기. 단일 fixture PID·writer/plugin 자원. stdin latch는 실행 담당자 소유; listener 없음.
+- 종료·정리: latch poll5초 후 writer.Stop/Finish; 부모가 exit/reap와 hardlink 상태를 확인. 실행 담당자는 시작 전 별도 유한 deadline과 TERM 후 reap 절차를 승인·설정하고 PID/PGID를 기록한다. 도구 자체의 join/wait가 무한 대기할 수 있으므로 정상 반환을 추정하지 않는다. 새 소유 root만 사용하고 원본 Store를 연결하지 않는다. 보존할 정제 결과를 먼저 옮긴 뒤 PID/FD/port 부재와 root의 dev/ino/uid·symlink 경계를 대조하여 해당 root만 정리한다. 자동 디렉터리 삭제는 구현돼 있지 않다.
+- 검증 상태: **NOT_RUN**. 미입증/제약: linkat interposition 및 비정상 publication 정리 실제 동작 NOT_RUN.
+
+<!-- /standalone-contract -->
+
+<!-- standalone-contract:scripts/internal/recording_publication_observer_smoke.mjs -->
+#### recording_publication_observer_smoke.mjs
+
+- 대상·용도: `scripts/internal/recording_publication_observer_smoke.mjs` — publication latch 자식을 직접 소유하고 current-root 안정 관측·반환 검사; 관련 구현을 변경할 때 선택하는 개발 진단.
+- 진입·준비: `const [root,binary,mode]=process.argv.slice(2);assert(['baseline','candidate'].includes(mode));` (source line 4). Node와 저장소의 동반 ES module이 필요하다. root/env.json의 자식 전용 격리 환경, 위 native publication fixture에 결속된 binary 절대경로, baseline 또는 candidate mode. root는 신규 소유 디렉터리.
+- 호출·작업 위치: node scripts/internal/recording_publication_observer_smoke.mjs <root> <binary> <baseline|candidate>. 괄호 토큰은 준비한 실제 절대경로/두 mode 중 하나로 대체한다. cwd: 저장소 루트.
+- 판정: R135-direct pass=true, native 완결 marker, writer-output.log. baseline은 root-unsafe-file 진단 거부를 기대하고 candidate는 transient retry 성공을 기대. 주요 실패: mode/native exit/signal/latch/measurement/log 65536 cap 오류면 nonzero.
+- 부작용·소유권 (R3): native writer subprocess와 실제 Store 변경; failure capture 및 writer-output.log 쓰기. spawn은 별도 detached group을 만들지 않는다. 직접 child close를 await; 외부 실행 담당자가 root와 전체 process group의 소유권을 갖는다.
+- 종료·정리: 20초 timer/출력 cap에서 직접 child SIGTERM, stdin g, close 후 sink.close와 로그 저장. TERM 무시 시 close 대기는 무제한이며 내장 kill/reap fallback 없음. 실행 담당자는 시작 전 별도 유한 deadline과 TERM 후 reap 절차를 승인·설정하고 PID/PGID를 기록한다. 도구 자체의 join/wait가 무한 대기할 수 있으므로 정상 반환을 추정하지 않는다. 새 소유 root만 사용하고 원본 Store를 연결하지 않는다. 보존할 정제 결과를 먼저 옮긴 뒤 PID/FD/port 부재와 root의 dev/ino/uid·symlink 경계를 대조하여 해당 root만 정리한다. 자동 디렉터리 삭제는 구현돼 있지 않다.
+- 검증 상태: **NOT_RUN**. 미입증/제약: 내장 bounded return은 미입증이 아니라 보장 없음. 외부 유한 supervisor를 사전에 준비·승인하지 않으면 실행 불가. NOT_RUN.
+
+<!-- /standalone-contract -->
+
+<!-- standalone-contract:scripts/internal/recording_search_capacity_http_smoke.cpp -->
+#### recording_search_capacity_http_smoke.cpp
+
+- 대상·용도: `scripts/internal/recording_search_capacity_http_smoke.cpp` — 누적 source mapping/cursor와 실제 HTTP 검색·증거 소비를 대조; 관련 구현을 변경할 때 선택하는 개발 진단.
+- 진입·준비: `int main(int argc,char**argv){` (source line 18). C++17 및 해당 소스의 include/link 의존성에 결속된 별도 fixture 바이너리. 컴파일 명령·현재 바이너리 동작은 미검증; 공식 제품 바이너리를 대입하지 않는다. 소유 복제 recording Store와 expected-ids.txt 정확한 정렬25526개(known1018/unplaced24508), channels9101. RecordingWriterTestIsolation 조건: canonical /tmp 아래 media-server- 또는 media_server_ 접두사의 소유 비공유 디렉터리, cwd=root, MEDIA_SERVER_SKIP_LOCAL_ENV=1. SOURCE_REGISTRY/PUBLISHED_VIEWS/ANALYSIS_REGISTRY/AUTH_USERS_FILE/RECORDING_STORAGE_ROOT/ANALYSIS_EVENT_STORAGE_PATH/FILE_ROOT의 MEDIA_SERVER_ 환경과 HOME/XDG_CACHE_HOME/TMPDIR/GST_REGISTRY/GST_REGISTRY_1_0를 root 내부의 올바른 파일/디렉터리로 격리하고 source와 views는 다른 경로로 둔다. 환경은 자식에만 적용한다.
+- 호출·작업 위치: 소유 root에서 결속 fixture 바이너리에 root 전달. package 재조회만 할 때 root --readback을 별도 호출한다. 그 외 두 번째 인자는 readback으로 인식하지 않으므로 사용 금지. cwd: root와 동일한 canonical 소유 임시 디렉터리.
+- 판정: 전체 cursor identity, HTTP200/POST201, refresh 증가, explicit Finish 및 RAM/scratch/FD0; readback package1개 확인. 주요 실패: 입력 count/order, HTTP status/5초 요청, package/refresh/owner 실패1; readback3/4.
+- 부작용·소유권 (R3): loopback 127.0.0.1:0 HTTP 서버, 실제 evidence POST/package/Store writer 변경. WebRtcHttpServer 소유 OS배정 port; Socket RAII, Stop RAII에 server/evidence; 프로세스 외부 제품은 spawn하지 않음.
+- 종료·정리: WaitIdle, server.Stop/evidence.Stop, Finish와 owner검사. 실행 담당자는 시작 전 별도 유한 deadline과 TERM 후 reap 절차를 승인·설정하고 PID/PGID를 기록한다. 도구 자체의 join/wait가 무한 대기할 수 있으므로 정상 반환을 추정하지 않는다. 새 소유 root만 사용하고 원본 Store를 연결하지 않는다. 보존할 정제 결과를 먼저 옮긴 뒤 PID/FD/port 부재와 root의 dev/ino/uid·symlink 경계를 대조하여 해당 root만 정리한다. 자동 디렉터리 삭제는 구현돼 있지 않다.
+- 검증 상태: **NOT_RUN**. 미입증/제약: 현재 보존 corpus/정렬 oracle 준비 및 native HTTP·삭제/정리 실제 동작 미실행.
+
+<!-- /standalone-contract -->
+
+<!-- standalone-contract:scripts/internal/recording_search_multifinalize_bench.cpp -->
+#### recording_search_multifinalize_bench.cpp
+
+- 대상·용도: `scripts/internal/recording_search_multifinalize_bench.cpp` — 동일 binary에서 bounded A/B/B/A multi-finalize 비용·자원 비교; 관련 구현을 변경할 때 선택하는 개발 진단.
+- 진입·준비: `int main(int argc,char** argv){` (source line 89). C++17 및 해당 소스의 include/link 의존성에 결속된 별도 fixture 바이너리. 컴파일 명령·현재 바이너리 동작은 미검증; 공식 제품 바이너리를 대입하지 않는다. 새 소유 root, actual managed writer용 GStreamer와 test macro에 결속된 native fixture. 제품 설정/cache/TMPDIR 격리 필요.
+- 호출·작업 위치: 결속 fixture 바이너리에 root 절대경로 1개 전달. rows192/1200×ABBA4×6mode는 내부 고정이며 CLI 변경 옵션 없음. cwd: 소유 임시 root.
+- 판정: multi-refresh/request/resources 및 multifinalize-bench-result failed=0, owner/scratch0. 주요 실패: strict oracle·selected work·snapshot·service200·exactly-one update·owner 반환 오류1.
+- 부작용·소유권 (R3): root/rows-round에 실제 writer/catalog/MP4/checkpoint/corrupt mark. 실제 HTTP listener 없음, native application Search 호출. fixture 내 request thread1~2와 Store owner; 외부 product spawn 없음.
+- 종료·정리: writer.Stop 및 threads join, Fixture runtime 소멸 후 owner/scratch/ReaderCleanupHealthy 확인. 실행 담당자는 시작 전 별도 유한 deadline과 TERM 후 reap 절차를 승인·설정하고 PID/PGID를 기록한다. 도구 자체의 join/wait가 무한 대기할 수 있으므로 정상 반환을 추정하지 않는다. 새 소유 root만 사용하고 원본 Store를 연결하지 않는다. 보존할 정제 결과를 먼저 옮긴 뒤 PID/FD/port 부재와 root의 dev/ino/uid·symlink 경계를 대조하여 해당 root만 정리한다. 자동 디렉터리 삭제는 구현돼 있지 않다.
+- 검증 상태: **NOT_RUN**. 미입증/제약: ABBA wall-clock/Store 전체 수명·공간 사용 미실행. bounded loop count가 전체 시간 상한을 뜻하지 않는다.
+
+<!-- /standalone-contract -->
