@@ -1,4 +1,4 @@
-// R165: 기존 mixed 요청 중 사전 고정 15건만 결속. 제품/API/부하와 독립인 시험용 소비자.
+// 파일 용도: R165의 기존 mixed 요청 중 사전 고정 15건만 결속하는 제품·API·부하와 독립인 시험용 소비자다.
 import {diagnosticLines} from './recording_diagnostic_lines.mjs';
 export const batches=[0,40,80,92,100], slots=[0,10,20,23,25];
 const required=['service-wait','service-hold','preparation-wait','preparation-hold','Refresh','WithPlayback','SnapshotBegin','CurrentnessJson'];
@@ -46,8 +46,8 @@ export function costCollector(){
 
 // 검색 전용 결과는 장시간/삭제/메모리/릴리즈 적격성을 부여하지 않는다.
 export function assertSearchPerformanceCapacity(contract=null){
- // Historical callers remain blocked. Only the SHA-bound official closeout
- // package supplies this contract; it grants pre-run eligibility, not runtime FIT.
+ // 과거 호출자는 계속 차단한다. SHA로 결속한 공식 closeout 패키지만
+ // 이 계약을 제공하며 실행 전 자격만 부여한다. Runtime FIT 판정은 아니다.
  need(contract?.profile==='s03-official-closeout-v1','CAPACITY_UNPROVEN: official closeout binding required');
  const expected={channels:3,initialReviews:3,aSlots:45,requests:484,batches:121,identities:1,
   observationMs:1800000,driverMs:1870000,launcherSeconds:1900,parentBytes:2097152,
@@ -62,8 +62,8 @@ export function assertSearchPerformanceCapacity(contract=null){
  need(contract.files.finalizer.sha256===contract.finalizerSha256,'CAPACITY_UNPROVEN: finalizer binding');
  return {status:'PRE_RUN_READY',runtimeCapacity:'NOT_TESTED'};
 }
-// Official final report only. Keep every JSON value; wire ledgers and all
-// other checkpoint consumers retain their existing serialization contracts.
+// 공식 최종 report에만 적용하며 모든 JSON 값을 유지한다. wire ledger와 그 밖의
+// checkpoint 소비자는 기존 직렬화 계약을 유지한다.
 export function checkpointSearchPerformanceReport(artifacts,report,firstFailure=null){
  const verifiedWrite=(name,bytes)=>{
   need(bytes.length<=1048576,'search-report-cap');
@@ -77,8 +77,8 @@ export function checkpointSearchPerformanceReport(artifacts,report,firstFailure=
   bytes=Buffer.from(JSON.stringify({...report,artifactRoot:artifacts.outputDir})+'\n');
   return verifiedWrite('report.json',bytes);
  }catch(error){
-  // This is failure evidence, never a smaller replacement report or success receipt.
-  // Keep original strings intact. A second cap/I/O failure is explicitly incomplete.
+  // 실패 증거이며 크기를 줄인 대체 report나 성공 receipt가 아니다.
+  // 원본 문자열을 유지한다. 두 번째 cap·I/O 실패는 명시적으로 불완전 처리한다.
   try{
   const failure={status:'INCOMPLETE',reportComplete:false,reportBytes:bytes?.length??null,
    reportSha256:bytes?crypto.createHash('sha256').update(bytes).digest('hex'):null,
@@ -94,7 +94,7 @@ export function checkpointSearchPerformanceReport(artifacts,report,firstFailure=
   throw error;
  }
 }
-// S03 only: four named observation producers, not a general stdout collector.
+// S03 전용으로 이름이 정해진 관측 producer 네 개만 처리하며 범용 stdout 수집기가 아니다.
 export const officialObservationKinds=Object.freeze(['memory-attribution-cycle','current-observation','visual-query-observation','root-storage']);
 export const officialObservationLimits=Object.freeze({chunkBytes:1048576,chunks:64,metadataBytes:32768,records:32000});
 const observationKindCaps=[10000,10000,242,10008];
@@ -150,7 +150,7 @@ export function createOfficialObservationEvidence(artifacts,{admit}={}){
   }catch(e){writeFailed=true;throw e;}
  };
  const start=Buffer.from(JSON.stringify({schema:observationSchema,kinds:officialObservationKinds,limits})+'\n');
- // Retain the failed writer too: cleanup must not recreate/claim its start file.
+ // 실패한 writer도 보존한다. cleanup이 해당 시작 파일을 다시 만들거나 소유한다고 주장하면 안 된다.
  try{write('s03-observation-start.json',start,limits.metadataBytes);}catch(e){fail(e);}
  const flush=()=>{
   if(!pending.length)return;need(files.length<limits.chunks,'observation-chunk-cap');
@@ -184,7 +184,7 @@ export function createOfficialObservationEvidence(artifacts,{admit}={}){
   }
  };
 }
-// S03 common request() failure only. Search ledger IDs are not invented here.
+// S03 공통 request() 실패만 처리하며 여기서 Search ledger ID를 만들어내지 않는다.
 export const officialHttpBodyLimits=Object.freeze({bodyBytes:4194304,chunkBytes:1048575,chunks:5,metadataBytes:32768});
 export function verifyOfficialHttpErrorEvidence(dir,{allowPartial=false}={}){
  const l=officialHttpBodyLimits,read=name=>observationRead(dir,name,l.metadataBytes,false);
@@ -233,15 +233,15 @@ export function preserveOfficialHttpError(artifacts,{bytes,status,requestId,meth
   if(complete){const restored=verifyOfficialHttpErrorEvidence(artifacts.outputDir);need(restored.bytes.equals(bytes),'http-evidence-reconstruction');}
   error.httpEvidence={file:r.file,sha256:r.sha256,status:receipt.status};
  }catch(later){complete=false;evidenceErrors.push({name:later.name,message:later.message,code:later.code??null});}
- // Errors stay private in the receipt/in-memory exception. stdout never expands them.
+ // 오류는 비공개 receipt·메모리 내 예외에만 보관하며 stdout에 상세 내용을 펼쳐 쓰지 않는다.
  error.evidenceErrors=evidenceErrors;
  error.httpReference={code:error.message,requestId:/^control-[1-9][0-9]{0,15}$/.test(requestId)?requestId:null,status,
   bodyBytes:Buffer.isBuffer(bytes)?bytes.length:null,bodySha256:Buffer.isBuffer(bytes)?observationDigest(bytes):null,
   file:error.httpEvidence?.file??null,sha256:error.httpEvidence?.sha256??null,preservation:complete?'COMPLETE':'PARTIAL'};
  return error;
 }
-// Official Driver/A call sites only. Framed binary avoids base64 expansion and
-// preserves raw HTTP bytes separately from already-formatted diagnostic text.
+// 공식 Driver/A 호출 지점에만 적용한다. frame 기반 binary로 base64의 크기 증가를 피하고
+// raw HTTP 바이트를 이미 형식화된 진단 텍스트와 분리해 보존한다.
 export const officialRemainingLimits=Object.freeze({chunkBytes:1048575,chunks:64,records:32000,headerBytes:16384,bodyBytes:4194304,textBytes:8388608,manifestBytes:32768});
 export function verifyOfficialRemainingEvidence(dir,{allowPartial=false}={}){
  const l=officialRemainingLimits,m=JSON.parse(observationRead(dir,'s03-remaining-manifest.json',l.manifestBytes,false));
@@ -286,7 +286,7 @@ export function createOfficialRemainingEvidence(artifacts,{admit}){
    const header=Buffer.from(JSON.stringify({sequence:accepted+1,kind,bytes:body.length,sha256,reuse,meta}));need(header.length<=l.headerBytes,'remaining-header-cap');
    const length=Buffer.alloc(4);length.writeUInt32BE(header.length);const frame=Buffer.concat([length,header,...(reuse===null?[body]:[])]);
    need(stored+pending.length+frame.length<=l.chunkBytes*l.chunks,'remaining-total-cap');
-   // Reserve the entire accepted frame before emitting any part; keep the existing closeout reserve in the caller.
+   // 허용한 frame의 일부를 출력하기 전에 전체 공간을 예약한다. 호출자의 기존 closeout 예약은 유지한다.
    admit(pending.length+frame.length+l.manifestBytes);accepted++;
    for(let offset=0;offset<frame.length;){const n=Math.min(l.chunkBytes-pending.length,frame.length-offset);pending=Buffer.concat([pending,frame.subarray(offset,offset+n)]);offset+=n;if(pending.length===l.chunkBytes)flush();}
    if(kind==='response'&&reuse===null)dedup.set(sha256,accepted);return accepted;
@@ -320,7 +320,7 @@ export function searchPerformanceResult({final,trace,completion,logsCaptured,bat
  return {...omitted,status,recordingProgression:progression?'PASS':'FAIL',latency:{status:latency,count:ordered.length,p95,max,limitP95:2000,limitMax:5000},requestCompleteness:workload?'PASS':'INCOMPLETE',selectedCorrelation:bound?'PASS':'INCOMPLETE',completionCollection:collection?'PASS':'INCOMPLETE',outputBudget:'CAPACITY_UNPROVEN'};
 }
 
-// R171 owned opt-in companion to costCollector, same bounded line decoder.
+// R171 소유 opt-in의 costCollector 보조 수집기이며 같은 제한된 line decoder를 사용한다.
 const attributionErrors=['recording-search-unavailable','search-capacity-exceeded','search-event-evidence-incomplete','search-snapshot-expired','search-hit-unavailable','search-cursor-binding-mismatch','search-invalid-cursor','search-invalid-query','search-invalid-behaviour','recording-channel-forbidden','invalid-recording-search-query'];
 export function attributionError(bytes){try{if(!bytes||bytes.length>256)return 'UNKNOWN';const r=JSON.parse(bytes.toString());return attributionErrors.includes(r.error)?r.error:'UNKNOWN';}catch{return 'UNKNOWN';}}
 export function failureCollector(){
@@ -370,8 +370,8 @@ export function failureCollector(){
  };
 }
 
-// v2 is an explicit owned-overlay opt-in. Legacy collectors above keep their contracts.
-// Stream PID comes from the owned child pipe; OS identity/sequence come from native samples.
+// v2는 소유한 overlay의 명시적 opt-in이며 위의 legacy collector는 기존 계약을 유지한다.
+// stream PID는 소유한 child pipe에서, OS identity·sequence는 native sample에서 얻는다.
 export function mandatoryRequestLedger(){
  const requests=new Map(),processes=new Map(),wire=[0,1].map(()=>diagnosticLines(['[R171-'],16384));
  const disabled=[false,false];let first=null,serverBytes=0,detailBytes=0,clientBytes=0,detailErrors=0,detailRecords=0;
@@ -430,7 +430,7 @@ export function mandatoryRequestLedger(){
    }
    for(const p of r.phases)requireValue(Array.isArray(p)&&p.length===3&&typeof p[0]==='string'&&p[0].length<=64&&stamp(p[1])&&stamp(p[2])&&p[1]>=q.search.begin&&p[2]>=p[1]&&p[2]<=q.search.end,'ledger-detail-phase');
    detailRecords++;
-   // Full optional payload already lives in the bounded product log, not a second heap queue.
+   // 선택적 전체 payload는 이미 제한된 제품 log에 있으며 별도 heap queue에 복제하지 않는다.
    q.detail={captured:true};return;
   }else throw Error('ledger-record-kind');
   q[kind]=r;if(r.loss)latch('ledger-producer-loss',r.id);crossCheck(q);
@@ -479,7 +479,7 @@ export function mandatoryRequestLedger(){
    return line;
   }catch(e){latch(e.message,r?.id??null);throw e;}},
   append(chunk,stream,pid){if(disabled[stream])return;try{wire[stream].append(chunk,(line,bytes)=>{
-   // Catch per record so the existing decoder resets carry and drains subsequent terminals.
+   // record마다 예외를 처리해 기존 decoder가 carry를 초기화하고 이후 종료 기록을 계속 수집하게 한다.
    let kind=null;try{
     const match=line.match(/^\[R171-(server|search|detail)\] (.*)$/);requireValue(match,'ledger-wire-kind');kind=match[1];
     if(kind==='detail'){detailBytes+=bytes;requireValue(detailBytes<=128*1024,'ledger-detail-bytes');}
@@ -510,7 +510,7 @@ export function mandatoryRequestLedger(){
  };
 }
 
-// Existing HTTP operations retain their 5s abort and outer deadline. No new retry/timer.
+// 기존 HTTP 작업의 5초 abort와 바깥 deadline을 유지하며 retry·timer를 추가하지 않는다.
 export async function settleLedgerBatch(ledger,operations){
  if(ledger.failure())throw Error(ledger.failure().code);
  const results=await Promise.allSettled(operations.map(operation=>Promise.resolve().then(()=>{
@@ -521,8 +521,8 @@ export async function settleLedgerBatch(ledger,operations){
  return results.map(r=>r.value);
 }
 
-// Separate diagnostic contract. The reserve is a scheduling allowance, not
-// proof of background-output capacity or a guaranteed shutdown duration.
+// 별도 진단 계약이다. 예약값은 scheduling 여유이며 백그라운드 출력 용량이나
+// 보장된 종료 시간을 입증하지 않는다.
 export const limitedSearchContract=Object.freeze({option:'--limited-search-diagnostic',hardMs:300000,intervalMs:15000,batches:20,requests:80,httpMs:5000,finishReserveMs:60000});
 export function limitedSearchCapacity(){return {
  status:'BLOCKED',mandatoryServerBytes:40*2047+80*511,optionalDetailBytes:128*1024,clientBytes:80*2*512,
@@ -546,8 +546,8 @@ export function assertLimitedSearchCapacity(){throw Error('LIMITED_CAPACITY_BLOC
 
 export function limitedPreparationStart({originNs,nowNs=()=>process.hrtime.bigint(),now=()=>performance.now()}){
  need(typeof originNs==='string'&&/^[1-9][0-9]{0,19}$/.test(originNs),'limited-shared-clock-missing');
- // Python monotonic_ns and Node hrtime use the host monotonic clock. Reject
- // incompatible/future/expired epochs rather than substituting Driver start.
+ // Python monotonic_ns와 Node hrtime은 host의 monotonic clock을 쓴다. 호환되지 않거나
+ // 미래·만료된 epoch는 Driver 시작 시각으로 대체하지 않고 거부한다.
  const elapsed=nowNs()-BigInt(originNs);need(elapsed>=0n&&elapsed<300000000000n,'limited-shared-clock-invalid');
  const start=now()-Number(elapsed)/1000000;
  need(Number.isFinite(start),'limited-shared-clock-invalid');return start;
@@ -579,8 +579,8 @@ export function limitedSearchSchedule({startedAt,now=()=>performance.now()}){
  };
 }
 
-// Injected operations are the existing sample/fetch/pause/ledger hooks; tests
-// use virtual time. No retry, timer extension or synthetic terminal is added.
+// 주입하는 작업은 기존 sample/fetch/pause/ledger hook이며 test는 가상 시간을 쓴다.
+// retry·timer 연장·합성 종료 기록을 추가하지 않는다.
 export async function runLimitedSearch({schedule,ledger,sample,routes,fetch,pause}){
  try{while(true){
   if(ledger.failure())throw Error(ledger.failure().code);
@@ -593,9 +593,9 @@ export async function runLimitedSearch({schedule,ledger,sample,routes,fetch,paus
  }}catch(error){schedule.fail(error.message);throw error;}
 }
 
-// Limited build-only adapter. No default/30-minute entry invokes this function.
-// The injected hooks are only the deterministic Mock seam; production uses the
-// existing group supervisor and the same owned-root filesystem operations.
+// 제한된 build-only adapter다. 기본·30분 진입 경로에서는 이 함수를 호출하지 않는다.
+// 주입 hook은 결정적인 Mock 접점으로만 사용한다. 실제 실행은 기존 group supervisor와
+// 동일한 소유 root 파일 작업을 사용한다.
 import fs from 'node:fs';
 import path from 'node:path';
 import crypto from 'node:crypto';
@@ -605,8 +605,8 @@ import {spawnSync as preparationSpawnSync} from 'node:child_process';
 import {collectProcess as preparationCollectProcess} from './recording_foundation_observer.mjs';
 import {measureCurrentRootStable as preparationMeasureRoot,measureCurrentCopy as preparationMeasureCopy,workspaceBounds as preparationWorkspaceBounds} from './recording_current_observer.mjs';
 
-// Limited-only producer. Reuses existing native/Workspace readers, not a new
-// collector. The caller supervises this observer command and its lifetime.
+// 제한 실행 전용 producer로 기존 native·Workspace reader를 재사용하며 새 수집기가 아니다.
+// 호출자가 이 observer 명령과 수명을 감독한다.
 export async function observeLimitedPreparation({root,rootIdentity,copyRoot=null,copyIdentity=null,launcherPid,childPid=null,knownPids=[],collector,collectorSha256}){
  const owned=(p,identity)=>{const s=fs.lstatSync(p);need(path.isAbsolute(p)&&fs.realpathSync(p)===p&&s.isDirectory()&&!s.isSymbolicLink()&&s.uid===process.getuid()&&(s.mode&0o777)===0o700&&s.dev===identity?.dev&&s.ino===identity?.ino,'limited-root-identity');};
  owned(root,rootIdentity);if(copyRoot){owned(copyRoot,copyIdentity);need(copyRoot!==root&&!copyRoot.startsWith(root+path.sep)&&!root.startsWith(copyRoot+path.sep),'limited-copy-overlap');}
@@ -616,8 +616,8 @@ export async function observeLimitedPreparation({root,rootIdentity,copyRoot=null
  const table=()=>{const r=preparationSpawnSync('/bin/ps',['-axo','pid=,ppid=,pgid='],{encoding:'utf8',timeout:1000,maxBuffer:1048576});need(r.status===0&&!r.error&&!r.signal,'limited-process-table');
   return r.stdout.trim().split('\n').map(l=>{const m=l.match(/^\s*(\d+)\s+(\d+)\s+(-?\d+)\s*$/);need(m,'limited-process-table');return {pid:Number(m[1]),ppid:Number(m[2]),pgid:Number(m[3])};});};
  const discover=rows=>{
-  // The observer and its native/ps children are instrumentation, not workload
-  // samples. Their RSS/short lifetimes remain an explicit readiness gap.
+  // observer와 그 native/ps child는 계측 도구이며 workload sample에 포함하지 않는다.
+  // 그 RSS·짧은 수명은 readiness의 명시적 미입증 항목으로 유지한다.
   const excluded=new Set([process.pid]);let change=true;
   while(change){change=false;for(const r of rows)if(excluded.has(r.ppid)&&!excluded.has(r.pid)){excluded.add(r.pid);change=true;}}
   const selected=new Set([launcherPid,...knownPids.filter(p=>rows.some(r=>r.pid===p))]);if(childPid&&rows.some(r=>r.pid===childPid))selected.add(childPid);
@@ -630,9 +630,9 @@ export async function observeLimitedPreparation({root,rootIdentity,copyRoot=null
  const after=discover(table());need(JSON.stringify(before.map(r=>[r.pid,r.pgid]).sort())===JSON.stringify(after.map(r=>[r.pid,r.pgid]).sort()),'limited-process-tree-changed');
  owned(root,rootIdentity);if(copyRoot)owned(copyRoot,copyIdentity);
  const total=preparationMeasureRoot(root).totalBytes,copy=copyRoot?preparationMeasureCopy(copyRoot,copyIdentity).bytes:0;
- // Before a fixed-media baseline exists, every named byte remains variable.
- // Anonymous bytes are conservatively charged per process, not deduplicated
- // physical usage. Missing measurements are never replaced with zero.
+ // 고정 media baseline이 생기기 전까지 이름이 붙은 모든 바이트는 가변 항목이다.
+ // anonymous 바이트는 process별로 보수적으로 계산하며 중복 제거한 물리 메모리를 뜻하지 않는다.
+ // 누락된 측정값을 0으로 대체하지 않는다.
  let anonymous=0;for(const p of processes){need([p.anonymousFileBytes,p.anonymousAllocatedBytes].every(number),'limited-anonymous-unobserved');anonymous+=Math.max(p.anonymousFileBytes,p.anonymousAllocatedBytes);}
  preparationWorkspaceBounds(total+anonymous,0,copy);
  return {complete:true,expectedPids:processes.map(p=>p.pid),processes,workspace:{totalBytes:total,fixedBytes:0,copyBytes:copy,anonymousBytes:anonymous},startedNs,endedNs:process.hrtime.bigint().toString(),
@@ -652,14 +652,14 @@ function buildSave(file,data){
  need(fs.readFileSync(file).equals(data),'build-evidence-readback');
  return {path:path.basename(file),bytes:data.length,sha256:buildSha(data)};
 }
-// Link Map only: lossless raw-byte chunks, never a replacement for link verification.
+// Link Map 전용 무손실 raw-byte chunk이며 link 검증을 대체하지 않는다.
 export const linkMapChunkBytes=2000000;
 export function linkMapChunkCapacity({bytes,existing,reserved=5,external=0,used,manifestBytes}){
  need(Number.isSafeInteger(bytes)&&bytes>buildLimits.output,'LINK_MAP_CHUNK_SOURCE_SIZE');
  for(const n of [existing,reserved,external,used,manifestBytes])need(Number.isSafeInteger(n)&&n>=0,'LINK_MAP_CAPACITY_INPUT');
  const chunks=Math.ceil(bytes/linkMapChunkBytes),items=existing+external+chunks+1+reserved;
  need(items<=64,'LINK_MAP_ITEM_CAP');need(manifestBytes<=65536,'LINK_MAP_MANIFEST_CAP');
- // No temporary reconstructed file. Reserve all remaining receipts at their cap.
+ // 임시 복원 파일을 만들지 않는다. 남은 모든 receipt 공간을 각각의 상한으로 예약한다.
  const projected=used+bytes+manifestBytes+reserved*65536;
  need(projected<=buildLimits.disk,'LINK_MAP_DISK_CAP');return {chunks,items,projected};
 }
@@ -715,7 +715,7 @@ export function preserveLargeLinkMap({source,evidence,binding,expectedSha256,ext
  const count=Math.ceil(initial.size/linkMapChunkBytes);
  const manifest={representation:'raw-byte-chunks-v1',startedAt,completedAt:null,binding,source,sourceBytes:initial.size,
   sourceSha256:'0'.repeat(64),chunkCount:count,chunks:[],reconstruction:{bytes:initial.size,sha256:'0'.repeat(64),verified:true}};
- // Bound allocation before constructing the per-chunk receipt.
+ // chunk별 receipt를 생성하기 전에 할당 범위를 제한한다.
  linkMapChunkCapacity({bytes:initial.size,existing:fs.readdirSync(evidence).length,reserved:reservedItems,external:externalItems,used:usedBytes(),manifestBytes:0});
  for(let i=0;i<count;i++)manifest.chunks.push({index:i+1,path:`link.map.part-${String(i+1).padStart(3,'0')}`,bytes:Math.min(linkMapChunkBytes,initial.size-i*linkMapChunkBytes),sha256:'0'.repeat(64)});
  const encode=v=>Buffer.from(JSON.stringify(v,null,2)+'\n');
@@ -745,7 +745,7 @@ export function preserveLargeLinkMap({source,evidence,binding,expectedSha256,ext
   artifact:{path:'link.map.chunks.json',bytes:data.length,sha256:buildSha(data)},chunkCount:count,reconstruction:manifest.reconstruction,capacity};
 }
 
-// Terminal Helper package only. A missing observer is not a zero-byte snapshot.
+// Terminal Helper 패키지 전용이다. observer 부재를 0바이트 snapshot으로 취급하지 않는다.
 export function limitedHelperPackageSnapshot(guard,root,elapsedMs,reserveBytes=0){
  const errors=[];let bytes=null;
  try{
@@ -844,7 +844,7 @@ export async function runLimitedIsolatedBuild({root,approved,python,env=process.
    const map=path.join(work,'link.map');
    try{fs.lstatSync(map);}catch(e){if(e.code==='ENOENT'){if(linkVerified)throw Error('build-map-missing');return;}throw e;}
    need(groupsClean,'build-map-group-unconfirmed');
-   // Inspect the entry before tree accounting: never follow an unsafe map.
+   // tree 비용 계산 전에 항목을 검사하며 안전하지 않은 map을 따라가지 않는다.
    const mapStat=fs.lstatSync(map);
    if(mapStat.isFile()&&!mapStat.isSymbolicLink()&&mapStat.size>buildLimits.output){
     const approval=readPlan('approved.json'),verified=linkVerified?readPlan('link-binding.json'):null;
@@ -875,14 +875,14 @@ export async function runLimitedIsolatedBuild({root,approved,python,env=process.
   need(Array.isArray(command)&&command.length>0&&command.every(s=>typeof s==='string'&&!s.includes('\0')),'build-command');
   need(cwd===work||cwd===path.join(work,'build'),'build-cwd');
   const receipt={stage:name,command,cwd,startedMs:now()-start,remainingMs:remaining,outputAllowance:buildLimits.output-result.outputBytes};
-  // runBounded stops on > cap. Subtract one byte so its live stop fires at
-  // the cumulative limit, not one byte after it. A new timed command cannot
-  // fit even its required rusage receipt in a one-byte remainder.
+  // runBounded는 cap 초과 시 중지한다. 1바이트를 빼서 누적 한도 다음 바이트가 아닌
+  // 한도 도달 시 실시간 중지가 동작하도록 한다. 1바이트만 남으면 새 시간 측정 명령은
+  // 필수 rusage receipt조차 기록할 수 없다.
   need(receipt.outputAllowance>1,'build-output-reserve');
   receipt.supervisorOutputCap=receipt.outputAllowance-1;
   result.steps.push(receipt);
-  // Passing positional argv avoids shell interpolation. Umask confines every
-  // generated object/cache/plan; HOME/TMPDIR/cache all share the measured root.
+  // 위치 인수 argv로 전달해 shell 치환을 피한다. umask로 생성하는 모든 object·cache·
+  // plan의 접근을 제한하며 HOME·TMPDIR·cache는 모두 측정하는 root를 공유한다.
   if(name==='link')linkAttempted=true;
   groupsClean=false; // A thrown/unreturned supervisor receipt cannot authorize deletion.
   const r=await bounded({root:budgetRoot,command:'/bin/sh',args:['-c','umask 077; cd "$1" && shift && exec "$@"','limited-build',cwd,...command],
@@ -890,15 +890,15 @@ export async function runLimitedIsolatedBuild({root,approved,python,env=process.
   Object.assign(receipt,{endedMs:now()-start,code:r.code,signal:r.signal,stopReason:r.stopReason,groupId:r.groupId,groupClean:r.groupClean,
    observationFailure:r.observationFailure,outputBytes:r.outputBytes,groupPeakRssBytes:r.groupPeakRssBytes,elapsedMs:r.elapsedMs});
   groupsClean=r.groupClean===true;
-  // Stop reason is the supervisor's first observation; preserve exit/diagnostic
-  // separately rather than claiming the chronology of a buffered compiler line.
+  // 중지 사유는 supervisor가 처음 관측한 값이다. exit·진단을 별도로 보존하며
+  // buffer에 있던 compiler 출력 한 줄로 발생 순서를 단정하지 않는다.
   if(r.stopReason)fail(r.stopReason);
   else if(r.code!==0||r.signal)fail('build-command-failed',stage,{code:r.code,signal:r.signal});
   if(!r.groupClean){result.cleanupErrors.push({stage,code:'build-group-remains'});fail('build-group-remains');}
   if(r.observationFailure)fail('build-resource-observation');
   need(number(r.outputBytes)&&number(r.groupPeakRssBytes),'build-receipt-observation');
-  // Fast commands can finish between group polls; retain /usr/bin/time's
-  // independently reported peak when present, never interpret zero as observed.
+  // 빠른 명령은 group 조회 사이에 끝날 수 있다. /usr/bin/time이 독립적으로 보고한
+  // peak가 있으면 보존하고 0을 실제 관측값으로 해석하지 않는다.
   const timeRows=typeof r.stderr==='string'?r.stderr.split('\n').filter(l=>l.includes('maximum resident set size')):[];
   const timeMatch=timeRows.length===1?timeRows[0].match(/^\s*([1-9][0-9]*)\s+maximum resident set size\s*$/):null;
   const timePeak=timeMatch?Number(timeMatch[1]):0;
@@ -913,8 +913,8 @@ export async function runLimitedIsolatedBuild({root,approved,python,env=process.
    need(typeof r[stream]==='string','build-output-observation');
    const b=Buffer.from(r[stream]),left=buildLimits.output-result.storedOutputBytes,kept=b.subarray(0,Math.max(0,left));
    if(kept.length!==b.length){receipt.outputComplete=false;fail('build-stored-output-cap');}
-   // Even when one artifact fails, try to retain the other diagnostic stream.
-   // Charge the attempted prefix too: a partial write must not free the budget.
+   // 한 artifact가 실패해도 다른 진단 stream의 보존을 시도한다.
+   // 쓰기를 시도한 prefix도 비용에 포함해 부분 write로 예산이 되살아나지 않게 한다.
    result.storedOutputBytes+=kept.length;
    try{receipt[stream]=put(name+'.'+stream+'.txt',kept);}
    catch(e){receipt.outputComplete=false;receipt[stream]={error:e.message,attemptedBytes:kept.length};fail('build-output-evidence',stage,{stream,code:e.message});}
@@ -938,8 +938,8 @@ export async function runLimitedIsolatedBuild({root,approved,python,env=process.
   fs.mkdirSync(evidence,{mode:0o700});evidenceIdentity=fs.lstatSync(evidence);check();
   need(typeof python==='string'&&path.isAbsolute(python),'build-python');
   need(approved?.head==='45b19bd88cd2ea9c7be48a25329580e562c2a3ee'&&typeof approved.status==='string','build-approved-binding');
-  // Full tracked build input coverage exceeds the 64KiB receipt cap. Preserve
-  // it once under the existing artifact cap; every bridge receipt binds its SHA.
+  // 전체 추적 build 입력의 coverage는 64KiB receipt 상한을 넘는다. 기존 artifact 상한 안에서
+  // 한 번 보존하고 모든 bridge receipt가 그 SHA를 결속한다.
   const {sourceSha256,...approval}=approved;
   need(sourceSha256&&typeof sourceSha256==='object'&&!Array.isArray(sourceSha256),'build-source-manifest');
   const manifest=Buffer.from(JSON.stringify(sourceSha256,null,2)+'\n');
@@ -986,11 +986,11 @@ export async function runLimitedIsolatedBuild({root,approved,python,env=process.
   linkVerified=true;
   }
  }catch(e){fail(e.message);}
- // Preserve even a failed link/verification's partial map before deleting work.
- // A preservation error blocks deletion without replacing the first build error.
+ // link·검증이 실패해도 작업 자료를 삭제하기 전에 부분 map을 보존한다.
+ // 보존 오류는 삭제를 차단하며 최초 build 오류를 대체하지 않는다.
  if(workCreated&&!helperOnly)preserveLinkMap();
- // No deletion with a live/unobserved group, and no deletion after an evidence
- // write failure. Preserve the owned partial tree for a separately scoped review.
+ // group이 살아 있거나 관측되지 않았으면 삭제하지 않으며 evidence write 실패 뒤에도
+ // 삭제하지 않는다. 소유한 부분 tree를 별도 범위 검토를 위해 보존한다.
  if(claimed){
   stage='pre-cleanup';
   try{check();}catch(e){fail(e.message);}
@@ -1005,13 +1005,13 @@ export async function runLimitedIsolatedBuild({root,approved,python,env=process.
   result.status=!result.firstFailure&&result.workAbsent&&groupsClean?'PASS':'FAIL';
   stage='final-evidence';
   try{
-   // Seal the files already written. Final receipt is self-excluding; its SHA is
-   // returned to the caller and can be placed in the outer execution manifest.
+   // 이미 작성한 파일을 봉인한다. 최종 receipt는 자신을 제외하며 그 SHA를 호출자에게
+   // 반환해 바깥 실행 manifest에 넣을 수 있게 한다.
    seal('SHA256SUMS');
    try{check();}catch(e){fail(e.message);result.status='FAIL';}
    result.elapsedMs=now()-start;result.finalReceipt=json('result.json',result);
-   // A receipt that crosses the deadline is invalidated by the terminal failure
-   // artifact and the returned FAIL; a caller must check both, never receipt alone.
+   // deadline을 넘은 receipt는 종료 실패 artifact와 반환된 FAIL로 무효화한다.
+   // 호출자는 receipt 하나만 보지 말고 두 결과를 모두 확인해야 한다.
    if(now()>=deadline)throw Error('build-deadline');
    const finalDisk=disk(budgetRoot);need(number(finalDisk),helperOnly?'build-disk-observation':'build-disk-cap');
    result.peakDiskBytes=Math.max(result.peakDiskBytes,finalDisk);need(finalDisk<=buildLimits.disk,'build-disk-cap');

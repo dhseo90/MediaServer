@@ -10,8 +10,8 @@
 #include <sys/socket.h>
 
 namespace ingress {
-// Fixed native-test observation. Disabled for every production gate; no payload,
-// logging, retries or socket policy. Snapshot access is synchronized independently.
+// 고정 크기 native-test 관측이며 모든 제품 gate에서는 비활성화되고 payload를 보관하지 않는다.
+// 로그·재시도·socket 정책을 바꾸지 않으며 snapshot 접근은 별도로 동기화한다.
 struct RecordingSendObservation {
     struct Event { std::int64_t ns; std::size_t requested; std::int64_t returned; int error; bool begin; };
     struct State { std::array<Event,64> events{}; std::size_t count{0}; bool overflow{false}; };
@@ -72,7 +72,7 @@ private:
     mutable std::mutex mu_;
     std::condition_variable drained_;
     bool accepting_{true};
-    // Private native-test seam; zero in every production owner, no HTTP/config control.
+    // 비공개 native-test 연결점으로 제품 소유자에서는 항상 0이며 HTTP·설정으로 제어하지 않는다.
     int test_send_buffer_bytes_{0};
     std::shared_ptr<RecordingSendObservation> test_send_observation_;
     std::unordered_map<Flight*, int> flights_;

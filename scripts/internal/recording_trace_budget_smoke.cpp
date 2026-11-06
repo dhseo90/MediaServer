@@ -1,4 +1,4 @@
-// R160: original producer only, isolated single TU, no runtime archive/shadow/TEST sink.
+// 파일 용도: R160의 원래 producer만 격리된 단일 번역 단위에서 검사하며 runtime archive·shadow·TEST sink는 사용하지 않는다.
 #include "recording/recording_latency_trace.h"
 #include <string>
 #include <thread>
@@ -21,7 +21,7 @@ int main(int argc,char** argv){
   std::mutex mutex;L::MutexIdentity mutex_identity(&mutex);{L::Lock lock(mutex,L::Source::Catalog,1,true);}
   {L::Scope scope(L::Operation::Query,L::Source::Test,2,true);}L::FinishThread();calls=2;
  }else if(mode=="aggregate"||mode=="slow"){
-  // Deterministic synthetic windows through original Append, not measured lock costs.
+  // 원래 Append를 통한 결정적 합성 구간이며 측정한 lock 비용이 아니다.
   for(unsigned i=0;i<3;++i)L::Append(row,false);
   if(mode=="slow"){row.e=20000002;L::Append(row,true);}
   L::FinishThread();calls=mode=="slow"?4:3;

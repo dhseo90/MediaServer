@@ -31,7 +31,7 @@ inline bool RecordingWriterTestIsolation(const std::filesystem::path& root) {
             path=root;
             for(;a!=target.end();++a){path/=*a;struct stat s{};
                 if(::lstat(path.c_str(),&s)) {
-                    // A missing leaf is allowed; all parents must already be verified directories.
+                    // 마지막 경로 요소의 부재는 허용하되 모든 상위 요소는 이미 검증된 directory여야 한다.
                     auto next=a;++next;if(errno!=ENOENT||next!=target.end())return false;
                 } else if(s.st_uid!=::getuid()||S_ISLNK(s.st_mode)||
                           (!S_ISDIR(s.st_mode)&&!S_ISREG(s.st_mode))||

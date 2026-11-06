@@ -1,4 +1,4 @@
-// R153 focused: no HTTP/server/model cycle; actual V2 media ownership and failure ordering.
+// 파일 용도: R153 focused 검사로 실제 V2 media 소유권·실패 순서를 확인하며 HTTP·server·model cycle은 실행하지 않는다.
 #define RECORDING_ACCUMULATED_NO_MAIN
 #include "recording_accumulated_http_smoke.cpp"
 int main(int argc,char** argv){
@@ -39,7 +39,7 @@ int main(int argc,char** argv){
   auto inspection=recording::InspectRecordingPhysicalMedia(root/"recording","../outside-owned.mp4",{row->container,row->video_codecs,row->size_bytes,row->checksum_sha256,row->retention_class});NeedHttp(inspection.state!=recording::MediaInspectionState::Healthy,"relative escape rejected");
   NeedHttp(catalog.RequestDeletion(id,"continuous-capacity",&error),"delete after release");std::filesystem::remove(path);recording::RecordingTombstoneV2 tomb;tomb.tombstone_id="r153-focused-delete";tomb.segment=*row;tomb.deletion_reason="continuous-capacity";tomb.deleted_at_ms=1791887500000;NeedHttp(catalog.CompleteDeletionV2(tomb,&error),"complete deletion");NeedHttp(!reader.ResolveMedia("9101",id),"deleted rejected");
   NeedHttp(runtime.Finish(&error),"focused Finish");
-  // Same catch-before-cleanup boundary as the integrated fixture; no deliberate HTTP failure.
+  // 통합 fixture와 동일한 catch-before-cleanup 경계이며 의도적인 HTTP 실패는 없다.
   failed152=false;
   {struct Cleanup {~Cleanup(){Cleanup153("injected-stop",[]{throw std::runtime_error("secondary");});Event152("failure-cleanup-finish",",\"ok\":true");}} cleanup;
    try{CaptureFailure153([]{throw std::runtime_error("injected manifest");});}catch(const std::runtime_error&){} }

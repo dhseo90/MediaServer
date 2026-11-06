@@ -15,8 +15,8 @@ import math
 import re
 from contextlib import nullcontext
 
-# Existing diagnostic supervisor output cap (recording_catalog_comparison_guard.mjs).
-# Limited-only combined parent pipe; independent of each product's 4MiB log.
+# 기존 진단 supervisor의 출력 한도이며 recording_catalog_comparison_guard.mjs와 같다.
+# 제한 실행 전용의 합산 parent pipe이며 각 제품의 4MiB 로그와는 별도다.
 LIMITED_PARENT_OUTPUT_BYTES = 2097152
 
 
@@ -34,8 +34,8 @@ class LimitedParentCapture:
         if code!='child-diagnostic':self.capture_error=self.capture_error or row
 
     def push(self,data):
-        # Actual pipe bytes, no per-chunk decoding/re-encoding. A truncated UTF-8
-        # prefix remains explicitly incomplete raw evidence, not cleaned text.
+        # chunk마다 decode·재인코딩하지 않고 실제 pipe 바이트를 보존한다. 잘린 UTF-8
+        # prefix도 정리된 텍스트가 아닌 불완전한 raw evidence임을 명시한다.
         if not isinstance(data,bytes):raise TypeError('capture-bytes-required')
         self.observed+=len(data)
         for part in data.splitlines(keepends=True):
@@ -324,7 +324,7 @@ class LimitedPreparationBoundary:
             self.fail('limited-work-deadline',phase);raise ValueError(self.first['code'])
 
     def sample(self,phase,child=None,work=True):
-        # During cleanup continue collecting even after the first error.
+        # 정리 중에는 첫 오류가 발생한 뒤에도 수집을 계속한다.
         try:
             if work:self.admit(phase)
             if self.remaining(False)<=0:raise ValueError('limited-finalization-deadline')
@@ -408,7 +408,7 @@ def run_owned(command, log_path, budget_seconds, cwd, env, started, registry=Non
     try:
         if limited_boundary:limited_boundary.sample('before-spawn')
         output=Path(log_path).open('xb' if limited_capture else 'x')
-        # Limited capture stays open through exception cleanup/drain as well.
+        # 제한 실행 capture는 예외 정리·drain 동안에도 열린 상태를 유지한다.
         with nullcontext(output) if limited_capture else output:
             if limited_capture:os.fchmod(output.fileno(),0o600)
             child = subprocess.Popen(command, cwd=cwd, env=env, stdout=subprocess.PIPE if limited_capture else output,
@@ -442,8 +442,8 @@ def run_owned(command, log_path, budget_seconds, cwd, env, started, registry=Non
                 cleanup = stop_created_group(child)
                 registered = finish_registered_groups(registry)
             if limited_boundary:
-                # Preserve shutdown output after stopping; it remains in the
-                # same parent 2MiB budget and the same 300s lifetime.
+                # 중지 요청 뒤의 종료 출력도 보존하며 동일한 parent 2MiB 예산과
+                # 동일한 300초 수명 안에서 처리한다.
                 while limited_capture and not limited_capture.eof and limited_boundary.remaining(False)>0:
                     limited_capture.read(min(0.1,limited_boundary.remaining(False)))
                     if limited_capture.capture_error:break
@@ -497,8 +497,8 @@ def save_final_record(receipt, record):
     return record
 
 
-# S03-only closeout helpers. No process launch on import; ordinary modes unchanged.
-OFFICIAL_CLOSEOUT_RESERVE = 6 * 1024 * 1024  # log copy 4MiB + ledger 1MiB + receipts/pending 1MiB
+# S03 전용 마감 helper이며 import 때 process를 시작하지 않고 일반 mode를 유지한다.
+OFFICIAL_CLOSEOUT_RESERVE = 6 * 1024 * 1024  # 로그 복사 4MiB, 원장 1MiB, receipt·대기 자료 1MiB를 예약한다.
 OFFICIAL_WORKSPACE_CAP = 448 * 1024 * 1024
 OFFICIAL_RUN_DIRECTORY = 'media-server-current-observer-s03'
 
@@ -512,7 +512,7 @@ def official_workspace(root, fixed=None, reserve=OFFICIAL_CLOSEOUT_RESERVE):
         if s.st_uid!=os.getuid():raise ValueError('official-workspace-owner')
         if stat.S_ISLNK(s.st_mode):
             if not p.is_relative_to(run_root/'gst-cache'):raise ValueError('official-workspace-symlink')
-            total+=s.st_size  # owned link bytes, never the shared plugin target
+            total+=s.st_size  # 공유 플러그인 대상 대신 소유한 심볼릭 링크 자체의 바이트만 합산한다.
         elif stat.S_ISDIR(s.st_mode):
             if p.resolve()!=p:raise ValueError('official-workspace-path')
             for child in p.iterdir():scan(child)
@@ -528,7 +528,7 @@ def official_workspace(root, fixed=None, reserve=OFFICIAL_CLOSEOUT_RESERVE):
             if not stat.S_ISREG(s.st_mode) or s.st_nlink!=1 or s.st_size!=row['size'] or hashlib.sha256(p.read_bytes()).hexdigest()!=row['sha256']:raise ValueError('official-fixed-sha')
             fixed_bytes+=s.st_size
         if fixed_bytes!=fixed.get('fixedBytes'):raise ValueError('official-fixed-total')
-    variable=total-fixed_bytes;copy_bytes=0  # official diagnose skips recovery/copy path
+    variable=total-fixed_bytes;copy_bytes=0  # 공식 진단은 복구·복사 경로를 실행하지 않는다.
     if variable<0 or variable+reserve>=OFFICIAL_WORKSPACE_CAP or copy_bytes>=OFFICIAL_WORKSPACE_CAP or total+reserve>=fixed_bytes+2*OFFICIAL_WORKSPACE_CAP:raise ValueError('official-final-workspace-cap')
     return {'namedBytes':total,'fixedBytes':fixed_bytes,'variableBytes':variable,'copyBytes':copy_bytes,
         'reservedAdditionalBytes':reserve,'variableCapBytes':OFFICIAL_WORKSPACE_CAP,
@@ -570,9 +570,9 @@ def verify_official_completion(evidence):
 
 
 def run_limited_owned(command, log_path, cwd, env, started, registry=None, *, boundary=None):
-    # Limited-only adapter: includes wrapper preparation/product startup. Build
-    # is a separate, shared 180s bounded phase, never part of this allowance.
-    # The generated wrapper's independent capacity guard remains mandatory.
+    # 제한 실행 전용 adapter이며 wrapper 준비와 제품 시작을 포함한다. Build는
+    # 공유하는 별도의 180초 제한 단계이며 이 허용 시간에 포함하지 않는다.
+    # 생성된 wrapper의 독립적인 용량 검사는 계속 필수다.
     began = boundary.origin if boundary else time.monotonic()
     capture=LimitedParentCapture()
     kwargs={'limited_capture':capture}
@@ -597,8 +597,8 @@ def run_limited_owned(command, log_path, cwd, env, started, registry=None, *, bo
 
 
 def finish_limited_record(receipt, record, elapsed_seconds):
-    # Caller measures from run_limited_owned entry, including final binding and
-    # evidence writes. Cleanup after exhaustion is safety work, never PASS.
+    # 호출자는 최종 결속 검사와 evidence 쓰기를 포함해 run_limited_owned 진입부터
+    # 시간을 잰다. 한도 소진 뒤 정리는 안전 조치이며 PASS 근거가 아니다.
     if not isinstance(elapsed_seconds, (int,float)) or not 0<=elapsed_seconds<300:
         record.update(status='FAIL', exit=124, limitedDeadlineExceeded=True)
     record['totalWithFinalBindingSeconds']=elapsed_seconds
@@ -615,9 +615,9 @@ def finish_limited_record(receipt, record, elapsed_seconds):
 
 
 def limited_entry(directory):
-    # The plan is produced in an owned Terminal package after a separate bounded
-    # build. Never silently substitute the old in-repository binary/archive.
-    began=time.monotonic()  # before binding checks, copying, seeds or product work
+    # 별도 제한 Build 뒤 소유권이 확인된 Terminal 패키지에서 계획을 만든다.
+    # 이를 저장소 안의 이전 binary·archive로 조용히 대체하지 않는다.
+    began=time.monotonic()  # 결속 검사, 복사, seed 준비 또는 제품 작업 전에 시간 측정을 시작한다.
     from recording_accumulated_cost import verify_isolated_build_inputs, verify_isolated_link, sha
     repo=Path(__file__).resolve().parents[2]
     if not directory.is_absolute() or directory.exists() or directory.parent.resolve()!=directory.parent or not str(directory).startswith('/private/tmp/media-server-'):
@@ -638,12 +638,12 @@ def limited_entry(directory):
         overlay=parent/'overlay'/Path(n).name
         if sha(repo/n)!=binding['original'] or overlay.resolve()!=overlay or sha(overlay)!=binding['overlay']:raise ValueError('limited-overlay-binding')
     verify_isolated_link(link_plan,(parent/'link.map').read_text(),(parent/'symbols.txt').read_text())
-    # Same guard as the generated wrapper; no flag/receipt can opt out.
+    # 생성된 wrapper와 같은 guard이며 flag·receipt로 검사를 끌 수 없다.
     module=(repo/'scripts/internal/recording_accumulated_cost.mjs').as_uri()
     subprocess.run(['node','--input-type=module','-e','import {assertLimitedSearchCapacity} from '+json.dumps(module)+';assertLimitedSearchCapacity();'],check=True,timeout=5)
     directory.mkdir(mode=0o700);registry=directory/'owned-recovery-groups.jsonl';registry.touch(mode=0o600,exist_ok=False)
-    # This remains unreachable until all admission/coverage obligations are
-    # qualified; a bool/receipt cannot bypass assertLimitedSearchCapacity.
+    # 모든 admission·coverage 의무를 충족하기 전에는 이 경로에 도달할 수 없으며
+    # bool·receipt로 assertLimitedSearchCapacity를 우회할 수 없다.
     observation=LimitedPreparationNativeObserver(directory,plan['helperCollector']['path'],plan['helperCollector']['sha256'],plan['node'],began)
     boundary=LimitedPreparationBoundary(observation,origin=began)
     result=run_limited_owned(['bash',str(wrapper),'--limited-search-diagnostic'],directory/'run.log',repo,
@@ -662,7 +662,7 @@ def limited_entry(directory):
     result['preparationSupervision']=boundary.report()
     observation.close()
     finish_limited_record(directory/'execution.json',result,time.monotonic()-began)
-    # Separate bounded control output; full details live in exclusive receipts.
+    # 제한된 별도 제어 출력이며 전체 상세 정보는 배타적으로 만든 receipt에 보관한다.
     print(json.dumps({'status':result['status'],'exit':result['exit'],'receiptSaved':result.get('receiptSaved',False),
         'parentOutputComplete':result.get('parentOutput',{}).get('complete',False),
         'receiptErrorType':result.get('receiptErrorType'),

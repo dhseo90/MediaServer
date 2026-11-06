@@ -36,7 +36,7 @@ public:
         Reservation& operator=(Reservation&& other)noexcept {Reservation next(std::move(other));swap(next);return *this;}
         ~Reservation(){if(owner_)owner_->Release(amount_,domain_);}
         void swap(Reservation& other)noexcept {owner_.swap(other.owner_);std::swap(amount_,other.amount_);std::swap(domain_,other.domain_);ram_.swap(other.ram_);}
-        // Exclusive ticket: reserve growth before filesystem writes. No blocking wait.
+        // 독점 ticket의 disk 증가분을 파일 쓰기 전에 예약하며 blocking 대기는 하지 않는다.
         bool GrowDisk(std::uint64_t bytes){
             if(!owner_||bytes<amount_.disk_bytes)return false;
             std::lock_guard<std::mutex> lock(owner_->mu_);
@@ -51,9 +51,9 @@ public:
             std::lock_guard<std::mutex> lock(owner_->mu_);
             --amount_.file_descriptors;--owner_->used_.file_descriptors;
         }
-        // Failed transaction cleanup preserves real files. Keep their disk charge
-        // in the failed storage domain after its C++ transaction disappears. A fresh
-        // storage owner re-observes free space; this is never reported as cleanup.
+        // 실패한 transaction의 정리는 실제 파일을 보존하므로 disk 과금도 유지한다.
+        // C++ transaction이 사라진 뒤에도 실패한 storage domain에 해당 과금을 남긴다.
+        // 새 storage 소유자가 여유 공간을 다시 관측하며 이를 정리 성공으로 보고하지 않는다.
         void PreserveFd(){
             if(!owner_||!amount_.file_descriptors)return;
             std::lock_guard<std::mutex> lock(owner_->mu_);
@@ -72,9 +72,9 @@ public:
         }
         void PromoteToOriginal(){ReleaseDisk();} // original admission owns these bytes; not reclaimed space
     };
-    // Explicit limits are also the deterministic saturation injection boundary.
-    // Production Discover freezes existing filesystem availability / process FD headroom;
-    // these are NOT a storage-format, full-process RAM, or physical allocation guarantee.
+    // 명시적 한도는 결정적인 포화 조건 주입 경계로도 사용한다.
+    // 제품의 Discover는 기존 filesystem 가용 공간과 process FD 여유를 고정한다.
+    // 이는 저장 형식·process 전체 RAM·물리 할당을 보장하는 값이 아니다.
     RecordingScratchResidency(Usage limits,std::shared_ptr<SearchModelResidency> ram,
         std::uint64_t block=1,std::uint64_t device=0)
         :limits_(limits),ram_(std::move(ram)),device_(device){domains_[0]={device,block?block:1,limits.disk_bytes,0};}
@@ -106,8 +106,8 @@ public:
         std::lock_guard<std::mutex> lock(mu_);
         if(!device_)return 0; // explicit injection domain covers both caller paths
         for(std::size_t i=0;i<domain_count_;++i)if(domains_[i].device==static_cast<std::uint64_t>(st.st_dev))return i;
-        // A storage owner has exactly two possible locations: anonymous tmp and
-        // its one managed root. Never create a growing filesystem-domain cache.
+        // storage 소유자의 가능한 위치는 익명 tmp와 관리 root 하나, 정확히 두 곳이다.
+        // filesystem domain cache를 계속 늘리지 않는다.
         if(domain_count_==domains_.size())throw RecordingResourceUnavailable();
         const auto index=domain_count_++;domains_[index]={static_cast<std::uint64_t>(st.st_dev),space.f_frsize,space.f_bavail*space.f_frsize,0};return index;
 #else
@@ -153,8 +153,8 @@ public:
     };
     static const std::shared_ptr<RecordingScratchResidency>& Current(){return current_;}
     static std::shared_ptr<RecordingScratchResidency> Default(const std::string& directory){
-        // Standalone codecs/fixtures share one fallback domain; managed runtime binds
-        // its own domain explicitly. Scope is deliberately not inherited by threads.
+        // 독립 codec·fixture는 fallback domain 하나를 공유하고 관리 runtime은 자체 domain을 명시적으로 결속한다.
+        // 이 scope는 의도적으로 다른 thread에 상속하지 않는다.
         static auto owner=Discover(directory,std::make_shared<SearchModelResidency>());
         return owner;
     }

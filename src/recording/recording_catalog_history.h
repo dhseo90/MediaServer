@@ -86,8 +86,8 @@ public:
                 return true;
                 }catch(...){copy_exception=std::current_exception();return false;}
             },error)&&source.index_.Healthy(error)&&index_.SealOrderedBuild(error);
-            // Visit(false) is failure without poisoning the source. Read/Value authentication
-            // still occurs outside this callback and retains the index's original error policy.
+            // Visit(false)는 source를 오염 상태로 만들지 않고 실패한다. Read·Value 인증은
+            // 이 callback 밖에서 계속 수행하며 index의 기존 오류 정책을 유지한다.
             if(copy_exception)std::rethrow_exception(copy_exception);
             if(ok){
                 counts_={};
@@ -102,7 +102,7 @@ public:
         }catch(const RecordingResourceUnavailable& e){if(error)*error=e.what();}
          catch(const std::exception& e){if(error)*error=e.what();}
          catch(...){if(error)*error="retention clone consumer exception";}
-        // Partial writes / admission failure never expose a healthy cut or retain its FD.
+        // 부분 쓰기·허용 검사 실패는 정상 cut을 노출하거나 해당 FD를 유지하지 않는다.
         std::string cleanup;const bool closed=index_.Close(&cleanup);healthy_=false;
         if(!closed&&error)*error+="; retention clone cleanup: "+cleanup;
         return false;
@@ -114,8 +114,8 @@ public:
         std::lock_guard<std::recursive_mutex> lock(mu_);
 #if MEDIA_SERVER_USE_OPENSSL && !defined(_WIN32)
         if(!healthy_||!ReadableKind(kind)||!value||!found)return Fail(error,"catalog history unavailable");
-        // An external ID outside the original grammar cannot name a stored row.
-        // This is input rejection, not a corruption of the authenticated index.
+        // 기존 문법을 벗어난 외부 ID는 저장된 row를 지정할 수 없다.
+        // 이는 입력 거부이며 인증된 index의 손상이 아니다.
         if(Kind(kind)&&!ValidateOpaqueId(id,nullptr)){*found=false;value->clear();if(error)error->clear();
         return true;}
         std::uint64_t bytes=0,capacity=0;bool exists=false;
@@ -155,7 +155,7 @@ public:
             row.memory=std::move(*charge);
             if(!ReadValue(kind,id,bytes,exists,&row.bytes,found,error))return false;
         }
-        // Length and authenticated chunks were read under the same mutation lock.
+        // 길이와 인증된 chunk를 동일한 변경 잠금 안에서 읽었다.
         output->bytes.swap(row.bytes);output->memory.swap(row.memory);output->event_reason.swap(row.event_reason);return true;
 #else
         (void)kind;(void)id;(void)output;(void)found;return Fail(error,"catalog history unsupported");
@@ -211,8 +211,8 @@ public:
         try {
         if(!healthy_||retention_cut_||!Kind(kind)||!ValidateOpaqueId(id,error)||value.size()>kRecordingCatalogSnapshotMaxBytes)
             return Fail(error,"catalog history row invalid");
-        // A process-owned exclusion proof, not an ID cache: only rows admitted through Put
-        // contribute. Deletion never restores the proof; uncertain input stays conservative.
+        // ID cache가 아닌 process 소유 제외 증명이며 Put으로 허용된 row만 기여한다.
+        // 삭제는 증명을 복원하지 않으며 불확실한 입력은 보수적으로 처리한다.
         if(kind=="retired-v2"&&!value.empty()) {
             RecordingRetiredV2Receipt receipt;std::string detail;
             if(!ParseRecordingRetiredV2Receipt(value,&receipt,&detail)||receipt.segment_id!=id||
@@ -314,10 +314,10 @@ public:
         const auto prefix=kind+"/";std::uint64_t seen=0;std::exception_ptr consumer_exception;
         SearchModelResidency::Reservation raw_memory;
         std::string current,value;std::uint64_t bytes=0,capacity=0,parts=0;bool have_meta=false;
-        // The authenticated in-order cursor delivers metadata before its chunk keys.
-        // Consume those same verified chunks instead of re-seeking every chunk from root.
-        // Decimal chunk keys need not sort numerically: unique canonical keys plus exact
-        // count/range/length prove coverage, and offsets restore the original byte order.
+        // 인증된 정순 cursor는 chunk key보다 metadata를 먼저 전달한다.
+        // 각 chunk를 root에서 다시 찾지 않고 동일하게 검증된 chunk를 소비한다.
+        // 십진수 chunk key는 숫자 순서로 정렬되지 않아도 된다. 유일한 canonical key와 정확한
+        // 개수·범위·길이가 전체 포함을 증명하고 offset이 원래 바이트 순서를 복원한다.
         const auto flush=[&](std::string* detail) {
             if(!have_meta)return true;
             const auto required=bytes/RecordingHistoryIndex::kValueBytes+(bytes%RecordingHistoryIndex::kValueBytes!=0);
@@ -327,8 +327,8 @@ public:
             try {
                 if(owned){RecordingColdRow row{std::move(raw_memory),std::move(value)};accepted=(*owned)(current,row,detail);}
                 else {
-                    // Plain visitors include snapshot export and summary parsing.
-                    // Their raw row is still charged separately until callback return.
+                    // 일반 visitor에는 snapshot export와 summary parsing이 포함된다.
+                    // 이들의 raw row는 callback 반환까지 계속 별도로 과금한다.
                     auto work=MemoryOwner()->ReserveOwned(VisitorWorkspace(kind,value),SearchModelResidency::Category::Unattributed,SearchModelResidency::Site::HistoryVisitor);
                     if(!work)throw RecordingResourceUnavailable();
                     accepted=visitor(current,value,detail);
@@ -395,9 +395,9 @@ public:
         return Fail(error,"catalog history unsupported");
 #endif
     }
-    // A private retention copy does not prove the current file remained intact.
-    // Authenticate every raw retention namespace against the current process root
-    // before publishing its rebased result. No DTO/JSON/joins are materialized.
+    // 비공개 retention 사본은 현재 파일이 온전하게 유지됐음을 증명하지 않는다.
+    // 재기준화 결과를 공개하기 전에 모든 raw retention namespace를 현재 process root로
+    // 인증한다. DTO·JSON·join은 구체화하지 않는다.
     bool ValidateRetentionCurrent(std::string* error) {
         std::lock_guard<std::recursive_mutex> lock(mu_);
 #if MEDIA_SERVER_USE_OPENSSL && !defined(_WIN32)
@@ -434,11 +434,11 @@ private:
         if(kind=="referenced-observation")return RecordingColdDecodeWorkspaceBytes<ReferencedObservationV1>(value);
         if(kind=="consumer-reference")return RecordingColdDecodeWorkspaceBytes<RecordingConsumerReferenceV1>(value);
         if(kind=="media-path"||kind=="deletion-reason")return RecordingColdDecodeWorkspaceBytes<std::string>(value);
-        // Retired/source/job summaries have fixed scalar fields and at most two
-        // bounded string lists. They use the indexed strict document codec.
+        // retired·source·job summary는 고정 scalar 필드와 최대 두 개의 크기가 제한된
+        // 문자열 목록을 가지며 indexed strict document codec을 사용한다.
         return ingress::StrictJsonWorkspaceBytes(value,7,sizeof(std::string),true);
     }
-    // Explicit required/excluded lists: a future or malformed namespace cannot silently disappear.
+    // 필수·제외 목록을 명시하여 향후 추가되거나 잘못된 namespace가 조용히 사라지지 않게 한다.
     static int RetentionSelection(const std::string& kind){
         for(const char* required:{"segment-v1","segment-v2","state-v2","tombstone-v1","tombstone-v2","retired-v2","media-path","deletion-reason"})
             if(kind==required)return 1;

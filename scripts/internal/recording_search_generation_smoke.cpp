@@ -11,7 +11,7 @@
 #ifdef RECORDING_SEARCH_ATTRIBUTION_TESTING
 #include "recording_http_cost_probe.h"
 #include <thread>
-// Existing managed fixture and real Capture; synthetic HTTP envelope is explicitly a probe unit.
+// 기존 managed fixture와 실제 Capture를 사용하며 합성 HTTP envelope는 probe 단위임을 명시한다.
 static void AttributionCapture(recording::RecordingCatalog& catalog) {
     recording::RecordingReadService reader(catalog);recording::RecordingSearchReader search(catalog,reader);
     std::string error;
@@ -99,8 +99,8 @@ int main(int argc,char** argv) {
             if(held)SearchCheck(model->source_instance()!=held->source_instance()&&held->documents().size()==3,
                 "generation-reopen-rebuild-preserves-held-model");
             SearchSourceBatch captured;Need(catalog.CaptureSearchSource({"channel"},model.get(),&captured,&error));
-            // R121: a cold full capture preserves the independently defined
-            // segment document, while output admission failure stays atomic.
+            // R121: cold 전체 capture는 독립적으로 정의된 segment document를 유지하며
+            // 출력 허용 검사 실패는 원자성을 유지한다.
             SearchSourceBatch full;
             Need(catalog.CaptureSearchSource({"channel"},nullptr,&full,&error,{},false));
             SearchCheck(full.rebuild&&full.delta.upserts.size()==1&&full.pending.empty()&&
@@ -129,8 +129,8 @@ int main(int argc,char** argv) {
                     "retention delta cannot bypass authority loss after full capture");
                 search_after_capture_test={};
 #endif
-                // Capture authenticates the current owned row store. The
-                // sealed archive was projected at Open and is not that store.
+                // Capture는 현재 소유한 row store를 인증한다. 봉인된 archive는 Open에서 projection한
+                // 원본이며 해당 store 자체가 아니다.
                 Need(RecordingGenerationRequestProofProbe::DamageCurrentRaw(catalog));
                 SearchSourceBatch rejected;rejected.catalog_instance=987;
                 SearchCheck(!catalog.CaptureSearchSource({"channel"},nullptr,&rejected,&error,{},false)&&

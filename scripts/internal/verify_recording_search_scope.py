@@ -10,7 +10,7 @@ def run(label,args,env=None):
     began=time.monotonic();raw=out/(label+'.log')
     with raw.open('wb') as f:
         child=subprocess.Popen(args,cwd=repo,env=env,stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
-        # Existing command budget; bounded output fails, never discard and report success.
+        # 기존 명령 예산을 유지하며 출력 상한을 넘으면 실패하고 버린 뒤 성공으로 보고하지 않는다.
         import selectors
         poll=selectors.DefaultSelector();poll.register(child.stdout,selectors.EVENT_READ);size=0;failure=None
         try:

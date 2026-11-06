@@ -122,7 +122,7 @@ test('PY06 실제 분류 callback: import 해소/끊김 FAIL 유지',()=>{
  assert.throws(()=>classify({...entries,'scripts/internal/caller.py':'# import local_dep'}),/local_dep.py/);
 });
 
-// R01: compare existence against the prior full enumeration, including self and order.
+// R01: 자기 자신과 순서를 포함해 이전 전체 열거 결과와 존재 여부를 비교한다.
 test('R01 reference existence preserves prior substring semantics and input freshness',()=>{
  const file='scripts/internal/unregistered.mjs',base=path.basename(file);
  for(const text of ['',file,base,'prefix'+base+'suffix','unregisteredX.mjs']) {
@@ -148,7 +148,7 @@ test('R01 success retains all checks; failure default and fail-fast return contr
  }
 });
 
-// R02: the actual literal list and callback are read, never reconstructed by filename.
+// R02: 실제 literal 목록과 callback을 읽으며 파일명으로 재구성하지 않는다.
 const phraseStart=source.indexOf('const forbiddenSnippets = [')+'const forbiddenSnippets = '.length;
 const phrases=Array.from(vm.runInNewContext(source.slice(phraseStart,source.indexOf('];',phraseStart)+1)));
 const phraseCheck='critical verifier pass output avoids grouped feature-result wording';
@@ -174,9 +174,9 @@ test('R02 actual callback preserves tracked scope, historical/binary text and ex
 });
 test('R02 changed input and missing required or forged wording keep failures',()=>{
  const entries={'AGENTS.md':'','docs/current.md':'safe'};run(phraseCheck,entries);entries['docs/current.md']=phrases[0];assert.throws(()=>run(phraseCheck,entries),/grouped feature-result/);entries['docs/current.md']='safe';run(phraseCheck,entries);
- // A5 validates a required real target independently of reference existence.
+ // A5는 참조 존재 여부와 독립적으로 필수 실제 target을 검증한다.
  assert.throws(()=>run('current standalone script instructions target tracked files',{'docs/stream-verification.md':'node scripts/internal/missing.mjs','docs/development-guide.md':''}),/missing standalone/);
- // A12 is a forbidden-literal absence check: absence is PASS, not missing-required FAIL.
+ // A12는 금지 literal의 부재 검사이므로 없으면 PASS이며 필수 항목 누락 FAIL이 아니다.
  assert.deepEqual([...literalMatcher(['case-sensitive'])('CASE-SENSITIVE')],[]);
 });
 test('R02 R01 existential references do not bypass independent target validation',()=>{

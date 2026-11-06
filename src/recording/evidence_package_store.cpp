@@ -226,8 +226,8 @@ std::shared_ptr<EvidencePackageFile> EvidencePackageStore::Open(const std::strin
 #if MEDIA_SERVER_USE_OPENSSL
     try {
         if (!ValidId(id)) { Fail(error,"evidence-invalid-id"); return {}; }
-        // Managed readers share the Journal's aggregate FD owner. Standalone
-        // compatibility callers use the existing process fallback, never per-reader limits.
+        // 관리되는 reader는 Journal의 통합 FD 소유자를 공유한다. 독립적인 호환 호출자는
+        // 기존 process fallback을 쓰며 reader별 제한을 적용하지 않는다.
         auto resources=resources_?resources_:RecordingScratchResidency::Default(std::filesystem::temp_directory_path().string());
         auto descriptor=resources->Reserve({0,1,0});
         auto directory_descriptor=resources->Reserve({0,1,0});

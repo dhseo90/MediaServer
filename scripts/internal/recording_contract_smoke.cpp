@@ -20,7 +20,7 @@ int failures = 0;
 int passes = 0;
 int corpus_fd = -1;
 
-// S10-M11 opt-in only. Expected bytes come from frozen evidence, never this serializer.
+// S10-M11 opt-in 전용이며 기대 바이트는 이 serializer가 아닌 동결된 evidence에서 가져온다.
 int V2Benchmark(const std::filesystem::path& corpus) {
     try {
         using Clock=std::chrono::steady_clock;
@@ -58,7 +58,7 @@ int V2Benchmark(const std::filesystem::path& corpus) {
             std::string canonical,error;
             if(!recording::ParseRecordingSegmentV2Canonical(parse_input,&item.value,&canonical,&error)||canonical!=parse_input)
                 throw std::runtime_error("benchmark canonical input: "+item.name);
-            // Mapping zero is intentionally serializer-only, not an accepted V2 domain value.
+            // mapping 0개는 의도적으로 serializer만 검사하며 허용된 V2 domain 값이 아니다.
             if(item.name=="mapping-count-0"){item.value.mappings.clear();item.value.media_end_pts=0;}
             if(recording::ValidateRecordingSegmentV2(item.value,&error)!=(item.name!="mapping-count-0"))
                 throw std::runtime_error("benchmark domain: "+item.name);
@@ -80,7 +80,7 @@ int V2Benchmark(const std::filesystem::path& corpus) {
                 item.ns.push_back(std::chrono::duration_cast<std::chrono::nanoseconds>(end-begin).count());
             }
         }
-        // No output until every case completes. Partial execution cannot look like a complete matrix.
+        // 모든 case가 완료된 뒤에만 출력하여 부분 실행이 전체 matrix 완료로 보이지 않게 한다.
         for(const auto& item:cases) {
             std::cout<<"{\"case\":\""<<item.name<<"\",\"pid\":"<<::getpid()
                      <<",\"bytes\":"<<item.expected.size()<<",\"mappings\":"<<item.value.mappings.size()
@@ -93,8 +93,8 @@ int V2Benchmark(const std::filesystem::path& corpus) {
     }catch(const std::exception& e){std::cerr<<"S10-M11 benchmark failed: "<<e.what()<<'\n';return 1;}
 }
 
-// Optional differential output, never an expected-value generator in this test.
-// Run against the frozen pre-change source first; compare complete files externally.
+// 선택적인 차분 출력이며 이 테스트의 기대값 생성기로 사용하지 않는다.
+// 먼저 변경 전 동결 source에서 실행한 뒤 외부에서 전체 파일을 비교한다.
 void CorpusField(const std::string& value) {
     if (corpus_fd < 0) return;
     const auto length=std::to_string(value.size())+"\n";
@@ -212,8 +212,8 @@ void V2SerializationCases(const recording::RecordingSegmentV2& base,const std::s
         std::string error;
         Expect(ValidateRecordingSegmentV2(v,&error)==!text[i].first.empty(),"S10-M10 text domain validity "+std::to_string(i));
     }
-    // Every byte at every mutable scalar/mapping string position. Invalid IDs,
-    // schema/checksum/provenance remain invalid; serializer alone is not validation.
+    // 변경 가능한 모든 scalar·mapping 문자열 위치에서 모든 바이트를 검사한다. 잘못된 ID·
+    // schema·checksum·provenance는 계속 거부하며 serializer만으로 검증을 대신하지 않는다.
     std::string all_bytes;for(int i=0;i<256;++i)all_bytes+=static_cast<char>(i);
     const std::vector<std::string RecordingSegmentV2Fields::*> fields={
         &RecordingSegmentV2Fields::schema,&RecordingSegmentV2Fields::segment_id,
@@ -248,8 +248,8 @@ void V2SerializationCases(const recording::RecordingSegmentV2& base,const std::s
         Expect(observe("size-"+std::to_string(size),v)==expected,"S10-M10 full size boundary "+std::to_string(size));
         std::string error;Expect(ValidateRecordingSegmentV2(v,&error)==(size<=1048576),"S10-M10 size validity "+std::to_string(size));
     }
-    // A non-classic numeric locale also affects the old Escape's hex formatting.
-    // Preserve it rather than silently forcing a new canonical representation.
+    // classic 이외의 numeric locale은 기존 Escape의 16진수 형식에도 영향을 준다.
+    // 새 canonical 표현을 조용히 강제하지 않고 이 동작을 유지한다.
     struct Grouped final:std::numpunct<char>{char do_thousands_sep()const override{return '_';}
         std::string do_grouping()const override{return "\1";}};
     struct RestoreLocale{std::locale prior;~RestoreLocale(){std::locale::global(prior);}} restore;

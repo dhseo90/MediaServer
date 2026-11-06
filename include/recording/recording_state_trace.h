@@ -1,4 +1,4 @@
-// 검증용 상태 전이만 보존한다. 공개 API/상태/보호 판정에는 관여하지 않는다.
+// 파일 용도: 검증용 상태 전이만 기록하며 공개 API·상태·보호 판정에는 관여하지 않는다.
 #pragma once
 #include <atomic>
 #include <chrono>

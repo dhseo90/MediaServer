@@ -23,8 +23,8 @@ int main(int argc,char** argv)try{
         }
         std::cout<<"{\"pass\":"<<pass<<",\"rows\":"<<rows.size()<<",\"samples\":"<<samples<<",\"parseNs\":"<<parse_ns<<",\"typedCapacityBytes\":"<<capacity<<",\"canonicalFnv64\":"<<hash<<"}\n";
     }
-    // Every serialized field participates; equality is compared to independent
-    // canonical output, including each mapping component and vector ordering.
+    // 직렬화되는 모든 필드를 포함하며 각 mapping 성분과 vector 순서를 포함한
+    // 독립적인 canonical 출력과 동등성을 비교한다.
     RecordingSegmentV2 base;base.mappings.resize(2);base.mappings[1].mapping_id="second";
     Need(SameRecordingSegmentV2Content(base,base),"identity equality");
     const auto changed=[&](const auto& mutate){auto b=base;mutate(b);Need(SerializeRecordingSegmentV2(base)!=SerializeRecordingSegmentV2(b),"oracle different bytes");Need(!SameRecordingSegmentV2Content(base,b),"all-field difference");};
@@ -74,7 +74,7 @@ int main(int argc,char** argv)try{
         auto changed=first;const auto end=changed.find(']',tuple);Need(end!=std::string::npos,"tuple end");changed.replace(tuple,end-tuple+1,value);bad.push_back(std::move(changed));
     }
     for(const auto& text:bad){auto output=valid;Need(!ParseRecordingSourceBindingV1(text,&output,&error),"malformed tuple rejected");Need(SerializeRecordingSourceBindingV1(output)==first,"failed output unchanged");}
-    // Captured and discarded strings share escape validation, including surrogate pairs.
+    // capture하는 문자열과 버리는 문자열 모두 surrogate pair를 포함한 escape 검증을 공유한다.
     for(const auto& text:{"{\"a\":[\"\\uD800\"]}","{\"a\":{\"x\":1,\"x\":2}}","{\"a\":[\"\\x\"]}","{\"a\":[[01]]}"}){
         ingress::StrictJsonObjectDocument d;Need(!ingress::ParseStrictJsonObjectDocumentArrayViews(text,&d,&error),"nested strict rejection");
     }

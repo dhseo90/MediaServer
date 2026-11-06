@@ -134,7 +134,7 @@ void Checkpoint(const std::filesystem::path& root,const std::string& point){
     const int reader=::open((root/"snapshot-1.jsonl").c_str(),O_RDONLY|O_NOFOLLOW);Need(reader>=0);
     if(point.empty()){
         RecordingJournal j(JO(root));Need(j.Open(&error));auto options=TO(root);options.enable_generation_writes=true;RecordingCatalog c(j,options);Need(c.Open(&error));Need(c.MarkSegmentCorrupt("legacy","missing-media",&error));
-        // Count the pre-existing archive, not the new immutable K-prefix which must be verified.
+        // 검증해야 할 새 불변 K-prefix가 아닌 기존 archive의 읽기 횟수를 센다.
         RecordingGenerationArchiveReadsForTest(true,"evidence-1-0.jsonl");
         T(6,c.Checkpoint(&error),"checkpoint staged receipt publication");
         T(6,RecordingGenerationArchiveReadsForTest()==0,"checkpoint historical archive helper reads zero");

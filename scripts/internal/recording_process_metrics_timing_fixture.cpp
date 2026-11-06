@@ -25,7 +25,7 @@ Result Run(int window, bool slow=false, std::vector<int> capacity={}, int hard=0
     detail_result_override=[&](int& returned,int& error){
         if(hard){returned=0;error=hard;return;}
         if(short_read){returned=1;error=0;return;}
-        // The window is defined solely by elapsed monotonic time, not attempt number.
+        // 시도 번호가 아닌 경과 monotonic 시간만으로 구간을 정의한다.
         if(now<window){returned=0;error=churn_errno;now+=(slow&&now==0)?160:1;}
     };
     identity_result_override=[&](std::string& value){if(identity&&++identities==2)value+="-changed";};

@@ -1,5 +1,5 @@
 #pragma once
-// R156 only: fixed TLS aggregation; no product types/layout/ownership changes.
+// 파일 용도: R156 전용 고정 TLS 집계이며 제품 type·layout·소유권은 변경하지 않는다.
 #include "recording_http_cost_probe.h"
 #include <exception>
 #include "recording_http_hold_probe.h"

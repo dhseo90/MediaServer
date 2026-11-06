@@ -4,7 +4,7 @@ Recorder lineage uses the same conditions as its unchanged historical validator,
 with batched immutable Git blob reads on the pinned clean prior repository. Only the reviewed single-file Search delta is admitted here. Current
 Build/Writer/Smoke/helper/model gates are inherited without replacing any check.
 """
-import json
+import json  # 파일 용도: 검토된 Search 후속 차이와 Recorder 계보를 고정 증거에 대조하며 기존 제품 guard를 유지한다.
 import hashlib
 from pathlib import Path
 import subprocess
@@ -26,7 +26,7 @@ SOURCE='src/recording/recording_search_source.cpp'
 FIXTURE='scripts/internal/recording_search_retry_smoke.cpp'
 SOURCE_SHA='f2d4c5bb5247e3374626187951e19d70234f54d1d714ecfb2a1bb060cf940c95'
 VERDICT='SEARCH_PREPARATION_INDEPENDENT_REVIEW_GO'
-# The exact members are authenticated through the fixed manifests above.
+# 정확한 구성 파일은 위의 고정 manifest로 인증한다.
 PATCH_MEMBERS={'candidatePatch':'candidate.patch','rebasePatch':'preparation-only.diff'}
 NATIVE_MEMBERS={
  'focusedExecution':'evidence/native-approved.json',
@@ -103,7 +103,7 @@ def validate_prior_recorder_lineage(repo,b,current):
     sources=json.loads(member(root,entries,'evidence/candidate-source-manifest.json').read_text())
     need(len(sources)==405,'recorder-source-count')
     product_names={p for p in current['sources'] if p=='CMakeLists.txt' or p.startswith(('src/','include/'))}
-    # Full git product set, including any additions outside the old 405 manifest.
+    # 기존 405개 manifest 밖에 추가된 파일까지 포함한 전체 Git 제품 파일 집합이다.
     baseline_names=set(git(repo,'ls-tree','-r','--name-only',BASE,'--','CMakeLists.txt','src','include').splitlines())
     need(product_names==baseline_names,'recorder-product-file-set')
     changed=set(git(repo,'diff','--name-only',BASE,'HEAD','--','CMakeLists.txt','src','include').splitlines())
@@ -119,8 +119,8 @@ def validate_prior_recorder_lineage(repo,b,current):
     native=json.loads(reuse.read_text());need(len(native['files'])==39,'recorder-native-coverage')
     for row in native['files']:
         p=Path(row['path']);bound(dict(path=str(p),sha256=row['sha256'],bytes=p.stat().st_size))
-    # Preserve exact historical Multi-Finalize/Shutdown artifacts, but not their
-    # old product qualification. New Writer/Smoke below prove final product stop.
+    # 정확한 과거 Multi-Finalize·Shutdown artifact는 보존하되 그때의 제품 적격성은
+    # 승계하지 않는다. 아래의 새 Writer·Smoke가 최종 제품의 중지를 증명한다.
     validate_fixed_lineage_artifacts(b)
     diagnostic=read(line['diagnostic'])
     need(diagnostic['schema']=='recorder-mutex-qualification-v1' and diagnostic['source']==current and
@@ -141,9 +141,9 @@ def validate_previous_recorder(repo, entry):
     prior_repo=Path(line['policy']['path']).parents[2]
     previous=identity(prior_repo)
     need(previous==read(inner['source']) and previous['head']==PREVIOUS_HEAD and line['finalHead']==PREVIOUS_HEAD,'search-recorder-source')
-    # Keep the prior full-source entry/exit snapshots. The intervening Recorder
-    # conditions are identical to its original validator, with immutable Git
-    # blob reads batched rather than spawning one git process for every file.
+    # 이전 전체 source의 진입·종료 snapshot을 유지한다. 중간 Recorder 조건은
+    # 원래 validator와 동일하며 파일마다 Git process를 실행하는 대신
+    # 불변 Git blob 읽기를 묶어서 수행한다.
     for name in ['recording_state_binding_recorder.py','recording_state_requalification.py',
                  'recording_state_binding_v2.py','recording_state_recorder_policy.json']:
         relative='scripts/internal/'+name
@@ -179,8 +179,8 @@ def validate_search_lineage(repo,b):
     need(line['reviewedProductSources']==artifact(reviewed),'search-reviewed-source-binding')
     reviewed=json.loads(reviewed.read_text());validate_product_delta(repo,current,reviewed)
     need(read(line['finalProductSources'])==product_sources(current),'search-final-product-source')
-    # Preserve all prior Recorder product bytes, including the two diagnostic
-    # headers. Search is the only authorized product difference from 89108.
+    # 두 진단 header를 포함한 이전 Recorder 제품 바이트를 모두 보존한다.
+    # 89108 기준에서 승인된 제품 차이는 Search뿐이다.
     need({p:h for p,h in product_sources(current).items() if p!=SOURCE}==
          {p:h for p,h in product_sources(previous).items() if p!=SOURCE},'search-recorder-product-preservation')
     need(artifact(Path(repo)/FIXTURE)['sha256']==

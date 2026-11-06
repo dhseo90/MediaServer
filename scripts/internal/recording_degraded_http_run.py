@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Bounded direct HTTP build/run; preserve product, collector and postprocessing outcomes separately."""
-import tarfile
+import tarfile  # 파일 용도: 제한된 직접 HTTP build·실행에서 제품·collector·후처리 결과를 분리해 보존한다.
 import argparse, hashlib, json, os, pathlib, selectors, shlex, signal, subprocess, time, sys, shutil
 sys.path.insert(0,str(pathlib.Path(__file__).resolve().parent))
 from recording_degraded_http_qualification import qualify
@@ -9,7 +9,7 @@ from recording_visual_contention_contract import validate_output
 p=argparse.ArgumentParser();p.add_argument('action',choices=['build','run']);p.add_argument('parent');p.add_argument('--label',required=True);p.add_argument('--scale',choices=['4','53','cycle'],default='53');p.add_argument('--mode',choices=['single','visual-pair','parallel','background','source-parallel','source-small'],default='parallel');a=p.parse_args()
 repo=pathlib.Path(__file__).resolve().parents[2];parent=pathlib.Path(a.parent);assert parent.is_absolute() and parent.resolve()==parent and parent.is_dir()
 assert a.label and pathlib.Path(a.label).name==a.label and a.label not in ('.','..')
-environment(parent) # validate owned namespace before creating any run leaf
+environment(parent) # 실행 하위 디렉터리를 만들기 전에 소유권이 확인된 경로인지 검사한다.
 root=parent/a.label;root.mkdir(mode=0o700);env=environment(root);build=repo/'build-gst-onnx';binary=parent/('http-'+a.label.split('-')[0]);cap=4*1024*1024
 if a.action=='build':
  flags={}
@@ -35,7 +35,7 @@ if a.action=='run':
  record['buildBinding']=json.loads((parent/(binary.name+'.binding.json')).read_text()) if (parent/(binary.name+'.binding.json')).exists() else None
  record['archiveSha256Meaning']='current .a at execution; linked runtime is buildBinding when present'
  costs={str(folder.relative_to(repo)):sum(p.stat().st_size for p in folder.rglob('*') if p.is_file() and not p.is_symlink()) for folder in (repo/'models/v430-siglip2',repo/'third_party/v430-embedding',build)}
- # Same documented model/dependency/build total plus this direct executable.
+ # 문서에 정의된 동일한 model·의존성·build 총량에 이 direct 실행 파일을 더한다.
  fixed=sum(costs.values())+binary.stat().st_size
  assert fixed+1129352764<8*1024**3,'existing preparation8GiB budget'
  (root/'preparation-budget.json').write_text(json.dumps({'costs':costs,'fixtureBytes':binary.stat().st_size,'fixedBytes':fixed,'temporaryModelReserve':1129352764,'capBytes':8*1024**3}))
@@ -108,7 +108,7 @@ finally:
     terminate(proc,signal.SIGTERM)
     try:proc.wait(timeout=5)
     except subprocess.TimeoutExpired:terminate(proc,signal.SIGKILL);proc.wait(timeout=5)
-   # Check the whole owned process group, including pipe-less descendants.
+   # pipe가 없는 자손까지 포함하여 소유한 process group 전체를 확인한다.
    try:os.killpg(proc.pid,0)
    except ProcessLookupError:
     if label=='child':record['groupAbsent']=True

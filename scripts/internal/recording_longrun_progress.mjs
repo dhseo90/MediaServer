@@ -7,7 +7,7 @@ export function mixedRecordingProfile(name) {
   const MiB=1024*1024,base={eventMaxBytes:128*MiB,continuousMaxAgeMs:10800000,eventMaxAgeMs:10800000};
   if(name==='protection-r97')return Object.freeze({name,continuousMaxBytes:64*MiB+256*1024,...base});
   if(!['continuous-r98','continuous-r114'].includes(name))throw Error('mixed-fixture-profile');
-  // R114: AU66504 + fixed boxes877 + 120*(stts8+stsz4+stsc12+co64 8) + 4*stss4.
+  // R114 구성 바이트: AU66504 + 고정 box877 + 120*(stts8+stsz4+stsc12+co64 8) + 4*stss4.
   const segmentBytes=name==='continuous-r114'?66504+877+120*(8+4+12+8)+4*4:36*1024,protectedFiles=201+2*220+2,E=64*MiB,H=protectedFiles*segmentBytes,P=segmentBytes;
   const Q=Math.ceil((E+H+P)/MiB)*MiB;
   return Object.freeze({name,continuousMaxBytes:Q,...base,segmentBytes,protectedFiles,E,H,P,M:Q-E-H-P,
@@ -256,7 +256,7 @@ export function visualPhaseSummary(text,required=true) {
   } catch(e) {return {status:'incomplete',reason:e.message,rows,open:pending.size,phases,overlappingPhasesNotAdditive:true};}
 }
 
-// Terminal structured failures are independent of full performance phase tracing.
+// 종료 시 구조화 실패는 전체 성능 phase 추적과 독립적으로 처리한다.
 export function searchFailureSummary(text,required=true) {
   const issues=[],failures=[];let probes=0;
   for(const line of text.split('\n')) {

@@ -1535,8 +1535,8 @@ HttpResponse CorsPreflightResponse(const HttpRequest& request) {
 
 // WEBRTC_HTTP_SERVER_LOGICAL_ORIGIN 2847 function
 std::string BuildHttpResponse(const HttpResponse& response, const HttpRequest* request) {
-    // Only headers need CORS normalization. Copying the body duplicated a complete
-    // application result before serialization. The response owner lives through SendAll.
+    // CORS 정규화에는 헤더만 필요하다. 본문 복사는 직렬화 전에 완성된
+    // application 결과 전체를 중복시켰다. 응답 소유자는 SendAll이 끝날 때까지 살아 있다.
     HttpResponse response_for_wire{response.status,response.status_text,response.content_type,response.headers,{}};
     AddCorsHeadersForRequest(request, &response_for_wire);
     std::ostringstream out;

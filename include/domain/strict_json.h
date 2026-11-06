@@ -24,7 +24,7 @@ struct StrictJsonMember {
     std::string raw;
     std::string string_value;
     bool bool_value{false};
-    // Populated only by the borrowed-array API; valid while its input lives.
+    // borrowed-array API만 이 값을 채우며 입력이 살아 있는 동안만 유효하다.
     std::string_view array_view;
 };
 
@@ -35,8 +35,8 @@ struct StrictJsonObjectDocument {
     const StrictJsonMember* Find(const std::string& key) const;
 };
 
-// Allocation-free lexical census for caller-specific pre-allocation admission.
-// It does not validate JSON. The strict parser must still run afterwards.
+// 호출자의 할당 전 허용 검사를 위해 할당 없이 어휘적 저장 형태를 센다.
+// JSON 유효성 검사가 아니므로 이후에도 strict parser를 반드시 실행한다.
 struct StrictJsonStorageShape {
     std::size_t strings{0}, string_bytes{0}, array_elements{0}, top_members{0};
     std::size_t total_keys{0}, max_live_keys{0}, max_live_key_bytes{0}, max_depth{0};
@@ -44,8 +44,8 @@ struct StrictJsonStorageShape {
     std::size_t top_string_bytes{0}, top_object_bytes{0}, max_array_element_bytes{0};
 };
 StrictJsonStorageShape InspectStrictJsonStorageShape(std::string_view json);
-// Caller supplies simultaneous owning raw copies (including serialization, if
-// applicable) and its largest typed array element. No limit or parsing is added.
+// 호출자는 동시에 소유하는 raw 사본 수와 가장 큰 typed array 원소 크기를 제공한다.
+// 해당하는 경우 직렬화 사본도 포함하며 여기서 새 한도나 parsing을 추가하지 않는다.
 std::size_t StrictJsonWorkspaceBytes(std::string_view json,std::size_t raw_copy_layers,
                                    std::size_t largest_typed_array_element,bool collect_all_keys=true);
 bool ParseStrictJsonObjectDocumentWithoutKeyIndex(const std::string& json,
@@ -54,15 +54,15 @@ bool ParseStrictJsonObjectDocumentWithoutKeyIndex(const std::string& json,
 bool ParseStrictJsonObjectDocument(const std::string& json,
                                    StrictJsonObjectDocument* document,
                                    std::string* error_message);
-// Uses exactly the same syntax/duplicate/depth validation. Array payloads are
-// borrowed and all_keys is intentionally not populated; Find remains available.
+// 동일한 구문·중복·깊이 검증을 사용하며 array payload는 빌려 쓴다.
+// all_keys는 의도적으로 채우지 않지만 Find는 계속 사용할 수 있다.
 bool ParseStrictJsonObjectDocumentArrayViews(const std::string& json,
                                              StrictJsonObjectDocument* document,
                                              std::string* error_message);
-// Consume one selected top-level array's object members during the same strict
-// traversal. All syntax/duplicate/depth checks remain active. The consumer owns
-// no parser references after its call; callers must publish only after success.
-// The selected member is represented by type Array and no owning raw payload.
+// 같은 strict 순회에서 선택한 최상위 array 하나의 객체 원소를 소비한다.
+// 모든 구문·중복·깊이 검사를 유지하며 소비자는 호출 종료 뒤 parser 참조를 보유하지 않는다.
+// 호출자는 전체 처리 성공 뒤에만 결과를 공개해야 한다.
+// 선택한 member는 Array 유형으로 표현하며 소유하는 raw payload는 없다.
 bool ParseStrictJsonObjectDocumentObjectArray(const std::string& json,
     const std::string& array_key, StrictJsonObjectDocument* document,
     const std::function<bool(const StrictJsonObjectDocument&)>& consumer,

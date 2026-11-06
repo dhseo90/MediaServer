@@ -174,8 +174,8 @@ private:
         SkipWhitespace();
         if (Consume(']')) return true;
         std::size_t index=0;
-        // The consumer may not retain parser references beyond its call. Reuse
-        // only vector capacity; destroy every member before parsing the next row.
+        // 소비자는 호출 종료 뒤 parser 참조를 보유할 수 없으며 vector capacity만 재사용한다.
+        // 다음 row를 parsing하기 전에 모든 member를 소멸시킨다.
         StrictJsonObjectDocument element;
         while (pos_<json_.size()) {
             element.members.clear();
@@ -273,8 +273,8 @@ private:
         if (!Consume('"')) {
             return false;
         }
-        // Nested unselected strings still undergo the identical escape/surrogate
-        // validation; their decoded copies have no consumer. Keys are captured.
+        // 선택되지 않은 중첩 문자열도 동일한 escape·surrogate 검증을 거친다.
+        // decoded 사본에는 소비자가 없지만 key는 수집한다.
         std::string out;
         while (pos_ < json_.size()) {
             const unsigned char ch = static_cast<unsigned char>(json_[pos_++]);
@@ -450,8 +450,8 @@ bool ParseStrictJsonObjectDocumentWithoutKeyIndex(const std::string& json,
 }
 
 StrictJsonStorageShape InspectStrictJsonStorageShape(std::string_view json) {
-    // A lexical census does not accept JSON: the unchanged strict validator runs
-    // afterwards. Fixed stack matches its existing depth contract (root depth 0).
+    // 어휘적 집계만으로 JSON을 수락하지 않으며 이후 기존 strict validator를 실행한다.
+    // 고정 stack은 root 깊이를 0으로 두는 기존 깊이 계약과 일치한다.
     struct Frame {char kind;std::size_t keys{0},key_bytes{0};bool next{true};std::size_t start{0},element_start{0};};
     std::array<Frame,129> stack{};std::size_t depth=0;
     StrictJsonStorageShape result;
@@ -514,17 +514,17 @@ std::size_t StrictJsonWorkspaceBytes(std::string_view json,std::size_t raw_copy_
         total+=count*size;
     };
     const auto depth=std::max(std::size_t{1},s.max_depth);
-    // Each owning typed parser can retain ancestor documents while descending.
-    // At most depth captured vectors, key sets and ancestor path strings coexist.
+    // typed parser 소유자는 하위로 내려가면서 상위 document를 유지할 수 있다.
+    // 동시에 존재하는 수집 vector·key set·상위 경로 문자열의 수는 최대 depth다.
     term(s.max_live_keys,depth*(2*sizeof(StrictJsonMember)+128));
     term(s.max_live_key_bytes,2*depth+2);
     if(collect_all_keys)term(s.total_keys,depth*(128+sizeof(std::string)));
-    // SplitArray and typed vectors can temporarily retain old+new geometrically
-    // grown buffers (3x logical elements). A zero typed size is scalar-only.
+    // SplitArray와 typed vector는 기하급수적 확장 중 기존·신규 buffer를 잠시 함께 보유할 수 있다.
+    // 논리 원소 수의 3배를 반영하며 typed 크기가 0이면 scalar만 계산한다.
     term(s.array_elements,3*sizeof(std::string));
     for(unsigned i=0;i<3;++i)term(s.array_elements,largest_typed_array_element);
-    // Four simultaneous decoded/copy owners with geometric string capacity;
-    // parser keys/raw strings are included in encoded string_bytes too.
+    // 기하급수적 문자열 capacity를 포함해 decoded·copy 소유자 네 개가 동시에 존재한다.
+    // parser key·raw 문자열도 인코딩된 string_bytes에 포함된다.
     term(s.string_bytes,8);term(s.strings,64);
     term(json.size(),raw_copy_layers);
     return total;

@@ -1,5 +1,5 @@
 """합성 자료로 검사기의 거부 조건만 시험한다. 이 자료는 실제 제품 증거가 아니다."""
-import copy
+import copy  # 파일 용도: 합성 입력으로 재적격성 검사기의 거부 조건을 검사하며 실제 제품 증거로 사용하지 않는다.
 import json
 import os
 from pathlib import Path

@@ -1,4 +1,4 @@
-// R116: 실제 FileSourceWorker/SharedStream/managed writer의 유한 연속성 대조.
+// 파일 용도: R116의 실제 FileSourceWorker·SharedStream·managed writer 연속성을 한정된 범위에서 대조한다.
 // 기존 writer fixture/독립 AU oracle을 재사용하며 기본 설정을 읽지 않는다.
 #define main managed_writer_existing_main
 #include "recording_managed_writer_smoke.cpp"
@@ -77,7 +77,7 @@ auto SourceCase(const std::filesystem::path& root,const std::filesystem::path& i
  }catch(const std::exception& e){std::lock_guard lock(mu);worker_error=e.what();resume=true;cv.notify_all();}}),"recorder-add");
  Need(stream->StartSource(core::CreateSourceWorker(stream->source_spec()),&error),"source-start");
  {std::unique_lock lock(mu);Need(cv.wait_for(lock,std::chrono::seconds(15),[&]{return !worker_error.empty()||(entered&&peer.size()>=(overloaded?310U:120U));}),"peer-progress-deadline");Need(worker_error.empty(),"callback-error");}
- // Source stop does not depend on the blocked Recorder callback; peer kept consuming.
+ // source 중지는 멈춘 Recorder callback에 의존하지 않으며 peer는 계속 소비했다.
  stream->StopSource();const auto dropped=stream->DroppedPacketCount("recorder");const auto peerDrop=stream->DroppedPacketCount("peer");
  {std::lock_guard lock(mu);resume=true;}cv.notify_all();stream->RemoveSubscriber("recorder");stream->RemoveSubscriber("peer");writer.Stop();
  Need(worker_error.empty(),"worker-clean");Need(peerDrop==0,"peer-not-starved");Need(delivered.size()+dropped==peer.size(),"queue-accounting");

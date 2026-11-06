@@ -58,9 +58,9 @@ public:
         return ok&&part==parts_&&bytes==encoded_&&(encoded||(!state&&decoded==decoded_));
     }
 };
-// Only an exact canonical key at the requested object depth can select the field.
-// The normal strict parser still validates all remaining bytes, duplicate keys,
-// value types and domain/canonical constraints. No other JSON value is elided.
+// 요청한 객체 깊이에서 canonical key가 정확히 일치할 때만 해당 필드를 선택한다.
+// 기존 strict parser는 나머지 모든 바이트·중복 key·값 유형을 계속 검증한다.
+// domain·canonical 제약도 유지하며 다른 JSON 값은 생략하지 않는다.
 class RecordingEventReasonSplitter {
     SearchModelResidency::Reservation compact_memory_;
     std::shared_ptr<RecordingScratchResidency> resources_;

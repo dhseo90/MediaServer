@@ -130,8 +130,8 @@ void InferenceScope(recording::RecordingRuntimeStorage& runtime,recording::Recor
             for(const auto& p:input.packets)writer.Push(p,0);writer.Stop();
             return std::chrono::duration<double,std::milli>(Clock::now()-begin).count();};
         for(unsigned round=0;round<5;++round){
-            // 0/1 isolate the scope boundary; 2/3 have no injected delay;
-            // 4 holds Catalog to check completion without reverse acquisition.
+            // 0·1은 scope 경계를 분리하고 2·3에는 지연을 주입하지 않는다.
+            // 4는 Catalog를 보유하여 역순 획득 없이 완료되는지 확인한다.
             PrepareGate gate;prepare_gate=&gate;
             struct Release {PrepareGate& gate;Service& service;bool completed=false;~Release(){gate.Release();if(!completed)service.Stop();ingress::visual_image_prepare_test_hook=nullptr;}} release{gate,service};
             const auto generation=ingress::VisualSearchPublicationTestProbe::Generation(service);
@@ -171,15 +171,15 @@ void InferenceScope(recording::RecordingRuntimeStorage& runtime,recording::Recor
             std::cout<<"[scope-round] {\"round\":"<<round<<",\"controlled\":"<<(controlled?"true":"false")<<",\"catalogHeld\":"<<(round==4?"true":"false")<<",\"visualMs\":["<<ams<<","<<bms
                 <<"],\"structuredMs\":"<<sms<<",\"writerMs\":"<<writer_ms<<",\"concurrentWriterMs\":"<<concurrent_writer_ms<<",\"requestBatchMs\":"<<request_batch_ms<<",\"readyMs\":"<<std::chrono::duration<double,std::milli>(Clock::now()-batch).count()<<"}"<<std::endl;
             observe("published");
-            // Disarm emergency Stop only after the background callback has returned.
+            // background callback이 반환한 뒤에만 비상 Stop을 해제한다.
             release.completed=true;
         }
         service.Stop();Check(service.Search(query,authorize).status==503,"scope stopped service rejects request");
     }
     Check(runtime.Finish(nullptr),"scope storage Finish");
     Check(scratch->usage().disk_bytes==0&&scratch->usage().file_descriptors==0&&scratch->ReaderCleanupHealthy(),"scope Finish returns Scratch/FD");
-    // Catalog still owns its bounded metadata here. The existing trace is owned
-    // before runtime in main; its final record verifies RAM after destruction.
+    // 여기서는 Catalog가 제한된 metadata를 계속 소유한다. 기존 trace는 main에서 runtime보다
+    // 먼저 소유하며 마지막 record가 소멸 뒤 RAM을 검증한다.
     Check(trace.Emit("finished-live-catalog"),"scope final resource trace");
     struct rusage cpu{};Check(getrusage(RUSAGE_SELF,&cpu)==0,"scope CPU observation");
     std::cout<<"[scope-cpu-ms] "<<(cpu.ru_utime.tv_sec+cpu.ru_stime.tv_sec)*1000.0+(cpu.ru_utime.tv_usec+cpu.ru_stime.tv_usec)/1000.0<<std::endl;

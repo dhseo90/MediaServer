@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """새 실행만 수집하는 Writer 측정 도구. 공식 State 실행기와 연결하지 않는다."""
-import json
+import json  # 파일 용도: 새 Writer 실행의 측정만 수집하며 공식 State 실행기와 연결하지 않는다.
 import os
 from pathlib import Path
 import shutil

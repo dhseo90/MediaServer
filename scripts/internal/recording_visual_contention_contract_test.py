@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """R101 collector/result rejection cases; synthetic events are not product runs."""
-import copy,json,unittest,pathlib
+import copy,json,unittest,pathlib  # 파일 용도: 합성 event로 R101 collector·결과 거부 조건을 검사하며 제품 실행과 구분한다.
 from recording_visual_contention_contract import validate_output
 
 def fixture():

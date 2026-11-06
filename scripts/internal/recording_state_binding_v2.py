@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """승인된 격리 State45 v2 결속. v1 고정 증거와 성능 Gate는 변경하지 않는다."""
-import json
+import json  # 파일 용도: 승인된 격리 State45 v2 결속을 검사하며 v1 고정 증거와 성능 gate는 유지한다.
 import os
 from pathlib import Path
 import subprocess

@@ -1,5 +1,5 @@
 #pragma once
-// Internal direct-HTTP fixture only. EOF is a receive boundary, not proof of a valid body.
+// 파일 용도: 내부 direct-HTTP fixture 전용이며 EOF는 수신 경계일 뿐 body 유효성 증명이 아니다.
 #include <chrono>
 #include <cstdint>
 #include <cstdio>
@@ -17,7 +17,7 @@ struct HttpObservation {
  std::size_t bytes=0;int status=0,error=0;bool headers=false;const char* failure="none";
  std::uint64_t headerNs=0,receiveEndNs=0,validationEndNs=0,bindingEndNs=0,outputEndNs=0;
  std::uint64_t bindingNs=0;std::size_t bindingCalls=0;
- // Scalar marks only; JSON serialization happens after the legacy endNs capture.
+ // scalar 시점만 표시하며 JSON 직렬화는 기존 endNs capture 뒤에 수행한다.
  static void Mark(std::uint64_t& field){field=HttpNowNs();}
  void BindingComplete(std::uint64_t started){bindingEndNs=HttpNowNs();bindingNs+=bindingEndNs-started;++bindingCalls;}
  static std::string Stamp(std::uint64_t n){return n?std::to_string(n):"null";}

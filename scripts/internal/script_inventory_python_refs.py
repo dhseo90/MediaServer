@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """파일 실행 없이 제공된 추적 텍스트에서 동일 디렉터리 Python import를 결속한다."""
-import ast
+import ast  # 파일 용도: 파일 실행 없이 추적 텍스트의 Python import 참조와 출력 문맥을 분석한다.
 import json
 import io
 import tokenize

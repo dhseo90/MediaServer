@@ -1,6 +1,21 @@
-import unittest,json,copy
+import unittest,json,copy,gzip,hashlib  # 파일 용도: 녹화 HTTP 비용 수집기의 요청 귀속·순서·손실·스트리밍 종료 계약을 검증한다.
 from pathlib import Path
 import recording_http_cost_run as m
+
+# CC-SUC10~12: 원래 R153 바이트와 주석 수정본의 현재 해시를 별도로 검증한다.
+def r153_versions():
+ root=Path(__file__).resolve().parents[2]
+ packed=(root/'test/fixtures/recording_producers_historical_v1.json.gz').read_bytes()
+ if hashlib.sha256(packed).hexdigest()!='157399552f6c83de2dd5aca554c7d96990993be6ffff6e4b0330b22e20d4ab67':raise ValueError('historical-fixture-hash')
+ manifest=(root/'test/fixtures/recording_comment_successor_v1.json').read_bytes()
+ if hashlib.sha256(manifest).hexdigest()!='0bb14af972b185d9b2389e2ee8e7fd2c5d4871730d9580e95e602b4ebc7b2091':raise ValueError('successor-manifest-hash')
+ name='scripts/internal/recording_accumulated_http_smoke.cpp'
+ old=json.loads(gzip.decompress(packed))['files'][name].encode()
+ return old,(root/name).read_bytes(),json.loads(manifest)['files'][name]
+def r153_successor(old,current,entry):
+ if hashlib.sha256(old).hexdigest()!=entry['historicalSha256']:raise ValueError('historical-r153-drift')
+ if hashlib.sha256(current).hexdigest()!=entry['currentSha256'] or len(current)!=entry['currentBytes']:raise ValueError('current-r153-drift')
+
 class Contract(unittest.TestCase):
  def valid(self):
   rows=[];events=[]
@@ -37,7 +52,14 @@ class Contract(unittest.TestCase):
  def test_loss_marker(self):
   with self.assertRaises(ValueError):m.qualify_trace(['[R154-loss]'],[])
  def test_r153_unchanged(self):
-  self.assertEqual(m.base.digest(m.REPO/'scripts/internal/recording_accumulated_http_smoke.cpp'),'ecae596fe880552eeead576097a0bfd098fdf5bc8b9c990cdc4a28d01c170955')
+  self.assertEqual(hashlib.sha256(r153_versions()[0]).hexdigest(),'ecae596fe880552eeead576097a0bfd098fdf5bc8b9c990cdc4a28d01c170955')
+ def test_r153_current_comment_successor(self):r153_successor(*r153_versions())
+ def test_r153_current_drift_rejected(self):
+  old,current,entry=r153_versions()
+  with self.assertRaisesRegex(ValueError,'current-r153-drift'):r153_successor(old,current+b'\n',entry)
+ def test_r153_historical_drift_rejected(self):
+  old,current,entry=r153_versions()
+  with self.assertRaisesRegex(ValueError,'historical-r153-drift'):r153_successor(old+b'\n',current,entry)
  def test_missing_phase(self):self.bad(lambda r,e:r[2][1].update(phases=[]))
  def test_missing_source(self):self.bad(lambda r,e:r[2][1].update(sources=[]))
  def test_bad_source(self):self.bad(lambda r,e:r[2][1].update(sources=[None]))
@@ -51,7 +73,7 @@ class Streaming(unittest.TestCase):
  valid=Contract.valid
  def test_live_parallel_order(self):
   rows,_=self.valid();live=m.LiveTrace()
-  # Search precedes Server, and parallel requests complete in reverse ID order.
+  # Search가 Server보다 먼저 도착하고 병렬 요청은 ID 역순으로 완료된다.
   for k,r in sorted(rows,key=lambda v:(-v[1]['id'],v[0]!='search')):
    live(('[R154-'+k+'] '+json.dumps(r)).encode(),{'line':1})
   self.assertIsNone(live.first)
@@ -104,7 +126,7 @@ class Streaming(unittest.TestCase):
     (root/'seed').write_text(script);(root/'seed').chmod(0o700)
     (root/'build-binding.json').write_text(json.dumps(dict(products={},sources={},binaries={},dependencies={})))
     live=m.LiveTrace();start=time.monotonic()
-    # Binding stubs concern the synthetic child only. Collector/selector/signals are real.
+    # 결속 stub은 합성 자식에만 적용하며 collector·selector·signal은 실제 구현을 사용한다.
     real_killpg=os.killpg;injected=[]
     def killpg(pid,sig):
      if name=='cleanup-error' and sig and not injected:

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """격리 guard를 실제 writer 바이너리에서 검증한다. 기본 설정 반례는 가짜 HOME/CWD만 사용."""
-import hashlib
+import hashlib  # 파일 용도: 실제 writer의 격리 guard를 검증하며 기본 설정 반례는 별도 HOME·CWD에서 수행한다.
 import json
 import os
 import pathlib
@@ -46,7 +46,7 @@ for case in ['missing', 'source-only', 'views-only', 'relative', 'outside', 'sym
         try: environment(root)
         except ValueError: pass
         else: raise AssertionError('helper accepted non-directory cache')
-    # Bypass the helper deliberately: guard must run before any registry/config singleton.
+    # helper를 의도적으로 거치지 않아도 registry·config singleton보다 guard가 먼저 실행돼야 한다.
     result = subprocess.run([str(binary), str(root)], cwd=root, env=env, capture_output=True, timeout=30)
     output = result.stdout + result.stderr
     assert len(output) <= 4194304

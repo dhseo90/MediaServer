@@ -66,8 +66,8 @@ public:
         const std::string& channel_id, const std::string& segment_id, MediaInspectionOptions options = {}) const;
 private:
     friend class RecordingSearchReader;
-    // V2-only preparation: one acquired hold owns the file through inspection and response.
-    // No legacy/fallback discovery; AcquireMediaWithContext enforces namespace/current state.
+    // V2 전용 준비이며 획득한 hold 하나가 검사와 응답이 끝날 때까지 파일을 소유한다.
+    // legacy·fallback 탐색 없이 AcquireMediaWithContext가 namespace와 현재 상태를 강제한다.
     std::unique_ptr<ResolvedRecordingMedia> ResolveOriginalMediaV2(const std::string&,const std::string&,
         RecordingSegmentV2*,std::pair<std::filesystem::path,std::filesystem::path>*,std::string*,MediaInspectionOptions) const;
     bool RevalidateCompactPreparedMedia(const ResolvedRecordingMedia&,const RecordingSegmentV2&,

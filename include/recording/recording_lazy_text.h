@@ -40,8 +40,8 @@ public:
     void Bind(std::shared_ptr<const RecordingTextSource> source){text_.clear();source_=std::move(source);}
     const std::shared_ptr<const RecordingTextSource>& source()const{return source_;}
     bool Visit(const RecordingTextSink& sink,std::string* error)const{
-        // The callback may release its DTO. This in-flight reader owns the backing
-        // independently until the final chunk/exception has returned.
+        // Callback이 DTO를 해제할 수 있으므로 진행 중인 reader는 backing을 독립 소유한다.
+        // 이 소유권은 마지막 chunk 처리 또는 예외로 호출이 끝날 때까지 유지된다.
         const auto source=source_;
         return source?source->Visit(sink,false,error):sink(text_,error);
     }

@@ -2,14 +2,14 @@
 """R140 test-only byte envelope. No product execution; unknown != zero.
 The uint64/registry envelope is deliberately NOT a reachable workload model.
 """
-import hashlib, json, pathlib
+import hashlib, json, pathlib  # 파일 용도: 고정 진단 schema의 출력 크기와 로그 예산을 제품 실행 없이 계산한다.
 ROOT = pathlib.Path(__file__).resolve().parents[2]
 U64 = 2**64-1
 NAMES = 'unattributed model sourceBatch retryBatch sourceCut preparation matches page response preparedNative retainedRaw catalogRow scratch'.split()
 def wire(row):
     return ('[memory-attribution] '+json.dumps(row,separators=(',',':'))+'\n').encode()
 def envelope(n, models, pools, events, phase='after-storage-destruction'):
-    # Same keys, array widths and scalar types as Emit; not conservation-valid state.
+    # Emit과 같은 key·array 폭·scalar 유형이며 보존 법칙을 만족하는 상태를 뜻하지 않는다.
     return dict(pid=2147483647,phase=phase,sampleStartNs=n,ownerCapturedNs=n,rolesCapturedNs=n,processCapturedNs=n,
         rssBytes=min(n,2**63-1),footprintBytes=min(n,2**63-1),residencyUsed=n,attributedSearchBytes=n,unattributedSearchBytes=n,
         valid=False,loss=False,tickets={k:[n,n] for k in NAMES},
@@ -18,7 +18,7 @@ def envelope(n, models, pools, events, phase='after-storage-destruction'):
         models=[[n,n,n,n,False,n,False] for _ in range(models)],snapshotPools=[[n]*9+[False] for _ in range(pools)],
         live=[n]*14,peak=[n]*14,totals=[n]*20,recentEvents=[[n]*6 for _ in range(events)],sampleEndNs=n)
 def component_bytes(row):
-    # Disjoint bytes: top-level field names/value/separators plus prefix/braces/newline.
+    # 최상위 필드명·값·구분자와 prefix·중괄호·개행 바이트를 겹치지 않게 계산한다.
     parts={};keys=list(row)
     for i,k in enumerate(keys):
         parts[k]=len((json.dumps(k)+':'+json.dumps(row[k],separators=(',',':'))+(',' if i<len(keys)-1 else '')).encode())

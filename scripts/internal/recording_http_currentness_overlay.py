@@ -1,5 +1,5 @@
 """R156 fail-closed literal transformations; no tracked product mutations."""
-from recording_http_cost_overlay import replace
+from recording_http_cost_overlay import replace  # 파일 용도: R156 currentness 계측 사본을 정확한 치환으로 생성하며 추적 제품 source는 변경하지 않는다.
 
 def search(s):
     s=replace(s,'std::string Take()&&{return std::move(value_);}', 'std::string Take()&&{r156::Phase take(r156::JsonTake);r156::Count(r156::ResponseBytes,value_.size());return std::move(value_);}')
@@ -15,7 +15,7 @@ def search(s):
     s=replace(s,'            if(!first)json.Raw(",");first=false;', '            r156::Count(r156::Items);r156::Phase item_cost(r156::ItemSerialization);if(!first)json.Raw(",");first=false;')
     s=replace(s,'catalog_.IsDeletedSegmentId(target)?"deleted"', 'r156::Eval(r156::DeletedState,[&]{r156::Count(r156::DeletedQueries);return catalog_.IsDeletedSegmentId(target);})?"deleted"')
     s=replace(s,'        json.Raw("],\\"appliedQuery', '        r156::Phase tail_cost(r156::ResponseTail);json.Raw("],\\"appliedQuery')
-    # Exact last authorization only; early auth retains original semantics.
+    # 정확히 마지막 권한 확인만 계측하며 앞선 권한 확인의 의미는 유지한다.
     s=replace(s,'        if(!Authorized(query,authorize))return Error(403,"recording-channel-forbidden");\n        diagnostic.status=200;', '        tail_cost.End();if(!r156::Eval(r156::AuthorizationRecheck,[&]{return Authorized(query,authorize);}))return Error(403,"recording-channel-forbidden");\n        currentness.record.complete=true;diagnostic.status=200;')
     return s
 
@@ -49,7 +49,7 @@ def focused(native, original, instrumented):
     def json_class(s):return s[s.index('class SearchJson {'):s.index('\nstd::string Url(')]
     prefix='#include "recording_http_currentness_probe.h"\n#include <optional>\n#include <string_view>\n#include <vector>\n'
     prefix+='namespace original156 { '+json_class(original)+' }\nnamespace instrumented156 { '+json_class(instrumented)+' }\n'
-    # The exact production availability lambda with this reader; no mock media success.
+    # 이 reader를 사용하는 실제 제품 availability lambda이며 media 성공을 mock하지 않는다.
     a=instrumented.index('        std::map<std::string,bool> availability;')
     b=instrumented.index('        r156::Phase init_cost',a)
     availability=instrumented[a:b]

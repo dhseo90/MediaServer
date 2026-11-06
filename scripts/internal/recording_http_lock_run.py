@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """R159 opt-in wrapper around unchanged R157 workload and bounds."""
-import argparse,json,hashlib
+import argparse,json,hashlib  # 파일 용도: 기존 R157 workload·한도를 유지하면서 R159 선택 계측을 실행·수집한다.
 from pathlib import Path
 import recording_http_cost_run as cost
 import recording_http_lock as locks

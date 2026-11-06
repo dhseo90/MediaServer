@@ -16,8 +16,8 @@
 
 namespace recording {
 namespace {
-// Narrow verification record, emitted only after the Catalog lock is released.
-// Counts are per capture, not the whole HTTP request or a CPU-time estimate.
+// 한정된 검증 기록이며 Catalog lock을 해제한 뒤에만 출력한다.
+// 개수는 capture별 값이며 전체 HTTP 요청이나 추정 CPU 시간을 뜻하지 않는다.
 struct OptionalCaptureCapacity {};
 struct CaptureCost {
     bool attribution=(latency::SearchAttributionEnabled()||SearchDiagnostic::Enabled())&&SearchDiagnostic::active;
@@ -136,8 +136,8 @@ bool RecordingCatalog::ValidateSearchSource(const SearchSourceBatch& batch, std:
     return true;
 }
 
-// Publication and runtime Finish serialize through Catalog. The successful
-// pointer exchange allocates nothing; displaced models release after unlocking.
+// Publication과 runtime Finish는 Catalog를 통해 직렬화된다. 성공한 포인터
+// 교환은 할당하지 않으며 교체된 model은 unlock 뒤에 해제한다.
 void RecordingCatalog::StopSearchPublication() {
     latency::Lock lock(mu_,latency::Source::Catalog,__LINE__,false,__func__);
     source_snapshot_revision_valid_=false;
@@ -159,10 +159,10 @@ bool RecordingCatalog::PublishSearchMembership(const SearchSourceBatch& batch,
                 if(!memory)return Fail(error,"search-source-changed");
                 certified=!search_invalidations_->Cover(batch.membership_epoch_,batch.resolution_revision,
                     source_snapshot_revision_,&tail,&count);
-                // The requested scope passed currentness under this same lock.
-                // An unrelated channel's barrier invalidates the optional global
-                // certificate, not this fully authenticated immutable model.
-                // Without coverage the next request must capture strictly again.
+                // 요청 scope는 같은 lock 안에서 currentness 검사를 통과했다.
+                // 무관한 channel의 barrier는 선택적 전역 certificate를 무효화할 뿐,
+                // 완전히 인증한 이 불변 model을 무효화하지 않는다.
+                // coverage가 없으면 다음 요청은 다시 strict capture를 수행해야 한다.
                 for(std::size_t i=0;certified&&i<count;++i)
                     if(std::find(batch.channels.begin(),batch.channels.end(),tail[i].channel)!=batch.channels.end())
                         return Fail(error,"search-source-changed");
@@ -182,9 +182,9 @@ bool RecordingCatalog::RebaseRetentionSearchSource(SearchSourceBatch* batch,Sear
     struct Count {bool& applied;~Count(){++search_retention_delta_work_test[applied?1:2];}} count{applied};
 #endif
     const auto refused=[&]{return Fail(error,"search-source-changed");};
-    // Only the reader's complete, private, recordings-only capture can advance.
-    // Published models, observation resolution and shared document blocks remain
-    // immutable and take the existing recapture path.
+    // reader가 비공개로 소유한 완전한 recordings-only capture만 앞으로 진행할 수 있다.
+    // 공개된 model·observation resolution·공유 document block은 불변으로 유지하며
+    // 기존 recapture 경로를 따른다.
     if(!batch||!batch->rebuild||!batch->pending.empty()||!batch->shared_documents_.empty()||
        batch->sharing_memory_.bytes()||batch->retry_model_||!batch->delta.removed_ids.empty()||
        batch->delta.source_instance.rfind("recordings:",0)!=0||!limits.residency||
@@ -196,8 +196,8 @@ bool RecordingCatalog::RebaseRetentionSearchSource(SearchSourceBatch* batch,Sear
            recovery_report_.projection_error_count||recovery_report_.corrupt_line_count||
            batch->catalog_instance!=search_instance_||!search_invalidations_||
            batch->resolution_revision<search_invalidations_->floor||batch->resolution_revision>source_snapshot_revision_)return refused();
-        // Reuse the fixed invalidation ring; no persistent delta owner/log.
-        // At most 32 distinct short identities, otherwise strictly recapture.
+        // 고정 invalidation ring을 재사용하며 영속 delta 소유자나 log를 두지 않는다.
+        // 서로 다른 짧은 identity를 최대 32개만 허용하며 초과하면 strict recapture를 한다.
         std::array<SearchInvalidations::Entry,32> changes{};std::size_t count_changes=0;
         const auto id=[](const auto& entry){return entry.channel+std::strlen(entry.channel)+1;};
         for(const auto& entry:search_invalidations_->entries) {
@@ -215,7 +215,7 @@ bool RecordingCatalog::RebaseRetentionSearchSource(SearchSourceBatch* batch,Sear
             const auto retired=RetiredLocked(key);
             const auto tomb=tombstones_v2_.find(key);
             if(change.retention==2) {
-                // Same authenticated receipt/domain used by full source capture.
+                // 전체 source capture와 동일한 인증된 receipt·domain을 사용한다.
                 if(retired){if(retired->channel_id!=change.channel)return refused();}
                 else if(tomb==tombstones_v2_.end()||tomb->second.segment.channel_id!=change.channel)return refused();
             } else {
@@ -226,11 +226,11 @@ bool RecordingCatalog::RebaseRetentionSearchSource(SearchSourceBatch* batch,Sear
             }
         }
         const auto revision=source_snapshot_revision_;
-        // Preserve optional retry proofs only within the same capture envelope.
-        // A later Finalize may invalidate Build even after this rebase succeeds.
+        // 선택적 retry 증명은 동일한 capture envelope 안에서만 유지한다.
+        // 이번 rebase가 성공해도 이후 Finalize가 Build를 무효화할 수 있다.
         {
-            // Document scanning/compaction never extends Catalog/History lock
-            // hold time. Owned change identities survive ring wrap while unlocked.
+            // 문서 순회·압축은 Catalog/History lock 보유 시간을 늘리지 않는다.
+            // 소유한 변경 identity는 unlock 중 ring이 순환해도 유지된다.
             latency::Lock::Unlocked outside(lock);
             auto& docs=batch->delta.upserts;
             const auto change_for=[&](const SearchDocument& d)->std::size_t {
@@ -248,8 +248,8 @@ bool RecordingCatalog::RebaseRetentionSearchSource(SearchSourceBatch* batch,Sear
                         d.unavailable_reason.capacity()<std::strlen("deletion-pending"))return refused();
             }
             for(std::size_t i=0;i<count_changes;++i)if(!seen[i])return refused();
-            // Both vector buffers fit the already admitted capture envelope.
-            // Exact compaction releases removed payload and slack before Build.
+            // 두 vector buffer 모두 이미 허용된 capture envelope 안에 들어간다.
+            // 정확한 압축으로 제거된 payload와 여유 공간을 Build 전에 해제한다.
             const auto extra=docs.capacity()-docs.size()+(removed?docs.size()-removed:0);
             if(bytes>limits.max_bytes||extra>(limits.max_bytes-bytes)/sizeof(SearchDocument))return refused();
             std::size_t span_bytes=0;
@@ -271,9 +271,9 @@ bool RecordingCatalog::RebaseRetentionSearchSource(SearchSourceBatch* batch,Sear
 #endif
             }
             if(removed)docs.swap(compact);
-            // Compaction preserves segment grouping. Rebuild offsets without
-            // allocating; digests still describe the captured immutable Raw.
-            // Deleted spans disappear; pending spans carry the proven lifecycle.
+            // 압축은 segment grouping을 유지한다. 할당 없이 offset을 재구축하며
+            // digest는 계속 capture한 불변 Raw를 나타낸다.
+            // 삭제된 span은 사라지고 pending span은 입증된 lifecycle을 전달한다.
             for(auto it=batch->segment_spans_.begin();it!=batch->segment_spans_.end();) {
                 std::size_t at=0;for(;at<count_changes;++at)if(it->first==id(changes[at]))break;
                 if(at<count_changes&&changes[at].retention==2){it=batch->segment_spans_.erase(it);continue;}
@@ -291,9 +291,9 @@ bool RecordingCatalog::RebaseRetentionSearchSource(SearchSourceBatch* batch,Sear
             }
             batch->retry_model_.reset();batch->append_order_hint=false;
             batch->resolution_revision=revision;batch->delta.revision=revision;
-            // Existing strict retention rebase proves current query contents,
-            // not the global bound-Finalize interval. Keep its result usable but
-            // withhold the optional membership certificate for subsequent reuse.
+            // 기존 strict retention rebase는 현재 query 내용을 입증하며 전역 bound-Finalize
+            // 구간을 입증하지 않는다. 해당 결과는 계속 사용할 수 있지만 이후 재사용을 위한
+            // 선택적 membership certificate는 부여하지 않는다.
             batch->membership_epoch_=0;
         }
         if(!opened_||!CanReadLocked(error)||batch->catalog_instance!=search_instance_||!source_snapshot_revision_valid_||
@@ -316,8 +316,8 @@ bool RecordingCatalog::CaptureSearchSource(const std::vector<std::string>& chann
 bool RecordingCatalog::CaptureSearchSourceImpl(const std::vector<std::string>& channels,
     const RecordingSearchModel* previous, SearchSourceBatch* result, std::string* error, SearchModelLimits limits, bool include_observations, SearchSourceBatch* retry_capture,bool allow_raw_cut,bool allow_document_sharing) const {
     if (!result || result==retry_capture || channels.empty() || channels.size() > 32) return Fail(error, "search-invalid-channels");
-    // Consume the prior attempt once, including exceptions/partial moves. It
-    // cannot be offered again after an interrupted current namespace traversal.
+    // 예외·부분 move를 포함해 이전 시도를 한 번만 소비한다. 현재 namespace 순회가
+    // 중단된 뒤에는 그 시도를 다시 제공할 수 없다.
     SearchSourceBatch prior_capture;
     if(retry_capture)prior_capture=std::move(*retry_capture);
     for (const auto& channel : channels)
@@ -374,7 +374,7 @@ bool RecordingCatalog::CaptureSearchSourceImpl(const std::vector<std::string>& c
             return std::find(channels.begin(), channels.end(), channel) != channels.end();
         };
         batch.membership_epoch_=search_invalidations_->membership_epoch;
-        // Copied proof is Owner-accounted separately and never pins Raw or a model.
+        // 복사한 증명은 Owner 비용을 별도로 계산하며 Raw나 model을 pin하지 않는다.
         std::array<SearchInvalidations::Receipt,SearchInvalidations::receipt_capacity> receipts{};
         std::size_t receipt_count=0,selected_receipts=0;
         auto proof_memory=limits.residency->ReserveOwned(sizeof(receipts),SearchModelResidency::Category::Preparation);
@@ -412,8 +412,8 @@ bool RecordingCatalog::CaptureSearchSourceImpl(const std::vector<std::string>& c
         std::size_t bytes = sizeof(batch),span_bytes=0;
         bool remember_spans=remember,optional_vector=false;
         const RecordingSearchModel* shared_source=nullptr;
-        // Sharing is optional, scoped to append-only invalidations. Capacity for
-        // refs (including growth) is admitted before any document is omitted.
+        // 공유는 선택적이며 append-only invalidation 범위에 한정한다. 문서를 생략하기 전에
+        // 증가분을 포함한 reference 용량을 허용받아야 한다.
         if(allow_document_sharing&&!include_observations&&batch.append_order_hint&&previous&&
            previous->residency()==limits.residency&&
            !previous->shared_documents_.empty()&&limits.max_documents<=SIZE_MAX/(2*sizeof(std::shared_ptr<const SearchDocument>))) {
@@ -421,8 +421,8 @@ bool RecordingCatalog::CaptureSearchSourceImpl(const std::vector<std::string>& c
             if(limits.residency->used()<=limits.residency->limit()&&size<=limits.residency->limit()-limits.residency->used()) {
                 auto reservation=limits.residency->ReserveOwned(size,SearchModelResidency::Category::Preparation);
                 if(reservation){
-                    // Allocate once: arbitrary vector growth can exceed a 2N
-                    // transient envelope when max_documents is not a power of two.
+                    // 한 번만 할당한다. max_documents가 2의 거듭제곱이 아니면 임의의 vector 용량
+                    // 증가가 순간적으로 2N envelope를 넘을 수 있다.
                     try {batch.shared_documents_.reserve(limits.max_documents);}
                     catch(const std::bad_alloc&){}catch(const std::length_error&){}
                     if(batch.shared_documents_.capacity()!=limits.max_documents) {
@@ -438,8 +438,8 @@ bool RecordingCatalog::CaptureSearchSourceImpl(const std::vector<std::string>& c
         }
 
         membership_append=membership_append&&shared_source==previous;
-        // Local smoke diagnostics only: opt-in stderr, fixed cap; no API fields
-        // or path-selection switches. Selection is not publication success.
+        // 로컬 smoke 진단만 수행한다. 선택적 stderr와 고정 상한을 사용하며 API 필드나
+        // 경로 선택 스위치는 없다. 선택됐다는 사실이 publication 성공을 뜻하지 않는다.
         if(SearchDiagnostic::Enabled()&&SearchDiagnostic::active&&SearchDiagnostic::active->id) {
             static std::atomic<unsigned> reported{0};const auto number=reported.fetch_add(1);
             if(number<128) {
@@ -466,9 +466,9 @@ bool RecordingCatalog::CaptureSearchSourceImpl(const std::vector<std::string>& c
             return true;
         };
         const auto add = [&](SearchDocument d) {
-            // Validate/account once, then discard optional span ownership before
-            // allocating if it would displace a valid document. The previous
-            // implementation validated every field twice while spans existed.
+            // 한 번 검증·비용 계산한 뒤, 유효한 문서를 밀어내게 된다면 할당 전에 선택적 span
+            // 소유권을 버린다. 이전 구현은 span이 존재하는 동안 모든 필드를 두 번씩
+            // 검증했다.
             auto& documents=batch.delta.upserts;
             search_capacity_diagnostic.documents=documents.size();
             search_capacity_diagnostic.capacity=documents.capacity();
@@ -543,13 +543,13 @@ bool RecordingCatalog::CaptureSearchSourceImpl(const std::vector<std::string>& c
                 d.time_provenance="legacy-segment";d.unavailable_reason=State(s.lifecycle);
                 if(!add(std::move(d)))return Fail(error,"search-capacity-exceeded");
             }
-            // The same Catalog cut protects the authenticated cursor and each
-            // charged row. Do not repeat root/chunk traversal for iterator++ or
-            // reacquire the segment merely to prove the presence just observed.
-            // A bounded cut retains the already authenticated raw rows by move.
-            // No history clone or second raw copy; each row releases its 64KiB
-            // read workspace before retention. If the optional cut cannot fit,
-            // use the original locked traversal and its unchanged admission.
+            // 동일한 Catalog cut이 인증된 cursor와 비용을 계산한 각 row를 보호한다.
+            // iterator++마다 root·chunk 순회를 반복하거나 방금 관측한 존재를 다시 입증하려고
+            // segment를 재획득하지 않는다.
+            // 제한된 cut은 이미 인증한 raw row를 move로 유지한다.
+            // history clone이나 두 번째 raw 사본은 없으며 각 row는 보관하기 전에 자신의
+            // 64KiB 읽기 workspace를 해제한다. 선택적 cut이 한도에 들어오지 않으면
+            // 기존 lock 안의 순회와 변경 없는 admission 조건을 사용한다.
             struct CutRow {SearchModelResidency::Reservation key_memory;std::string id;RecordingColdRow raw;RecordingLifecycle lifecycle;};
             SearchModelResidency::Reservation cut_memory;
             memory_diagnostic::Gauge diagnostic_cut_rows(memory_diagnostic::SourceCutRows);
@@ -575,8 +575,8 @@ bool RecordingCatalog::CaptureSearchSourceImpl(const std::vector<std::string>& c
 #ifdef RECORDING_SEARCH_TESTING
                                 ++search_projection_work_test[0];
 #endif
-                                // Key/control storage is charged independently of raw workspace.
-                                // Row workspace is already larger than raw + bounded ID.
+                                // key·control 저장 공간은 raw workspace와 별도로 비용을 계산한다.
+                                // row workspace는 이미 raw와 제한된 ID를 합한 크기보다 크다.
                                 auto key_owner=row.memory.Split(key);
                                 auto owned=row.memory.Split(retained);
                                 key_owner.DiagnosticCategory(SearchModelResidency::Category::SourceCut);owned.DiagnosticCategory(SearchModelResidency::Category::SourceCut);
@@ -617,9 +617,9 @@ bool RecordingCatalog::CaptureSearchSourceImpl(const std::vector<std::string>& c
                     if(shared_source) {
                         auto old=shared_source->SharedDocument(document_id);
                         const auto known=m&&m->provenance!="unknown"&&m->utc_start_ns&&m->utc_end_ns&&*m->utc_start_ns<*m->utc_end_ns;
-                        // Compare the complete projection directly to the current
-                        // authenticated DTO and separately resolved lifecycle.
-                        // No SourceBinding acquisition or new authority boundary.
+                        // 완전한 projection을 현재 인증된 DTO 및 별도로 판정한 lifecycle과
+                        // 직접 비교한다.
+                        // SourceBinding을 획득하거나 새 authority 경계를 만들지 않는다.
                         if(old&&old->kind==SearchDocumentKind::Recording&&old->id==document_id&&old->channel_id==s.channel_id&&old->segment_id==id&&
                            old->source_id==s.source_id&&old->store_id==s.store_id&&old->media_epoch_id==s.media_epoch_id&&old->stream_epoch_id==s.media_epoch_id&&
                            old->media_pts==std::optional<std::int64_t>(m?m->start_pts:s.media_start_pts)&&old->media_end_pts==(m?std::optional<std::int64_t>(m->end_pts):s.media_end_pts)&&
@@ -649,7 +649,7 @@ bool RecordingCatalog::CaptureSearchSourceImpl(const std::vector<std::string>& c
                 return remember_span(id,lifecycle,begin,shared_begin);
             };
             const auto excluded=[&](const auto& id){
-                // Channel exclusion never suppresses current lifecycle errors.
+                // channel 제외 조건이 현재 lifecycle 오류를 숨기지 않는다.
                 ++costs.rows;++costs.excluded;
 #ifdef RECORDING_SEARCH_TESTING
                 if(!detached&&segments_v2_.cold()&&!counted_current_raw)++search_projection_work_test[0];
@@ -675,13 +675,13 @@ bool RecordingCatalog::CaptureSearchSourceImpl(const std::vector<std::string>& c
                 const auto span=prior->second;
                 if(span.raw_bytes!=raw_size||span.digest!=raw_digest)return {};
                 const auto lifecycle=current_lifecycle(id);
-                // State is separate from segment raw. A changed lifecycle takes
-                // the strict path; deleted rows are never moved into the result.
+                // state는 segment raw와 별개다. lifecycle이 바뀌면 strict 경로를 사용하며
+                // 삭제된 row를 결과로 move하지 않는다.
                 if(lifecycle!=span.lifecycle)return {};
                 if(span.begin>prior_capture.delta.upserts.size()||span.count>prior_capture.delta.upserts.size()-span.begin)return {};
-                // The current raw row was authenticated above. Shared spans
-                // belong only to the consumed, unpublished pre-Build batch;
-                // never treat a model revision or an old DTO as that proof.
+                // 현재 raw row는 위에서 인증했다. 공유 span은 소비한 비공개 pre-Build batch에만
+                // 속하며 model revision이나 과거 DTO를
+                // 그 인증의 증거로 취급하지 않는다.
                 if(span.shared_count&&(!shared_source||span.shared_begin>prior_capture.shared_documents_.size()||
                    span.shared_count>prior_capture.shared_documents_.size()-span.shared_begin))return {};
                 const auto begin=batch.delta.upserts.size(),shared_begin=batch.shared_documents_.size();
@@ -713,9 +713,9 @@ bool RecordingCatalog::CaptureSearchSourceImpl(const std::vector<std::string>& c
                 }
                 for(std::size_t i=0;i<receipt_count&&complete;++i) {
                     if(!selected(receipts[i].channel))continue;
-                    // Every selected receipt reacquires current Raw and the
-                    // accepted binding envelope under Catalog. One cold row and
-                    // one binding are held while preparing outside Catalog.
+                    // 선택한 모든 receipt는 Catalog 안에서 현재 Raw와 허용된 binding envelope를
+                    // 다시 획득한다. Catalog 밖에서 준비하는 동안 cold row 하나와
+                    // binding 하나를 보유한다.
                     if(!CanReadLocked(error)||!source_snapshot_revision_valid_||batch.catalog_instance!=search_instance_||
                        SearchChangedLocked(channels,batch.resolution_revision,false))return Fail(error,"search-source-changed");
                     const std::string id=receipts[i].id;
@@ -745,13 +745,13 @@ bool RecordingCatalog::CaptureSearchSourceImpl(const std::vector<std::string>& c
 #ifdef RECORDING_SEARCH_TESTING
                 if(search_outside_raw_cut_test)search_outside_raw_cut_test();
 #endif
-                // All arrays include mappings plus codec metadata. This is only
-                // an upper allocation hint, never a parser or document count.
-                // It avoids repeatedly relocating the complete document vector.
+                // 모든 배열에 mapping과 codec metadata가 포함된다. 이는 할당 크기의 상한 힌트일 뿐
+                // parser 개수나 document 개수가 아니다.
+                // 전체 document vector를 반복해서 재배치하지 않도록 한다.
                 std::size_t hint=reuse?prior_capture.delta.upserts.size():batch.delta.upserts.size();
-                // A retry already owns an authenticated previous vector size.
-                // Use it only as an allocation hint; new/changed/deleted rows
-                // still take the identical complete raw/lifecycle checks below.
+                // retry는 이미 인증된 이전 vector 크기를 보유한다.
+                // 할당 힌트로만 사용하며 새 row·변경된 row·삭제된 row는 아래에서 동일한
+                // 전체 raw·lifecycle 검사를 계속 수행한다.
                 if(!reuse)for(const auto& row:cut){
                     const auto choice=view->RawChannelSelection(row.id,row.raw.bytes,channels);
                     if(choice&&!*choice)continue;
@@ -776,9 +776,9 @@ bool RecordingCatalog::CaptureSearchSourceImpl(const std::vector<std::string>& c
                     }
                 }
                 if(complete&&optional_vector){
-                    // Do not pass hint slack to BuildOwned's separate index
-                    // admission. Compact with both buffers charged by this batch;
-                    // if that cannot fit, unwind to the original streaming path.
+                    // 힌트의 여유 공간을 BuildOwned의 별도 index admission으로 넘기지 않는다.
+                    // 두 buffer 비용을 이 batch에 계산하며 압축한다. 한도를 충족하지 못하면
+                    // 정리한 뒤 기존 streaming 경로로 돌아간다.
                     auto& documents=batch.delta.upserts;
                     if(documents.capacity()>documents.size()){
                         if(bytes>limits.max_bytes||documents.capacity()>(limits.max_bytes-bytes)/sizeof(SearchDocument))
@@ -822,9 +822,9 @@ bool RecordingCatalog::CaptureSearchSourceImpl(const std::vector<std::string>& c
         return CaptureSearchSourceImpl(channels,previous,result,error,limits,include_observations,nullptr,false,allow_document_sharing&&!optional_sharing_owned);
     } catch(const RecordingResourceUnavailable&) {
         if(!optional_cut_owned&&!optional_sharing_owned)throw;
-        // All cut/batch owners and the Catalog lock have unwound. Optional
-        // retained raw must not turn streaming headroom into a new rejection.
-        // A partially consumed retry is discarded; one strict locked attempt.
+        // 모든 cut·batch 소유자와 Catalog lock의 정리가 끝났다. 선택적으로 보관한 raw가
+        // streaming 여유 공간을 차지해 새로운 거부를 일으키면 안 된다.
+        // 일부만 소비한 retry는 버리고 lock 안에서 strict 시도를 한 번 수행한다.
         prior_capture=SearchSourceBatch{};
 #ifdef RECORDING_SEARCH_TESTING
         if(optional_sharing_owned)++search_projection_work_test[3];

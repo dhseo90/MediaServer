@@ -117,8 +117,8 @@ bool ReceiptFromTombstone(const RecordingTombstoneV2& tombstone,const std::strin
 }
 bool CompactLegacyRetired(RecordingCatalogGenerationProjection& p,
     const RecordingIdentityChainResult& chain,std::string* error) {
-    // Ordinal cursor is oldest first. Erasing after the first accepted deletion avoids
-    // a second all-history identity/deletion map and preserves the original selection.
+    // ordinal cursor는 오래된 순서다. 첫 삭제 수락 뒤 제거하면 전체 history용 identity·삭제 map을
+    // 하나 더 만들지 않으면서 기존 선택 결과를 유지한다.
     const auto consume=[&](const RecordingIdentityFirstAcceptance& origin,std::string* detail) {
         if(origin.first_row.type!=RecordingMutationType::SegmentV2Deleted)return true;
         const auto& id=origin.first_row.entity_id;const auto tomb=p.tombstones_v2.find(id);
@@ -409,8 +409,8 @@ static bool BuildProjection(const std::filesystem::path& root,
             return entry.first_row.type!=RecordingMutationType::RecordingOrderReserved||Order(p,entry.mutation_id).has_value()||
                 Fail(detail,"projection missing reservation");
         },error))return false;
-        // Keep original full-format rows in a separate authenticated join scratch until all
-        // fields have arrived. Never discard a row based on its position in the stream.
+        // 모든 필드가 도착할 때까지 원래 전체 형식 row를 별도 인증 join 작업 공간에 보관한다.
+        // stream 내 위치를 근거로 row를 버리지 않는다.
         RecordingCatalogHistoryRows legacy;
         bool staging=p.nonresident_history&&enable_retired_v2;
         struct LegacyFinish {
@@ -427,9 +427,9 @@ static bool BuildProjection(const std::filesystem::path& root,
                 *error+=cleanup;
             }}}
         } legacy_finish{legacy,p,output,error,staging};
-        // Every canonical snapshot row consumes at least 32 bytes. Metadata needs one
-        // slot and ceil(value_bytes/chunk) payload slots; this is a representation bound,
-        // not a reuse of the source-byte admission as a disk-byte budget.
+        // canonical snapshot row마다 최소 32바이트를 사용한다. metadata slot 하나와
+        // ceil(value_bytes/chunk)개의 payload slot이 필요하며 이는 표현 방식의 상한이다.
+        // source 바이트 허용량을 disk 바이트 예산으로 재사용하는 것이 아니다.
         const auto legacy_slots=stream_admission/32*2+stream_admission/RecordingHistoryIndex::kValueBytes+1;
         if(staging&&!legacy.Create(error,legacy_slots))return false;
         const auto legacy_kind=[](const std::string& kind){return kind=="segment-v2"||kind=="state-v2"||kind=="tombstone-v2"||kind=="media-path"||kind=="deletion-reason";};
@@ -516,8 +516,8 @@ static bool BuildProjection(const std::filesystem::path& root,
                 return Fail(error,"projection streaming accepted-state type mismatch");
         }else for(const auto& row:snapshot.rows)if(!consume(row,error))return false;
         if(staging) {
-            // Oldest-first identity selection is identical to CompactLegacyRetired. The
-            // five-way join checks the original CrossMaps predicates before conversion.
+            // 오래된 순서의 identity 선택은 CompactLegacyRetired와 동일하다.
+            // 5방향 join은 변환 전에 기존 CrossMaps 조건을 검사한다.
             if(!VisitRecordingIdentityFirst(chain,[&](const auto& origin,std::string* detail){
                 if(origin.first_row.type!=RecordingMutationType::SegmentV2Deleted)return true;
                 const auto& id=origin.first_row.entity_id;
@@ -552,7 +552,7 @@ static bool BuildProjection(const std::filesystem::path& root,
             legacy_finish.Observe();
             legacy_finish.active=false;
             if(!legacy.Finish(error))return false;
-            // Source rows precede completion of the join; materialize only surviving active sources.
+            // source row가 join 완료보다 먼저 도착하므로 살아남은 active source만 구체화한다.
             if(!p.completed_history->Visit("source-binding",[&](const auto& id,const auto& bytes,std::string* detail){
                 if(!p.segments_v2.count(id)||Lifecycle(p,id)==RecordingLifecycle::Deleted)return true;
                 RecordingCatalogSourceSummary value;if(!ParseRecordingCatalogSourceSummary(bytes,&value,detail))return false;

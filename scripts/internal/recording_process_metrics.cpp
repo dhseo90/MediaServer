@@ -70,7 +70,7 @@ bool CompleteFdRead(int bytes, std::size_t capacity, std::size_t entry) {
 std::string FdExhaustionError(unsigned capacity, unsigned closed) {
     return "fd-observation-incomplete:capacity=" + std::to_string(capacity) + ":closed=" + std::to_string(closed);
 }
-// A failed round is diagnostic only. No partial cost is promoted to a sample.
+// 실패한 round는 진단에만 쓰며 일부 비용을 정상 sample로 승격하지 않는다.
 std::uint64_t ClockMs() { return std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count(); }
 struct FdFailure { int fd=-1, listedType=0, returned=0, error=0, nextType=-1; std::uint64_t at=0; };
 struct Observation {
@@ -89,7 +89,7 @@ struct TestRoundScope {
 inline std::function<void(unsigned)> after_fd_list;
 inline std::function<void(int)> before_fd_detail;
 inline std::function<void(int&,int&)> detail_result_override;
-// Tests alter only the identity returned after a real OS identity read.
+// test는 실제 OS identity를 읽은 다음 반환하는 identity만 바꾼다.
 inline std::function<void(std::string&)> identity_result_override;
 #endif
 struct Sample { std::string start; std::uint64_t rss{0}, threads{0}, fds{0};
@@ -162,9 +162,9 @@ Sample Collect(int pid, Observation* observation=nullptr) {
     bool previous_vnode_race=false;
     constexpr std::array<int,4> retry_start_ms{0,25,100,250};
     for (int attempt = 0; attempt < 4; ++attempt) {
-        // One shared attempt budget. Only a preceding vnode race delays this
-        // round; capacity retries never inherit a pending delay. These are
-        // absolute monotonic offsets, not cumulative sleeps.
+        // 하나의 공통 시도 예산을 사용한다. 앞선 vnode 경합만 이번 round를 지연시키며
+        // capacity retry는 대기 중인 지연을 이어받지 않는다. 이 값들은 누적 sleep이 아닌
+        // 절대 monotonic offset이다.
         if(previous_vnode_race){
             const auto target=retry_anchor+std::chrono::milliseconds(retry_start_ms[attempt]);
             if(RetryNow()<target)RetrySleepUntil(target);
@@ -195,8 +195,8 @@ Sample Collect(int pid, Observation* observation=nullptr) {
                 auto& last=diagnostic.failures[diagnostic.lastFailure];last.nextType=0;
                 for(std::size_t i=0;i<sample.fds;++i)if(static_cast<int>(entries[i].proc_fd)==last.fd){
                     last.nextType=entries[i].proc_fdtype;
-                    // Prioritize the raced slot, but still re-read the ENTIRE new
-                    // roster. Its FD number is not proof of object identity.
+                    // 경합한 slot을 먼저 검사하되 새 roster 전체를 다시 읽는다.
+                    // FD 번호만으로 객체 identity를 입증하지 않는다.
                     if(entries[i].proc_fdtype==PROX_FDTYPE_VNODE){std::swap(entries[0],entries[i]);}
                     break;
                 }
@@ -206,9 +206,9 @@ Sample Collect(int pid, Observation* observation=nullptr) {
 #endif
             sample.anonymousBytes=sample.anonymousAllocated=sample.anonymousFiles=0;
             bool raced=false;
-            // Each regular unlinked inode is counted once; these bytes are absent from root traversal.
+            // unlink된 일반 inode는 각각 한 번만 세며 이 바이트들은 root 순회에서 보이지 않는다.
             std::vector<ObservedFile> seen;
-            // The roster and identity buffer share the existing8MiB ceiling.
+            // roster와 identity buffer는 기존 8MiB 상한을 공유한다.
             if(capacity>max_bytes-sizeof(Observation))throw std::runtime_error("fd-capacity-limit");
             const auto max_seen=(max_bytes-capacity-sizeof(Observation))/sizeof(ObservedFile);
             if(sample.fds>max_seen)throw std::runtime_error("fd-capacity-limit");
@@ -226,8 +226,8 @@ Sample Collect(int pid, Observation* observation=nullptr) {
 #endif
                 if(returned!=sizeof(node)) {
                     diagnostic.lastFailure=attempt;diagnostic.failures[attempt]={static_cast<int>(entries[i].proc_fd),static_cast<int>(entries[i].proc_fdtype),returned,immediate_errno,-1,ClockMs()};
-                    // A listed FD may close/reuse before inspection. Restart the complete
-                    // bounded observation; never treat an unread descriptor as zero bytes.
+                    // 목록의 FD는 검사 전에 닫히거나 재사용될 수 있다. 제한된 전체 관측을 다시 시작하며
+                    // 읽지 못한 descriptor를 0바이트로 취급하지 않는다.
                     if(returned<=0&&(immediate_errno==EBADF||immediate_errno==ENOENT)){raced=true;break;}
                     throw std::runtime_error(ClassifyError(immediate_errno,"anonymous-fd-read-incomplete"));
                 }

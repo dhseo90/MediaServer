@@ -1,0 +1,225 @@
+{
+  "proposalVersion": "g07.lp.cc02.preserved-five.proposal.v1",
+  "documentKind": "PROPOSAL_ONLY_NOT_ACTIVE_POLICY",
+  "technicalEligibility": "APPROVAL_ELIGIBLE",
+  "policyApprovalStatus": "NOT_APPROVED",
+  "approvalRecord": null,
+  "active": false,
+  "scope": {
+    "files": 3,
+    "headers": 3,
+    "english": 2,
+    "findings": 5,
+    "entries": [
+      {
+        "path": "docs/release-artifacts/v4.5.0/158-driver-first.py",
+        "fileSha256": "94f33114c80396edd7ec8658cade1dea13e625ecafbdd7f5f847b305808e0e3b",
+        "fileBytes": 3264,
+        "findingType": "missing-header",
+        "originalFindingId": "CC01-0001",
+        "originalFindingIdentitySha256": "84742ae801b5d8cf8a1b33e64c8d65c9c33c82ada524c67416c1d9a3634c4a9c",
+        "originalFindingCanonicalUtf8": "[\"docs/release-artifacts/v4.5.0/158-driver-first.py\", \"missing-header\", null, null]",
+        "location": {
+          "kind": "header-window",
+          "firstLine": 1,
+          "lastLine": 8,
+          "requiredState": "configured marker absent",
+          "originalFindingLine": null,
+          "firstEightLines": [
+            "from pathlib import Path",
+            "import os,sys,json,subprocess,time,signal,hashlib,copy",
+            "root=Path(__file__).parent;repo=Path('<REPO>');sys.path.insert(0,str(repo/'scripts/internal'));import recording_lock_timing as q",
+            "cases=[('normal','normal',1,0,0,True),('holder','normal',1,1,0,True),('disabled','normal',0,1,0,True),('aggregate','aggregate',1,0,0,True),('slow','slow',1,0,1,True),('lost-output','lost-output',1,0,0,False),('cap','cap',1,0,0,False),('byte-cap','byte-cap',1,0,0,False)]",
+            "results=[]",
+            "for name,mode,enabled,holder,slow,expect in cases:",
+            " env={k:v for k,v in os.environ.items() if not k.startswith('MEDIA_SERVER_')};env.update(MEDIA_SERVER_VERIFY_RECORDING_LATENCY_TRACE=str(enabled),MEDIA_SERVER_VERIFY_CATALOG_HOLDER_TRACE=str(holder),MEDIA_SERVER_VERIFY_RECORDING_LATENCY_SLOW_ONLY=str(slow))",
+            " t=time.monotonic();p=subprocess.Popen([str(root/'focused'),mode],cwd=root,env=env,stdout=subprocess.PIPE,stderr=subprocess.PIPE,start_new_session=True)"
+          ]
+        },
+        "originalRawOutput": "  - docs/release-artifacts/v4.5.0/158-driver-first.py",
+        "originalRule": "HEADER8_PATTERN_OR_EXACT_SIX_PRESERVED_HASH",
+        "sourceAPresent": true,
+        "candidatePresent": true,
+        "necessity": "실제 현행 주석 정책 위반이나 원본 byte/hash 출처를 보존해야 하므로 정확한 역사 finding에 한정한 명시 예외를 제안한다. false positive로 재분류하지 않는다.",
+        "preservationReference": [
+          "/Users/dhseo/Workspace/mediaServer-candidates/g07-inv04-p01-s01-b2714078e0bf/docs/release-artifacts/v4.5.0/158-preservation.json",
+          "/Users/dhseo/Workspace/mediaServer-candidates/g07-inv04-p01-s01-b2714078e0bf/docs/release-artifacts/v4.5.0/158-closure.json"
+        ]
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/158-run.py",
+        "fileSha256": "b0f5ae9aa5c4f6c5087c93910594c6c45fade8851cc8e68503c419c32b2c7a3a",
+        "fileBytes": 3295,
+        "findingType": "missing-header",
+        "originalFindingId": "CC01-0002",
+        "originalFindingIdentitySha256": "d9d4ffa355218b302c4fca2652ecbf6b7fadbbbdce4cb6a52c1b691a8eaee516",
+        "originalFindingCanonicalUtf8": "[\"docs/release-artifacts/v4.5.0/158-run.py\", \"missing-header\", null, null]",
+        "location": {
+          "kind": "header-window",
+          "firstLine": 1,
+          "lastLine": 8,
+          "requiredState": "configured marker absent",
+          "originalFindingLine": null,
+          "firstEightLines": [
+            "from pathlib import Path",
+            "import os,sys,json,subprocess,time,signal,hashlib,copy",
+            "root=Path(__file__).parent;repo=Path('<REPO>');sys.path.insert(0,str(repo/'scripts/internal'));import recording_lock_timing as q",
+            "cases=[('normal','normal',1,0,0,True),('holder','normal',1,1,0,True),('disabled','normal',0,1,0,True),('aggregate','aggregate',1,0,0,True),('slow','slow',1,0,1,True),('lost-output','lost-output',1,0,0,False),('cap','cap',1,0,0,False),('byte-cap','byte-cap',1,0,0,False)]",
+            "results=[]",
+            "for name,mode,enabled,holder,slow,expect in cases:",
+            " env={k:v for k,v in os.environ.items() if not k.startswith('MEDIA_SERVER_')};env.update(MEDIA_SERVER_VERIFY_RECORDING_LATENCY_TRACE=str(enabled),MEDIA_SERVER_VERIFY_CATALOG_HOLDER_TRACE=str(holder),MEDIA_SERVER_VERIFY_RECORDING_LATENCY_SLOW_ONLY=str(slow))",
+            " t=time.monotonic();p=subprocess.Popen([str(root/'focused'),mode],cwd=root,env=env,stdout=subprocess.PIPE,stderr=subprocess.PIPE,start_new_session=True)"
+          ]
+        },
+        "originalRawOutput": "  - docs/release-artifacts/v4.5.0/158-run.py",
+        "originalRule": "HEADER8_PATTERN_OR_EXACT_SIX_PRESERVED_HASH",
+        "sourceAPresent": true,
+        "candidatePresent": true,
+        "necessity": "실제 현행 주석 정책 위반이나 원본 byte/hash 출처를 보존해야 하므로 정확한 역사 finding에 한정한 명시 예외를 제안한다. false positive로 재분류하지 않는다.",
+        "preservationReference": [
+          "/Users/dhseo/Workspace/mediaServer-candidates/g07-inv04-p01-s01-b2714078e0bf/docs/release-artifacts/v4.5.0/158-preservation.json",
+          "/Users/dhseo/Workspace/mediaServer-candidates/g07-inv04-p01-s01-b2714078e0bf/docs/release-artifacts/v4.5.0/158-closure.json"
+        ]
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/159-focused_run.py",
+        "fileSha256": "7e3aee3611691e3d7e8ebd24924c550b16fefbbfe552f9a3d6a2b157c24cdcde",
+        "fileBytes": 1547,
+        "findingType": "missing-header",
+        "originalFindingId": "CC01-0003",
+        "originalFindingIdentitySha256": "036ba44221b43c40bd47f54f3badad4c2e65a0d1693a13ca601a891e01fe1a0c",
+        "originalFindingCanonicalUtf8": "[\"docs/release-artifacts/v4.5.0/159-focused_run.py\", \"missing-header\", null, null]",
+        "location": {
+          "kind": "header-window",
+          "firstLine": 1,
+          "lastLine": 8,
+          "requiredState": "configured marker absent",
+          "originalFindingLine": null,
+          "firstEightLines": [
+            "from pathlib import Path",
+            "import subprocess,sys,os,json,time,signal",
+            "sys.path.insert(0,str(Path.cwd()/'scripts/internal'))",
+            "from recording_native_isolation import environment",
+            "root=Path(__file__).parent;records=[]",
+            "cases=[('callsite',root/'callsite',[]),('ordinal-cap',root/'callsite',['overflow']),('catalog-native',root/'candidate/currentness-focused',None),('media-native',root/'candidate/focused',None)]",
+            "for mode in ['upper','lower','mixed','missing','empty','text','zero','range','duplicate','variant','conflict','reuse']:cases.append(('parser-'+mode,root/'candidate/parser',[mode]))",
+            "for name,binary,args in cases:"
+          ]
+        },
+        "originalRawOutput": "  - docs/release-artifacts/v4.5.0/159-focused_run.py",
+        "originalRule": "HEADER8_PATTERN_OR_EXACT_SIX_PRESERVED_HASH",
+        "sourceAPresent": true,
+        "candidatePresent": true,
+        "necessity": "실제 현행 주석 정책 위반이나 원본 byte/hash 출처를 보존해야 하므로 정확한 역사 finding에 한정한 명시 예외를 제안한다. false positive로 재분류하지 않는다.",
+        "preservationReference": [
+          "/Users/dhseo/Workspace/mediaServer-candidates/g07-inv04-p01-s01-b2714078e0bf/docs/release-artifacts/v4.5.0/159-evidence-manifest.json",
+          "/Users/dhseo/Workspace/mediaServer-candidates/g07-inv04-p01-s01-b2714078e0bf/docs/release-artifacts/v4.5.0/159-closure.json"
+        ]
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/158-driver-first.py",
+        "fileSha256": "94f33114c80396edd7ec8658cade1dea13e625ecafbdd7f5f847b305808e0e3b",
+        "fileBytes": 3264,
+        "findingType": "english-only-comment",
+        "originalFindingId": "CC01-0105",
+        "originalFindingIdentitySha256": "9abb7dcbd815ff1dfaf3b71ed920c2bfbd78086dc39d6af19da8487d608fed94",
+        "originalFindingCanonicalUtf8": "[\"docs/release-artifacts/v4.5.0/158-driver-first.py\", \"english-only-comment\", 20, \"# Mutate real, valid native observations; never infer missing original records.\"]",
+        "location": {
+          "kind": "line",
+          "line": 20,
+          "rawLine": "# Mutate real, valid native observations; never infer missing original records."
+        },
+        "originalRawOutput": "  - docs/release-artifacts/v4.5.0/158-driver-first.py:20:# Mutate real, valid native observations; never infer missing original records.",
+        "originalRule": "COMMENT_TEXT_NO_HANGUL_AND_LATIN_RUN_3_NOT_ALLOWED_PATTERN",
+        "sourceAPresent": true,
+        "candidatePresent": true,
+        "necessity": "실제 현행 주석 정책 위반이나 원본 byte/hash 출처를 보존해야 하므로 정확한 역사 finding에 한정한 명시 예외를 제안한다. false positive로 재분류하지 않는다.",
+        "preservationReference": [
+          "/Users/dhseo/Workspace/mediaServer-candidates/g07-inv04-p01-s01-b2714078e0bf/docs/release-artifacts/v4.5.0/158-preservation.json",
+          "/Users/dhseo/Workspace/mediaServer-candidates/g07-inv04-p01-s01-b2714078e0bf/docs/release-artifacts/v4.5.0/158-closure.json"
+        ]
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/158-run.py",
+        "fileSha256": "b0f5ae9aa5c4f6c5087c93910594c6c45fade8851cc8e68503c419c32b2c7a3a",
+        "fileBytes": 3295,
+        "findingType": "english-only-comment",
+        "originalFindingId": "CC01-0106",
+        "originalFindingIdentitySha256": "6363641e2e4faa98c9121e50365126525250c325c06cbe9aec68ad4bd1a35f52",
+        "originalFindingCanonicalUtf8": "[\"docs/release-artifacts/v4.5.0/158-run.py\", \"english-only-comment\", 20, \"# Mutate real, valid native observations; never infer missing original records.\"]",
+        "location": {
+          "kind": "line",
+          "line": 20,
+          "rawLine": "# Mutate real, valid native observations; never infer missing original records."
+        },
+        "originalRawOutput": "  - docs/release-artifacts/v4.5.0/158-run.py:20:# Mutate real, valid native observations; never infer missing original records.",
+        "originalRule": "COMMENT_TEXT_NO_HANGUL_AND_LATIN_RUN_3_NOT_ALLOWED_PATTERN",
+        "sourceAPresent": true,
+        "candidatePresent": true,
+        "necessity": "실제 현행 주석 정책 위반이나 원본 byte/hash 출처를 보존해야 하므로 정확한 역사 finding에 한정한 명시 예외를 제안한다. false positive로 재분류하지 않는다.",
+        "preservationReference": [
+          "/Users/dhseo/Workspace/mediaServer-candidates/g07-inv04-p01-s01-b2714078e0bf/docs/release-artifacts/v4.5.0/158-preservation.json",
+          "/Users/dhseo/Workspace/mediaServer-candidates/g07-inv04-p01-s01-b2714078e0bf/docs/release-artifacts/v4.5.0/158-closure.json"
+        ]
+      }
+    ]
+  },
+  "lineage": {
+    "sourceACommit": "d9e535d97efb2252ff0fffd60f8d77e6e3e0260b",
+    "sourceATree": "4becc8e4af8243c08ea05f9d03c1f6c949ec6dc7",
+    "candidateCommit": "3fcdfb956291f204add0d3ee79a2f2a700510034",
+    "candidateTree": "83c9448255b55d628e2f4d98f6383b30c9f93bd1",
+    "cc01ManifestSha256": "cebf2f0f0a54055bcb62f531e7a6194d883cb80b02e989a3f6ca384cc95853d5",
+    "checkerBeforeSha256": "7f00a6deb738c5d8fdc77095ceacca1d192c9c6427bdf3682b9d005230c0ac2b",
+    "policyBeforeSha256": "00acbb4747b86547afaf2f8c209a4c0d5d09d57dee3533951e23370f7f17ecff"
+  },
+  "approvalBoundary": {
+    "authority": "사용자 또는 명시 확인된 정책 소유자. Codex의 APPROVAL_ELIGIBLE는 이 권한을 대신하지 않는다.",
+    "recordRequired": [
+      "결정 주체",
+      "실제 승인 발언/기록 위치와내용",
+      "이 제안 파일의 SHA256",
+      "정확3파일5finding scope",
+      "승인범위·철회조건"
+    ],
+    "futureTrustAnchor": "승인 기록 확보 뒤 검토된 verifier Source에 승인 scope+기록 digest를 고정하고 정책 block이 일치하는지 검사. 배포/실행쪽 Source/Manifest admission이 그 verifier를 결속해야 한다. 현재 anchor와 승인record는 생성/활성화하지 않음.",
+    "forgeryBoundary": "policy metadata만 변경하거나 내용/hash를 함께 조작해도 신뢰된 고정digest와 불일치해야 한다. verifier와외부admission까지 같이변조한 공격을 자체JSON으로 방지한다고 주장하지 않음. 서명/PKI나 실제승인권자 자동인증을 이번에 새로구축하지 않는다."
+  },
+  "canonicalFindingIdentity": "CC01 그대로 UTF8 Python json.dumps([path, category, originalLineOrNull, originalRawSourceLineOrNull], ensure_ascii=False)의 기본 separators comma-space/colon-space 결과에 SHA256. 제안에 정확한 직렬화 문자열을 보존하므로 미래 언어구현은 이 고정bytes와 동등해야 함. header finding에 임의 line1을 부여하지 않음.",
+  "failClosedConditions": [
+    "사용자 또는 실제 정책 소유자가 이 정확한 제안 digest와5개finding에 대해 명시 승인한 기록이 있어야 하며, 없으면 활성화 금지.",
+    "상위 정책 schema와 신규 예외 block version은 구현에서 명시 지원한 값만 허용. unknown version/unknown critical fields/잘못된 타입/중복·누락·추가 ID는 binding error.",
+    "경로는 정확한 canonical relative POSIX 경로이며 3개 승인경로와 일치. 이동/동명이인/다른file복사/경로이탈/symlink leaf 또는 ancestor 거부.",
+    "전체 원시 file bytes SHA256·size가 승인값과 같아야 한다. 정규화·부분 hash·mtime·파일명만으로 판정하지 않는다. 해시 계산과 finding 검사는 같은 읽은 byte buffer를 사용한다.",
+    "실제 finding type·line/header-window·raw text·원래 finding canonical digest가 승인된5개와 일치해야 한다. 정상화한 주석 텍스트만으로 match하지 않는다.",
+    "변경 없는 기존 대상 수집과 판정으로 전체 finding을 먼저 얻고, 검증된5개 ID만 처리한다. 파일 전체를 skip하거나 일반영문 matcher에 broad regex를 추가하지 않는다.",
+    "신규 예외 block은 정확한3파일/5finding과 승인기록 digest를 신뢰된 reviewed verifier의 고정 digest에 결속한다. metadata 안의 approved=true나 자기계산hash만 신뢰하지 않는다.",
+    "조건 불일치 시 해당 block의 예외0건, 원래 주석finding 출력 유지+binding error+Exit1. 미등록 다른finding은 언제나 기존 FAIL. parse불가 정책은 오류Exit로 닫고 PASS기본값으로 대체하지 않는다.",
+    "승인finding이 사라지거나 다른위반으로 대체되면 stale-approval로 실패하며 자동 재등록/다른 위치 적용 금지. 기존6개header와2종marker는 의미와scope를 유지한다.",
+    "승인철회/바이트·경로·규칙·finding·용도변경 시 새명시승인 전 재활성화 금지. 기존 승인과 과거실패는 그대로 보존."
+  ],
+  "excluded": [
+    "3개 파일의 header finding3개와 정확한 English행2개만 처리",
+    "일반 상속1273건 전체/일반 Source/신규7건/미검토finding/미래finding은 범위 밖",
+    "CC01-0578 Python 문자열 과검출은 별도 C이며 현재5개와 ID/digest/path 모두 구분",
+    "역사파일 바이트/과거Manifest/Source A/기존 후보를 변경하지 않음",
+    "Warning 강등/파일 전체ignore/경로만예외/새 일반Baseline 금지"
+  ],
+  "implementationDirection": "기존6개와marker2종 유지. 새 versioned exact-finding block의 metadata/binding 검증 및 수집된finding5개만 조건부처리. 기존 generic English regex 목록에 신규범용pattern을 넣는 방식은 선정하지 않음.",
+  "coverage": "현재 후보의 code-file 집합1586개와 기존 판정규칙 그대로. 향후의 승인된 추가 테스트파일은 명시추가로 관리하며 기존대상 삭제 금지. 정상승인fixture는 승인5건과미승인위반을 분리 보고.",
+  "mismatchOutcome": {
+    "exceptionsApplied": 0,
+    "ordinaryChecks": "기존검사 계속/원출력 유지",
+    "exit": 1,
+    "noGlobalPass": true
+  },
+  "currentResult": "아무 예외도 적용하지 않아 기존1280건 FAIL 그대로",
+  "hypotheticalAfterOnlyThisChange": "동일source/규칙이면 원래1280개finding 중 승인5개만 별도처리하고1275개 미해소FAIL 유지. 현재실행/검증결과가 아닌 향후 기대값.",
+  "withdrawalAndReview": [
+    "명시승인 철회",
+    "file/path/finding/rule/version/용도 변경",
+    "역사file가새로운실행/Build 입력이되는경우",
+    "결속된기록/Source/Manifest 검증실패",
+    "예외밖finding이숨겨지는회귀발견"
+  ]
+}

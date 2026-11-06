@@ -1,4 +1,4 @@
-// R118: actual FileSource/SharedStream, bounded test oracle outside product accounting.
+// 파일 용도: R118의 실제 FileSource·SharedStream 검사이며 제품 자원 집계 밖에서 한도가 있는 테스트 판정 기준을 제공한다.
 #pragma once
 #include "core/shared_stream.h"
 #include "core/source_factory.h"
@@ -38,7 +38,7 @@ struct SourceHttpSample {std::string generation,hash;std::uint64_t ordinal;std::
  if(started_ns)started_ns->store(SourceHttpSteadyNs());
  const auto end=std::chrono::steady_clock::now()+std::chrono::seconds(55);
  for(auto& c:channels){for(;;){std::unique_lock lock(c.mu);if(!c.error.empty())throw std::runtime_error(c.error);if(c.peer.size()>=count)break;if(std::chrono::steady_clock::now()>=end)throw std::runtime_error("source-progress-deadline");c.cv.wait_for(lock,std::chrono::seconds(1),[&]{return c.peer.size()>=count||!c.error.empty();});lock.unlock();retention.RunPeriodic(SourceHttpNowMs());}c.stream->StopSource();}
- // StopSource does not wait for Recorder; drain and durable completion are separate.
+ // StopSource는 Recorder를 기다리지 않으며 drain과 영속 완료는 별도 단계다.
  for(auto& c:channels){c.stream->RemoveSubscriber("recorder");c.stream->RemoveSubscriber("oracle");c.writer->Stop();}
  std::map<std::pair<std::string,std::uint64_t>,SourceHttpSample> expected;std::set<std::pair<std::string,std::uint64_t>> actual;
  for(auto& c:channels){std::lock_guard lock(c.mu);if(!c.error.empty())throw std::runtime_error(c.error);for(const auto& p:c.peer)if(!expected.emplace(std::make_pair(p.generation,p.ordinal),p).second)throw std::runtime_error("source-duplicate");}

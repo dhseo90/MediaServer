@@ -108,7 +108,7 @@ static void ReaderBudget() {
     std::vector<SearchDocument> docs{d};std::string error;std::shared_ptr<const RecordingSearchModel> probe;
     Check(RecordingSearchModel::Build(docs,"budget",1,&probe,&error),"MEM83 budget fixture admission");
     const auto charge=probe->accounted_bytes();probe.reset();
-    // Test-only three-model envelope, not a product support limit.
+    // 테스트 전용 model 세 개의 한도이며 제품 지원 한도가 아니다.
     auto owner=std::make_shared<SearchModelResidency>(3*charge);
     SearchModelLimits limits{100000,64*1024*1024,owner};
     std::shared_ptr<const RecordingSearchModel> a,b,c;

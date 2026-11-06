@@ -1,4 +1,4 @@
-// Recorder 내부 종료 계약. timeout은 작업 완료나 소유권 반환이 아니다.
+// 파일 용도: Recorder 내부 종료 결과와 소유권 계약을 선언하며 timeout을 작업 완료·소유권 반환과 구분한다.
 #pragma once
 #include <atomic>
 #include <chrono>

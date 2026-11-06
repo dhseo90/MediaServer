@@ -1,5 +1,5 @@
 #pragma once
-// R157 test-only TLS; no product header/type/layout or lock changes.
+// 파일 용도: R157 테스트 전용 TLS이며 제품 header·type·layout·lock은 변경하지 않는다.
 #include "recording_http_cost_probe.h"
 #include <exception>
 namespace r157 {

@@ -15,8 +15,8 @@ int main(int argc,char** argv){
         RecordingRuntimeStorage storage(std::filesystem::path(argv[1])/"recording");std::string error;
         if(!storage.Open(&error))throw std::runtime_error(error);
         RecordingReadService service(storage.catalog());
-        // Public full timeline for both channels, fixed order and no warmup.
-        // The private event-only consumer is exercised by the real HTTP fixture.
+        // 양쪽 channel의 공개 전체 timeline을 고정 순서로 warmup 없이 조회한다.
+        // 비공개 event 전용 소비자는 실제 HTTP fixture에서 검사한다.
         for(const char* channel:{"9101","9201"})for(unsigned i=0;i<3;++i){
             const auto begin=std::chrono::steady_clock::now();const auto reads=latency::history_node_reads;
             RecordingTimelineResult result;
@@ -27,8 +27,8 @@ int main(int argc,char** argv){
                 <<",\"elapsedNs\":"<<elapsed<<",\"nodeReads\":"<<latency::history_node_reads-reads<<",\"total\":"<<result.total
                 <<",\"unplacedTotal\":"<<result.unplaced_total<<",\"items\":"<<result.items.size()<<",\"unplaced\":"<<result.unplaced_items.size()
                 <<",\"ramUsed\":"<<storage.catalog().SearchResidency()->used()<<"}\n";
-            // Stable identities/order are an additional cross-binary oracle, not
-            // a substitute for the existing field/permission/seek regressions.
+            // 안정적인 identity·순서는 binary 간 추가 비교 기준이며 기존 필드·권한·seek 회귀를
+            // 대체하는 근거가 아니다.
             std::unique_ptr<EVP_MD_CTX,decltype(&EVP_MD_CTX_free)> digest(EVP_MD_CTX_new(),EVP_MD_CTX_free);
             if(!digest||EVP_DigestInit_ex(digest.get(),EVP_sha256(),nullptr)!=1)throw std::runtime_error("digest-init");
             for(const auto* rows:{&result.items,&result.unplaced_items})for(const auto& row:*rows){

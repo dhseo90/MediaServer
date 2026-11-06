@@ -23,16 +23,16 @@
 #include "recording/recording_latency_trace.h"
 
 namespace recording {
-// Raw/parser/canonical workspace is held until Decode finishes. The typed result
-// takes its own portion before publication; its copies acquire another ticket.
+// raw·parser·canonical 작업 공간은 Decode가 끝날 때까지 유지한다. typed 결과는
+// 공개 전에 자체 몫을 확보하며 결과 사본은 별도 ticket을 획득한다.
 struct RecordingColdRow {
     SearchModelResidency::Reservation memory;
     std::string bytes;
     std::shared_ptr<const RecordingTextSource> event_reason{};
 };
 inline std::size_t RecordingColdWorkspaceBytes(std::size_t bytes,const std::string& ={}) {
-    // Authenticated raw read and fixed index/shape work. Parser/DTO admission is
-    // separate and happens after the allocation-free census, before parsing.
+    // 인증된 raw 읽기와 고정 index·형태 작업의 예약이다. parser·DTO 허용 검사는
+    // 할당 없는 집계 뒤 parsing 전에 별도로 수행한다.
     constexpr std::size_t fixed=64*1024;
     if(bytes>std::numeric_limits<std::size_t>::max()-fixed-1)throw RecordingResourceUnavailable();
     return fixed+bytes+1;
@@ -40,8 +40,8 @@ inline std::size_t RecordingColdWorkspaceBytes(std::size_t bytes,const std::stri
 template<class T> std::size_t RecordingColdDecodeWorkspaceBytes(const std::string& json) {
     if constexpr(std::is_same_v<T,EventRecordingLinkV1>)return RecordingEventLinkWorkspaceBytes(json);
     std::size_t element=0,raw_copies=0;
-    // Maximum simultaneous owning JSON documents/subobject strings in the actual
-    // parser call graph. SplitArray slots and typed slots are counted separately.
+    // 실제 parser 호출 그래프에서 동시에 소유하는 JSON document·하위 객체 문자열의 최댓값이다.
+    // SplitArray slot과 typed slot은 별도로 센다.
     if constexpr(std::is_same_v<T,EventRecordingLinkV1>)return RecordingEventLinkWorkspaceBytes(json);
     else if constexpr(std::is_same_v<T,bool>)return 64*1024;
     else if constexpr(std::is_same_v<T,std::string>){raw_copies=2;}
@@ -53,7 +53,7 @@ template<class T> std::size_t RecordingColdDecodeWorkspaceBytes(const std::strin
     else if constexpr(std::is_same_v<T,RecordingTombstoneV2>){raw_copies=6;element=sizeof(RecordingUtcMappingV1);}
     else if constexpr(std::is_same_v<T,ReferencedObservationV1>){raw_copies=8;element=sizeof(std::string);}
     else {static_assert(!std::is_same_v<T,T>,"cold DTO requires an explicit parser storage model");}
-    // Three canonical owners: stream growth buffer, old growth buffer and return.
+    // canonical 소유자 셋은 stream 확장 buffer, 이전 확장 buffer, 반환값이다.
     return sizeof(T)+ingress::StrictJsonWorkspaceBytes(json,raw_copies+3,element,false);
 }
 template<class T,bool(*Parse)(const std::string&,T*,std::string*),std::string(*Serialize)(const T&)>
@@ -61,8 +61,8 @@ class RecordingRetainedRows;
 class RecordingRetainedRowStore {
     template<class T,bool(*Parse)(const std::string&,T*,std::string*),std::string(*Serialize)(const T&)>
     friend class RecordingRetainedRows;
-    // Only parsed segment-v2 values are memoized. Every lookup still reads and
-    // authenticates the current raw row; this is never membership/cut authority.
+    // parsing한 segment-v2 값만 memo에 보관하며 매 조회마다 현재 raw row를 읽고
+    // 인증한다. 이 memo는 구성원 여부나 cut의 권위 근거가 될 수 없다.
     struct DecodedSegment {
         SearchModelResidency::Reservation memory;
         std::array<unsigned char,32> digest{};
@@ -86,9 +86,9 @@ class RecordingRetainedRowStore {
         (void)raw;(void)digest;return false;
 #endif
     }
-    // Only Decode may share this proof across cache operations. It owns the
-    // authenticated raw for the entire call; no request/revision outlives it.
-    // Failed digest attempts are not memoized, preserving optional-cache fallback.
+    // Decode만 cache 작업 사이에서 이 증명을 공유할 수 있으며 호출 전체 동안
+    // 인증된 raw를 소유한다. 어떤 request·revision도 이 수명을 넘겨 보유하지 않는다.
+    // 실패한 digest 시도는 memo에 보관하지 않아 선택적 cache의 fallback을 유지한다.
     class DecodeDigest {
         const std::string& raw_;
         std::array<unsigned char,32> digest_{};
@@ -144,9 +144,9 @@ public:
 private:
     std::shared_ptr<const void> VerifiedSegmentDecodeWithDigest(const std::string& id,DecodeDigest& proof) {
         const auto& raw=proof.Raw();
-        // The caller has just authenticated the entire current raw row. Keep
-        // its SHA-256 identity, not another owning JSON string, with the parsed
-        // value. A revision, ID or open FD is never a replacement for that read.
+        // 호출자가 방금 현재 raw row 전체를 인증했다. parsing한 값 옆에는
+        // 별도 소유 JSON 문자열 대신 해당 row의 SHA-256 identity를 보관한다.
+        // revision·ID·열린 FD는 이 읽기를 대체할 수 없다.
         std::array<unsigned char,32> digest{};if(!proof.Get(&digest))return {};
         std::lock_guard lock(decoded_mu_);const auto it=decoded_segments_.find(id);
         if(it==decoded_segments_.end())return {};
@@ -154,8 +154,8 @@ private:
         EraseDecoded(it);return {};
     }
 public:
-    // Exclusion-only classification of the same authenticated raw. This cannot
-    // prove membership, absence, current lifecycle or the selected event payload.
+    // 동일한 인증 raw를 제외 목적으로만 분류한다. 이 분류로는 구성원 여부·부재·
+    // 현재 lifecycle·선택한 event payload를 증명할 수 없다.
     template<class F> std::optional<bool> VerifiedSegmentClassMatches(const std::string& id,const std::string& raw,F&& matches) {
         std::array<unsigned char,32> digest{};if(!RawDigest(raw,&digest))return {};
         std::lock_guard lock(decoded_mu_);const auto it=segment_classes_.find(id);
@@ -210,8 +210,8 @@ private:
     void RememberVerifiedSegmentDecodeWithDigest(const std::string& id,DecodeDigest& proof,
         std::shared_ptr<const void> row,std::size_t row_bytes) {
         const auto& raw=proof.Raw();
-        // Obtain the owner before the cache mutex: Finish holds the store mutex
-        // while clearing this cache, so the opposite lock order is forbidden.
+        // cache mutex보다 먼저 owner를 획득한다. Finish는 store mutex를 잡고
+        // 이 cache를 비우므로 반대 잠금 순서는 금지한다.
         std::array<unsigned char,32> digest{};if(!proof.Get(&digest))return;
         const auto owner=MemoryOwner();
 #if defined(MEDIA_SERVER_RECORDING_GENERATION_TESTING)
@@ -219,7 +219,7 @@ private:
 #endif
         std::lock_guard lock(decoded_mu_);
         if(decoded_closed_)return;
-        // Include the LRU node and its independent ID allocation in the same cap.
+        // LRU node와 별도로 할당한 ID도 같은 한도에 포함한다.
         const auto extra=sizeof(DecodedSegment)+256+4*(id.size()+1);
         if(row_bytes>decoded_limit_||extra>decoded_limit_-row_bytes)return;
         const auto charged=extra+row_bytes;
@@ -227,15 +227,15 @@ private:
             EraseDecoded(old);
         }
         while(decoded_bytes_>decoded_limit_-charged)EvictDecodedOne();
-        // Optional memoization shares the existing owner cap; it may reduce the
-        // remaining headroom, but never changes that cap or the cold row oracle.
+        // 선택적 memo는 기존 owner 한도를 공유하여 남은 여유를 줄일 수 있지만
+        // 해당 한도나 cold row 판정 기준을 변경하지 않는다.
         const auto used=owner->used();if(used>owner->limit()||extra>owner->limit()-used)return;
         auto memory=owner->ReserveOwned(extra,SearchModelResidency::Category::RetainedRaw);if(!memory)return;
         try {
             decoded_recency_.push_back(id);
             try {
-                // Keep the extra ticket local until map construction succeeds:
-                // an emplace exception destroys its argument before this catch.
+                // map 생성 성공 전까지 추가 ticket을 지역 변수로 유지한다.
+                // emplace 예외는 이 catch에 도달하기 전에 인자를 소멸시킨다.
                 DecodedSegment entry{{},digest,raw.size(),std::move(row),charged,std::prev(decoded_recency_.end())};
 #if defined(MEDIA_SERVER_RECORDING_GENERATION_TESTING)
                 if(probe_throw_after_recency)throw std::bad_alloc();
@@ -257,8 +257,8 @@ public:
 class RecordingRetainedReadError : public std::runtime_error {
 public:using std::runtime_error::runtime_error;
 };
-// RAM fallback is only the pre-existing non-generation backend. A bound store never
-// falls back after a cold error. Iterators own one immutable row, not an ID list.
+// RAM fallback은 기존 non-generation backend에만 해당한다. 결속된 store는 cold 오류 뒤
+// fallback하지 않는다. iterator는 ID 목록 대신 불변 row 하나를 소유한다.
 template<class T,bool(*Parse)(const std::string&,T*,std::string*),std::string(*Serialize)(const T&)>
 class RecordingRetainedRows {
     using Pair=std::pair<const std::string,T>;
@@ -305,8 +305,8 @@ public:
         if(!store_->GetOwned(kind_,id,&value,&found,&error))throw RecordingRetainedReadError(error);
         return found?Decode(id,std::move(value)):end();
     }
-    // A single authenticated cursor; returned rows stay individually charged.
-    // Unlike repeated NextOwned, deleted metadata/chunks are not re-looked-up.
+    // 인증된 cursor 하나를 사용하며 반환 row는 각각 계속 과금한다.
+    // NextOwned를 반복하는 경우와 달리 삭제된 metadata·chunk를 재조회하지 않는다.
     template<class F> bool ForEachEntry(F&& visitor)const {
         if(!store_){for(const auto& row:ram_)if(!visitor(row.first,row.second))return false;return true;}
         bool refused=false;std::string error;
@@ -317,9 +317,9 @@ public:
         if(!ok&&!refused)throw RecordingRetainedReadError(error);
         return ok;
     }
-    // Actual structured-search event consumer: authenticate every current raw
-    // row and complete namespace coverage, but avoid constructing an excluded
-    // DTO when its fully validated scalar classification can be reused.
+    // 실제 structured-search event 소비자는 현재 raw row 전부와 namespace 전체 범위를
+    // 인증한다. 다만 완전히 검증된 scalar 분류를 재사용할 수 있는 제외 대상은
+    // 해당 DTO를 생성하지 않는다.
     template<class F> bool ForEachEventCandidate(const std::string& channel,F&& visitor,
                                                 std::uint64_t* visited=nullptr,std::uint64_t* memo_excluded=nullptr)const {
         static_assert(std::is_same_v<T,RecordingSegmentV2>);
@@ -342,8 +342,8 @@ public:
         if(!ok&&!refused)throw RecordingRetainedReadError(error);
         return ok;
     }
-    // A cold-only view owns the store/cache handles, never a live container
-    // iterator. The caller captures charged raw rows under its authority lock.
+    // cold 전용 view는 store·cache handle을 소유하며 live container iterator를
+    // 소유하지 않는다. 호출자는 자신의 권위 잠금 안에서 과금된 raw row를 capture한다.
     RecordingRetainedRows ColdReadView() const {
         if(!store_)throw std::logic_error("cold read view requires retained rows");
         RecordingRetainedRows view;view.Bind(store_,kind_,decoded_store_);return view;
@@ -357,8 +357,8 @@ public:
         if(!ok&&!refused)throw RecordingRetainedReadError(error);
         return ok;
     }
-    // Optional allocation hint only. Unknown selection must not exclude a row;
-    // ConsumeOwnedChannelEntry still performs its normal authentication/parse.
+    // 선택적 할당 힌트일 뿐이며 선택 여부가 불명확하면 row를 제외해서는 안 된다.
+    // ConsumeOwnedChannelEntry는 여전히 정상 인증·parsing을 수행한다.
     std::optional<bool> RawChannelSelection(const std::string& id,const std::string& raw,
         const std::vector<std::string>& channels)const {
         static_assert(std::is_same_v<T,RecordingSegmentV2>);
@@ -376,16 +376,16 @@ public:
         return std::find(channels.begin(),channels.end(),value->second.channel_id)!=channels.end()
             ?visitor(value->first,value->second):excluded(id);
     }
-    // Same authenticated namespace and caller-held cut as ForEachEntry. An
-    // exact-raw exclusion avoids only the typed DTO; the caller must still
-    // perform its normal lifecycle/retirement checks in excluded(id).
+    // ForEachEntry와 동일한 인증 namespace 및 호출자가 보유한 cut을 사용한다.
+    // 정확한 raw에 근거한 제외는 typed DTO 생성만 생략하며 호출자는 excluded(id)에서
+    // 기존 lifecycle·retirement 검사를 계속 수행해야 한다.
     template<class F,class E> bool ForEachChannelEntry(const std::vector<std::string>& channels,F&& visitor,E&& excluded,
                                                      std::uint64_t* memo_excluded=nullptr)const {
         return ForEachChannelEntry(channels,std::forward<F>(visitor),std::forward<E>(excluded),memo_excluded,
             [](const std::string&,const std::string&)->std::optional<bool>{return {};});
     }
-    // The private consumer may reuse a derived row only after this current raw
-    // namespace read. nullopt requests the unchanged strict typed decode path.
+    // 비공개 소비자는 현재 raw namespace를 읽은 뒤에만 파생 row를 재사용할 수 있다.
+    // nullopt는 기존 strict typed decode 경로를 요청한다.
     template<class F,class E,class R> bool ForEachChannelEntry(const std::vector<std::string>& channels,F&& visitor,E&& excluded,
                                                      std::uint64_t* memo_excluded,R&& raw_consumer)const {
         static_assert(std::is_same_v<T,RecordingSegmentV2>);
@@ -442,9 +442,9 @@ public:
     void swap(RecordingRetainedRows& other)noexcept{ram_.swap(other.ram_);store_.swap(other.store_);decoded_store_.swap(other.decoded_store_);kind_.swap(other.kind_);}
 private:
     const_iterator Decode(const std::string& id,RecordingColdRow value)const {
-        // The immutable cut supplies authenticated bytes and membership. A live
-        // sibling supplies only current-raw SHA-256-bound parsed memoization, under its existing
-        // cache mutex/16MiB budget. Shared row tickets outlive cache eviction.
+        // 불변 cut이 인증된 바이트와 구성원 목록을 제공한다. live sibling은 기존
+        // cache mutex·16MiB 예산 안에서 현재 raw의 SHA-256에 결속된 parsed memo만
+        // 제공한다. 공유 row ticket의 수명은 cache 퇴출 이후에도 유지된다.
         const auto& decoded=decoded_store_?decoded_store_:store_;
         RecordingRetainedRowStore::DecodeDigest digest(value.bytes);
         if constexpr(std::is_same_v<T,RecordingSegmentV2>){
@@ -479,8 +479,8 @@ private:
         if(trace_decode)latency::segment_decode_cost[3]+=latency::Now()-canonical_begin;
         if(!canonical)throw RecordingRetainedReadError("retained row canonical/domain mismatch: "+error);
         if constexpr(std::is_same_v<T,EventRecordingLinkV1>){if(value.event_reason)parsed.completeness_reason.Bind(std::move(value.event_reason));}
-        // The pair allocation/key is retained with the shared row. Deep-copyable DTOs
-        // carry a separate charge so at() and downstream result copies retain it.
+        // pair 할당·key는 공유 row와 함께 유지한다. deep copy 가능한 DTO는 별도 과금을
+        // 보유하여 at()과 하위 결과 사본에도 과금 소유권이 유지된다.
         std::size_t row_bytes=0;
         if constexpr(std::is_same_v<T,std::string>)row_bytes=parsed.capacity()+1+32;
         BindRecordingRowMemory(parsed,*work,value.bytes.size());

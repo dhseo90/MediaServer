@@ -1,4 +1,4 @@
-// 두 내부 수집기의 byte framing만 공유한다. raw payload/전체 로그를 보유하지 않는다.
+// 파일 용도: 두 내부 수집기의 바이트 framing을 공유하며 raw payload·전체 로그를 보유하지 않는다.
 export function diagnosticLines(prefixes, maxWireBytes) {
   let carry=Buffer.alloc(0), skip=false;
   const buffers=prefixes.map(x=>Buffer.from(x));

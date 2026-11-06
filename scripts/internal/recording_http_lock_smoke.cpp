@@ -1,4 +1,4 @@
-#include "recording_http_lock_probe.h"
+#include "recording_http_lock_probe.h"  // 파일 용도: 녹화 HTTP lock의 TLS·중첩·예외 unwinding·해제·상한 계약을 집중 검증한다.
 #include <stdexcept>
 #include <thread>
 static void Need(bool ok){if(!ok)throw std::runtime_error("R159 focused");}

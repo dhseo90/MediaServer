@@ -110,14 +110,14 @@ class RequestMedia {
     std::size_t bytes_{0},peak_bytes_{0};std::uint64_t sequence_{0},prepared_{0},reused_{0};
     const std::uint64_t started_{recording::RecordingReadService::TracePreparationStarted()};
     const char* trace_reference_;
-    // Borrow only from Search's immutable index, which outlives this request.
-    // No payload/ID copies; overflow is explicitly incomplete, never estimated.
+    // 이 요청보다 오래 유지되는 Search의 불변 index에서만 빌려 쓴다.
+    // payload·ID를 복사하지 않으며 overflow는 추정값 대신 명시적 불완전 상태로 처리한다.
     bool observe_preparation_=false, final_results_=false, preparation_complete_=true;
     std::array<const recording::VisualSearchDocument*,512> seen_{};
     std::size_t seen_count_=0;
     std::array<std::uint64_t,12> preparation_{};
-    // Borrow the already-computed final selection; no extra proofs, FD or cache.
-    // It and the immutable index outlive this request cache.
+    // 이미 계산한 최종 선택 결과를 빌려 쓰며 proof·FD·cache를 추가하지 않는다.
+    // 해당 결과와 불변 index는 이 요청 cache보다 오래 살아 있다.
     const std::vector<recording::VisualSearchHit>* final_hits_{nullptr};
     const std::vector<recording::VisualSearchDocument>* final_documents_{nullptr};
     std::size_t final_next_{0};
@@ -351,7 +351,7 @@ ApplicationServiceResult VisualSearchApplicationService::Search(const Query& raw
             if(stopped_||std::chrono::steady_clock::now()>=deadline)throw std::runtime_error("budget");
             if(!authorize(doc.channel_id)||!CurrentEvent(doc,events,source_))return false;
             recording::SearchSeekTarget seek;
-            // Resolve already verifies current lifecycle; only classify a rejected source as deleted.
+            // Resolve가 현재 lifecycle을 이미 검증하므로 거부된 source에 대해서만 삭제 여부를 분류한다.
             if(!media_cache.Resolve(doc,&seek,nullptr,&error)){
                 if(!expired()&&source_.IsDeleted(doc))return false;
                 throw std::runtime_error("visual-source-unavailable");

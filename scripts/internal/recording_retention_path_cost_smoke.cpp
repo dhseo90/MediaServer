@@ -31,8 +31,8 @@ int main(int argc,char** argv){
             RetentionSnapshot expected;for(const auto& c:all.candidates)if(c.Channel()==channel)expected.candidates.push_back(c);
             const auto digest=Digest(expected,root); // same-run All consistency only; independent equality is frozen before/after digest
             for(unsigned i=0;i<3;++i){
-                // Diagnostic fixture request, not an HTTP latency result. Keeps
-                // the first three actual Catalog holder intervals for subcosts.
+                // 진단 fixture request이며 HTTP 지연 결과가 아니다. subcost를 위해 최초 세 개의
+                // 실제 Catalog 잠금 소유 구간을 유지한다.
                 latency::VisualRequestSummary diagnostic_request;
                 const auto decode=latency::segment_decode_cost;
                 const auto reads=latency::history_node_reads;const auto begin=std::chrono::steady_clock::now();

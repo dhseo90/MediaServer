@@ -17,13 +17,13 @@ enum class Source : unsigned { Catalog=1, Projection=2, Read=3, Application=4, T
 enum class Operation : unsigned { Lock=1, Timeline=2, Query=3, Finish=4, Serialize=5, Checkpoint=6, Append=7, ApplyJob=8, Sqlite=9, ValidateSources=10, FixedCapture=11, SnapshotPrepare=12, Transition=13 };
 inline bool Enabled() noexcept {static const bool enabled=[] {const char* p=std::getenv("MEDIA_SERVER_VERIFY_RECORDING_LATENCY_TRACE");return p&&std::strcmp(p,"1")==0;}();return enabled;}
 inline bool SlowOnly() noexcept {static const bool enabled=[] {const char* p=std::getenv("MEDIA_SERVER_VERIFY_RECORDING_LATENCY_SLOW_ONLY");return p&&std::strcmp(p,"1")==0;}();return enabled;}
-// Zero is the unselected-window sentinel. The first two clock reads can be
-// identical; reserve zero without changing any elapsed-time differences.
+// 0은 선택하지 않은 window의 sentinel이다. 처음 두 clock 값은 같을 수 있으므로
+// 경과 시간 차이를 바꾸지 않으면서 0을 예약한다.
 inline std::uint64_t Now() noexcept {static const auto epoch=std::chrono::steady_clock::now();return 1+static_cast<std::uint64_t>(std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::steady_clock::now()-epoch).count());}
-// Diagnostic-only selected windows. No allocation, output or diagnostic mutex under
-// the product lock. Completed intervals are published after unlock; never an owner guess.
-// Lifetime tokens are independent of reusable storage slots. Consumers copy the
-// token and never retain an owner pointer. UINT_MAX is the publication sentinel.
+// 선택한 window의 진단 전용이다. 제품 lock 안에서 할당·출력·진단 mutex를 사용하지 않는다.
+// 완료한 구간은 unlock 뒤에 공개하며 소유자를 추정하지 않는다.
+// 수명 token은 재사용 가능한 저장 slot과 독립적이다. 소비자는 token만 복사하고
+// 소유자 포인터를 보관하지 않는다. UINT_MAX는 publication sentinel이다.
 inline constexpr unsigned MutexCapacity=128,MaxMutexIdentity=std::numeric_limits<unsigned>::max()-1;
 struct MutexRegistry {
     static constexpr unsigned Reserved=std::numeric_limits<unsigned>::max();
@@ -39,9 +39,9 @@ enum class Work : unsigned { Other=0, Visual=1, Structured=2, Retention=3, Index
 inline thread_local Work holder_work=Work::Other;
 struct WorkScope {Work previous;explicit WorkScope(Work work):previous(holder_work){holder_work=work;}~WorkScope(){holder_work=previous;}};
 inline bool HolderEnabled() noexcept {static const bool yes=[] {const char* p=std::getenv("MEDIA_SERVER_VERIFY_CATALOG_HOLDER_TRACE");return p&&std::strcmp(p,"1")==0;}();return yes;}
-// R107 opt-in elapsed subcosts, not CPU time: Journal wait, managed authority,
-// identity lookup, cold mutation read/parse. Nested authority is inclusive.
-// Owned request attribution enables numeric decode costs without enabling Lock/Holder output.
+// R107 선택적 경과 시간 세부 비용이며 CPU 시간이 아니다. Journal 대기·관리 권한 확인·
+// identity 조회·cold mutation 읽기와 파싱을 측정한다. 중첩 authority 시간은 하위 구간을 포함한다.
+// 소유 요청의 귀속 검사는 Lock/Holder 출력을 켜지 않고 숫자 decode 비용만 활성화한다.
 inline bool SearchAttributionEnabled() noexcept {static const bool yes=[] {const char* p=std::getenv("MEDIA_SERVER_VERIFY_SEARCH_ATTRIBUTION");return p&&std::strcmp(p,"1")==0;}();return yes;}
 inline thread_local unsigned capture_depth=0;
 inline bool DecodeCostEnabled() noexcept {return HolderEnabled()||SearchAttributionEnabled()||capture_depth;}
@@ -55,12 +55,12 @@ struct JournalSubcost {
 };
 inline thread_local std::array<std::uint64_t,4> segment_decode_cost{}; // opt-in calls/hits/inclusive parse ns/second canonical serialization ns
 #ifdef RECORDING_SEARCH_TESTING
-// Native-only successful Segment V2 parse attribution. Mapping is inside JSON;
-// canonical serialization is inside validation. These intervals are not additive.
+// Native 전용의 성공한 Segment V2 파싱 비용 귀속이다. mapping은 JSON 구간에 포함되며
+// canonical 직렬화는 검증 구간에 포함된다. 이 구간들을 서로 더하면 안 된다.
 inline thread_local std::array<std::uint64_t,7> segment_parse_detail{}; // JSON ns, Mapping ns, validation ns, serialization ns, Mapping count, input bytes, JSON string ns
 inline thread_local std::uint64_t native_json_string_ns=0;
-// Native opt-in operation attribution. Container capacities/copy bytes are
-// logical work, not malloc totals, live memory, or isolated allocator time.
+// Native 선택적 작업 귀속이다. container 용량·복사 바이트는 논리적 작업량이며
+// malloc 총량·현재 메모리·분리된 allocator 시간을 뜻하지 않는다.
 enum NativeJsonField : unsigned {
     JsonDuplicateNs, JsonMemberNs, JsonNumberNs, JsonKeyStringNs,
     JsonKeys, JsonMembers, JsonNumbers, JsonRawCopyBytes, JsonKeyCopyBytes,
@@ -74,8 +74,8 @@ inline bool NativeJsonCostEnabled() noexcept {
     return yes&&DecodeCostEnabled();
 }
 #endif
-// Capture-only, fixed numeric elapsed costs. No output, allocation or new mutex.
-// Nested read/auth/copy intervals are inclusive; never sum them with lock hold.
+// Capture 전용의 고정 숫자 경과 비용이며 출력·할당·새 mutex를 사용하지 않는다.
+// 중첩 read/auth/copy 구간은 하위 시간을 포함하므로 lock hold 시간에 더하지 않는다.
 enum CaptureField : unsigned { HistoryWait, HistoryHold, HistoryVisit, RawCopy, HistoryRead, HistoryAuth, CutConsumer, HistoryGetWait, HistoryGetHold, CaptureFields };
 inline thread_local std::array<std::uint64_t,CaptureFields> capture_cost{},capture_calls{};
 struct CaptureSubcost {
@@ -92,9 +92,9 @@ struct HistoryVisitCost {
     ~HistoryVisitCost() noexcept {if(active&&owned)capture_cost[hold_field]+=Now()-at;}
 };
 inline thread_local std::uint64_t history_node_reads=0; // opt-in logical authenticated node reads, not physical I/O
-// R111 narrow source-read costs: six fixed namespace groups, calls/elapsed ns.
-// Inclusive GetOwned time (under its mutation lock), not CPU time or peak I/O.
-// Groups: segment-v2, source-binding, media-path, retired-v2, state-v2, other.
+// R111의 한정된 source-read 비용이며 고정 namespace 6개별 호출 수와 경과 ns를 기록한다.
+// mutation lock 안의 GetOwned 전체 경과 시간이며 CPU 시간이나 최대 I/O가 아니다.
+// 분류는 segment-v2, source-binding, media-path, retired-v2, state-v2, other다.
 inline thread_local std::array<std::uint64_t,12> catalog_row_cost{};
 struct CatalogRowCost {
     unsigned group;std::uint64_t begin;bool active;
@@ -119,9 +119,9 @@ struct HolderTrace {
         if(end-begin<Threshold)return;
         unsigned zero=0;if(!selected.compare_exchange_strong(zero,id))return;
         slow_begin.store(begin);slow_end.store(end);
-        // The winning completion selects one request, not every concurrent slow request.
-        // Ticket allocation and freezing share one atomic modification order. Earlier
-        // publishers finish their ring slot; later publishers use the separate tail.
+        // 가장 먼저 완료한 요청 하나를 선택하며 동시에 느린 모든 요청을 선택하지 않는다.
+        // ticket 할당과 freeze는 하나의 atomic 수정 순서를 공유한다. 앞선 publisher는
+        // 자기 ring slot을 마무리하고 이후 publisher는 별도 tail을 사용한다.
         tickets.fetch_or(Frozen,std::memory_order_release);
     }
     void AddSlow(const Event& e) noexcept {
@@ -134,8 +134,8 @@ struct HolderTrace {
         }
         auto& slot=slots[ticket%4096];auto prior=slot.state.load(std::memory_order_acquire);
         if(prior==1||!slot.state.compare_exchange_strong(prior,1,std::memory_order_acq_rel)){
-            // Never spin under a product mutex (Add is after unlock). An overlapping
-            // publication is explicitly incomplete; no partial event is consumed.
+            // 제품 mutex 안에서 spin하지 않는다. Add는 unlock 뒤에 실행한다. 겹친 publication은
+            // 명시적으로 불완전 처리하며 일부만 공개된 event는 소비하지 않는다.
             loss=true;return;
         }
         if(prior>ticket+2){Max(overwritten_end,e.e);slot.state.store(prior,std::memory_order_release);return;}
@@ -143,8 +143,8 @@ struct HolderTrace {
         slot.event=e;slot.state.store(ticket+2,std::memory_order_release);
     }
     std::array<std::atomic<std::uint64_t>,3> windows{}, ends{};
-    // R101 opt-in: three complete actual requests (1/2/3 or the late4/5/6).
-    // Default historical 7/41/77 one-second sampling remains unchanged.
+    // R101 선택 시 실제 요청 세 개 전체를 관측한다. 요청은 1/2/3 또는 늦은 4/5/6이다.
+    // 기본 과거 7/41/77의 1초 sampling은 유지한다.
     const bool whole=[] {const char* p=std::getenv("MEDIA_SERVER_VERIFY_CATALOG_HOLDER_WHOLE_REQUESTS");return p&&(std::strcmp(p,"1")==0||std::strcmp(p,"late")==0||std::strcmp(p,"mixed-late")==0);}();
     const unsigned first=[] {const char* p=std::getenv("MEDIA_SERVER_VERIFY_CATALOG_HOLDER_WHOLE_REQUESTS");return p&&std::strcmp(p,"mixed-late")==0?77U:p&&std::strcmp(p,"late")==0?4U:1U;}();
     std::atomic<unsigned> inflight{0};std::atomic<bool> loss{false};
@@ -226,8 +226,8 @@ public:
     }
     static void Result(unsigned status,const char* reason) noexcept {if(current){current->status_=status;const auto n=std::strlen(reason);bool safe=n<sizeof(current->reason_);for(std::size_t i=0;safe&&i<n;++i)safe=(reason[i]>='a'&&reason[i]<='z')||reason[i]=='-'||(reason[i]>='0'&&reason[i]<='9');std::snprintf(current->reason_,sizeof(current->reason_),"%s",safe?reason:"unknown-code");}}
     static void Index(std::uint64_t generation,std::uint64_t docs) noexcept {if(current){current->generation_=generation;current->documents_=docs;}}
-    // First/repeated miss by eligible/final phase; elapsed values are inclusive.
-    // Fixed 512 borrowed identities and 12 counters in RequestMedia, no payload log.
+    // eligible/final 단계별 최초·반복 miss이며 경과 시간은 하위 구간을 포함한다.
+    // RequestMedia에 고정 512개 borrowed identity와 12개 counter만 두며 payload를 기록하지 않는다.
     static void Preparation(const std::array<std::uint64_t,12>& values,std::size_t unique,bool complete) noexcept {
         if(!current)return;
         char row[640];std::size_t used=0;
@@ -246,7 +246,7 @@ public:
         if(HolderEnabled())Holder().Complete(id_,completed_at,start_);
         current=nullptr;char text[3072];std::size_t used=0;bool valid=true;
         const auto add=[&](const char* format,auto... values){if(!valid)return;const int n=std::snprintf(text+used,sizeof(text)-used,format,values...);if(n<0||std::size_t(n)>=sizeof(text)-used){valid=false;return;}used+=std::size_t(n);};
-        // reason is a fixed application code, never exception.what/query/path.
+        // reason은 고정 application code이며 exception.what·query·path를 넣지 않는다.
         add("[visual-request] {\"id\":%u,\"status\":%u,\"code\":\"%s\",\"startNs\":%llu,\"elapsedNs\":%llu,\"generation\":%llu,\"documents\":%llu,\"phases\":[",id_,status_,reason_,(unsigned long long)start_,(unsigned long long)(completed_at-start_),(unsigned long long)generation_,(unsigned long long)documents_);
         for(unsigned i=0;i<17;++i)add("%s[%llu,%llu]",i?",":"",(unsigned long long)count_[i],(unsigned long long)ns_[i]);
         add("%s","],\"counters\":[");for(unsigned i=0;i<6;++i)add("%s%llu",i?",":"",(unsigned long long)counters_[i]);
@@ -262,16 +262,16 @@ inline std::atomic<std::size_t> emitted_bytes{0};
 inline std::atomic<bool> loss_emitted{false};
 struct Local {unsigned thread=++next_thread,request=0,depth=0;std::uint64_t mutex=0;std::array<Row,128> rows{};std::size_t used=0;std::array<Row,32> fast{};unsigned fast_events=0;bool loss=false;~Local();};
 inline thread_local Local local;
-// One guard must share the lifetime of every observed mutex. Declaring the
-// guard immediately after the mutex releases its slot before mutex destruction.
-// Neither registration nor lookup acquires a product/diagnostic mutex or writes.
+// guard 하나가 관측하는 mutex의 전체 수명을 함께해야 한다. mutex 바로 뒤에 guard를
+// 선언하면 mutex가 소멸되기 전에 slot을 해제한다.
+// 등록과 조회 모두 제품·진단 mutex를 획득하거나 출력을 쓰지 않는다.
 class MutexIdentity {
     unsigned slot_=MutexCapacity,identity_=0;
 public:
     explicit MutexIdentity(const void* address) noexcept {
         if(!Enabled())return;
-        // Exactly one guard owns an observed mutex. Reject accidental duplicate
-        // owners; concurrent construction of guards for one object is unsupported.
+        // 관측하는 mutex에는 정확히 하나의 guard만 둔다. 실수로 중복 소유하지 못하게
+        // 거부하며 같은 객체의 guard를 동시에 생성하는 방식은 지원하지 않는다.
         for(auto& slot:mutex_registry.slots){
             const auto prior=slot.identity.load();
             if(prior&&prior!=MutexRegistry::Reserved&&slot.address.load()==address&&slot.identity.load()==prior){mutex_registry.Lose();return;}
@@ -295,8 +295,8 @@ public:
     ~MutexIdentity() noexcept {
         if(slot_==MutexCapacity)return;
         auto& slot=mutex_registry.slots[slot_];
-        // Invalidate before clearing/reusing the address. Lookup validates the
-        // token twice, so a recycled slot/address cannot acquire the prior ID.
+        // 주소를 지우거나 재사용하기 전에 무효화한다. 조회는 token을 두 번 확인하므로
+        // 재활용한 slot·주소가 이전 ID를 얻을 수 없다.
         slot.identity.store(MutexRegistry::Reserved);
         slot.address.store(nullptr);--mutex_registry.active;
         slot.identity.store(0);
@@ -390,8 +390,8 @@ inline void Append(Row row,bool always=false) noexcept {
     if(local.used==local.rows.size()){local.loss=true;return;}local.rows[local.used++]=row;
 }
 inline void FlushFast() noexcept {for(auto& row:local.fast)if(row.n){if(local.used<local.rows.size())local.rows[local.used++]=row;else local.loss=true;row={};}local.fast_events=0;Flush();}
-// Thread-local observation of the Capture's existing Catalog mutex only.
-// The Lock object layout and all acquisition/release operations stay unchanged.
+// Capture에 이미 존재하는 Catalog mutex만 thread-local로 관측한다.
+// Lock 객체 배치와 모든 획득·해제 작업은 유지한다.
 struct CaptureLockCost {
     inline static thread_local CaptureLockCost* active=nullptr;
     CaptureLockCost* previous=active;std::mutex* mutex;std::array<std::uint64_t,4> ns{};
@@ -445,11 +445,11 @@ public:
             if(holder_){++Holder().inflight;event_.b=row_.b;event_.a=row_.a;event_.m=row_.m;event_.t=local.thread;event_.r=VisualRequestSummary::CurrentId();event_.line=line;event_.site=site_;event_.work=static_cast<unsigned>(holder_work);begin_counts_=SubcostEnabled()?journal_subcost:holder_counts;}}
         enclosing_=current_;current_=this;
     }
-    // Static diagnostic label only; no payload, allocation or additional lock.
+    // 고정 진단 label만 사용하며 payload·할당·추가 lock은 없다.
     void HolderRetentionCosts(const char* site,const std::array<std::uint64_t,4>& costs) noexcept {if(holder_){event_.site=site;if(!SubcostEnabled()){event_.counts=costs;retention_costs_=true;}}}
     bool owns_lock()const noexcept{return owned_;}
     ~Lock() noexcept {Release();current_=enclosing_;}
-    // The owning RAII object performs both operations. No raw unlock behind a lock_guard.
+    // 소유 RAII 객체가 두 작업을 모두 수행한다. lock_guard 뒤에서 직접 unlock하지 않는다.
     class Unlocked {
         Lock& lock_;
     public:
@@ -477,8 +477,8 @@ public:
     ~Scope() noexcept {if(!enabled_)return;row_.e=Now();Append(row_,always_);if(request_){FlushFast();local.request=previous_;}else Flush();}
     Scope(const Scope&)=delete;Scope& operator=(const Scope&)=delete;
 };
-// Visual diagnosis emits bounded start/end records immediately, including a still-running phase.
-// Fixed literal names only; no query, path, token or media content. Same process steady clock.
+// Visual 진단은 진행 중인 단계까지 포함해 제한된 start/end 기록을 즉시 출력한다.
+// 고정 literal 이름만 쓰며 query·path·token·media 내용은 제외한다. 같은 process의 steady clock을 쓴다.
 class VisualPhase {
     inline static std::atomic<unsigned> sequence_{0},lines_{0};
     inline static std::atomic<bool> failed_{false};

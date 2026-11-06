@@ -174,6 +174,6 @@ check('LP26-O07-N existing catch/finally and Identity cleanup remain byte-equiva
   assert(mixedSource.includes("short=args.length===1&&args[0]==='--app-observe'"));
 });
 
-// FINAL_RESULT
+// FINAL_RESULT: 최종 검사 집계와 정리 결과를 출력한다.
 console.log(JSON.stringify({scope:'fixture-generation-diagnostic-self-test',passed,failed,elapsedMs:Math.round(performance.now()-start),cleanup:'소유 mock 임시 root 삭제·부재 확인',generatorExecuted:false,longrunPass:false,tokenStart:null,tokenEnd:null,tokenConsumed:null,tokenSource:'전용 집계 없음'}));
 process.exitCode=failed?1:0;

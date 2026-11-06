@@ -107,7 +107,7 @@ check('malformed provided edge collection cannot be captured',()=>{
 // 실제 실행기의 환경/launch/종료 요약을 실행한다. 제품 서버는 명시적인 Node 자식 대역이다.
 const mixedSource=fs.readFileSync(new URL('./v450_recording_a_mixed.mjs',import.meta.url),'utf8');
 function mixedBoundary(source=mixedSource,diagnose=true){
-  const context=vm.createContext({path,process,repo:'/owned-repo',root:'/owned-run',stateExecution:null,diagnose,stateDiagnose:false,memoryDiagnose:false,memoryObserve:false,contentionDiagnose:false,
+  const context=vm.createContext({path,process,repo:'/owned-repo',root:'/owned-run',stateExecution:null,qualification:null,blockerMode:false,diagnose,stateDiagnose:false,memoryDiagnose:false,memoryObserve:false,contentionDiagnose:false,
     http:61001,rtsp:61002,stun:61003,frameTraceSummary,assertMixedFrameTraceMode,parseLongrunArgs,
     short:false,args:diagnose?['--frame-diagnostic']:['--duration-minutes','120'],console:{log(){}}});
   const declaration=(source.match(/^const frameTraceMode=.*;$/m)?.[0]??'')+'\n'+source.match(/^const duration=.*;$/m)[0];
@@ -312,8 +312,8 @@ if(process.argv[2])check('R114 fixed original input and codec/sample mutations f
 console.log(`[R114-input-summary] passed=${passed} failed=${failed}`);if(failed)process.exitCode=1;
 
 
-// MEDIA-012-ACTIVE-HISTORY-F01: compact V2 rows and the actual driver boundary only;
-// no product, native helper, fixture generation or network calls.
+// MEDIA-012-ACTIVE-HISTORY-F01: 압축 V2 행과 실제 driver 경계만 검사한다.
+// 제품·native helper 실행, fixture 생성 또는 네트워크 호출은 수행하지 않는다.
 const {CurrentLongrunProgress,CurrentObservationBudget,CurrentRecordingObserver}=await import('./recording_current_observer.mjs');
 const v2=(id,channel='9101',order='1',sizeBytes='8')=>({type:'segment_v2_bound_finalized',entity:id,occurredAtMs:'-100',mediaRelpath:`private/${id}.mp4`,
   segment:{id,channel,order,sizeBytes,continuous:true,sha256:'a'.repeat(64),metadataHash:'b'.repeat(64),storeHash:'c'.repeat(64),knownMappings:1,unknownMappings:0}});

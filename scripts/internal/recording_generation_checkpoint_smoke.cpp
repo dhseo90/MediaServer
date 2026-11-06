@@ -33,8 +33,8 @@ struct RecordingGenerationTransactionProbe {
     static bool Bind(RecordingCatalog& c,const void* owner){return c.BindDerivedService(owner);}
     static void Unbind(RecordingCatalog& c,const void* owner){c.UnbindDerivedService(owner);}
     static bool Update(RecordingCatalog& c,const void* owner,const DerivedJobRecordV1& job,std::string* e){return c.UpdateDerivedJob(owner,job,e);}
-    // Exercise the real Catalog consumers without replacing Journal results or
-    // editing its original files. These probes hold the same Catalog mutex as callers.
+    // Journal 결과를 대체하거나 원본 파일을 편집하지 않고 실제 Catalog 소비자를 검사한다.
+    // 이 probe는 호출자와 동일한 Catalog mutex를 보유한다.
     static bool ConsumerAuthority(RecordingCatalog& c) {
         std::lock_guard<std::mutex> lock(c.mu_);std::string detail;
         return c.opened_&&c.generation_backend_&&c.derived_job_state_authoritative_&&c.CanReadLocked(&detail);
@@ -47,8 +47,8 @@ struct RecordingGenerationTransactionProbe {
     static std::size_t ConsumerHeadroom(RecordingCatalog& c,const std::string& kind,const std::string& id) {
         std::lock_guard<std::mutex> lock(c.mu_);RecordingColdRow raw;bool found=false;std::string detail;
         Need(c.completed_history_&&c.completed_history_->GetOwned(kind,id,&raw,&found,&detail)&&found);
-        // Leave enough for the authenticated raw row and typed parser, but no room
-        // for MakeGenerationMutationLink's independent shared ref allocation.
+        // 인증된 raw row와 typed parser에 필요한 공간은 남기되 MakeGenerationMutationLink의
+        // 별도 shared ref 할당 공간은 남기지 않는다.
         return raw.memory.bytes()+ingress::StrictJsonWorkspaceBytes(raw.bytes,7,sizeof(std::string),true);
     }
     static bool ReadConsumer(RecordingCatalog& c,const std::string& kind,const std::string& id,
@@ -387,7 +387,7 @@ void StreamBoundary(const std::filesystem::path& root){
           "canonical stream bytes match DTO oracle including prefix keys and multi-chunk rows");
     Check("MEM80-G01",snapshot_export_calls==1&&snapshot_spool_serializations==dto.rows.size(),
           "one validated export and one spool serialization per original row; byte oracle unchanged");
-    // A freshly built candidate index is not an assertion that its applied prefix matches Catalog.
+    // 새로 만든 후보 index만으로는 그 적용 prefix가 Catalog와 같다고 단정할 수 없다.
     for(const std::string mode:{"identity","time","missing","order"}){
         auto altered=chain.first_acceptances;
         if(mode=="identity")altered.front().first_row.identity=std::string(64,'a');
@@ -442,8 +442,8 @@ void StreamIdentityBoundaries(const std::filesystem::path& base) {
             ("stream product Open rejects "+mode+" and preserves originals").c_str());
         Need(journal.Finish(&error));
     }
-    // Existing opaque IDs are escape-free and <=128 bytes. Canonical schemas, enums,
-    // numeric widths and archive names bound every valid row below the 2048-byte slot.
+    // 기존 opaque ID는 escape가 필요 없고 128바이트 이하다. canonical schema·enum·숫자 폭·
+    // archive 이름의 경계로 모든 유효 row가 2048바이트 slot보다 작게 제한된다.
     const auto root=base/"maximum-token";std::filesystem::create_directories(root);
     RecordingIdentityShard shard;shard.store_id=std::string(128,'s');shard.generation=1;
     shard.archives.push_back({"active-1.jsonl",UINT64_MAX,std::string(64,'f')});
@@ -958,7 +958,7 @@ void HistoryProduct(const std::filesystem::path& root) {
             "allocation exception after first overwritten chunk poisons wrapper instead of exposing mixed old/new value");
         Need(rows.Finish(&error));
     }
-    // Real Journal Open uses the source validator and rejects omitted and incorrect ordinal index rows.
+    // 실제 Journal Open은 source validator로 누락되거나 잘못된 ordinal index row를 거부한다.
     for(int fault:{1,2}){const auto store=root/("source-"+std::to_string(fault));Actual(store);
         ProbeRecordingIdentityHistoryFault(fault);RecordingJournal j(Options(store));
         Check("MEM78-J01",!j.Open(&error),"original-complete seal rejects rebuild omission/wrong ordinal in product Open");
@@ -1023,7 +1023,7 @@ void CheckpointConcurrentCut(const std::filesystem::path& root) {
      const bool appended=append.wait_for(std::chrono::milliseconds(250))==std::future_status::ready;
      auto another=std::async(std::launch::async,[&]{std::string e;return catalog.Checkpoint(&e);});
      const bool another_ready=another.wait_for(std::chrono::milliseconds(250))==std::future_status::ready;
-     // Always release before assertions/joins, including the expected pre-fix RED.
+     // 수정 전의 예상 RED를 포함해 assertion·join 전에 항상 해제한다.
      {std::lock_guard<std::mutex> lock(cut_probe_mu);cut_probe_release=true;}cut_probe_cv.notify_all();
      checkpoint.join();const auto search_result=search.get();(void)search_result;append.get();
      Check("MEM82-C03",another_ready&&!another.get(),"second manual checkpoint is rejected while one private candidate is held");
@@ -1043,7 +1043,7 @@ void CheckpointConcurrentCut(const std::filesystem::path& root) {
     int status=0;Need(::waitpid(child,&status,0)==child);
     Check("MEM82-C01",WIFEXITED(status)&&WEXITSTATUS(status)==0,"independent process reOpen preserves before/after durable order without duplication");
 }
-// Same real bound-source fixture, without an active derived job pinning deletion.
+// 동일한 실제 bound-source fixture이며 삭제를 pin하는 active derived job은 없다.
 void CutSourceFixture(const std::filesystem::path& root) {
     auto input=InputValue();auto f=Active(input);
     f.snapshot.rows.erase(std::remove_if(f.snapshot.rows.begin(),f.snapshot.rows.end(),[](const auto& r){
@@ -1061,7 +1061,7 @@ void CatalogConsumerQuota(const std::filesystem::path& root) {
     auto input=InputValue();Install(Active(input),root);
     RecordingJournal journal(Options(root));Need(journal.Open(&error));
     RecordingCatalog catalog(journal,CO(root));Need(catalog.Open(&error));
-    // Reach cold terminal state through actual service and deletion transitions.
+    // 실제 service·삭제 상태 전이를 거쳐 cold terminal 상태에 도달한다.
     int service=0;Need(RecordingGenerationTransactionProbe::Bind(catalog,&service));
     auto failed=input.job;failed.state=DerivedJobState::Failed;failed.failure_reason="owned-cleanup";failed.cleaned_at_ms=30;
     const bool updated=RecordingGenerationTransactionProbe::Update(catalog,&service,failed,&error);
@@ -1235,8 +1235,8 @@ void CheckpointAdmissionRaces(const std::filesystem::path& base) {
 }
 
 void CheckpointCaptureFailure(const std::filesystem::path& root) {
-    // Retained segments are cold now. Keep a real active job so the sequential
-    // capture contains a row and the late root-corruption probe is exercised.
+    // 보유 segment는 이제 cold 상태다. 실제 active job을 유지하여 순차 capture에 row가
+    // 포함되고 마지막 root 손상 probe가 실행되게 한다.
     const auto input=InputValue();Install(Active(input),root);
     RecordingJournal j(Options(root));Need(j.Open(&error));RecordingCatalog c(j,CO(root));Need(c.Open(&error));
     std::optional<DerivedJobRecordV1> job;Need(c.FindDerivedJob(input.job.intent.job_id,&job,&error)&&job&&job->state==input.job.state);
@@ -1579,7 +1579,7 @@ void CheckpointSuffixRecovery(const std::filesystem::path& base) {
         const auto original_active=Read(root/"active-2.jsonl");
         const bool recovered=RecoverCheckpointTransaction(root);
         if(point=="intent-durable") {
-            // Existing transaction contract never rolls back uncertain PUBLISH_INTENT.
+            // 기존 transaction 계약은 불확실한 PUBLISH_INTENT를 rollback하지 않는다.
             Check("MEM82-C02",!recovered&&error=="publish intent has no exact target; preserved"&&
                 Read(root/"active-2.jsonl")==original_active&&original_active.find("crash-after")!=std::string::npos,
                 "pre-manifest intent fails closed and preserves successful durable suffix, no invented recovery");

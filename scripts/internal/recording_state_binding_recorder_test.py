@@ -1,5 +1,5 @@
 """Synthetic routing/guard tests; actual positive/negative use final product artifacts."""
-import json,subprocess,unittest
+import json,subprocess,unittest  # 파일 용도: 합성 입력으로 Recorder 결속의 분기와 거부 조건을 검사하며 실제 제품 적격성은 대체하지 않는다.
 from pathlib import Path
 from unittest.mock import patch
 import recording_state_binding_recorder as r

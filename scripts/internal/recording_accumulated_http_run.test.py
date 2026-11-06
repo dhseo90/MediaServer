@@ -1,5 +1,5 @@
 """출력 계약에 대한 결정적 반례. 제품 실행/실제 HTTP 성공의 대체가 아니다."""
-import copy
+import copy  # 파일 용도: 녹화 누적 HTTP 출력의 phase·요청·media·실패 요약 계약을 결정적 반례로 검증한다.
 import unittest
 from pathlib import Path
 from recording_accumulated_http_run import qualify, PHASES, failure_summary

@@ -106,9 +106,9 @@ int Transitions() {
         before_fd_round=[&](unsigned){send('v');};before_fd_detail=[&](int fd){if(fd==200)send('c');};
         Observation d;bool rejected=false;try{(void)Collect(child,&d);}catch(const std::runtime_error& e){rejected=std::string(e.what())==FdExhaustionError(0,4);}
         before_fd_round={};before_fd_detail={};check(rejected&&d.closed==4&&d.rounds==4,"four actual close races remain incomplete, no partial promotion");
-        // Deterministic OS transitions, not injected errno or random churn.
-        // Reset both slots before each fresh roster; retire alternating slots
-        // only after that roster has listed them, immediately before detail.
+        // errno 주입이나 무작위 변동 대신 결정적인 OS 상태 전이를 사용한다.
+        // 새 목록을 얻기 전에 두 slot을 초기화한다. 각 목록에 slot이 나열된 이후
+        // detail을 읽기 직전에 번갈아 해당 slot을 제거한다.
         for(const unsigned failed_rounds:{3u,4u}){
             unsigned round=0,changes=0;
             before_fd_round=[&](unsigned attempt){round=attempt;send('b');};

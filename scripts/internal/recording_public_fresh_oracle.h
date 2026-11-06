@@ -1,5 +1,5 @@
 #pragma once
-// Test-only publication oracle. Never calls VisualSearchIndex::Search or changes ranking.
+// 파일 용도: 테스트 전용 publication 판정 기준이며 VisualSearchIndex::Search를 호출하거나 순위를 바꾸지 않는다.
 #include "recording/visual_search_index.h"
 #include <algorithm>
 #include <limits>
@@ -8,7 +8,7 @@
 #include <tuple>
 namespace recording_public_fresh_oracle {
 struct Target {std::size_t index, bucket_count, fresh_count;std::int64_t start_ms,end_ms;};
-// Only exact sample/file evidence, independently of the public Resolve path.
+// 공개 Resolve 경로와 독립적인 정확한 sample·file 증명만 사용한다.
 struct Seek {std::int64_t ticks,duration;std::uint32_t timescale;};
 template<class Binding>
 std::optional<Seek> ExpectedSeek(
@@ -24,7 +24,7 @@ std::optional<Seek> ExpectedSeek(
  }
  if(count!=1)return {};return Seek{ticks,duration,e.timescale};
 }
-// Exact public accessibility is independent of UTC and text ranking.
+// 정확한 공개 접근 가능성은 UTC·텍스트 순위와 독립적이다.
 struct ExactTarget {std::size_t index,fresh_count;};
 template<class CurrentBinding>
 ExactTarget SelectExact(const std::vector<recording::VisualSearchDocument>& docs,

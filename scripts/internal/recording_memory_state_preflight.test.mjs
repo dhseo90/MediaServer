@@ -1,4 +1,4 @@
-// R139: 제품/장시간 실행 없이 고정45분 collector 계약을 검증한다.
+// 파일 용도: R139 제품·장시간 실행 없이 고정 45분 collector 계약을 검증한다.
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import vm from 'node:vm';
@@ -40,8 +40,8 @@ assert.equal(memoryObservationMode(['--state-diagnostic']),true);assert.equal(me
 assert.equal(mixedPreparationContract(['--state-diagnostic']).requiresDeletion,true);
 const mixed=fs.readFileSync(new URL('./v450_recording_a_mixed.mjs',import.meta.url),'utf8');
 for(const text of ['stateDiagnose?2700000','stateDiagnose?2880000','if(!memoryDiagnose)check(orderedLatencies','VERIFY_CATALOG_HOLDER_TRACE:diagnose&&!stateDiagnose?1:0','if(memoryDiagnose)values.VERIFY_CATALOG_SUBCOSTS=1','strict:stateDiagnose','if(memoryObserve)collectMemoryAttribution','memoryObserve&&app.memoryTrace.error','if(memoryObserve)console.log(\'[memory-attribution-summary]','if(memoryObserve||blockerMode)values.VERIFY_MEMORY_ATTRIBUTION=1'])assert(mixed.includes(text),text);
-// The existing blocker diagnostic also needs attribution; State memory gates
-// remain unchanged. Check the complete statement and its four input cases.
+// 기존 blocker 진단에도 비용 귀속이 필요하며 State 메모리 gate는 유지한다.
+// 설정 문장 전체와 네 가지 입력 조합을 검사한다.
 const memorySetup='if(memoryObserve||blockerMode)values.VERIFY_MEMORY_ATTRIBUTION=1;';
 assert.equal(mixed.split(memorySetup).length-1,1);
 for(const [memoryObserve,blockerMode,expected] of [[false,false,undefined],[true,false,1],[false,true,1],[true,true,1]]){

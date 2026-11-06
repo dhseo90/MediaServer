@@ -280,7 +280,7 @@ public:
     std::vector<ReferencedObservationV1> QueryReferencedObservations(const std::string& channel) const;
     std::vector<RecordingConsumerReferenceV1> QueryConsumerReferences(
         const std::string& channel, const std::string& kind, const std::string& owner) const;
-    // Exact internal lookup. Unavailable/corrupt history is not a successful absence.
+    // 정확한 내부 조회다. history를 읽을 수 없거나 손상됐으면 정상적인 부재로 판정하지 않는다.
     bool LookupConsumerReference(const std::string& id,
         std::optional<RecordingConsumerReferenceV1>*,std::string*) const;
     // 파일 검출/삭제가 아닌 known segment의 내부 durable 상태 전이.
@@ -370,9 +370,9 @@ private:
         std::string envelope_identity, validated_source_id;
         std::shared_ptr<RecordingJournal::ColdReadProof> cold;
         std::string segment_json;
-        // Only PreparedSource supplies this immutable input identity. Its heap-
-        // stable Impl owns the row longer than this context. It does not prove
-        // binding validity: first materialization and current raw checks remain.
+        // 불변 입력 identity는 PreparedSource만 제공한다. heap에서 주소가 안정적인
+        // Impl이 이 context보다 오래 row를 소유한다. 이것만으로 binding의 유효성을
+        // 입증하지 않으며 최초 materialization과 현재 raw 검사는 계속 수행한다.
         const RecordingSegmentV2* prepared_media{nullptr};
         std::size_t retained_bytes{0};
     };
@@ -594,9 +594,9 @@ private:
     struct RetentionSnapshot RetentionSnapshotLocked(RetentionSnapshotSelection selection=RetentionSnapshotSelection::All,
                                                     const std::string& id={},std::array<std::uint64_t,4>* diagnostic=nullptr,VisualSourceScan* visual=nullptr) const;
     struct RetentionSnapshot RetentionReservationsLocked() const;
-    // A live read tracks only changes during its bounded preparation. This is
-    // neither a historical log nor authority for absence. Overflow rejects the
-    // read without interfering with the durable writer.
+    // 살아 있는 read는 제한된 준비 구간의 변경만 추적한다. 과거 이력이나
+    // 부재 판정의 권한 근거로 사용하지 않는다. overflow가 발생하면 durable writer에
+    // 영향을 주지 않고 해당 read를 거부한다.
     struct RetentionReadState {
         SearchModelResidency::Reservation memory;
         RetentionReadState* next=nullptr;
@@ -682,19 +682,19 @@ private:
     struct SearchChange { std::uint64_t revision; RecordingMutationType type; std::string id; };
     std::deque<SearchChange> search_changes_;
     std::uint64_t search_instance_{0}, search_rebuild_revision_{0};
-    // Recent coverage, not a historical authority/cache. Fixed bytes independent of channel/history count.
-    // Empty channel is a conservative global dependency; a lost prefix requires rebuild/rejection.
+    // 최근 구간의 coverage이며 과거 권한 근거나 cache가 아니다. 바이트 수는 channel·history 개수와 무관하게 고정된다.
+    // 빈 channel은 보수적으로 전역 의존성을 뜻하며 prefix를 잃으면 재구축하거나 거부한다.
     struct SearchInvalidations {
         SearchModelResidency::Reservation memory;
-        // Retention optionally packs channel\0segment\0 into the same fixed
-        // buffer. Long identities retain ordinary invalidation, never a delta.
+        // Retention은 같은 고정 buffer에 channel\0segment\0을 선택적으로 저장한다.
+        // 긴 identity에는 기존 무효화를 유지하며 delta로 처리하지 않는다.
         struct Entry { std::uint64_t revision=0; char channel[129]{}; bool structural=false, new_bound_segment=false; std::uint8_t retention=0; };
         std::array<Entry,1024> entries{};
         std::size_t next=0, count=0;
         std::uint64_t floor=0;
-        // Volatile global coverage, not a second authority. Every non-order
-        // application advances epoch; only fully applied durable bound Finalize
-        // completes a receipt. Unsupported/failed/recovery applications leave gaps.
+        // 휘발성 전역 coverage이며 별도 권한 근거가 아니다. 모든 non-order 적용은
+        // epoch를 증가시킨다. durable binding이 있는 Finalize가 완전히 적용돼야만
+        // receipt가 완성된다. 미지원·실패·복구 적용은 coverage에 공백을 남긴다.
         static constexpr std::size_t receipt_capacity=64, raw_limit=32;
         static constexpr std::uint64_t receipt_lifetime_ns=60000000000ULL;
         struct Receipt {
@@ -721,8 +721,8 @@ private:
             if(receipt_count<receipt_capacity)++receipt_count;
             pending={};
         }
-        // Return a fixed reason, useful to Native diagnostics. No allocation,
-        // pointers into Catalog state, or unbounded work on either side.
+        // Native 진단에 유용한 고정 reason을 반환한다. 양쪽 모두 메모리 할당,
+        // Catalog 상태를 가리키는 포인터, 무제한 작업을 사용하지 않는다.
         const char* Cover(std::uint64_t from,std::uint64_t since,std::uint64_t through,
             std::array<Receipt,receipt_capacity>* copy,std::size_t* copied) const noexcept {
             *copied=0;

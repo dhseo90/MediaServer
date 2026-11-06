@@ -16,9 +16,9 @@ namespace {
 using Wide=__int128;
 using namespace detail::timeline;
 constexpr std::size_t kKnownRows=4096;
-// Fixed five-stage diagnostic, emitted after the Catalog lock is released.
-// n: stage (101..105 event candidates, 1..5 full timeline), x: visited rows,
-// y: authenticated history node reads. No per-row logs or retained payloads.
+// 고정된 다섯 단계 진단이며 Catalog 잠금을 푼 뒤 출력한다.
+// n은 단계(event 후보 101..105, 전체 timeline 1..5), x는 방문한 row 수이며
+// y는 인증된 history node 읽기 수다. row별 로그나 보유 payload는 없다.
 struct TimelineCosts {
     struct Row {std::uint64_t begin=0,end=0,rows=0,reads=0;};
     std::array<Row,5> stages{};bool events;std::uint64_t memo_excluded=0;
@@ -239,8 +239,8 @@ bool RecordingCatalog::SnapshotTimelineV2(const RecordingTimelineQuery& query,Re
     return SnapshotTimelineWithContext(query,result,error,nullptr);
 }
 bool RecordingCatalog::SnapshotTimelineWithContext(const RecordingTimelineQuery& query,RecordingTimelineResult* result,std::string* error,JobReadContext* context,bool event_candidates_only) const {
-    // This projection owns the Catalog mutex too. Preserve its phase category,
-    // while including the actual holder in the bounded contention window.
+    // 이 projection도 Catalog mutex를 소유한다. 기존 phase category를 유지하면서
+    // 실제 소유자를 크기가 제한된 경합 관측 구간에 포함한다.
     TimelineCosts costs(event_candidates_only);
     recording::latency::Lock lock(mu_,recording::latency::Source::Projection,__LINE__,true,__func__,true);
     if(!result||!opened_||!derived_job_state_authoritative_||(generation_backend_&&!CanReadLocked(error))){if(error)*error="timeline-catalog-unavailable";return false;}
@@ -262,10 +262,10 @@ bool RecordingCatalog::SnapshotTimelineWithContext(const RecordingTimelineQuery&
         Collector collector(query);
         // 출력/참조 소유권은 이 catalog snapshot 안에서 한 번만 색인한다.
         // 세그먼트마다 모든 작업을 재탐색하면 누적 원본·이벤트가 같은 잠금을 오래 점유한다.
-        // Terminal ownership is authenticated scratch; only active job ownership remains resident.
-        // Querying membership avoids an O(all completed outputs/references) request-local set.
-        // Authenticate the namespace once in key order, with bounded row ownership.
-        // Cursor++ used to repeat root traversal and metadata/value reads per row.
+        // 종료된 작업의 소유권은 인증된 작업 공간에 두며 active job 소유권만 상주시킨다.
+        // 구성원 조회로 모든 완료 output·reference에 비례하는 request-local set을 피한다.
+        // row 소유 범위를 제한하면서 key 순서로 namespace를 한 번 인증한다.
+        // 기존 Cursor++는 row마다 root 순회와 metadata·value 읽기를 반복했다.
         costs.Begin(0);
         const auto segment_visitor=[&](const auto& id,const auto& segment){
             if(segment.channel_id!=query.channel_id)return true;

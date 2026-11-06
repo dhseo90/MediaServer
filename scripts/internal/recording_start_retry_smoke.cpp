@@ -1,4 +1,4 @@
-// R191: 실제 StartChannel/SharedStream/Stop 경로의 수명 경합을 latch로 제어한다.
+// 파일 용도: R191 실제 StartChannel·SharedStream·Stop 경로의 수명 경합을 latch로 제어해 검증한다.
 #include "stdafx.h"
 #include <cassert>
 #include <future>

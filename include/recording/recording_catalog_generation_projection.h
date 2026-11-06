@@ -25,7 +25,7 @@ class RecordingCatalogHistoryRows;
 struct RecordingCatalogGenerationProjection {
     std::shared_ptr<RecordingCatalogHistoryRows> completed_history;
     bool nonresident_history{false};
-    // Simultaneously live projection scratch, including the old full-row join.
+    // 기존 전체 row 결합을 포함해 동시에 살아 있는 projection scratch의 사용량이다.
     std::uint64_t scratch_peak_bytes{0},scratch_peak_allocated{0};
     RecordingIdentityHistoryHandle identity_history;
     RecordingGenerationManifest manifest;

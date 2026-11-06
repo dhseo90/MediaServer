@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """제품을 시작하지 않는 래퍼 오류 보존 단위 검사. 제품 PASS 근거가 아니다."""
-import ast
+import ast  # 파일 용도: 제품 없는 stub으로 녹화 HTTP 래퍼의 최초 실패·후처리·정리 결과 보존을 검증한다.
 import json
 import pathlib
 import signal

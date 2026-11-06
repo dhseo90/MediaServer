@@ -9,7 +9,7 @@
 #include <libproc.h>
 #endif
 namespace recording::memory_diagnostic {
-// One cursor per resource trace; no product objects, heap, history or FD retained.
+// resource trace마다 cursor 하나만 두며 제품 객체·heap·이력·FD를 보유하지 않는다.
 struct EventCursor {std::uint64_t end=0;bool initialized=false,failed=false;};
 struct OwnerSample {
     SearchModelResidency::Diagnostic ledger;
@@ -18,7 +18,7 @@ struct OwnerSample {
     bool loss=false;std::uint64_t begin{},roles_at{},process_at{},endNs{};
     long long rss=-1,footprint=-1;AllocatorSample allocator;
 };
-// Pure formatting of one frozen sample, shared by production and deterministic tests.
+// 고정된 sample 하나를 순수하게 포맷하며 제품과 결정적 테스트가 같은 구현을 사용한다.
 inline bool EmitSample(const OwnerSample& sample,const char* phase,bool(*sink)(const char*,std::size_t),EventCursor* cursor=nullptr) {
     const auto& ledger=sample.ledger;const auto& models=sample.models;const auto& pools=sample.pools;const auto& events=sample.events;
     const auto& live=sample.live;const auto& peak=sample.peak;const auto& totals=sample.totals;const auto& allocator=sample.allocator;

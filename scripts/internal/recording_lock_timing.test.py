@@ -1,4 +1,4 @@
-import copy,json,unittest
+import copy,json,unittest  # 파일 용도: 녹화 lock 시간 출력의 숫자 범위·설정·부분 출력·mutex 수명 계약을 검증한다.
 import recording_lock_timing as q
 class Negative(unittest.TestCase):
  def raw(self):

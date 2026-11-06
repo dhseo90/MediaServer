@@ -1,5 +1,5 @@
-// R101 native direct run only: reuse the existing space operands and process collector.
-// Sequential samples bound observation, not instantaneous peak. Failures reach parent.
+// 파일 용도: R101 native 직접 실행에서 기존 공간 피연산자와 process collector를 재사용한다.
+// 순차 sample은 관측 범위를 제한할 뿐 순간 peak가 아니며 실패는 parent로 전달한다.
 import fs from 'node:fs';
 import {collectProcess} from './recording_foundation_observer.mjs';
 import {measureCurrentRootStable,admitWorkspaceSnapshot,createWorkspaceFailureCapture,workspaceAnonymousBytes} from './recording_current_observer.mjs';
@@ -19,8 +19,8 @@ try {
   const completedPhase=fs.readFileSync(root+'/resource-phase','utf8').trim();
   if(!['initial','model','live'].includes(phase))throw Error('resource-phase-invalid');
   const storage=measureCurrentRootStable(root,{recordingTop:'recording'});
-  // All ordinary run files retain live448 admission. Only the documented,
-  // synchronous model FD/session construction uses the existing total8GiB.
+  // 일반 실행 파일에는 모두 live448 허용 기준을 유지한다. 문서에 정의된 동기 model FD·session
+  // 생성 중에만 기존 total8GiB를 사용한다.
   let bounds;
   if(phase==='model'){
    bounds=admitWorkspaceSnapshot({storage,baseline:{fixedBytes:0,capBytes:448*1024**2}},capture);

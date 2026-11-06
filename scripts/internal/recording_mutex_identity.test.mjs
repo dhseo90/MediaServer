@@ -1,4 +1,4 @@
-// V450-MUTEX-LIFETIME-01: 실제 RAII/고정 registry 및 기존 collector의 손실 거부.
+// 파일 용도: V450-MUTEX-LIFETIME-01 실제 RAII/고정 registry 및 기존 collector의 손실 거부.
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';

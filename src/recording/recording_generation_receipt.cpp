@@ -201,9 +201,9 @@ std::size_t RecordingGenerationReceiptMemoryBytes(const RecordingGenerationRecei
     return c.value;
 }
 std::size_t RecordingGenerationReceiptSerializationBytes(const RecordingGenerationReceipt& r){
-    // JSON descriptors have two unescaped validated strings, five labels and
-    // three uint64 decimal fields (at most20 characters each). Manifest codecs
-    // retain their existing64KiB admission; both previous/target may coexist.
+    // JSON descriptor에는 escape가 필요 없는 검증된 문자열 2개와 label 5개가 있다.
+    // uint64 십진 필드 3개는 각각 최대 20자이며 manifest codec의 한도는 그대로다.
+    // 기존 64KiB 허용 한도를 유지하고 previous·target이 동시에 존재할 수 있음을 반영한다.
     ReceiptCost c;c.Add(2*65536+4096);c.Text(r.stage_name);
     for(const auto& f:r.created){c.Add(256);c.Text(f.file.name);c.Text(f.file.sha256);}
     return c.value;

@@ -454,9 +454,9 @@ RetentionSnapshot RetentionCoordinator::ReadSnapshot(RetentionSnapshotSelection 
 
 bool RetentionCoordinator::ReadSpaceAndReservations(const std::string& channel,
     SpaceAndReservations* out,std::string* error) {
-    // New reservations cannot increase while the caller holds admission_mu_.
-    // Progress/completion may only reduce this captured upper bound. Never pair
-    // an older free-space reading with a later, smaller outstanding amount.
+    // 호출자가 admission_mu_를 보유하는 동안 신규 예약은 증가할 수 없다.
+    // 진행·완료는 capture한 이 상한을 줄이기만 한다. 이전 여유 공간 측정값을
+    // 이후의 더 작은 미완료 예약량과 조합하지 않는다.
     std::lock_guard lock(reservation_mu_);
     if(!free_space_provider_||!free_space_provider_(&out->free_bytes,error))return false;
     out->outstanding=OutstandingReservationsLocked();
@@ -497,8 +497,8 @@ DerivedJobAdmissionResult RetentionCoordinator::AdmitDerivedJob(
         // admission의 자체 삭제 계획에서 입력을 제외한다. 실제 원자 보호는 Intent append에만 생긴다.
         if(found->hold_count<std::numeric_limits<std::uint64_t>::max())++found->hold_count;
     }
-    // Durable jobs can finish without admission_mu_: preserve their snapshot
-    // before measuring physical free. Event quota retains its pre-snapshot bound.
+    // 영속 job은 admission_mu_ 없이 완료될 수 있으므로 물리 여유 공간 측정 전에 해당
+    // snapshot을 보존한다. event quota는 snapshot 이전 상한을 유지한다.
     SpaceAndReservations space;
     if(!ReadSpaceAndReservations(intent.reference.channel_id,&space,&error))return reject(error.empty()?"free-space 조회 실패":error);
     auto free_bytes=space.free_bytes;
@@ -810,7 +810,7 @@ void RetentionCoordinator::RemoveChannelPolicy(const std::string& channel_id) {
 }
 
 namespace {
-// Fixed per-call diagnostics, emitted only after admission lock destruction.
+// 호출별 고정 진단이며 admission 잠금이 소멸한 뒤에만 출력한다.
 struct AdmissionCosts {
  const bool active=recording::latency::SubcostEnabled();
  std::uint64_t begin=active?recording::latency::Now():0;std::array<std::uint64_t,7> ns{};
@@ -820,7 +820,7 @@ struct AdmissionCosts {
 };
 }
 namespace {
-// Fixed per-call diagnostics, emitted only after admission lock destruction.
+// 호출별 고정 진단이며 admission 잠금이 소멸한 뒤에만 출력한다.
 struct PeriodicCosts {
  const bool active=recording::latency::SubcostEnabled();
  std::uint64_t begin=active?recording::latency::Now():0;std::array<std::uint64_t,7> ns{};
@@ -832,8 +832,8 @@ struct PeriodicCosts {
 void RetentionCoordinator::RunPeriodic(std::int64_t now_ms) {
     recording::latency::WorkScope holder_work_scope(recording::latency::Work::Retention);
     PeriodicCosts costs;
-    // Bound periodic preparations to one. Admission and policy changes may proceed
-    // during its charged private scan; they are serialized again before rebasing.
+    // 주기적 준비는 한 번에 하나로 제한한다. 과금된 비공개 scan 중에는 admission·policy
+    // 변경을 허용하며 재기준화 전에 다시 직렬화한다.
     std::lock_guard periodic_lock(periodic_mu_);
     std::unique_lock admission_lock(admission_mu_,std::defer_lock);
     std::vector<std::pair<std::string, RetentionPolicy>> policies;
@@ -860,15 +860,15 @@ void RetentionCoordinator::RunPeriodic(std::int64_t now_ms) {
         std::lock_guard lock(mu_);
         policies.assign(policies_.begin(), policies_.end());
     }
-    // One authenticated cut covers this serialized periodic pass. Plan filters
-    // candidates by channel; do not clone/scan the same namespaces per channel.
+    // 인증된 cut 하나가 직렬화된 이 주기 순회를 포괄한다. plan이 channel별 후보를
+    // 필터링하므로 같은 namespace를 channel마다 복제·scan하지 않는다.
     event_bounds.reserve(policies.size());
     {std::lock_guard lock(reservation_mu_);
      for(const auto& item:policies)event_bounds.push_back(EventReservationsLocked(item.first));}
     return true;
     };
-    // Same authenticated All cut and changed-ID/hold/reservation rebase as
-    // admission. Read policy only in decision, never before the unlocked scan.
+    // admission과 같은 인증 All cut 및 changed-ID·hold·reservation 재기준화를 사용한다.
+    // policy는 decision 안에서만 읽으며 잠금 없는 scan 전에 읽지 않는다.
     const auto snapshot=costs.Measure(3,[&]{return ReadSnapshot(RetentionSnapshotSelection::All,{},decision);});
     if(!snapshot.authoritative||!admission_lock.owns_lock()){
         std::lock_guard lock(mu_);
@@ -963,8 +963,8 @@ RetentionAdmissionResult RetentionCoordinator::AdmitContinuousWrite(
         return true;
     };
     auto admission_snapshot=costs.Measure(3,[&]{return ReadSnapshot(RetentionSnapshotSelection::Channel,channel_id,decision);});
-    // Snapshot preparation may fail before the decision lock is acquired.
-    // Never plan or add a reservation after either failure.
+    // decision 잠금 획득 전에 snapshot 준비가 실패할 수 있다.
+    // 어느 쪽이든 실패하면 plan을 만들거나 예약을 추가하지 않는다.
     if(!admission_snapshot.authoritative||!admission_lock.owns_lock()){
         TraceRecordingState(channel_id,"admission-snapshot-rejected",admission_snapshot.error);
         return {false,false,0,admission_snapshot.error};
@@ -984,7 +984,7 @@ RetentionAdmissionResult RetentionCoordinator::AdmitContinuousWrite(
     }
 
     const auto free_bytes=space.free_bytes;
-    // Durable snapshot precedes the coherent physical-free/outstanding capture.
+    // 영속 snapshot을 먼저 얻은 뒤 일관된 물리 여유 공간·미완료 예약량을 capture한다.
     space.event_bytes=std::max(space.event_bytes,event_bound);
     const std::uint64_t inflight_bytes = SaturatingAdd(space.outstanding,DurableOutstanding(admission_snapshot));
     const std::uint64_t effective_free =
@@ -1017,8 +1017,8 @@ RetentionAdmissionResult RetentionCoordinator::AdmitContinuousWrite(
     bool quota_satisfied=plan.continuous_quota_satisfied;
     std::uint64_t current_inflight=inflight_bytes;
     if(applied.ok&&applied.protected_count) {
-        // Revalidate actual bytes, never credit a protected/planned deletion. Only
-        // this admission's first refreshed candidate range may supply replacements.
+        // 실제 바이트를 다시 검증하며 보호되거나 계획만 된 삭제분을 확보 공간으로 인정하지 않는다.
+        // 이번 admission에서 처음 새로 고친 후보 범위만 대체 후보를 제공할 수 있다.
         const auto refresh = [&]() {
             auto current=ReadSnapshot(RetentionSnapshotSelection::Channel,channel_id);
             refreshed=refreshed&&current.authoritative;
@@ -1047,10 +1047,10 @@ RetentionAdmissionResult RetentionCoordinator::AdmitContinuousWrite(
             const auto available=refreshed_physical_free>current_inflight?refreshed_physical_free-current_inflight:0;
             return quota_satisfied&&available>=SaturatingAdd(options_.reserved_free_bytes,expected_segment_bytes);
         };
-        // No growing retry/exclusion history: at most one visit per candidate in
-        // this fixed range. Never retry any original-plan item, even if its hold
-        // was released meanwhile. Fresh state and atomic deletion admission are
-        // still checked by ApplyPlan; hard errors stop the sweep immediately.
+        // retry·제외 이력을 계속 늘리지 않으며 고정된 이 범위의 후보마다 최대 한 번 방문한다.
+        // 원래 plan의 항목은 그 사이 hold가 해제됐어도 재시도하지 않는다.
+        // ApplyPlan은 최신 상태와 원자적 삭제 허용 검사를 계속 수행하며
+        // hard error가 발생하면 즉시 순회를 중단한다.
         if(refreshed&&!enough()) {
             auto& candidates=replacements.candidates;
             candidates.erase(std::remove_if(candidates.begin(),candidates.end(),[&](const auto& candidate) {

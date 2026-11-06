@@ -1,4 +1,4 @@
-// 검증된 과거 바이트와 현재 clean HEAD를 연결한다. 과거 실행의 HEAD/결과를 재작성하지 않는다.
+// 파일 용도: 검증된 과거 바이트와 현재 clean HEAD를 결속하며 과거 실행의 HEAD·결과는 재작성하지 않는다.
 import fs from 'node:fs';
 import path from 'node:path';
 import crypto from 'node:crypto';
@@ -53,7 +53,7 @@ export function bindMultifinalizeStateProduct(env,product,runtime,result,api){
  const provenance=JSON.parse(fs.readFileSync(path.join(smokeRoot,'provenance.json'))),observed=JSON.parse(fs.readFileSync(path.join(smokeRoot,'phase-results/observations.json'))),oldExecution=JSON.parse(fs.readFileSync(path.join(smokeRoot,'http/execution.json')));
  need(provenance.newProductSha256===provenance.sourceBinding.binarySha256&&oldExecution.source.binarySha256===provenance.newProductSha256,'multi-smoke-binary');assert.deepEqual(oldExecution.source,oldExecution.sourceEnd,'multi-smoke-source-end');need(oldExecution.exit===0&&observed.status==='PASS','multi-smoke-result');
  const sd=JSON.parse(fs.readFileSync(path.join(sdRoot,'phase-results/observations.json')));need(sd.verdict==='SHUTDOWN_BOUNDED_NONREPRO_P0_OPEN'&&sd.productRuns===5&&sd.runs.every(r=>r.assertionsFail===0&&r.clientStopElapsedMs<5000&&r.groupsAbsent),'multi-shutdown-evidence');
- // Only the explicitly reviewed diagnostic overlay may differ from the verified product C++.
+ // 명시적으로 검토된 진단 overlay만 검증된 제품 C++와 다를 수 있다.
  const diagnostic=JSON.parse(boundArtifact(result.diagnosticManifest));const changed=Object.keys(sources).filter(p=>sources[p]!==old[p]).sort();assert.deepEqual(Object.keys(diagnostic).sort(),changed,'multi-diagnostic-coverage');need(changed.length===17,'multi-diagnostic-scope');
  const sdFiles=new Set(JSON.parse(fs.readFileSync(path.join(sdRoot,'phase-results/final-verification.json'))).changesAgainstPriorProductSmoke.filter(x=>x.path.startsWith('src/')||x.path.startsWith('include/')).map(x=>x.path));need(changed.every(p=>sdFiles.has(p)),'multi-diagnostic-path');for(const p of changed)need(diagnostic[p]===sources[p],'multi-diagnostic-bytes');
  for(const spec of result.patches){const bytes=boundArtifact(spec);const actual=execFileSync('git',['diff','--binary',spec.from,spec.to,'--'],{cwd:repo,maxBuffer:8*1024*1024});need(Buffer.compare(actual,bytes)===0,'multi-patch');}

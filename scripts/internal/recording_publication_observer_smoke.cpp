@@ -1,4 +1,4 @@
-// Test-only executable interposition: actual native writer/linkat, one bounded publication latch.
+// 파일 용도: 테스트 실행 파일의 호출 가로채기로 실제 native writer·linkat를 관측하며 한도가 있는 publication latch 하나를 사용한다.
 #define main ExistingManagedWriterFixtureMain
 #include "recording_managed_writer_smoke.cpp"
 #undef main

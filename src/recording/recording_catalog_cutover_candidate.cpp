@@ -104,9 +104,9 @@ bool RecordingCatalog::RecoverManagedCutover(const RecordingCutoverCandidateLimi
     if(!transaction.ValidateRecoveryOriginal(error,&complete))return false;
     if(!complete)return (checkpoint||transaction.RestoreMarker(error))&&transaction.Cleanup(false,error);
     if(!transaction.Promote(error))return false;
-    // Compare the independently replayed domain to the original candidate without
-    // materializing its rows. The authenticated index holds only canonical row
-    // digests/lengths; the descriptor SHA still covers every original source byte.
+    // 독립적으로 재생한 domain을 row 구체화 없이 원래 후보와 비교한다.
+    // 인증된 index에는 canonical row의 digest·길이만 보관한다.
+    // descriptor SHA는 여전히 원래 source의 모든 바이트를 검증한다.
     RecordingIdentityChainResult chain;
     RecordingCatalogGenerationProjection projection;
     RecordingHistoryIndex expected_rows;
@@ -159,8 +159,8 @@ bool RecordingCatalog::RecoverManagedCutover(const RecordingCutoverCandidateLimi
         return BuildRecordingCatalogGenerationProjectionStream(root,receipt.target,chain,observed,
             limits.snapshot_bytes,limits.cold_row_bytes,&projection,error,true);
     }(); }catch(...){Fail(error,"cutover recovery verification resource failure");}
-    // Close each temporary owner explicitly before any recovery cleanup can report
-    // success. Projection shares the chain handle and does not own the live Journal.
+    // 복구 정리를 성공으로 보고하기 전에 각 임시 소유자를 명시적으로 닫는다.
+    // Projection은 chain handle을 공유하며 실행 중인 Journal을 소유하지 않는다.
     const auto close=[&](bool ok,const std::string& detail){if(!ok){verified=false;if(error){if(!error->empty())*error+="; ";*error+=detail;}}};
     std::string cleanup;
     close(expected_rows.Close(&cleanup),cleanup);

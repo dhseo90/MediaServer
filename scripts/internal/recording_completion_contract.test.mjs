@@ -1,4 +1,4 @@
-// R146: 실제 보존 wire와 독립 producer 기대값. 제품 서버/부하는 실행하지 않는다.
+// 파일 용도: R146 보존 wire와 독립 producer 기대값으로 completion 계약을 검증하며 제품 서버·부하는 실행하지 않는다.
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';

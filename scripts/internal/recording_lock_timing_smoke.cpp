@@ -1,4 +1,4 @@
-// R158 focused-only: original inline definitions, no runtime archive or TEST macro.
+// 파일 용도: R158 focused 전용으로 원래 inline 정의를 검사하며 runtime archive·TEST macro는 사용하지 않는다.
 #include "recording/recording_latency_trace.h"
 #include <array>
 #include <atomic>
@@ -48,15 +48,15 @@ int main(int argc,char** argv){
    {Request req(60);Call cut(mutex,6);cut.Cut();}
    {std::unique_lock<std::mutex> held(mutex);std::thread failed([&]{Request req(60);Call attempt(mutex,7,true);Need(!attempt.lock->owns_lock());});failed.join();}
    {Request req(60);Call attempt(mutex,8,true);Need(attempt.lock->owns_lock());std::this_thread::sleep_for(std::chrono::milliseconds(2));}
-   // Gate proves holder ownership before waiter starts. Row overlap additionally
-   // proves the real lock call entered before release; sleep only stretches it.
+   // gate가 waiter 시작 전 holder 소유권을 증명한다. row 구간 중첩은 실제 lock 호출이
+   // 해제 전에 진입했음을 추가로 증명하며 sleep은 그 구간을 늘리기만 한다.
    std::mutex gate;std::condition_variable cv;bool armed=false;std::atomic<bool> acquired{false};
    std::unique_lock<std::mutex> held(mutex);ownerBegin=L::Now();
    std::thread waiter([&]{Request req(10);{std::lock_guard<std::mutex> g(gate);armed=true;cv.notify_one();}Call waiting(mutex,9);acquired=true;});
    {std::unique_lock<std::mutex> g(gate);cv.wait(g,[&]{return armed;});}
    std::this_thread::sleep_for(std::chrono::milliseconds(20));Need(!acquired.load());ownerRelease=L::Now();held.unlock();waiter.join();Need(acquired.load());contention=true;
    Need(!L::Lock::Owner(mutex)&&!L::Lock::Owner(other)&&L::local.depth==0&&L::local.request==0);
-   // Another thread can acquire after all RAII objects/exception scopes finish.
+   // 모든 RAII 객체·예외 scope가 끝난 뒤 다른 thread가 획득할 수 있다.
    std::thread released([&]{Need(mutex.try_lock());mutex.unlock();Need(other.try_lock());other.unlock();});released.join();L::FinishThread();
   }
   for(unsigned i=0;i<count;++i){const auto& r=records[i];std::printf("[R158-call] {\"request\":%u,\"call\":%u,\"part\":%u,\"thread\":%u,\"mutex\":%u,\"cb\":%llu,\"ce\":%llu,\"rb\":%llu,\"re\":%llu,\"acquired\":%s}\n",r.request,r.call,r.part,r.thread,r.mutex,(unsigned long long)r.cb,(unsigned long long)r.ce,(unsigned long long)r.rb,(unsigned long long)r.re,r.acquired?"true":"false");}

@@ -5,7 +5,7 @@ using recording_public_fresh_oracle::Select;
 VisualSearchDocument Doc(std::string id,std::string segment,std::optional<std::int64_t> utc){VisualSearchDocument d;d.id=id;d.segment_id=segment;d.channel_id="9101";d.utc_ns=utc;return d;}
 int main(){unsigned pass=0;auto check=[&](bool ok,const char* s){if(!ok)throw std::runtime_error(s);++pass;std::cout<<"[pass] "<<s<<'\n';};auto yes=[](const auto&){return true;};std::set<std::string> old{"old"};
  auto rejects=[&](auto f){try{f();return false;}catch(const std::runtime_error&){return true;}};
- // Independent synthetic dot-score/order oracle; selection does not call Search.
+ // 파일 용도: 독립적인 합성 내적 점수·순서 판정 기준을 검사하며 선택 과정에서 Search를 호출하지 않는다.
  auto top=[&](const auto& docs){std::vector<std::pair<float,std::string>> scores;for(const auto& d:docs)scores.emplace_back(d.embedding[0],d.id);std::sort(scores.begin(),scores.end(),[](const auto& a,const auto& b){return a.first!=b.first?a.first>b.first:a.second<b.second;});scores.resize(std::min<std::size_t>(200,scores.size()));return scores;};
  std::vector<VisualSearchDocument> d;recording_public_fresh_oracle::Target t{};
  for(int scenario=0;scenario<3;++scenario){d.clear();for(unsigned i=0;i<200;++i){auto x=Doc("a"+std::to_string(i),"old",2000000);x.embedding={.8f};d.push_back(x);}auto x=Doc("z-fresh","new",3000000);x.embedding={scenario==0?.9f:scenario==1?.1f:.8f};d.push_back(x);auto ranked=top(d);const bool included=std::any_of(ranked.begin(),ranked.end(),[](const auto& x){return x.second=="z-fresh";});t=Select(d,old,yes);check(included==(scenario==0)&&t.index==200&&t.bucket_count==1,scenario==0?"fresh top200":scenario==1?"low score outside200 still selectable":"ID tie outside200 still selectable");}

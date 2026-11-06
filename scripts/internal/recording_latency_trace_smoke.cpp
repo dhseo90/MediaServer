@@ -20,8 +20,8 @@ int main(int argc,char** argv){
  }else if(mode=="holder-slow-none"){
   for(unsigned i=0;i<95;++i){L::VisualRequestSummary request;L::VisualRequestSummary::Result(200,"ok");L::Lock held(mutex,L::Source::Catalog,__LINE__,false,"fast");}
  }else if(mode.rfind("holder-slow",0)==0){
-  // Real steady clock/RAII mutex case; bounded synthetic publications exercise
-  // wrap and late delivery separately, never presented as product workload.
+  // 실제 steady clock·RAII mutex case이며 크기가 제한된 합성 publication으로 wrap과
+  // 늦은 전달을 별도 검사한다. 제품 workload로 제시하지 않는다.
   const unsigned prefix=mode=="holder-slow-early"?2:90;
   for(unsigned i=0;i<prefix;++i){L::VisualRequestSummary request;L::VisualRequestSummary::Result(200,"ok");}
   for(unsigned i=0;i<5000;++i){L::Lock held(mutex,L::Source::Catalog,__LINE__,false,"old");}

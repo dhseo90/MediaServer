@@ -1,0 +1,666 @@
+{
+  "schema": "media-server.ops174-independent-current-source-review.v1",
+  "featureId": "OPS-174",
+  "feature": "V390 Step 15 backup/recovery validation handoff gate",
+  "decision": "approve",
+  "approvalKind": "current-source-flow-only",
+  "reviewedAt": "2026-11-06T21:55:24.645Z",
+  "reviewer": {
+    "actor": "/root/ops174_independent_review",
+    "independentFromImplementer": true,
+    "requestedModel": "gpt-6-astra",
+    "requestedReasoning": "xhigh",
+    "modelProvenance": "parent assignment; not a separately attested runtime model snapshot",
+    "delegationPerformed": false
+  },
+  "authorization": {
+    "scope": "사용자 명시 승인 OPS-174 독립 읽기 검토; 새 검토 산출물만 지정 evidence 하위 생성",
+    "reference": "ops174-review-authorization.json"
+  },
+  "reviewedSource": {
+    "head": "3fcdfb956291f204add0d3ee79a2f2a700510034",
+    "dirtyIntegration": true,
+    "checkpointArtifactManifestSha256": "f291ab6d2ee3842b117c5661f29bdc832ad2bc6dc4379b5eb9eb35738d4739c7",
+    "checkpointReference": "checkpoint-005/artifact-manifest.json",
+    "sourceSnapshotReference": "checkpoint-005/source-snapshot-map.json",
+    "whole223FilesReviewed": false
+  },
+  "historical": {
+    "appliedProofSerialization": "stableStringify from feature_semantic_review4_trust_lib.mjs (recursive lexicographically sorted object keys; JSON UTF-8)",
+    "appliedProofSha256": "eb12f84b89b279b2101f372a58d2ee4a2d66d1f9590b0e48be30546bf3144fc8",
+    "appliedManifestEntrySha256": "5dc5c061247544fc7a5fe34c6b073efa19ea1e72f031cca3438c073f9237db48",
+    "sourceFlowDigest": "ba286f601a5bd5bd8910f750ee4d2fe13fc8bdc11fbd2591f5644e43ee178917",
+    "approvalDigest": "4aa49bd4d9b6b01261b9ab95a7284423e60737943bc10221cc2b393652f1e2ef",
+    "candidateDigest": "8977e9b6ac618c7e0233823f6acb6ab1fcf7461206ee5d8b2a4149a643519e3a",
+    "independentArtifactSha256": "32473225e4bfe5a14a922f7bd60eb8586102a7e3d991545b0182a1f5553d653f",
+    "originalRuntime": {
+      "commit": "5a73c455633f956259d21b7d7807f851b200c65c",
+      "path": "src/ingress/webrtc_http_server_runtime.cpp",
+      "blobSha256": "4674fbd6b02a2c6f53a5d14a968d9eb06c5c3253aa02467d15581b84912b501e",
+      "storedBodyStartLine": 337,
+      "storedBodyEndLine": 5483,
+      "storedBodySha256": "4c49c898bfa8114702d29f4d508ae5316f0e29df2588016a75a8ba25b7a980a3"
+    },
+    "immutableFixtures": [
+      {
+        "file": "test/fixtures/project_feature_implementation_evidence.json",
+        "sha256": "5972df4f9c9604a63fa48244b5f61049b693d3e7603c3d52b5432873fa4b7309"
+      },
+      {
+        "file": "test/fixtures/v390_review4_feature_semantic_source_audit.json",
+        "sha256": "eba22cbcd426f42f297b4ac1712be689245c9caaee71bdf7df59178f9ad1321f"
+      },
+      {
+        "file": "test/fixtures/v390_review4_feature_semantic_source_approvals.json",
+        "sha256": "163bcd81ad0aef210604758903076b264b3fcea16b1b1c58a5120bce5589079d"
+      },
+      {
+        "file": "test/fixtures/v390_review4_semantic_proofs_safe_ops.json",
+        "sha256": "9640af0617b2b2dd98efd0954747afe7115740564c297f08e75e3e52978a7d7e"
+      }
+    ],
+    "changed": false
+  },
+  "currentProof": {
+    "id": "OPS-174",
+    "featureContractSha256": "ef20dd03449d29debd4951c62afb00dfe591de14a69d39297d442b12443909f3",
+    "flowKind": "read-model",
+    "requirement": {
+      "operation": "read",
+      "expectation": "allow",
+      "surface": "ops"
+    },
+    "evidenceMode": "staging-restore-http-runtime-and-disk-readback",
+    "evidenceToken": "productionRestorePerformed",
+    "sharedContract": null,
+    "semanticObligation": {
+      "schema": "media-server.review4-typed-semantic-obligation.v1",
+      "policyVersion": "review4-outcome-binding-v3",
+      "featureContractSha256": "ef20dd03449d29debd4951c62afb00dfe591de14a69d39297d442b12443909f3",
+      "requirement": {
+        "operation": "read",
+        "expectation": "allow",
+        "surface": "ops"
+      },
+      "sourceClass": "harness-source-eligible",
+      "routeTokens": [
+        "/ops/api/source-registry/staging-restore-validation-handoff",
+        "/ops/sources"
+      ],
+      "schemaTokens": [],
+      "fieldTokens": [
+        "verify-v390-backup-recovery-handoff-validation",
+        "verify-project-inventory",
+        "verify-feature-inventory-coverage",
+        "verify-script-inventory"
+      ],
+      "outcomeTokens": [],
+      "negativeBoundaries": [],
+      "clauses": [
+        {
+          "kind": "route",
+          "tokens": [
+            "/ops/api/source-registry/staging-restore-validation-handoff",
+            "/ops/sources"
+          ],
+          "minimumExactMatches": 1
+        },
+        {
+          "kind": "schema",
+          "tokens": [],
+          "minimumExactMatches": 0
+        },
+        {
+          "kind": "field",
+          "tokens": [
+            "verify-v390-backup-recovery-handoff-validation",
+            "verify-project-inventory",
+            "verify-feature-inventory-coverage",
+            "verify-script-inventory"
+          ],
+          "minimumExactMatches": 1
+        },
+        {
+          "kind": "outcome",
+          "tokens": [],
+          "minimumExactMatches": 0
+        }
+      ],
+      "requiredOutcome": {
+        "normalized": "`verify-v390-backup-recovery-handoff-validation`, `verify-project-inventory`, `verify-feature-inventory-coverage`, `verify-script-inventory`가 `/ops/api/source-registry/staging-restore-validation-handoff`, `/ops/sources` checklist/result artifact status, roadmap/release records/inventory/server dispatch 연결을 확인하되 production restore, automatic recovery, UI 풀테스트, 30분/120분, release publish PASS로 대체하지 않음",
+        "sha256": "08489d5aeb1f439e8cd2b8e1843d1c69fd64e466fa4b12263aa672d3c805519d"
+      }
+    },
+    "verifier": {
+      "command": "verify-ops-source-registry-api",
+      "file": "scripts/internal/verify_ops_source_registry_api.mjs",
+      "dispatchFile": "server.sh"
+    },
+    "roles": {
+      "owner": {
+        "file": "src/ingress/webrtc_http_server_runtime.cpp",
+        "symbol": "WebRtcHttpServer::Start",
+        "anchor": "bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t port, std::string* error_message) {",
+        "line": 339,
+        "contextSha256": "34a480c2088df2e8bb0c9a1ad6fd869c820bb9617c893b497422162161ba021d"
+      },
+      "dispatch": {
+        "file": "src/ingress/webrtc_http_server_runtime.cpp",
+        "symbol": "WebRtcHttpServer::Start",
+        "anchor": "if (request.method == \"GET\" && request.path == \"/ops/api/source-registry/staging-restore-validation-handoff\") {",
+        "line": 3321,
+        "contextSha256": "763fbe5b9202ad089ee2414ceedb6124c3296169c4bffbca92b639d15181643b"
+      },
+      "action": {
+        "file": "src/ingress/webrtc_http_server_runtime.cpp",
+        "symbol": "OpsV390StagingRestoreValidationHandoffJson",
+        "anchor": "OpsV390StagingRestoreValidationHandoffJson());",
+        "line": 3328,
+        "contextSha256": "6c3140379404425213629123cb7f415215071fb829c0cc6cab0f5c011be26b55"
+      },
+      "state": {
+        "file": "src/ingress/webrtc_http_server_ops_foundation.cpp",
+        "symbol": "OpsV390StagingRestoreValidationHandoffJson",
+        "anchor": "\"productionRestorePerformed\": false,",
+        "line": 5860,
+        "contextSha256": "1016de48f8396dc3baf516b682015743d514874c6ab81898057a1d45228305a7"
+      },
+      "readback": {
+        "file": "scripts/internal/verify_ops_source_registry_api.mjs",
+        "symbol": "assertRemainingV360V390SourceReadModels",
+        "anchor": "assert(stagingRestoreValidationHandoff.schema === \"media-server.ops.v390-staging-restore-validation-handoff.v1\" && Array.isArray(stagingRestoreValidationHandoff.stagingRestoreValidationChecklist) && src067SourceRegistryWritePerformed === false && runtimeFlagValue(stagingRestoreValidationHandoff, \"publishedViewWritePerformed\") === false && runtimeFlagValue(stagingRestoreValidationHandoff, \"productionRestorePerformed\") === false && src067RawMaterialExposed === false && src067SourceUrlExposed === false && src067CredentialMaterialExposed === false && sourceRegistryWritePerformed === false && publishedViewWritePerformed === false, \"SRC-067 staging restore handoff independent no-write/redaction runtime readback failed\");",
+        "line": 674,
+        "contextSha256": "59b744bf73d84d27aebf426eef9b9d877f1f504c4379858a4b4a50b87ae7786b"
+      },
+      "verifier": {
+        "file": "server.sh",
+        "symbol": "server-dispatch:verify-ops-source-registry-api",
+        "anchor": "verify-ops-source-registry-api)",
+        "line": 1686,
+        "contextSha256": "631bb298abb0f16bb6211192a2dceb93f2598d1a441d8b65d89dfbac07fcf8ab"
+      }
+    },
+    "edges": [
+      {
+        "from": "owner",
+        "to": "dispatch",
+        "kind": "function-containment",
+        "witness": "OPS-174 owner-dispatch",
+        "source": "src/ingress/webrtc_http_server_runtime.cpp:339",
+        "target": "src/ingress/webrtc_http_server_runtime.cpp:3321"
+      },
+      {
+        "from": "dispatch",
+        "to": "action",
+        "kind": "branch-containment",
+        "witness": "OPS-174 dispatch-action",
+        "source": "src/ingress/webrtc_http_server_runtime.cpp:3321",
+        "target": "src/ingress/webrtc_http_server_runtime.cpp:3328"
+      },
+      {
+        "from": "action",
+        "to": "state",
+        "kind": "callsite",
+        "witness": "OPS-174 action-state",
+        "source": "src/ingress/webrtc_http_server_runtime.cpp:3328",
+        "target": "src/ingress/webrtc_http_server_ops_foundation.cpp:5860"
+      },
+      {
+        "from": "state",
+        "to": "readback",
+        "kind": "runtime-readback",
+        "witness": "OPS-174 state-readback",
+        "source": "src/ingress/webrtc_http_server_ops_foundation.cpp:5860",
+        "target": "scripts/internal/verify_ops_source_registry_api.mjs:674"
+      },
+      {
+        "from": "readback",
+        "to": "verifier",
+        "kind": "verifier-dispatch",
+        "witness": "verify-ops-source-registry-api",
+        "source": "scripts/internal/verify_ops_source_registry_api.mjs:674",
+        "target": "server.sh:1686"
+      }
+    ],
+    "trustBindings": {
+      "schema": "media-server.review4-source-trust-bindings.v1",
+      "roles": {
+        "owner": {
+          "file": "src/ingress/webrtc_http_server_runtime.cpp",
+          "symbol": "WebRtcHttpServer::Start",
+          "trackedBlobSha256": "4d252762a5a1d5830061d6e0a2969d3f9149e0b17096baaecdbe133ee2ca4764",
+          "enclosingBodySha256": "1806732394a2161e49ea9e4a32063a49bb426351a8576ff813ca4c80a7ba0fcc",
+          "enclosingBodyStartLine": 339,
+          "enclosingBodyEndLine": 5297,
+          "enclosingBodyScope": "declared-symbol"
+        },
+        "dispatch": {
+          "file": "src/ingress/webrtc_http_server_runtime.cpp",
+          "symbol": "WebRtcHttpServer::Start",
+          "trackedBlobSha256": "4d252762a5a1d5830061d6e0a2969d3f9149e0b17096baaecdbe133ee2ca4764",
+          "enclosingBodySha256": "1806732394a2161e49ea9e4a32063a49bb426351a8576ff813ca4c80a7ba0fcc",
+          "enclosingBodyStartLine": 339,
+          "enclosingBodyEndLine": 5297,
+          "enclosingBodyScope": "declared-symbol"
+        },
+        "action": {
+          "file": "src/ingress/webrtc_http_server_runtime.cpp",
+          "symbol": "OpsV390StagingRestoreValidationHandoffJson",
+          "trackedBlobSha256": "4d252762a5a1d5830061d6e0a2969d3f9149e0b17096baaecdbe133ee2ca4764",
+          "enclosingBodySha256": "f0dbe888a7e4c77c44a740a3f1ddb093cbe29082170a70bd2a1da025b684c320",
+          "enclosingBodyStartLine": 3328,
+          "enclosingBodyEndLine": 3351,
+          "enclosingBodyScope": "declared-symbol"
+        },
+        "state": {
+          "file": "src/ingress/webrtc_http_server_ops_foundation.cpp",
+          "symbol": "OpsV390StagingRestoreValidationHandoffJson",
+          "trackedBlobSha256": "9d50fbae07a2255a7fb2d4204851f4f84b48193e9da7285b21aa4f4f62dd8a60",
+          "enclosingBodySha256": "ffd8b8b7049515283272edde9506f37617a3cf6f50eaebf20432f09d97d6872b",
+          "enclosingBodyStartLine": 5798,
+          "enclosingBodyEndLine": 5874,
+          "enclosingBodyScope": "declared-symbol"
+        },
+        "readback": {
+          "file": "scripts/internal/verify_ops_source_registry_api.mjs",
+          "symbol": "assertRemainingV360V390SourceReadModels",
+          "trackedBlobSha256": "1f4402eb7efe106857ea38ff9a1aaf7b4ea5cc56732d11d094648ddcfe4a774f",
+          "enclosingBodySha256": "e54bb92af048479e44821ef09bd14a28b350965edfb79c3604c94a1962e2d82f",
+          "enclosingBodyStartLine": 594,
+          "enclosingBodyEndLine": 681,
+          "enclosingBodyScope": "nearest-enclosing-block"
+        },
+        "verifier": {
+          "file": "server.sh",
+          "symbol": "server-dispatch:verify-ops-source-registry-api",
+          "enclosingBodySha256": "62195e875165599885d3abc5d627e44e8e41dd8d416b8b7e4e5472f87dd159bc",
+          "enclosingBodyStartLine": null,
+          "enclosingBodyEndLine": null,
+          "enclosingBodyScope": "exact-dispatch-arm"
+        }
+      },
+      "verifierFileSha256": "1f4402eb7efe106857ea38ff9a1aaf7b4ea5cc56732d11d094648ddcfe4a774f",
+      "dispatch": {
+        "command": "verify-ops-source-registry-api",
+        "file": "scripts/internal/verify_ops_source_registry_api.mjs",
+        "armSha256": "62195e875165599885d3abc5d627e44e8e41dd8d416b8b7e4e5472f87dd159bc",
+        "requireTarget": "verify_ops_source_registry_api.mjs",
+        "execTarget": "verify_ops_source_registry_api.mjs",
+        "connectedFiles": [],
+        "connectedExecSha256": null
+      }
+    },
+    "sourceFlowDigest": "d55164a1eee8e387a11b1b80986d046f98ed0e825f739e735a8765b8122d7b75"
+  },
+  "comparedDependencies": [
+    {
+      "file": "src/ingress/webrtc_http_server_runtime.cpp",
+      "sha256": "4d252762a5a1d5830061d6e0a2969d3f9149e0b17096baaecdbe133ee2ca4764",
+      "reviewedScope": "339-547 초기 처리; 757-774 Ops 권한; 1197-1214 setup; 1433-1448 Ops UI; 3321-3331 exact route; 5256-5330 응답/종료 및 승인 원본 대비 전체 delta",
+      "wholeFileReviewed": false,
+      "bindingClass": "current-product-or-dispatch-source"
+    },
+    {
+      "file": "src/ingress/webrtc_http_server_ops_foundation.cpp",
+      "sha256": "9d50fbae07a2255a7fb2d4204851f4f84b48193e9da7285b21aa4f4f62dd8a60",
+      "reviewedScope": "5798-5874 OpsV390StagingRestoreValidationHandoffJson 전체",
+      "wholeFileReviewed": false,
+      "bindingClass": "current-product-or-dispatch-source"
+    },
+    {
+      "file": "src/ingress/http_auth.cpp",
+      "sha256": "2c0df267e7c97a974eb2be7acc30424cb86e46c47967d21d4e3a2290fde97434",
+      "reviewedScope": "2805-2828 RequireRole/RequireScope; 원본 대비 파일 불변 확인",
+      "wholeFileReviewed": false,
+      "bindingClass": "current-product-or-dispatch-source"
+    },
+    {
+      "file": "src/ingress/webrtc_http_server.cpp",
+      "sha256": "0d83cc85229eb21f6c33c58f57fa753effe6802f484c4a1171b249276ec7a090",
+      "reviewedScope": "1790-1797 AuthErrorResponse",
+      "wholeFileReviewed": false,
+      "bindingClass": "current-product-or-dispatch-source"
+    },
+    {
+      "file": "src/ingress/product_ui_ops_sources_script.cpp",
+      "sha256": "4e3c965ad5a9c6cf42ca79693ea5ee8461617b95f048b4868e0a3e45b933fb04",
+      "reviewedScope": "626-655 renderer; 1347-1374 loadAll 소비; 1492/1499 오류 전달",
+      "wholeFileReviewed": false,
+      "bindingClass": "current-product-or-dispatch-source"
+    },
+    {
+      "file": "include/recording/recording_search_diagnostic.h",
+      "sha256": "d56ef4ba8ead1885c748927ca9d94e915bfd8c5a6c055b698fc4ee734834cf45",
+      "reviewedScope": "104-128 활성화/HttpRequest 선언; 265-285 HttpRequest 구현 및 무출력 조건; OPS-174 경로에서 사용되는 부분만",
+      "wholeFileReviewed": false,
+      "bindingClass": "current-product-or-dispatch-source"
+    },
+    {
+      "file": "include/recording/shutdown_diagnostic.h",
+      "sha256": "1ac597bd3de315a0063c784f4371d9b255b6784a0d87f3490edd2fbee04c5ffe",
+      "reviewedScope": "Enabled/StopOnly/Emit/Scope; signal 전체 기능 승인 아님",
+      "wholeFileReviewed": false,
+      "bindingClass": "current-product-or-dispatch-source"
+    },
+    {
+      "file": "include/recording/recording_latency_trace.h",
+      "sha256": "0efdeba307432d7ad1e79ee7a38976f82ec45758fed49a386de8c57bcea1775a",
+      "reviewedScope": "18-22 Enabled/Now 및 runtime에 필요한 읽기 전용 timing 참조",
+      "wholeFileReviewed": false,
+      "bindingClass": "current-product-or-dispatch-source"
+    },
+    {
+      "file": "include/ingress/recording_request_gate.h",
+      "sha256": "eb55c42986d10349d3463d46b90987ddbff409ae17ec0c5177737c30bfb53539",
+      "reviewedScope": "32-78 Flight/DiagnosticFlights/Close/Drain/SendObservation",
+      "wholeFileReviewed": false,
+      "bindingClass": "current-product-or-dispatch-source"
+    },
+    {
+      "file": "scripts/internal/verify_ops_source_registry_api.mjs",
+      "sha256": "1f4402eb7efe106857ea38ff9a1aaf7b4ea5cc56732d11d094648ddcfe4a774f",
+      "reviewedScope": "393-528 HTTP→disk readback 연결; 594-615 canonical command 실패 전파; 670-674 SRC-067 assertion; 693-714 flags/redaction helpers; own isolated runtime lifecycle 읽기",
+      "wholeFileReviewed": false,
+      "bindingClass": "current-product-or-dispatch-source"
+    },
+    {
+      "file": "scripts/internal/verify_v390_backup_recovery_handoff_validation.mjs",
+      "sha256": "1c1d06bae07055d9ed51053a683c910388dac87491f4cb90c80116ba4f94a6f8",
+      "reviewedScope": "정의/선택 mode, no-write route, Ops UI, docs/inventory/dispatch 검증 소비",
+      "wholeFileReviewed": false,
+      "bindingClass": "current-product-or-dispatch-source"
+    },
+    {
+      "file": "server.sh",
+      "sha256": "ee94b784956514e7776bc6451be2eb6df8f2a8f97c2c31c39444d4ea95928c7c",
+      "reviewedScope": "1686-1689 source registry verifier 및 2670-2673 handoff verifier dispatch",
+      "wholeFileReviewed": false,
+      "bindingClass": "current-product-or-dispatch-source"
+    },
+    {
+      "file": "scripts/internal/feature_semantic_evidence_lib.mjs",
+      "sha256": "c4fc421380cae66aba90e755e6dbd7fe53139ba9fb0139fa815190de28af468c",
+      "reviewedScope": "250-447 historical proof/approval/current resolution/semantic checks; 772-775 3-line context",
+      "wholeFileReviewed": false,
+      "bindingClass": "review-process-provenance"
+    },
+    {
+      "file": "scripts/internal/feature_semantic_review4_trust_lib.mjs",
+      "sha256": "07830bdb71e2330c69731c9863772703ff31a267d5992515b4c32d717eabcba7",
+      "reviewedScope": "39-110 digest normalization; 148-205 decision contract; 288-358 trust comparison; 1390-1513 locator/body binding",
+      "wholeFileReviewed": false,
+      "bindingClass": "review-process-provenance"
+    },
+    {
+      "file": "scripts/internal/feature_implementation_manifest_lib.mjs",
+      "sha256": "f97505b7a4fcab35c82a99407fa85f5b07dc595181ed3ebc0878974a96ebf195",
+      "reviewedScope": "단일 entry 소비와 structure/entry 분리(129-220)",
+      "wholeFileReviewed": false,
+      "bindingClass": "review-process-provenance"
+    },
+    {
+      "file": "scripts/internal/verify_v390_review4_feature_semantic_source_audit.mjs",
+      "sha256": "aa002af867eb18435a838ab8b93e545140395a4b05a18d77ad4475cc8498f844",
+      "reviewedScope": "202-230 approval envelope 소비 및 935-945 apply 경계",
+      "wholeFileReviewed": false,
+      "bindingClass": "review-process-provenance"
+    },
+    {
+      "file": "docs/project-feature-test-inventory.md",
+      "sha256": "46cdfb95648367877790305173695ee54103a2660b3099be4ce6b77177f93eb3",
+      "reviewedScope": "3092/4479 OPS-174 기능 정의",
+      "wholeFileReviewed": false,
+      "bindingClass": "review-process-provenance"
+    },
+    {
+      "file": "docs/stream-verification.md",
+      "sha256": "3a8ac3c12a625a719cc496737e1eccbddf648abd8c50222fe4b6395c0716844f",
+      "reviewedScope": "367-371 기존 승인 갱신 경계; 649 handoff gate 정의",
+      "wholeFileReviewed": false,
+      "bindingClass": "review-process-provenance"
+    },
+    {
+      "file": "AGENTS.md",
+      "sha256": "5789a9a65f3bdb9220fca6eaa3a45b2a2097303023034f3a2cbb19df46ee6805",
+      "reviewedScope": "해당 worktree 적용 범위/불변 계약/검증 및 기록 정책",
+      "wholeFileReviewed": false,
+      "bindingClass": "review-process-provenance"
+    }
+  ],
+  "comparisons": [
+    {
+      "kind": "historical-approved-to-current",
+      "basis": "동일 SHA의 승인 runtime 원본을 Git에서 직접 읽고 현행 전체 runtime diff를 검토했다.",
+      "deltaArtifact": "reviewed-runtime-delta.patch",
+      "deltaSha256": "9cd9a29e9e99ed064076e5d1b15cfd73464498bae49cb28d8dee73565f07e335",
+      "findings": "42 추가/8 삭제. 검색 HTTP trace, bounded opt-in blocker 상관관계, 종료 진단, 주석 변경. OPS-174 route/권한 helper/고정 JSON/renderer/HTTP-disk readback/기능 verifier에는 기능 변경 없음."
+    },
+    {
+      "kind": "this-goal-comment-delta",
+      "basis": "git diff -- src/ingress/webrtc_http_server_runtime.cpp",
+      "findings": "integration HEAD 대비 두 블록, 주석 7줄만 번역. 기존 기능 차이와 분리했고 과거 승인 대용으로 사용하지 않았다."
+    },
+    {
+      "kind": "effective-versus-stale-locator",
+      "findings": "소비자와 동일한 anchor+3줄 context unique relocation 후 현재 body SHA는1806732394a2161e49ea9e4a32063a49bb426351a8576ff813ca4c80a7ba0fcc. stale locator를 직접 넣은 f72a026ac3289d2552923319c681f672de5733c53ba18785b22aeb47d9d9cdb9는 승인 대상이 아니다."
+    }
+  ],
+  "observations": [
+    {
+      "id": "OPS174-NORMAL",
+      "location": "src/ingress/webrtc_http_server_runtime.cpp:3321",
+      "expectation": "admin 또는 operator+ops:read, Ops 활성화, setup 완료에서 GET이 no-store 200 고정 handoff JSON을 반환한다.",
+      "evidence": "require_ops_principal 이후 OpsV390StagingRestoreValidationHandoffJson()만 호출하며 route에서 복구/쓰기/네트워크 기능을 호출하지 않는다.",
+      "result": "source-reviewed"
+    },
+    {
+      "id": "OPS174-AUTH-ERROR",
+      "location": "src/ingress/webrtc_http_server_runtime.cpp:757",
+      "expectation": "Ops 비활성 404, 인증 실패 401, viewer 또는 ops:read 없는 operator 403. admin은 RequireRole/RequireScope의 기존 bypass를 유지한다.",
+      "evidence": "require_ops_principal 757-774; AuthErrorResponse 1790-1797; http_auth.cpp 2805-2828.",
+      "result": "source-reviewed"
+    },
+    {
+      "id": "OPS174-SETUP-METHOD",
+      "location": "src/ingress/webrtc_http_server_runtime.cpp:1197",
+      "expectation": "auto/session bootstrap 필요 시 GET/HEAD는 /setup redirect; 그 밖의 method는403. bootstrap 이후 이 handoff는 GET만 일치하고 비GET은 dispatch하지 않으며 마지막404로 진행한다.",
+      "evidence": "1197-1214,3321-3331,5256. OPTIONS/CORS는 기존 공통 처리.",
+      "result": "source-reviewed"
+    },
+    {
+      "id": "OPS174-DATA-BOUNDARY",
+      "location": "src/ingress/webrtc_http_server_ops_foundation.cpp:5798",
+      "expectation": "4개 staging checklist와 operator-supplied result artifact 계약만 공개. production restore/automatic recovery/registry write/PublishedView write/viewer scope 변경은 수행하지 않는다.",
+      "evidence": "함수 전체가 고정 문자열 반환이다. 실제 source URL/credential/auth store/token/history/debug payload 입력이 없다. 저장·삭제·pin/hold·재생 보호 경로에 진입하지 않는다.",
+      "result": "source-reviewed"
+    },
+    {
+      "id": "OPS174-UI-CONSUMER",
+      "location": "src/ingress/product_ui_ops_sources_script.cpp:626",
+      "expectation": "/ops/sources가 checklist 및 artifact status를 표시하고 실제 restore/자동복구 실행이나 결과 저장을 주장하지 않는다.",
+      "evidence": "loadAll GET1356→render1373; dynamic card 필드 escapeHtml, summary textContent; API/page 모두 Ops 권한 helper. 실제 UI 시각/조작 검증은 하지 않았다.",
+      "result": "source-reviewed"
+    },
+    {
+      "id": "OPS174-VERIFIER-FLOW",
+      "location": "scripts/internal/verify_ops_source_registry_api.mjs:393",
+      "expectation": "실제 HTTP 결과와 registry/view file 전후 바이트가 연결되고 하위 handoff gate 실패가 전파된다.",
+      "evidence": "397-429 canonical spawnSync; GET503; disk 비교506-507; 전달509-528; 594-615 모든 선택 canonical status===0; 670-674 독립 response/readback assertion. runtimeFlagValue는 누락/비boolean을 throw한다.",
+      "result": "source-reviewed"
+    },
+    {
+      "id": "OPS174-PREEXISTING-DELTA",
+      "location": "src/ingress/webrtc_http_server_runtime.cpp:433",
+      "expectation": "기존 새 진단 코드가 OPS-174 응답/권한/저장 의미를 변경하지 않는다.",
+      "evidence": "SearchDiagnostic HTTP ID는 recordings/search에서만 공급되어 OPS-174에서는 dispatch=0/출력 없음. blocker trace는 서버 opt-in과 제한된 ID에서만 status/auth/counter 숫자를 stderr에 기록한다. 진단이 소유 request의 공통 송신/정리 순서를 유지한다. Stop의 추가 관측은 선택된 숫자 출력이며 제품 복구 명령을 추가하지 않는다.",
+      "result": "source-reviewed-with-limitations"
+    }
+  ],
+  "actionableDefects": [],
+  "limitations": [
+    "approve는 OPS-174 현재 source flow의 독립 정적 판단이다. Runtime/Build/제품 API/UI/30분/120분/릴리즈/전체 CI PASS가 아니다.",
+    "현재 entry consumer는 과거 hard trust 때문에 여전히 실패한다. 이 검토는 실행 실패를 덮거나 기존 fixture를 갱신하지 않았다.",
+    "owner/dispatch 과거 stored body는 원본 Start에서 파일 끝까지 포함했다. 현재 유효 좌표의 binder는 실제 Start339-5297을 선택한다. matchingBraceLine은 주석을 lexer로 제거하지 않으므로 이 넓이 차이는 위치/텍스트 해석 특성이다. parser를 변경하거나 hash를 완화하지 않았다.",
+    "action binder의3328-3351 범위는 호출 한 줄과 뒤 branch 일부를 포함한다. 실제 callsite 및 고정 response 함수 연결은 별도 직접 읽어 확인했고 이 parser 산출물을 함수 정의 전체 검토라고 해석하지 않는다.",
+    "진단 opt-in은 stderr 출력 지연 및 원자 counter/clock 오버헤드가 있고 shutdown DiagnosticFlights는 짧은 mutex 읽기를 한다. 성능·종료 경합·누수는 실행하지 않아 재승인하지 않는다.",
+    "redaction runtime verifier는 명시 fixture sentinel/URL과 boolean flag를 검사한다. 모든 가능한 원문 비노출의 일반 증명으로 확대하지 않는다. 해당 endpoint의 상수 출력은 별도로 읽었다.",
+    "메인에서 동일 과거 owner hash 참조286행을 관측했다. 이 검토는 OPS-174 한 행만 대상으로 하며 다른985행이나 공유 hash 사용자에 대한 승인이 아니다. OPS-174 successor만으로 전체 CI 통과를 보장하지 않는다.",
+    "comparedDependencies는 부분 검토 범위와 정확한 관측 파일 바이트를 기록한 provenance다. 실제 current 승인 소비 입력은 currentSourceBindingFiles로 분리한다. consumer 구현 파일 변경은 후속 독립 diff 검토 전 미승인이다."
+  ],
+  "proposedIntegration": {
+    "status": "proposal-only; no source edit",
+    "historicalFixturesMustRemainByteIdentical": true,
+    "scopeIds": [
+      "OPS-174"
+    ],
+    "requiredBindings": [
+      "historical applied proof SHA/approvalDigest/sourceFlowDigest",
+      "featureContractSha256 and unchanged row.pass",
+      "independent artifact exact bytes SHA",
+      "current resolved roles/edges and current hard trustBindings",
+      "current sourceFlowDigest",
+      "currentSourceBindingFiles exact SHA; review-process provenance preserved as historical inputs, not treated as immutable live product bytes"
+    ],
+    "consumerRule": "기존 historical proof/envelope/digest 검증을 보존하고, 명시 version의 exact-ID successor가 모든 predecessor/current/독립검토 결속을 만족할 때만 별도 current 승인으로 선택한다. 현재 source trust/semantic edge/dispatch/contract 검사는 그 current proof에 그대로 적용한다. 오류문자열 삭제나 hash별 포괄 면제는 금지한다. default/no-successor는 기존 동작을 유지한다.",
+    "negativeCases": [
+      "다른 ID 또는 중복 successor 거부",
+      "과거 proof/approval 변경 거부",
+      "current owner/dispatch/action/state/readback/verifier/source dependency 변조 거부",
+      "route/auth guard/no-write/typed semantic edge 변경 거부",
+      "current sourceFlowDigest/독립 artifact 결속 불일치 거부",
+      "다른 feature의 기존 실패를 그대로 유지"
+    ],
+    "runtimePass": false,
+    "consumerImplementationApproval": "not-approved-by-this-artifact: feature_semantic_evidence_lib.mjs의 새 소비 구현은 이 시점에 없으며 해당 diff와 선택/거부 계약을 후속 독립 검토해야 한다. provenance hash 불일치만으로 과거 검토 사실을 고치거나 현행 구현 승인을 추정하지 않는다."
+  },
+  "checks": {
+    "newProductTestsRun": [],
+    "newBuildsRun": [],
+    "networkCalls": 0,
+    "gitMutations": 0,
+    "sourceEdits": 0,
+    "fullInventoryRun": false,
+    "existingPrimaryEntryCheck": {
+      "command": [
+        "/Users/dhseo/.nvm/versions/node/v24.13.0/bin/node",
+        "/tmp/v450-feature-ops-entry.mjs"
+      ],
+      "exit": 1,
+      "observedAt": "2026-11-06T21:40:53.698399+00:00",
+      "executedBy": "parent before this independent review",
+      "record": "checks/release-final-feature-ops-entry/execution.json",
+      "stdout": "checks/release-final-feature-ops-entry/stdout",
+      "errors": [
+        "OPS-174 REVIEW4 owner blob/enclosing-body trust binding drift",
+        "OPS-174 REVIEW4 dispatch blob/enclosing-body trust binding drift"
+      ]
+    },
+    "ownReadOnlyMetadataChecks": [
+      {
+        "command": "git show 5a73c455633f956259d21b7d7807f851b200c65c:src/ingress/webrtc_http_server_runtime.cpp | SHA256 (in-memory)",
+        "exit": 0,
+        "result": "exact historical blob found"
+      },
+      {
+        "command": "node --input-type=module: unique anchor/context relocation; buildReview4TrustBindings(root,current,parseVerifiedReview4Dispatch(root)); review4SourceFlowDigest(current)",
+        "exit": 0,
+        "result": "exact current role hashes calculated; not a validation PASS"
+      },
+      {
+        "command": "git diff --no-ext-diff --unified=4 5a73c455633f956259d21b7d7807f851b200c65c -- src/ingress/webrtc_http_server_runtime.cpp",
+        "exit": 0,
+        "result": "reviewed-runtime-delta.patch"
+      }
+    ]
+  },
+  "cleanup": {
+    "productProcessStarted": false,
+    "portsOpened": false,
+    "temporaryPathsCreated": [],
+    "pastEvidenceModified": false,
+    "onlyNewArtifacts": [
+      "ops174-independent-review/ops174-current-source-independent-review.v1.json",
+      "ops174-independent-review/reviewed-runtime-delta.patch"
+    ]
+  },
+  "currentSourceBindingFiles": [
+    {
+      "file": "src/ingress/webrtc_http_server_runtime.cpp",
+      "sha256": "4d252762a5a1d5830061d6e0a2969d3f9149e0b17096baaecdbe133ee2ca4764"
+    },
+    {
+      "file": "src/ingress/webrtc_http_server_ops_foundation.cpp",
+      "sha256": "9d50fbae07a2255a7fb2d4204851f4f84b48193e9da7285b21aa4f4f62dd8a60"
+    },
+    {
+      "file": "src/ingress/http_auth.cpp",
+      "sha256": "2c0df267e7c97a974eb2be7acc30424cb86e46c47967d21d4e3a2290fde97434"
+    },
+    {
+      "file": "src/ingress/webrtc_http_server.cpp",
+      "sha256": "0d83cc85229eb21f6c33c58f57fa753effe6802f484c4a1171b249276ec7a090"
+    },
+    {
+      "file": "src/ingress/product_ui_ops_sources_script.cpp",
+      "sha256": "4e3c965ad5a9c6cf42ca79693ea5ee8461617b95f048b4868e0a3e45b933fb04"
+    },
+    {
+      "file": "include/recording/recording_search_diagnostic.h",
+      "sha256": "d56ef4ba8ead1885c748927ca9d94e915bfd8c5a6c055b698fc4ee734834cf45"
+    },
+    {
+      "file": "include/recording/shutdown_diagnostic.h",
+      "sha256": "1ac597bd3de315a0063c784f4371d9b255b6784a0d87f3490edd2fbee04c5ffe"
+    },
+    {
+      "file": "include/recording/recording_latency_trace.h",
+      "sha256": "0efdeba307432d7ad1e79ee7a38976f82ec45758fed49a386de8c57bcea1775a"
+    },
+    {
+      "file": "include/ingress/recording_request_gate.h",
+      "sha256": "eb55c42986d10349d3463d46b90987ddbff409ae17ec0c5177737c30bfb53539"
+    },
+    {
+      "file": "scripts/internal/verify_ops_source_registry_api.mjs",
+      "sha256": "1f4402eb7efe106857ea38ff9a1aaf7b4ea5cc56732d11d094648ddcfe4a774f"
+    },
+    {
+      "file": "scripts/internal/verify_v390_backup_recovery_handoff_validation.mjs",
+      "sha256": "1c1d06bae07055d9ed51053a683c910388dac87491f4cb90c80116ba4f94a6f8"
+    },
+    {
+      "file": "server.sh",
+      "sha256": "ee94b784956514e7776bc6451be2eb6df8f2a8f97c2c31c39444d4ea95928c7c"
+    }
+  ],
+  "reviewProcessProvenanceFiles": [
+    {
+      "file": "scripts/internal/feature_semantic_evidence_lib.mjs",
+      "sha256": "c4fc421380cae66aba90e755e6dbd7fe53139ba9fb0139fa815190de28af468c"
+    },
+    {
+      "file": "scripts/internal/feature_semantic_review4_trust_lib.mjs",
+      "sha256": "07830bdb71e2330c69731c9863772703ff31a267d5992515b4c32d717eabcba7"
+    },
+    {
+      "file": "scripts/internal/feature_implementation_manifest_lib.mjs",
+      "sha256": "f97505b7a4fcab35c82a99407fa85f5b07dc595181ed3ebc0878974a96ebf195"
+    },
+    {
+      "file": "scripts/internal/verify_v390_review4_feature_semantic_source_audit.mjs",
+      "sha256": "aa002af867eb18435a838ab8b93e545140395a4b05a18d77ad4475cc8498f844"
+    },
+    {
+      "file": "docs/project-feature-test-inventory.md",
+      "sha256": "46cdfb95648367877790305173695ee54103a2660b3099be4ce6b77177f93eb3"
+    },
+    {
+      "file": "docs/stream-verification.md",
+      "sha256": "3a8ac3c12a625a719cc496737e1eccbddf648abd8c50222fe4b6395c0716844f"
+    },
+    {
+      "file": "AGENTS.md",
+      "sha256": "5789a9a65f3bdb9220fca6eaa3a45b2a2097303023034f3a2cbb19df46ee6805"
+    }
+  ]
+}

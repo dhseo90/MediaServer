@@ -1,4 +1,4 @@
-// R142: frozen numeric samples only; no server, media, model or longrun execution.
+// 파일 용도: R142의 고정 numeric sample만 검사하며 server·media·model·longrun은 실행하지 않는다.
 #include "recording/recording_resource_trace.h"
 #include <iostream>
 #include <stdexcept>
@@ -15,7 +15,7 @@ int main(int argc,char** argv){try{
  for(unsigned n=0;n<7;++n){const auto end=ends[n];for(unsigned i=previous;i<end;++i)s.events[i%32]={100+i,1+i%2,1+i%5,4096+i,20+i,1+i};
   s.begin=10000+n*100;s.ledger.capturedNs=s.begin+1;s.roles_at=s.begin+2;s.process_at=s.begin+3;s.endNs=s.begin+6;s.rss=3000000000LL;s.footprint=2800000000LL;s.allocator={true,true,s.begin+4,s.begin+5,1000000,2000000,3000000,1000};
   s.totals[8]=end;s.totals[6]=n;s.models={};s.pools={};if(n>0&&n<5){s.models[0]={1,4096,20,n,true,1,true};s.pools[0].key=1;s.pools[0].entries=1;s.pools[0].bytes=4096;}
-  // Large retained historical site witness, zero current ownership at every row.
+  // 큰 과거 site 관측치를 유지하며 모든 row에서 현재 소유량은 0이다.
   s.ledger.ticketPeak=150000000;s.ledger.ticketPeakNs=9999;
   for(unsigned i=0;i<15;++i){auto& w=s.ledger.sites[i];w.acquires=w.releases=999999;w.peak=w.largest=10000000;w.peakNs=w.largestNs=w.lastReleaseNs=w.zeroNs=9999;w.peakTotal=150000000;w.peakTickets=999;s.ledger.atPeak[i]=10000000;}
   const bool held=n>0&&n<5;
@@ -28,7 +28,7 @@ int main(int argc,char** argv){try{
  d::EventCursor initial;Check(d::EmitSample(s,"opened",Sink,&initial));std::cout<<"INITIAL "<<captured;
  s.totals[8]+=33;Check(!d::EmitSample(s,"sample",Sink,&cursor));Check(cursor.failed);std::cout<<"OVERFLOW "<<captured;
  d::EventCursor shortCursor;Check(!d::EmitSample(s,"opened",Short,&shortCursor));Check(shortCursor.failed&&!shortCursor.initialized);
- // The same emitter refuses oversized complete output without calling its sink.
+ // 같은 emitter가 sink를 호출하지 않고 너무 큰 전체 출력을 거부한다.
  s.ledger.used=s.ledger.attributed=1;s.totals.fill(9007199254740991ULL);
  for(auto& m:s.models)m={9007199254740991ULL,9007199254740991ULL,9007199254740991ULL,9007199254740991ULL,true,9007199254740991ULL,true};
  for(auto& p:s.pools){p.key=p.entries=p.bytes=p.matchBytes=p.references=p.uniqueModels=p.uniqueBytes=p.oldestExpiryNs=p.newestExpiryNs=9007199254740991ULL;}

@@ -1726,7 +1726,11 @@ SIGKILL fallback이 있는 도구도 그 사용을 숨기거나 정상 종료로
 #### recording_public_fresh_oracle_smoke.cpp
 
 - 대상·용도: `scripts/internal/recording_public_fresh_oracle_smoke.cpp` — fresh 선택과 top200 점수/동률/범위의 독립 oracle 검사; 관련 구현을 변경할 때 선택하는 개발 진단.
-- 진입·준비: `int main(){unsigned pass=0;auto check=[&](bool ok,const char* s){if(!ok)throw std::runtime_error(s);++pass;std::cout<<"[pass] "<<s<<'\n';};auto yes=[](const auto&){return true;};std::set<std::string> old{"old"};` (source line 6). C++17 및 해당 소스의 include/link 의존성에 결속된 별도 fixture 바이너리. 컴파일 명령·현재 바이너리 동작은 미검증; 공식 제품 바이너리를 대입하지 않는다. 내장 synthetic documents, score, binding sample.
+- 진입·준비: 아래 source line 6의 진입점을 사용한다. C++17 및 해당 소스의 include/link 의존성에 결속된 별도 fixture 바이너리. 컴파일 명령·현재 바이너리 동작은 미검증; 공식 제품 바이너리를 대입하지 않는다. 내장 synthetic documents, score, binding sample.
+
+```cpp
+int main(){unsigned pass=0;auto check=[&](bool ok,const char* s){if(!ok)throw std::runtime_error(s);++pass;std::cout<<"[pass] "<<s<<'\n';};auto yes=[](const auto&){return true;};std::set<std::string> old{"old"};
+```
 - 호출·작업 위치: 결속 fixture 바이너리를 인자 없이 호출한다. cwd: 저장소 루트.
 - 판정: 개별 [pass]와 pass=N fail=0, 정상 반환. 주요 실패: fresh 선택·half-open bucket·seek/hash/order 반례가 기대와 다르면 예외.
 - 부작용·소유권 (R0): 메모리 oracle만; Search 호출/HTTP/파일 없음. 외부 프로세스·listener·port 없음. 호출 프로세스와 내부 메모리/스레드는 실행 담당자 소유.

@@ -1,4 +1,4 @@
-// 실제 driver 함수 경계를 mock child/collector와 기존 artifact writer로 실행한다. 제품/native 실행은 없다.
+// 파일 용도: 실제 driver 함수 경계를 mock child·collector와 기존 artifact writer로 검증하며 제품·native는 실행하지 않는다.
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';

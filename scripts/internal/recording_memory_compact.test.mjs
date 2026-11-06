@@ -1,4 +1,4 @@
-// R142: native formatter roundtrip + bounded decoder negatives + passive historical replay.
+// 파일 용도: R142 native formatter 왕복·bounded decoder 반례와 보존 기록 재생을 검증한다.
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -31,13 +31,13 @@ const rollback=memoryAttributionCollector(pid);next.slice(0,2).forEach(r=>feed(r
 const missing=memoryAttributionCollector(pid);feed(missing,next[1]);assert(missing.error);
 for(const tail of ['[memory-attribution] {','[memory-attribution] {x}\n']){const state=memoryAttributionCollector(pid);next.forEach(r=>feed(state,r));collectMemoryAttribution(state,Buffer.from(tail));assert.throws(()=>finishMemoryAttribution(state));}
 const v1=memoryAttributionCollector(pid);old.forEach(r=>feed(v1,r));assert.equal(finishMemoryAttribution(v1).finalOwnerZero,true);
-// Whole/split newline-inclusive transport cap, same frozen owner values.
+// 고정된 owner 값으로 개행을 포함한 전송 상한을 전체·분할 입력 모두에서 검사한다.
 for(const bytes of [16382,16383,16384]){const state=memoryAttributionCollector(pid),raw=wire(next[0]),padded=raw.slice(0,-1)+' '.repeat(bytes-Buffer.byteLength(raw))+'\n';for(const ch of Buffer.from(padded))collectMemoryAttribution(state,Buffer.from([ch]));assert.equal(!state.error,bytes<=16383);}
-// Actual ResourceTrace → Emit opt-in wiring; no server. Linux lacks process memory
-// metrics/allocator by design, so this wiring check does not claim a valid runtime row.
+// 실제 ResourceTrace → Emit 선택 실행 연결을 검사하며 서버는 실행하지 않는다.
+// Linux는 설계상 process memory metrics·allocator가 없으므로 유효 runtime row를 입증하지 않는다.
 for(const compact of ['0','1']){const r=spawnSync(binary,['trace'],{encoding:'utf8',env:{...process.env,MEDIA_SERVER_VERIFY_MEMORY_ATTRIBUTION:'1',MEDIA_SERVER_VERIFY_MEMORY_COMPACT:compact}});assert.equal(r.status,0,r.stderr);const a=r.stderr.split('\n').filter(l=>l.startsWith('[memory-attribution] ')).map(parse);assert.equal(a.length,5);if(process.platform==='darwin'){const trace=memoryAttributionCollector(a[0].pid,{strict:true});collectMemoryAttribution(trace,Buffer.from(r.stderr));assert.equal(finishMemoryAttribution(trace).finalOwnerZero,true);}assert(a.every(v=>compact==='1'?v.schemaVersion===2:v.schemaVersion===undefined));fs.writeFileSync(path.join(root,'trace-'+compact+'.log'),r.stderr);}
 const mixed=fs.readFileSync(path.join(repo,'scripts/internal/v450_recording_a_mixed.mjs'),'utf8');assert(mixed.includes('if(stateDiagnose)values.VERIFY_MEMORY_COMPACT=1;'));
-// Re-encode ONLY preserved R137 numeric rows. No witness fields synthesized into them.
+// 보존된 R137 숫자 row만 다시 인코딩하며 witness 필드를 합성해 넣지 않는다.
 let replay=null;const input=path.join(root,'r137-server.log');
 if(fs.existsSync(input)){
  const records=fs.readFileSync(input,'utf8').split(/(?<=\n)/).filter(l=>l.startsWith('[memory-attribution] '));const st=memoryAttributionCollector(parse(records[0]).pid);let previous=null,oldBytes=0,newBytes=0,eventsBytes=0,arrayBytes=0;const sizes=[];const outputs=[];

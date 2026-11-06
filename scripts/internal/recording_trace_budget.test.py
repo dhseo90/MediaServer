@@ -1,4 +1,4 @@
-import copy,json,os,pathlib,subprocess,time,unittest
+import copy,json,os,pathlib,subprocess,time,unittest  # 파일 용도: trace 예산 산술·cap 손실 판정과 원래 생성자 출력의 수집 계약을 검증한다.
 import recording_trace_budget as q
 from recording_http_lock import Collector
 from recording_http_lock_run import Live
@@ -30,7 +30,7 @@ class Arithmetic(unittest.TestCase):
    bad=dict(good);bad[k]=True
    with self.assertRaises(ValueError):q.records(('[R160-end] '+json.dumps(bad)+'\n').encode())
  def test_selected_and_streaming_loss(self):
-  # Real R159 qualifier, not an aggregate split or post-hoc request assignment.
+  # 집계 분할이나 사후 요청 귀속 대신 실제 R159 판정기를 사용한다.
   sites=list(range(101,108));c=dict(schema=1,id=10,ordinal=1,api=0,line=101,thread=1,mutex=1,identity=1001281,delta=0,cb=10,ce=30,rb=50,re=70,owned=True)
   end=dict(schema=1,id=10,count=1,begin=5,end=80,complete=True,enabled=True,slow=False,holder=False,loss=False)
   collect=Collector(sites);collect.feed('[R159-call] '+json.dumps(c));collect.feed('[R159-end] '+json.dumps(end))
@@ -62,7 +62,7 @@ class Native(unittest.TestCase):
     self.assertTrue(terminal['localLoss']);self.assertEqual([r['k'] for r in actual],[3])
     with self.assertRaises(ValueError):q.records(err+out)
    elif mode=='output-failure':
-    # Reproduce the original producer's known unchecked-write boundary, not PASS delivery.
+    # 성공 전달을 가정하지 않고 원래 생성자에서 확인된 쓰기 검사 누락 경계를 재현한다.
     self.assertTrue(terminal['streamError']);self.assertFalse(terminal['localLoss']);self.assertFalse(terminal['lossMarker']);self.assertEqual(actual,[])
     with self.assertRaises(ValueError):q.records(err+out)
    else:
@@ -80,7 +80,7 @@ class Native(unittest.TestCase):
   from unittest.mock import patch
   import recording_http_cost_run as cost
   parent=pathlib.Path(os.environ['R160_FOCUSED_ROOT']);root=parent/'stream-original-loss';root.mkdir(mode=0o700)
-  # Replay the exact original producer's cap-loss bytes, not a reconstructed ID.
+  # ID를 재구성하지 않고 원래 생성자의 cap-loss 바이트를 그대로 재생한다.
   raw=(parent/'record-over.stderr').read_bytes();self.assertIn(b'"k":3',raw)
   source='#!'+sys.executable+'\nimport os,time\nos.write(1,'+repr(raw)+')\ntime.sleep(4)\nos.write(1,b"UNEXPECTED_CONTINUATION")\n'
   (root/'seed').write_text(source);(root/'seed').chmod(0o700)

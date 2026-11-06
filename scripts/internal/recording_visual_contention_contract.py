@@ -1,5 +1,5 @@
 """Native R101 collection/result checks; response shape is not an exhaustive top-k oracle."""
-import json, math, re
+import json, math, re  # 파일 용도: native R101 수집·응답 계약을 검사하며 응답 형태만으로 전체 top-k 정확성을 입증하지 않는다.
 
 def validate_output(text, mode, scale):
     def rows(prefix):

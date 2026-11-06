@@ -1,0 +1,197 @@
+{
+  "schema": "media-server.comment-producer-successor.v1",
+  "productBaseCommit": "3fcdfb956291f204add0d3ee79a2f2a700510034",
+  "officialProductBaseCommit": "d9e535d97efb2252ff0fffd60f8d77e6e3e0260b",
+  "historicalFixture": {
+    "path": "test/fixtures/recording_producers_historical_v1.json.gz",
+    "sha256": "157399552f6c83de2dd5aca554c7d96990993be6ffff6e4b0330b22e20d4ab67",
+    "uncompressedBytes": 914800
+  },
+  "scope": "Separate historical producer byte assertions and current source identity. Historical-to-product-base functional evolution is not classified as a comment-only change. Existing current-source capacity, vocabulary, format and arithmetic assertions remain required. No Build/Runtime qualification is granted.",
+  "files": {
+    "include/recording/recording_search_diagnostic.h": {
+      "historicalSha256": "6e43c8ed03c5f3bfbcb8790559ac887797886bba44d98824a8c4c6dbba8372ef",
+      "productBaseSha256": "7a1dabf1fdc4460c53b9a607f3e1eb06b03cf1529f53793d283b765013b3e98b",
+      "currentSha256": "d56ef4ba8ead1885c748927ca9d94e915bfd8c5a6c055b698fc4ee734834cf45",
+      "currentBytes": 18359,
+      "historicalEqualsProductBase": false,
+      "productBaseEqualsCurrent": false
+    },
+    "scripts/internal/recording_accumulated_cost.mjs": {
+      "historicalSha256": "d4ceef8febef32f90862af5e8c190c9a41054de9ca688d48150d2cd7442ce277",
+      "productBaseSha256": "d4ceef8febef32f90862af5e8c190c9a41054de9ca688d48150d2cd7442ce277",
+      "currentSha256": "50afa057e516cab3d27651399d55ee55dffb0d26381b1bf2c7c8852a520906b1",
+      "currentBytes": 92485,
+      "historicalEqualsProductBase": true,
+      "productBaseEqualsCurrent": false
+    },
+    "scripts/internal/recording_accumulated_cost.py": {
+      "historicalSha256": "81385e375f24698665e9dcb6b009b14da809ec7fad77de7137d564eca48b229b",
+      "productBaseSha256": "81385e375f24698665e9dcb6b009b14da809ec7fad77de7137d564eca48b229b",
+      "currentSha256": "37bed643ba2678ab78ef9ab13364501d94fce1765bb2c86a9567d6fde7cf98f7",
+      "currentBytes": 71990,
+      "historicalEqualsProductBase": true,
+      "productBaseEqualsCurrent": false
+    },
+    "scripts/internal/recording_accumulated_http_smoke.cpp": {
+      "historicalSha256": "ecae596fe880552eeead576097a0bfd098fdf5bc8b9c990cdc4a28d01c170955",
+      "productBaseSha256": "ecae596fe880552eeead576097a0bfd098fdf5bc8b9c990cdc4a28d01c170955",
+      "currentSha256": "4c418c324f981796c1ad578cb2c0cc19d54112843026288acd86d6dd555da35b",
+      "currentBytes": 23722,
+      "historicalEqualsProductBase": true,
+      "productBaseEqualsCurrent": false
+    },
+    "scripts/internal/recording_current_app_helpers.mjs": {
+      "historicalSha256": "f31c2d430b7141b81fff8d3285340b1a15b7548d52cbaee041e85fe75793d166",
+      "productBaseSha256": "f31c2d430b7141b81fff8d3285340b1a15b7548d52cbaee041e85fe75793d166",
+      "currentSha256": "f31c2d430b7141b81fff8d3285340b1a15b7548d52cbaee041e85fe75793d166",
+      "currentBytes": 22932,
+      "historicalEqualsProductBase": true,
+      "productBaseEqualsCurrent": true
+    },
+    "scripts/internal/recording_current_observer.mjs": {
+      "historicalSha256": "75ef4b8987c5583f8955db674de3cf4a9e23d8590cf3492df247f7a4d429aaf3",
+      "productBaseSha256": "75ef4b8987c5583f8955db674de3cf4a9e23d8590cf3492df247f7a4d429aaf3",
+      "currentSha256": "d2bcfdeef2ef64e896162678347584f6e0174cd9f44b3f9758c8f44395eaf90c",
+      "currentBytes": 68392,
+      "historicalEqualsProductBase": true,
+      "productBaseEqualsCurrent": false
+    },
+    "scripts/internal/recording_http_cost_probe.h": {
+      "historicalSha256": "ad1eca0c1710c7605d1c0e9f8277ed2f77c92d50ba774f58ac5b9988ef6724b5",
+      "productBaseSha256": "ad1eca0c1710c7605d1c0e9f8277ed2f77c92d50ba774f58ac5b9988ef6724b5",
+      "currentSha256": "58480c369f4b3446609b3219eba7340e301133040ed343ca060ee8c1f0d2bc94",
+      "currentBytes": 18954,
+      "historicalEqualsProductBase": true,
+      "productBaseEqualsCurrent": false
+    },
+    "scripts/internal/v450_recording_a_load.mjs": {
+      "historicalSha256": "fcb30638d05d9899f081c5825fb76e61f0f462a479e9501179bcad8a57f6e31f",
+      "productBaseSha256": "fcb30638d05d9899f081c5825fb76e61f0f462a479e9501179bcad8a57f6e31f",
+      "currentSha256": "fcb30638d05d9899f081c5825fb76e61f0f462a479e9501179bcad8a57f6e31f",
+      "currentBytes": 11580,
+      "historicalEqualsProductBase": true,
+      "productBaseEqualsCurrent": true
+    },
+    "scripts/internal/v450_recording_a_mixed.mjs": {
+      "historicalSha256": "668bece372e7005ddd0a7fb2a47be185d8f369410bbfcb2b0c83cf529ea5e986",
+      "productBaseSha256": "425c8107bd0d5505a8f3183ff7ea5c2f8beaae78d5c78d34b182320f24853c4b",
+      "currentSha256": "8e1be0155cc8d80c748b18e0db16d260913e828606b0bd4153975444796c1e19",
+      "currentBytes": 78206,
+      "historicalEqualsProductBase": false,
+      "productBaseEqualsCurrent": false
+    },
+    "scripts/internal/va_review_confirmed_checks.h": {
+      "historicalSha256": "787409e75deec2f646ac7131c675bd58753f68cafb8c92082c9a2a6aaf7a8b7b",
+      "productBaseSha256": "787409e75deec2f646ac7131c675bd58753f68cafb8c92082c9a2a6aaf7a8b7b",
+      "currentSha256": "787409e75deec2f646ac7131c675bd58753f68cafb8c92082c9a2a6aaf7a8b7b",
+      "currentBytes": 15809,
+      "historicalEqualsProductBase": true,
+      "productBaseEqualsCurrent": true
+    },
+    "scripts/internal/va_review_smoke.cpp": {
+      "historicalSha256": "992d43b0edc954414eff4ea44f38ddcb52580a2d5d87e402dde91dbcf47527df",
+      "productBaseSha256": "992d43b0edc954414eff4ea44f38ddcb52580a2d5d87e402dde91dbcf47527df",
+      "currentSha256": "992d43b0edc954414eff4ea44f38ddcb52580a2d5d87e402dde91dbcf47527df",
+      "currentBytes": 89874,
+      "historicalEqualsProductBase": true,
+      "productBaseEqualsCurrent": true
+    },
+    "src/application/media_server_application.cpp": {
+      "historicalSha256": "d8eeebcfaffe92df43afac6212feb2071d098e497dbbaf0fb137ee6b84db05c5",
+      "productBaseSha256": "fa95b16eb7c4a2edfe9edfef416ccd2231981c9df7a3ac40bb2e0a6aba2a2fd0",
+      "currentSha256": "fa95b16eb7c4a2edfe9edfef416ccd2231981c9df7a3ac40bb2e0a6aba2a2fd0",
+      "currentBytes": 35983,
+      "historicalEqualsProductBase": false,
+      "productBaseEqualsCurrent": true
+    },
+    "src/ingress/a_record_review_application_service.cpp": {
+      "historicalSha256": "3abf45e7f5ca47b6d7866e3a1ae15feb2fe750a44d39f9ae3dad211f0b3ea91b",
+      "productBaseSha256": "3abf45e7f5ca47b6d7866e3a1ae15feb2fe750a44d39f9ae3dad211f0b3ea91b",
+      "currentSha256": "18995a238b1203541d935fbf9773b5f8a5d5f5868cd700c9e02c9fa00873b6b4",
+      "currentBytes": 20726,
+      "historicalEqualsProductBase": true,
+      "productBaseEqualsCurrent": false
+    },
+    "src/ingress/recording_search_application_service.cpp": {
+      "historicalSha256": "61f0482fe8735afab055891cb46c14670332f3c12392293f875f0b1a565cc46e",
+      "productBaseSha256": "7edd12c7b134dd816f71bc00177177eae374d21aba0a4a48f0d4c82db5d7f8f0",
+      "currentSha256": "787ceb2743b0f04d85d6254284429b614aa2b81b763b048ceba8801068ebc048",
+      "currentBytes": 23124,
+      "historicalEqualsProductBase": false,
+      "productBaseEqualsCurrent": false
+    },
+    "src/ingress/visual_search_application_service.cpp": {
+      "historicalSha256": "04bef8cdc15a67b0cb44d62c8a95163d9f71e7c672b65acfbe0013500b45589e",
+      "productBaseSha256": "0635cf9186f67fe7186026c53310893e2a407e17f48d5a2ffedc2763022d48cc",
+      "currentSha256": "644bfd83c8543077cb6e3a1f7084804de2667004ffabbbd457e7f69e5a07df50",
+      "currentBytes": 35664,
+      "historicalEqualsProductBase": false,
+      "productBaseEqualsCurrent": false
+    },
+    "src/recording/evidence_package_store.cpp": {
+      "historicalSha256": "6c38e8747cf50460b230f7fd81899c75d80db0e918e50da6e0c40dfd524bf639",
+      "productBaseSha256": "6c38e8747cf50460b230f7fd81899c75d80db0e918e50da6e0c40dfd524bf639",
+      "currentSha256": "2eb151c1b01f98ea01a50f08a696c155bcfd4ac9b462ff8f5797f39efd866856",
+      "currentBytes": 23230,
+      "historicalEqualsProductBase": true,
+      "productBaseEqualsCurrent": false
+    },
+    "src/recording/recording_contracts.cpp": {
+      "historicalSha256": "e57e5656dff8da95caa3ee63fa62be2f2b67e8882b0eae5391ca6021680a9c9f",
+      "productBaseSha256": "78b5070365d3e40e3f3a8f9d6b14bdb2a55907c1bcb63e70becb14e88ea732ae",
+      "currentSha256": "a20aaadb4c3b60cd44094a666d5b75b36526e952097d34771c23645eac7a23c9",
+      "currentBytes": 109348,
+      "historicalEqualsProductBase": false,
+      "productBaseEqualsCurrent": false
+    },
+    "src/recording/recording_search_reader.cpp": {
+      "historicalSha256": "136b84401aefd8d6233e2cdb5ce440e2e52945ef29e7af17625b39af0611afef",
+      "productBaseSha256": "aa5ae1939697e26f7b03ffa5f66bf1241cc18f725f3bf3fad3d977ecd9a35c94",
+      "currentSha256": "0410740cf11e8d609ad2ee0e77f93b5820dd3057726da5af269c6fa74a9ed0a4",
+      "currentBytes": 48838,
+      "historicalEqualsProductBase": false,
+      "productBaseEqualsCurrent": false
+    },
+    "src/recording/recording_search_snapshots.cpp": {
+      "historicalSha256": "daaa7f5fbec47958cc5e0d46b38853e297ec52f46466d447973246b5bfff90a3",
+      "productBaseSha256": "0c0ec7dd6eb9ff6690abf25dc743b82fdbf8002662a69a8a9f7729ee9f76c7a6",
+      "currentSha256": "0c0ec7dd6eb9ff6690abf25dc743b82fdbf8002662a69a8a9f7729ee9f76c7a6",
+      "currentBytes": 12591,
+      "historicalEqualsProductBase": false,
+      "productBaseEqualsCurrent": true
+    },
+    "src/recording/recording_search_source.cpp": {
+      "historicalSha256": "b77c5fe93183c9011e3006d70192e4f3884a4822951be8d31f60c9cae1c18d12",
+      "productBaseSha256": "f2d4c5bb5247e3374626187951e19d70234f54d1d714ecfb2a1bb060cf940c95",
+      "currentSha256": "a56cb097f05f06e9846321ee4b0f27ccff9d09c530c9debd4f3faa601a89f75d",
+      "currentBytes": 60120,
+      "historicalEqualsProductBase": false,
+      "productBaseEqualsCurrent": false
+    },
+    "src/recording/va_review_service.cpp": {
+      "historicalSha256": "2ac2d47cbca173c8d2dd35d68766b5275b6ac9810891c0949b29644ce42d6bd0",
+      "productBaseSha256": "2ac2d47cbca173c8d2dd35d68766b5275b6ac9810891c0949b29644ce42d6bd0",
+      "currentSha256": "2136e0f3d904f4c77662d44c262530f27e1e835b205f5fdd71189b9922a36b3b",
+      "currentBytes": 15886,
+      "historicalEqualsProductBase": true,
+      "productBaseEqualsCurrent": false
+    },
+    "src/recording/va_review_store.cpp": {
+      "historicalSha256": "a8334e8b727f748f6833e9d68264e9f722ea44099b4ec36f6848b064492dc976",
+      "productBaseSha256": "a8334e8b727f748f6833e9d68264e9f722ea44099b4ec36f6848b064492dc976",
+      "currentSha256": "1458984104ddb70bf6f7924aba47e38f62951e3e76032917ed8f49d5526a46ae",
+      "currentBytes": 20555,
+      "historicalEqualsProductBase": true,
+      "productBaseEqualsCurrent": false
+    },
+    "src/recording/visual_index_worker.cpp": {
+      "historicalSha256": "e709f98e74ea27e39b2df2fa62256341ed027a82c493893d47db851b1e257869",
+      "productBaseSha256": "143bcade0a82eace999b58792fca32b6133f92835cbb08807bc88f3b8b7aebe7",
+      "currentSha256": "479c74bfbf925da9850125a0623762a7ec41c35d21892f98b5f631920dbab263",
+      "currentBytes": 14763,
+      "historicalEqualsProductBase": false,
+      "productBaseEqualsCurrent": false
+    }
+  }
+}

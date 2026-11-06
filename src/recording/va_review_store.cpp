@@ -25,9 +25,9 @@ std::size_t Charge(std::size_t bytes,std::size_t factor,std::size_t fixed=0) {
     return fixed+factor*bytes;
 }
 std::size_t ParseWorkspace(const std::string& bytes) try {
-    // v3 -> v2 -> evidence -> snapshot -> referenced observation, plus v1 input/
-    // output or v2 evaluator replay. Fourteen owning raw/serialization layers;
-    // record validators retain a second typed replay while comparing decisions.
+    // v3 → v2 → evidence → snapshot → 참조 observation과 v1 입출력 또는
+    // v2 evaluator replay를 포함해 raw·직렬화 자료를 소유하는 계층이 14개다.
+    // record validator는 결정값을 비교할 때 두 번째 typed replay를 보관한다.
     const auto element=std::max({sizeof(ReferencedObservationV1),sizeof(ReviewClaimSpec),
         sizeof(VaReviewClaim),sizeof(EvidenceFrameV1),sizeof(EvidenceObservationSnapshotV2)});
     const auto one=ingress::StrictJsonWorkspaceBytes(std::string_view(bytes).substr(8),14,element,true);

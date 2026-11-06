@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 """R101 bounded direct executable build/run. Owned native isolation precedes gst/product initialization."""
-import argparse, hashlib, json, os, pathlib, selectors, shlex, signal, subprocess, time
+import argparse, hashlib, json, os, pathlib, selectors, shlex, signal, subprocess, time  # 파일 용도: native 격리를 먼저 확인한 뒤 R101 직접 실행 파일을 제한적으로 build·실행·수집한다.
 from recording_native_isolation import environment
 from recording_visual_contention_contract import validate_output
 p=argparse.ArgumentParser();p.add_argument('action',choices=['build','run']);p.add_argument('parent');p.add_argument('--label',required=True);p.add_argument('--scale',choices=['4','53','cycle'],default='53');p.add_argument('--mode',choices=['single','visual-pair','parallel','background'],default='parallel');p.add_argument("--density-snapshot");a=p.parse_args()
 repo=pathlib.Path(__file__).resolve().parents[2];parent=pathlib.Path(a.parent);assert parent.is_absolute() and parent.resolve()==parent and parent.is_dir()
 assert a.label and pathlib.Path(a.label).name==a.label and a.label not in ('.','..')
-environment(parent) # validate owned namespace before creating any run leaf
+environment(parent) # 실행 하위 디렉터리를 만들기 전에 소유권이 확인된 경로인지 검사한다.
 root=parent/a.label;root.mkdir(mode=0o700);env=environment(root);build=repo/'build-gst-onnx';binary=parent/'contention';cap=4*1024*1024
 if a.action=='build':
  flags={}
@@ -29,7 +29,7 @@ record={'command':command,'cwd':str(root),'uid':os.getuid(),'head':subprocess.ch
 if a.action=='run':
  record['binarySha256']=hashlib.sha256(binary.read_bytes()).hexdigest()
  costs={str(folder.relative_to(repo)):sum(p.stat().st_size for p in folder.rglob('*') if p.is_file() and not p.is_symlink()) for folder in (repo/'models/v430-siglip2',repo/'third_party/v430-embedding',build)}
- # Same documented model/dependency/build total plus this direct executable.
+ # 문서에 정의된 동일한 model·의존성·build 총량에 이 direct 실행 파일을 더한다.
  fixed=sum(costs.values())+binary.stat().st_size
  assert fixed+1129352764<8*1024**3,'existing preparation8GiB budget'
  (root/'preparation-budget.json').write_text(json.dumps({'costs':costs,'fixtureBytes':binary.stat().st_size,'fixedBytes':fixed,'temporaryModelReserve':1129352764,'capBytes':8*1024**3}))
@@ -97,7 +97,7 @@ finally:
   record['exit']=child.wait();record['signal']=-record['exit'] if record['exit']<0 else None
   try:
    os.killpg(child.pid,0)
-   # A pipe-less descendant is still a cleanup failure, even if the leader exited.
+   # leader가 종료돼도 pipe가 없는 자손이 남으면 cleanup 실패다.
    terminate(child,signal.SIGTERM);record['collectionError']=record['collectionError'] or 'child group remained after leader exit'
   except ProcessLookupError:record['groupAbsent']=True
  else:record['exit']=None

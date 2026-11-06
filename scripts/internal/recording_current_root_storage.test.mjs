@@ -30,7 +30,7 @@ try{
     for(const [values,code] of [[[110,10,0,100],'workspace-variable-cap'],[[109,10,100,100],'workspace-copy-cap'],[[Number.MAX_SAFE_INTEGER,Number.MAX_SAFE_INTEGER,0,100],'workspace-size-bound'],[[101,0,0,100],'workspace-variable-cap']]){
       assert.throws(()=>workspaceBounds(...values),e=>e.message===code&&e.workspaceDecision.input.totalBytes===values[0]);
     }
-    // Combined cap cannot independently fail after both strict component inequalities pass.
+    // 두 구성 요소가 각각 엄격한 부등식을 만족하면 합산 상한만 별도로 초과할 수 없다.
     for(let live=0;live<100;live++)for(let copy=0;copy<100;copy++)assert(workspaceBounds(live+10,10,copy,100).combinedBytes<210);
   });
   check('LP26-O06 R96 missing/process replacement and copy anonymous rejected',()=>{
@@ -159,7 +159,7 @@ try{
       const m=measureCurrentRootStable(base,{...opts,lstat:file=>{if((file===final||file===partial)&&++reads===4)fs.unlinkSync(partial);return fs.lstatSync(file);}});
       assert(m.transientTreeRetries>=1);assert.equal(m.categories.media.bytes,23);assert.equal(m.categories.mediaPartial.bytes,0);assert.equal(m.ownership.productRecording.bytes,23);
       fs.linkSync(final,partial);assert.throws(()=>measureCurrentRootStable(base,opts),/root-media-publication-retry-exhausted/);fs.unlinkSync(partial);
-      // Keep the unrelated second link outside the measured base: only the intended media operand can reject.
+      // 무관한 두 번째 링크는 측정 대상 밖에 두어 의도한 media 항목만 거부 원인이 되게 한다.
       const alias=path.join(root,'outside-alias-'+top);fs.linkSync(final,alias);
       const rejectMedia=(counterpart,nlink=2)=>assert.throws(()=>measureCurrentRootStable(base,opts),e=>{
         const d=e.collectorDiagnostic;assert.equal(e.message,'root-unsafe-file');assert.equal(d.category,'media');assert.equal(d.top,top);assert.equal(d.type,'regular');assert.equal(d.nlink,nlink);assert.equal(d.ino,fs.lstatSync(final).ino);counterpart(d.counterpart);return true;
@@ -172,7 +172,7 @@ try{
       fs.linkSync(final,final+'.partial.invalid');rejectMedia(c=>assert.equal(c.exists,false));fs.unlinkSync(final+'.partial.invalid');
       for(const other of ['tmp','other']){fs.mkdirSync(path.join(base,other));const link=path.join(base,other,'hardlink');fs.linkSync(final,link);assert.throws(()=>measureCurrentRootStable(base,opts),/root-unsafe-file/);fs.unlinkSync(link);}
       const outside=path.join(root,'outside.mp4.partial.12345678-1234-1234-1234-123456789abc');fs.linkSync(final,outside);assert.throws(()=>measureCurrentRootStable(base,opts),/root-unsafe-file/);fs.unlinkSync(outside);
-      // Device/socket stats must reach the same fail-closed nonregular branch; no device creation is needed.
+      // 장치·소켓 stat도 같은 비정규 파일 거부 분기에 도달해야 하며, 실제 장치를 만들 필요는 없다.
       for(const type of ['socket','device']){fs.writeFileSync(final,'nonregular-stat');assert.throws(()=>measureCurrentRootStable(base,{...opts,lstat:file=>{const st=fs.lstatSync(file);return file===final?Object.assign(Object.create(st),{isFile:()=>false,isDirectory:()=>false,isSymbolicLink:()=>false,isSocket:()=>type==='socket',isCharacterDevice:()=>type==='device'}):st;}}),e=>e.message==='root-unsafe-file'&&e.collectorDiagnostic.type==='other');fs.unlinkSync(final);}
       const fifo=path.join(dir,'fifo');assert.equal(spawnSync('mkfifo',[fifo]).status,0);assert.throws(()=>measureCurrentRootStable(base,opts),e=>e.message==='root-unsafe-file'&&e.collectorDiagnostic.type==='other');fs.unlinkSync(fifo);
       const symlink=path.join(dir,'escape');fs.symlinkSync(root,symlink);assert.throws(()=>measureCurrentRootStable(base,opts),/root-unsafe-symlink/);fs.unlinkSync(symlink);

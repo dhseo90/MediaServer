@@ -1,4 +1,4 @@
-// 격리 검증 전용. 고정 크기 숫자 진단; 제품 순서/잠금/취소 의미를 바꾸지 않는다.
+// 파일 용도: 격리 검증용 고정 크기 숫자 진단을 제공하며 제품 순서·잠금·취소 의미를 바꾸지 않는다.
 #pragma once
 #include <atomic>
 #include <cstdio>
@@ -26,8 +26,8 @@ struct Scope {const char* stage;unsigned id=0;unsigned long long begin_ns=0;std:
  void End(){if(id){Emit(stage,"end",id,0,begin_ns);if(count)--*count;id=0;}}
  ~Scope(){End();}
 };
-// Called only after main initializes opt-in. POSIX async-signal-safe calls only;
-// manual integer encoding avoids stdio, allocation, getenv and mutex in handler.
+// main의 선택 활성화 초기화 뒤에만 호출하며 POSIX 비동기 signal 안전 호출만 사용한다.
+// 정수를 직접 인코딩해 handler에서 stdio·할당·getenv·mutex 사용을 피한다.
 inline void Signal(int number) noexcept {
  const int saved=errno;signaled.store(true,std::memory_order_relaxed);char b[256];unsigned n=0;auto str=[&](const char* s){while(*s)b[n++]=*s++;};auto num=[&](unsigned long long v){char a[24];unsigned k=0;do{a[k++]=char('0'+v%10);v/=10;}while(v);while(k)b[n++]=a[--k];};
  str("[shutdown-signal] {\"ns\":");num(Now());str(",\"signal\":");num(number);str(",\"pid\":");num(getpid());str(",\"active\":[");num(structured.load(std::memory_order_relaxed));str(",");num(visual.load(std::memory_order_relaxed));str(",");num(writer.load(std::memory_order_relaxed));str(",");num(index.load(std::memory_order_relaxed));str("]}\n");::write(2,b,n);errno=saved;

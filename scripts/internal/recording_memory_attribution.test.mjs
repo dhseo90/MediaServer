@@ -1,4 +1,4 @@
-import assert from 'node:assert/strict';
+import assert from 'node:assert/strict';  // 파일 용도: 메모리 비용 귀속 collector의 중복·손실·분할 입력·종료 순서와 진단 모드 계약을 검증한다.
 import {validateMemoryAttribution,collectMemoryAttribution,memoryAttributionCollector,finishMemoryAttribution} from './recording_memory_attribution.mjs';
 import {mixedPreparationContract} from './recording_longrun_progress.mjs';
 const names=['unattributed','model','sourceBatch','retryBatch','sourceCut','preparation','matches','page','response','preparedNative','retainedRaw','catalogRow','scratch'];

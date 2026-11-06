@@ -17,19 +17,19 @@
 #endif
 namespace recording {
 #ifdef RECORDING_SEARCH_TESTING
-// Linked only by the focused test's reader translation unit; no product request can set it.
+// focused test의 reader 번역 단위에서만 연결하며 제품 요청에서는 값을 설정할 수 없다.
 inline thread_local std::function<void()> search_after_capture_test;
 inline thread_local void (*search_diagnostic_sink_test)(const char*,std::size_t) noexcept=nullptr;
 inline thread_local std::function<void()> search_outside_raw_cut_test;
 inline thread_local std::function<void()> search_after_build_test;
-// Focused build TU only: actual sorting/merge work, never a product trace.
+// focused build 번역 단위의 실제 정렬·병합 작업만 측정하며 제품 trace가 아니다.
 inline thread_local std::array<std::size_t,3> search_order_work_test{};
 inline thread_local std::uint64_t search_build_shared_ns_test=0;
-// Existing focused TU hooks: authenticated V2 raw rows, new projections,
-// shared projections, optional sharing fallback. Never a product trace.
+// 기존 focused 번역 단위 hook으로 인증된 V2 raw row·새 projection·공유 projection을
+// 관측하고 선택적 공유 fallback을 포함한다. 제품 trace로 사용하지 않는다.
 inline thread_local std::array<std::size_t,4> search_projection_work_test{};
 inline thread_local bool search_projection_reuse_test_enabled=true;
-// Compare the same pre-Build retry with/without shared projection spans.
+// 동일한 Build 이전 retry를 공유 projection span 사용 여부에 따라 비교한다.
 inline thread_local bool search_retry_projection_test_enabled=true;
 inline thread_local bool search_projection_build_refused_test=false;
 inline thread_local bool search_retention_delta_test_enabled=true;
@@ -52,10 +52,10 @@ inline void SearchCapacityReject(const char* condition,std::size_t before,std::s
 struct SearchDiagnostic {
     struct Attempt {const char* stage="start";const char* reason="none";std::uint64_t instance=0,current_instance=0,captured=0,current=0,documents=0,references=0;bool rebuild=false,authority=false;};
     std::array<Attempt,3> attempts{};
-    // No output/allocation here. Owned overlays publish bounded terminal records after unlock.
+    // 여기서는 출력·할당하지 않는다. 소유 overlay가 unlock 뒤에 제한된 종료 기록을 공개한다.
     struct Capture {std::uint64_t begin=0,end=0,rows=0,cut_rows=0,raw_bytes=0,read_ns=0,outside_ns=0,
         decode_calls=0,decode_hits=0,parse_ns=0,raw_read_ns=0,shared=0,materialized=0,captured=0,current=0,rejected_before=0,rejected_after=0;
-        // Fixed numeric attribution, emitted after request locks in the existing terminal budget.
+        // 고정 숫자 귀속값을 요청 lock 해제 뒤 기존 terminal 예산 안에서 출력한다.
         std::array<std::uint64_t,4> catalog_lock{}; // initial wait/hold, reacquire wait/hold
         std::array<std::uint64_t,9> history_cost{}; // latency::CaptureField order
         unsigned attempt=0,parent=0,observed=0;bool complete=false;};
@@ -64,8 +64,8 @@ struct SearchDiagnostic {
     struct Cost {const char* name;std::uint64_t begin,end;};
     std::array<Cost,40> costs{};unsigned cost_count=0;bool cost_loss=false;
     static inline std::atomic<unsigned> sequence{0};
-    // Same process budget: 127 detail records + one <=512B terminal summary.
-    // Reserve failure/very-late slots independently: ordinary slow traffic cannot consume them.
+    // 같은 process 예산으로 상세 기록 127개와 512B 이하 종료 요약 하나를 사용한다.
+    // 실패·매우 늦은 요청의 slot은 별도 예약해 일반적인 느린 요청이 소비하지 못하게 한다.
     struct DetailBudget {
         static constexpr std::array<unsigned,3> limits{{16,80,31}};
         std::array<std::atomic<unsigned>,3> kept{},dropped{};
@@ -107,12 +107,12 @@ struct SearchDiagnostic {
         if(search_diagnostic_sink_test){search_diagnostic_sink_test(data,size);return;}
 #endif
         if(std::fwrite(data,1,size,stderr)!=size||std::fflush(stderr)!=0) {
-            // Parent captures both streams; stdout fallback reports an incomplete trace, never raw data.
+            // parent가 두 stream을 모두 수집한다. stdout fallback은 불완전 trace만 알리며 raw data를 출력하지 않는다.
             std::fputs("[search-failure-loss]\n",stdout);std::fflush(stdout);
         }
     }
-    // R171-style thread-local request scope, without its fixture ID/cap domain.
-    // Invalid IDs are ignored; they never change authorization or Search results.
+    // R171 방식의 thread-local 요청 scope이며 해당 fixture의 ID·cap 영역은 사용하지 않는다.
+    // 잘못된 ID는 무시하며 권한 판정이나 Search 결과를 바꾸지 않는다.
     struct HttpRequest {
         std::array<char,65> client{};unsigned diagnostic_id=0;bool selected=false,sent=false,ended=false;
         std::uint64_t dispatch=0,prepared=0,send_begin=0,send_end=0;int status=0;
@@ -136,7 +136,7 @@ struct SearchDiagnostic {
     static void Stage(const char* stage) noexcept {if(active)active->attempts[active->attempt].stage=stage;}
     static void Reason(const std::string& value) noexcept {
         if(!active)return;
-        // Only known codes; never exception.what(), paths, query strings or credentials.
+        // 알려진 code만 사용하며 exception.what()·path·query 문자열·인증 자료는 제외한다.
         const char* code="internal-unavailable";
         for(const char* known:{"search-source-changed","search-source-unavailable","search-capacity-exceeded","search-playback-candidate-capacity","search-snapshot-capacity","search-event-evidence-incomplete","search-snapshot-expired","search-cursor-binding-mismatch","search-invalid-cursor","search-invalid-query"})
             if(value==known){code=known;break;}
@@ -146,8 +146,8 @@ struct SearchDiagnostic {
         if(!active)return;
         auto& a=active->attempts[active->attempt];a.instance=instance;a.current_instance=current_instance;a.captured=captured;a.current=current;a.authority=authority;a.rebuild=rebuild;a.documents=docs;a.references=refs;
     }
-    // Saturating by omission, never a fabricated zero. Units are microseconds;
-    // sub-microsecond observed intervals may round to zero. Numeric width <=10.
+    // 포화 시 생략하며 거짓 0을 만들지 않는다. 단위는 microsecond이므로
+    // 그보다 짧게 관측된 구간은 0으로 반올림될 수 있다. 숫자 폭은 10 이하로 제한한다.
     static void CaptureNumber(char* line,std::size_t size,int& n,std::uint64_t value,bool observed,bool time,bool& loss) noexcept {
         if(!observed){n+=std::snprintf(line+n,size-n,"null");return;}
         if(time)value/=1000;
@@ -158,10 +158,10 @@ struct SearchDiagnostic {
         active=previous;
         const auto ended=id?Tick():0;
         const int selection=detail_enabled?Budget().Select(id,ended-entered,status,exception):-2;
-        // External proof overlays own their ID/budget when this opt-in is off.
+        // 이 opt-in을 끄면 외부 증명용 overlay가 자기 ID와 예산을 소유한다.
         if(id&&selection!=-1) {
             if(detail_enabled&&http&&http->diagnostic_id==id)http->selected=true;
-            // 5632B Search + 512B HTTP terminal share each existing 6144B slot.
+            // 기존 6144B slot 하나를 Search 5632B와 HTTP 종료 기록 512B가 공유한다.
             char line[5632];int n=std::snprintf(line,sizeof(line),"[search-request-cost] {\"id\":%u,\"clientRequestId\":\"%s\",\"thread\":%u,\"startNs\":%llu,\"endNs\":%llu,\"status\":%d,\"loss\":%s,\"phases\":[",id,client_request_id.data(),latency::local.thread,(unsigned long long)entered,(unsigned long long)ended,status,cost_loss?"true":"false");
             for(unsigned i=0;i<cost_count&&n>0&&n<int(sizeof(line));++i){const auto& c=costs[i];n+=std::snprintf(line+n,sizeof(line)-n,"%s[\"%s\",%llu,%llu]",i?",":"",c.name,(unsigned long long)c.begin,(unsigned long long)c.end);}
             if(n>0&&n<int(sizeof(line)))n+=std::snprintf(line+n,sizeof(line)-n,
@@ -196,7 +196,7 @@ struct SearchDiagnostic {
                 c.stage,c.condition,c.max_documents,c.max_bytes,c.documents,c.capacity,c.index,c.before,c.addition);
             if(count>0&&count<int(sizeof(capacity_line)))Write(capacity_line,static_cast<std::size_t>(count));
         }
-        // One terminal request record, at most three fixed numeric/code attempts (<2KiB).
+        // 요청당 종료 기록 하나에 최대 세 번의 고정 숫자·code 시도를 담으며 2KiB 미만이다.
         char line[2048];int n=std::snprintf(line,sizeof(line),"[search-failure] {\"version\":1,\"status\":%d,\"channels\":%u,\"exception\":\"%s\",\"resourceRejectionsBefore\":%llu,\"resourceRejectionsAfter\":%llu,\"attempts\":[",status,channels,exception,(unsigned long long)rejection_start,(unsigned long long)(resources?resources->rejected():0));
         for(unsigned i=0;i<=attempt&&n>0&&n<int(sizeof(line));++i){const auto& a=attempts[i];n+=std::snprintf(line+n,sizeof(line)-n,
             "%s{\"stage\":\"%s\",\"reason\":\"%s\",\"instance\":%llu,\"currentInstance\":%llu,\"captured\":%llu,\"current\":%llu,\"documents\":%llu,\"references\":%llu,\"rebuild\":%s,\"authority\":%s}",i?",":"",a.stage,a.reason,(unsigned long long)a.instance,(unsigned long long)a.current_instance,(unsigned long long)a.captured,(unsigned long long)a.current,(unsigned long long)a.documents,(unsigned long long)a.references,a.rebuild?"true":"false",a.authority?"true":"false");}

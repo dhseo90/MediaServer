@@ -1,4 +1,4 @@
-import copy,json,unittest
+import copy,json,unittest  # 파일 용도: 녹화 HTTP lock의 요청별 시간 귀속·손실·상한·종료 설정 계약을 검증한다.
 import recording_http_lock as q
 from recording_http_lock_run import Live
 from recording_http_cost_run import DiagnosticFailure

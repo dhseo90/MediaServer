@@ -35,7 +35,7 @@ int Child(int commands,int replies){
     char ready='r';if(!Transfer(replies,&ready,1,true))return 2;
     pollfd command{commands,POLLIN,0};if(poll(&command,1,2000)<=0||!Transfer(commands,&ready,1,false)||ready!='g')return 2;
     ChildStats stats;stats.start=Ns();
-    // Independent monotonic window. No collector round/callback information reaches this process.
+    // 독립적인 monotonic 구간이며 collector의 round·callback 정보는 이 process에 전달되지 않는다.
     while(Ns()-stats.start<75000000){
         for(auto& fd:slots){if(close(fd)!=0){stats.error=1;break;}fd=-1;++stats.closes;}
         if(stats.error)break;
@@ -46,7 +46,7 @@ int Child(int commands,int replies){
     }
     for(auto& fd:slots)if(fd>=0){close(fd);fd=-1;++stats.closes;}
     stats.end=Ns();if(!Transfer(replies,&stats,sizeof(stats),true))return 2;
-    // A killed parent cannot leave a child waiting indefinitely.
+    // parent가 강제 종료돼도 child가 무한히 기다릴 수 없게 한다.
     command.revents=0;const int polled=poll(&command,1,2000);
     const bool quit=polled>0&&Transfer(commands,&ready,1,false)&&ready=='q';
     close(duplicate);close(stable);close(commands);close(replies);return quit&&!stats.error?0:2;

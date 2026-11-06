@@ -153,7 +153,7 @@ test('R169 client timeout remains failure with matching server 503, late 200, or
   let report,wireId;
   await assert.rejects(measuredHttpResponse({route:'/ops/api/recordings/search',correlateSearch:true,now:clock([100,5100]),report:r=>{report=r;},
    request:async headers=>{wireId=headers['X-Media-Search-Request-Id'];throw new DOMException('timeout','TimeoutError');}}),/http-header-timeout/);
-  // Server terminal arrives later in its own clock domain; do not subtract clocks.
+  // 서버 종료 결과는 자체 시계 영역에서 나중에 도착하므로 서로 다른 시각을 빼지 않는다.
   const server=serverStatus===null?[]:[{clientRequestId:wireId,id:129,status:serverStatus,sendEnd:999999999999}];
   const joined=server.find(r=>r.clientRequestId===report.clientRequestId);
   assert.equal(report.clientRequestId,wireId);assert.equal(report.outcome,'timeout');assert.equal(report.status,null);

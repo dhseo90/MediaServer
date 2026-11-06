@@ -65,7 +65,7 @@ int main(){try{
         std::cout<<n++<<' '<<ok<<' '<<canonical.size()<<' '<<Hash(canonical)<<'\n';
     }
 #ifndef RECORDING_PARSE_OLD_ORACLE
-    // ObjectArray string boundary oracle for cold-parse copy candidates.
+    // cold-parse 복사 후보에 대한 ObjectArray 문자열 경계 판정 기준이다.
     for(const auto length:{0U,1U,22U,23U,24U,255U,256U,4096U}) {
         const std::string plain(length,'x');
         for(const auto& [escaped,decoded]:std::vector<std::pair<std::string,std::string>>{
@@ -87,8 +87,8 @@ int main(){try{
     Check(!ingress::ParseStrictJsonObjectDocumentObjectArray("{\"items\":[{\"x\":1}],\"late\":0,\"late\":1}","items",&d,[&](const auto&){++calls;return true;},&e)&&calls==1,"late parent duplicate");
     Check(!ingress::ParseStrictJsonObjectDocumentObjectArray("{\"items\":[{\"x\":1}]}","items",&d,[](const auto&){return false;},&e),"consumer refusal");
     bool threw=false;try{ingress::ParseStrictJsonObjectDocumentObjectArray("{\"items\":[{}]}","items",&d,[](const auto&)->bool{throw std::runtime_error("consumer");},&e);}catch(const std::runtime_error&){threw=true;}Check(threw,"consumer exception");
-    // The lexical parser accepts JSON numbers; DTO integer range checks remain
-    // separate. Both ordinary and ObjectArray traversal must agree.
+    // lexical parser는 JSON 숫자를 허용하며 DTO 정수 범위 검사는 별도로 유지한다.
+    // 일반 순회와 ObjectArray 순회의 결과가 같아야 한다.
     for(const auto& item:std::vector<std::pair<std::string,bool>>{
         {"0",true},{"-0",true},{"1.25",true},{"1e+3",true},{"1e9999",true},
         {"9223372036854775808",true},{"01",false},{"-",false},{"+1",false},
@@ -118,8 +118,8 @@ int main(){try{
         },&e)&&calls==4,"ObjectArray storage clears values and duplicate set between rows");
     Check(!ingress::ParseStrictJsonObjectDocumentObjectArray("{\"items\":[{\"x\":1},{\"x\":2,\"x\":3}]}","items",&d,
         [](const auto&){return true;},&e),"later row duplicate still rejected");
-    // A large first object bounds retained slots; subsequent rows must neither
-    // accumulate members nor keep old values. Only consumer-owned copies escape.
+    // 큰 첫 객체가 보유 slot의 상한을 정하며 이후 row는 member를 누적하거나 이전 값을
+    // 유지해서는 안 된다. 소비자가 소유하는 사본만 외부로 전달한다.
     std::string varied="{\"items\":[{";
     for(unsigned i=0;i<512;++i)varied+=(i?",":"")+std::string("\"k")+std::to_string(i)+"\":\""+std::string(64,'a')+"\"";
     varied+="}";

@@ -76,8 +76,8 @@ ApplicationServiceResult VaReviewApplicationService::AnalysisPackages(const std:
     if(!enabled_||stopped_)return Error(503,"review-disabled");
     Reading flight(reading_);if(!flight.admitted)return Error(503,"review-busy");
     std::vector<std::string> ids;std::string error;if(!evidence_.ListIds(&ids,&error))return Error(503,"review-store-unavailable");
-    // Keep the first page plus its lookahead, but still validate every source.
-    // Evidence entries are visited before record fallbacks; emplace preserves priority.
+    // 첫 page와 lookahead만 보관하되 모든 source를 계속 검증한다.
+    // record fallback보다 evidence 항목을 먼저 방문하며 emplace가 그 우선순위를 유지한다.
     std::map<std::string,std::string> entries;
     const auto wanted=[&](const std::string& key){return key>after&&!entries.count(key)&&
         (entries.size()<21||key<entries.rbegin()->first);};

@@ -298,7 +298,7 @@ int StatePreseedReopen(const std::filesystem::path& root){
     R99Phase(trace,"copy-released");return 0;
 }
 
-// NATIVE-LIFETIME-01: bounded ownership only; no retention/automatic-rotation claim.
+// NATIVE-LIFETIME-01: 제한된 소유권만 검사하며 retention·자동 회전을 입증하지 않는다.
 namespace native_lifetime {
 using namespace recording;
 constexpr const char* Channel="9101";
@@ -354,7 +354,7 @@ State Inspect(RecordingRuntimeStorage& runtime,std::int64_t anchor,unsigned expe
 }
 std::int64_t Anchor(const std::filesystem::path& root){std::istringstream in(Read(root/"lifetime-anchor.txt"));std::int64_t n=0;Need(bool(in>>n)&&n>0&&(in>>std::ws).eof()&&n<=PreseedNowMs()&&n>=PreseedNowMs()-3600000,"anchor");return n;}
 std::uint64_t CatalogHolds(RecordingCatalog& catalog,const std::string& selected){
-    // Fresh authority, not the deliberately retained historical DTO.
+    // 의도적으로 보존한 과거 DTO 대신 최신 authority를 조회한다.
     const auto snapshot=catalog.RetentionSnapshot();Need(snapshot.authoritative,"hold-authority");bool found=false;std::uint64_t held=0;
     for(const auto& row:snapshot.candidates){if(!selected.empty()&&row.Id()==selected){Need(!found,"hold-duplicate");found=true;held=row.hold_count;}else Need(row.hold_count==0,"other-hold-remains");}
     Need(selected.empty()||found,"hold-selected-missing");return held;
@@ -367,7 +367,7 @@ void SaveState(const std::filesystem::path& root,const char* label,const State& 
     PreseedSave(root/(stem+".json"),out.str());
 }
 std::string HeldAsset(const EvidencePackageFile& file){std::string joined=SerializeEvidencePackage(file.manifest());for(std::size_t i=0;i<file.manifest().assets.size();++i){const auto& a=file.manifest().assets[i];Need(a.size_bytes<=256*1024,"asset-cap");std::vector<std::uint8_t> bytes(a.size_bytes);std::size_t at=0;while(at<bytes.size()){const auto n=pread(file.fd(),bytes.data()+at,bytes.size()-at,file.AssetOffset(i)+at);if(n<0&&errno==EINTR)continue;Need(n>0,"asset-read");at+=std::size_t(n);}const auto hash=EvidenceSha256(bytes.data(),bytes.size());Need(hash==a.sha256,"asset-sha");joined+=hash;}return PreseedHash(joined);}
-// Only live public handles and weak references are observed; no diagnostic owner is manufactured.
+// 살아 있는 공개 handle과 weak reference만 관측하며 진단용 소유자를 만들지 않는다.
 void Owners(RecordingResourceTrace& trace,const char* stage,const std::unique_ptr<RecordingSearchReader::PreparedSource>& prepared,
  const std::shared_ptr<const ResolvedRecordingMedia>& alias,const std::shared_ptr<const RecordingSearchModel>& old,
  const RecordingSearchPage& page,const std::unique_ptr<RecordingSearchSnapshots>& pool,const std::weak_ptr<const RecordingSearchModel>& weak,
@@ -422,7 +422,7 @@ int NativeLifetime(const std::filesystem::path& root,const std::string& mode,Enc
     SaveState(root,prepare?"prepare":observe?"observe":"reopen",final,anchor);Phase(trace,"released");return 0;
 }
 
-// NATIVE-RETENTION-01: synthetic single-channel retention, not a long-run/Visual test.
+// NATIVE-RETENTION-01: 단일 채널 retention 합성 검사이며 장시간·Visual 검증을 대신하지 않는다.
 namespace native_retention {
 using namespace recording;
 constexpr const char* Channel="9101";

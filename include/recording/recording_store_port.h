@@ -10,7 +10,7 @@
 
 namespace recording {
 
-// Protected is a pre-mutation rejection, never an I/O or authority failure.
+// Protected는 변경 전 거부를 뜻하며 I/O 오류나 권한 실패와 구분한다.
 enum class RecordingDeletionAdmission { Accepted, Protected, Failed };
 
 class RecordingStorePort {

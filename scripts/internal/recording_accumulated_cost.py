@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """R165 BLOCKED_PRE_EXECUTION: generated owned copies only; actual selected phase gate unqualified."""
-import hashlib,json,shlex,subprocess,sys,os,stat
+import hashlib,json,shlex,subprocess,sys,os,stat  # 파일 용도: 생성한 소유 사본만 계측하며 실제 선택 단계의 적격성이 미확인인 실행은 차단한다.
 from pathlib import Path
 from recording_http_cost_overlay import replace
 REPO=Path(__file__).resolve().parents[2]
@@ -46,7 +46,7 @@ def generate(out, attribution=False, mandatory_ledger=False, limited_search=Fals
             s=replace(s,'                active_connection_guard.Finish();','                selected_request.End();active_connection_guard.Finish();')
         p=out/Path(name).name;p.write_text('#include "recording_http_cost_probe.h"\n'+s)
         binding[name]={'original':sha(REPO/name),'overlay':sha(p)}
-    # Import paths are absolute; original mixed/A functions remain the workload owners.
+    # import는 절대 경로를 쓰며 원래 mixed/A 함수가 workload 소유권을 유지한다.
     s=(SCRIPTS/'v450_recording_a_mixed.mjs').read_text()
     import re
     s=re.sub(r"(['\"])\./([^'\"]+)\1",lambda m:json.dumps(str(SCRIPTS/m[2])),s)
@@ -65,11 +65,11 @@ def generate(out, attribution=False, mandatory_ledger=False, limited_search=Fals
     s=replace(s,"headers:{...diagnosticHeaders,Cookie:app.cookie,...(method==='POST'","headers:{...diagnosticHeaders,Cookie:app.cookie,...(selectedId?{'X-R154-ID':String(selectedId)}:{}),...(method==='POST'")
     s=replace(s,'const all=await Promise.all(routes.map(route=>evidenceFetch(app,route)));','const selectedBatch=selectedBatchOrdinal++;const all=await Promise.all(routes.map((route,i)=>evidenceFetch(app,route,\'GET\',undefined,selection(selectedBatch,i))));')
     s=replace(s,'function budget(){if(cancelled)',"function budget(){if(selectedTrace.failure())throw Error(selectedTrace.failure().code);if(cancelled)")
-    s=replace(s,"collectResourceTrace(app.resourceTrace,chunk);","collectResourceTrace(app.resourceTrace,chunk);") # assert original boundary
+    s=replace(s,"collectResourceTrace(app.resourceTrace,chunk);","collectResourceTrace(app.resourceTrace,chunk);") # 원래 경계가 존재하는지 검증한다.
     s=replace(s,"captureBoundedProcessLog(app,chunk,bytes=>fs.writeSync(app.logFd,bytes),()=>child.kill('SIGTERM'));","captureBoundedProcessLog(app,chunk,bytes=>fs.writeSync(app.logFd,bytes),()=>child.kill('SIGTERM'));selectedTrace.append(chunk,stream===child.stdout?0:1);if(selectedTrace.failure()){if(!selectedFailureReported){selectedFailureReported=true;console.error('[R165-first-failure] '+JSON.stringify(selectedTrace.failure()));}cancelled=true;child.kill('SIGTERM');}")
     s=replace(s,'await evidenceLoad(first);await aLoad.tick(first);cadence();','await evidenceLoad(first);await aLoad.tick(first);cadence();if(!aLoad.active&&selectedTrace.ready(progress.status(performance.now()).channels)&&Object.values(progress.status(performance.now()).channels).every(c=>!preparationContract.requiresDeletion||c.deleted>0)&&mixed.windows.every(w=>w.structured>0&&w.visual>0&&w.evidence>0&&w.visualEvidence>0))break;')
     s=replace(s,'await aLoad.finish(first);if(!short)requireMixedWindows(mixed.windows);',"await aLoad.finish(first);if(!short)requireMixedWindows(mixed.windows);const bound=selectedTrace.complete();console.log('[R165-qualified] '+JSON.stringify({requests:bound.client.length,goalMet:selectedTrace.ready(progress.status(performance.now()).channels)}));")
-    # Keep original latency gate/result, but perform diagnostic shutdown before reporting its failure.
+    # 원래 latency gate·결과를 유지하되 실패 보고 전에 진단 shutdown을 수행한다.
     s=replace(s,'if(!memoryDiagnose)check(orderedLatencies.at(Math.ceil(orderedLatencies.length*.95)-1)<=2000&&orderedLatencies.at(-1)<=5000,"V440 successful search latency");else ', '')
     s=replace(s,"console.log('[memory-latency-diagnostic] '+JSON.stringify({count:orderedLatencies.length,p95:orderedLatencies.at(Math.ceil(orderedLatencies.length*.95)-1),max:orderedLatencies.at(-1),gate:false}))","console.log('[R165-latency-gate] '+JSON.stringify({count:orderedLatencies.length,p95:orderedLatencies.at(Math.ceil(orderedLatencies.length*.95)-1),max:orderedLatencies.at(-1),limitP95:2000,limitMax:5000,pass:latencyPassed=orderedLatencies.at(Math.ceil(orderedLatencies.length*.95)-1)<=2000&&orderedLatencies.at(-1)<=5000}))")
     s=replace(s,'const searchFailure=searchFailureSummary(text,app.requiresFrameTrace);','const searchFailure=searchFailureSummary(text,false);')
@@ -79,8 +79,8 @@ def generate(out, attribution=False, mandatory_ledger=False, limited_search=Fals
     s=replace(s,"status:resultFailed?'FAIL':'PASS',exit:resultFailed?1:0", "diagnosticCompleted:failed===0&&!!phaseResult,latencyPassed,status:resultFailed||failed||latencyPassed!==true?'FAIL':'PASS',exit:resultFailed||failed||latencyPassed!==true?1:0")
     s=replace(s,'process.exitCode=resultFailed?1:0','process.exitCode=resultFailed||failed||latencyPassed!==true?1:0')
     s=replace(s,'}catch(error){failed++;if(error.workspaceDecision)',"}catch(error){failed++;if(!selectedFailureReported){selectedFailureReported=true;console.error('[R165-first-failure] '+JSON.stringify({code:selectedTrace.failure()?.code??'functional-failure',atMs:performance.now()}));}if(error.workspaceDecision)")
-    # Explicit search-only mode exists only in this selected, instrumented overlay.
-    # The original mixed runner and all historical diagnostic modes are unchanged.
+    # 명시적 search-only mode는 선택된 이 계측 overlay에만 존재한다.
+    # 원래 mixed runner와 모든 과거 진단 mode는 바꾸지 않는다.
     s=replace(s,"const stateDiagnose=args.length===1&&args[0]==='--state-diagnostic';", "const performanceDiagnose=args.length===1&&args[0]==='--search-performance-diagnostic';\nif(performanceDiagnose)assertSearchPerformanceCapacity();\nconst stateDiagnose=performanceDiagnose||(args.length===1&&args[0]==='--state-diagnostic');")
     s=replace(s,'memoryObservationMode(args)',"memoryObservationMode(performanceDiagnose?['--state-diagnostic']:args)")
     s=replace(s,'if(!aLoad.active&&selectedTrace.ready','if(!performanceDiagnose&&!aLoad.active&&selectedTrace.ready')
@@ -96,26 +96,26 @@ def generate(out, attribution=False, mandatory_ledger=False, limited_search=Fals
     if mandatory_ledger:s=mandatory_overlay(out,binding,s)
     elif attribution:s=attribution_overlay(out,binding,s)
     if limited_search:s=limited_overlay(s)
-    # Preserve the first observation exception separately from final Report storage.
+    # 첫 관측 예외를 최종 Report 저장 오류와 분리해 보존한다.
     s=replace(s,'}catch(error){failed++;if(!selectedFailureReported)',
         "}catch(error){failed++;if(performanceDiagnose&&officialFirstFailure===null)officialFirstFailure={name:error?.name??'Error',message:error?.message??String(error),code:error?.code??null};if(!selectedFailureReported)")
-    # Only the official final report changes whitespace. Historical diagnostics
-    # and Limited keep the shared checkpoint implementation and its consumers.
+    # 공식 최종 report의 공백만 변경한다. 과거 진단과 Limited는 공유 checkpoint 구현과
+    # 그 소비자를 유지한다.
     s=replace(s,'try{artifacts.checkpoint({...final,',
         'try{(performanceDiagnose?report=>checkpointSearchPerformanceReport(artifacts,report,officialFirstFailure):report=>artifacts.checkpoint(report))({...final,')
     if official_contract is not None:
         contract_path=Path(official_contract)
         if not contract_path.is_absolute():raise ValueError('official-contract-path')
-        # This opt-in is used only by the SHA-bound external official Runner.
-        # Historical generated drivers/wrappers keep their unconditional guard.
+        # 이 opt-in은 SHA로 결속한 외부 공식 Runner만 사용한다.
+        # 과거 생성 driver·wrapper의 무조건 guard는 유지한다.
         s=replace(s,'if(performanceDiagnose)assertSearchPerformanceCapacity();',
             'if(performanceDiagnose)assertSearchPerformanceCapacity(JSON.parse(fs.readFileSync('+json.dumps(str(contract_path))+')));')
         s=replace(s,".filter(n=>!n.startsWith('media-server-current-observer-'))",
             ".filter(n=>performanceDiagnose?n!=='work':!n.startsWith('media-server-current-observer-'))")
-        # Reserve closeout in live checks too. Keep returned storage as measured
-        # bytes: the reservation is not a file and must not be counted twice by
-        # subsequent sidecar/response admission. Native anonymous bytes remain
-        # charged by the existing status/sample collectors.
+        # 실시간 검사에서도 closeout을 예약한다. 반환한 storage는 측정한 실제 바이트로
+        # 유지한다. reservation은 파일이 아니므로 이후 sidecar·response admission이
+        # 중복 계산하면 안 된다. native anonymous 바이트는
+        # 기존 status·sample collector가 계속 비용에 포함한다.
         s=replace(s,'  const bounds=admitWorkspaceSnapshot({storage:combined,',
             "  if(performanceDiagnose)admitWorkspaceSnapshot({storage:combined,baseline:workspace??{fixedBytes:0,capBytes:448*1024*1024},additionalBytes:6*1024*1024,context:{kind:'official-live-closeout-reserve'}},workspaceFailure);\n  const bounds=admitWorkspaceSnapshot({storage:combined,")
         s=replace(s,'additionalBytes:bytes,\n  context:',
@@ -123,11 +123,11 @@ def generate(out, attribution=False, mandatory_ledger=False, limited_search=Fals
         s=replace(s,'metrics:point,\n      expectedPid:',
             'metrics:point,additionalBytes:performanceDiagnose?6*1024*1024:0,\n      expectedPid:')
         s=replace(s,"fs.statSync(path.join(repo,'build-gst-onnx/media_server'))","fs.statSync(process.env.R165_BINARY)",2)
-        # Final upper-bound assumptions are checked against actual report inputs.
+        # 최종 상한의 가정은 실제 report 입력에 대해 확인한다.
         s=replace(s,'report=>checkpointSearchPerformanceReport(artifacts,report,officialFirstFailure)',
             "report=>{if(report.status==='PASS'&&(report.processCount!==1||report.evidenceLoad.searchSuccess+report.evidenceLoad.searchUnavailable>484||report.aLoad.initialStore.names.length>3||report.aLoad.schedule.length>45))throw Error('official-report-premise');const receipt=checkpointSearchPerformanceReport(artifacts,report,officialFirstFailure);console.log('[official-report-artifact] '+JSON.stringify({file:'report.json',bytes:receipt.bytes,sha256:receipt.sha256}));return receipt;}")
-        # The complete report already passed the bounded writer and SHA readback.
-        # Keep per-sample diagnostics: the report contains only their summaries.
+        # 전체 report는 이미 제한된 writer와 SHA 재조회를 통과했다.
+        # report에는 요약만 있으므로 sample별 진단은 유지한다.
         s=replace(s,'console.log(JSON.stringify(final));process.exitCode=',
             'if(!performanceDiagnose)console.log(JSON.stringify(final));process.exitCode=')
         s=replace(s,'checkpointSearchPerformanceReport} from ',
@@ -140,7 +140,7 @@ function getOfficialObservations(){return officialObservations??=createOfficialO
 function officialObservation(kind,value){if(performanceDiagnose)getOfficialObservations().append(kind,value);else console.log('['+kind+'] '+JSON.stringify(value));}''')
         for kind in ['memory-attribution-cycle','current-observation','visual-query-observation','root-storage']:
             token="console.log('["+kind+"] '+JSON.stringify("
-            # Root has both regular and failure paths. Keep all values/branches.
+            # root에는 정상·실패 경로가 모두 있다. 모든 값과 분기를 유지한다.
             count=s.count(token)
             if count<1:raise ValueError('official-observation-producer-missing:'+kind)
             s=replace(s,token,"officialObservation('"+kind+"',(",count)
@@ -165,7 +165,7 @@ try{const observation=getOfficialObservations().finish(report.status==='PASS',of
 }catch(error){observationError=error;}
 const receipt=checkpointSearchPerformanceReport(artifacts,observationError?{...report,status:'INCOMPLETE',exit:1}:report,officialFirstFailure??(observationError?{name:observationError.name,message:observationError.message}:null));
 if(observationError)throw observationError;''')
-        # Explicit official Driver/A call sites, not global console interception.
+        # 명시적인 공식 Driver/A 호출 지점에만 적용하며 전역 console을 가로채지 않는다.
         s=replace(s,'preserveOfficialHttpError} from ','preserveOfficialHttpError,createOfficialRemainingEvidence} from ')
         leave={'fixture-profile','official-report-artifact','official-observation-artifact','http-failed-response-artifact'}
         def redirect_output(m):
@@ -212,7 +212,7 @@ let observationError=null;''')
     wrapper=replace(wrapper,'node "$observer_driver/v450_recording_a_mixed.mjs"', 'node '+shlex.quote(str(out/'mixed.mjs')))
     if build_root is not None:wrapper=replace(wrapper,'observer_build="$observer_repo/build-gst-onnx"','observer_build='+shlex.quote(str(b)))
     wrapper=replace(wrapper,'  --memory-attribution-diagnostic|','  --search-performance-diagnostic|--memory-attribution-diagnostic|')
-    # Reject capacity-unqualified execution before root creation/build/port ownership.
+    # 용량 적격성 없는 실행은 root 생성·build·port 소유 전에 거부한다.
     guard="import {assertSearchPerformanceCapacity} from "+json.dumps(str(SCRIPTS/'recording_accumulated_cost.mjs'))+";assertSearchPerformanceCapacity();"
     wrapper=replace(wrapper,'esac\n','esac\nif [[ "$*" == --search-performance-diagnostic ]]; then\n  node --input-type=module -e '+shlex.quote(guard)+' || exit $?\nfi\n')
     if limited_search:
@@ -230,7 +230,7 @@ let observationError=null;''')
     return binding
 
 def attribution_overlay(out,binding,mixed):
-    # Explicit generator opt-in, no change to ordinary or selected-only workloads.
+    # generator의 명시적 opt-in이며 일반·selected-only workload는 변경하지 않는다.
     for original in binding:
         p=out/Path(original).name;s=p.read_text()
         if p.name=='recording_search_application_service.cpp':
@@ -275,7 +275,7 @@ def attribution_overlay(out,binding,mixed):
 
 
 def mandatory_overlay(out,binding,mixed):
-    # Reuse R171 hooks, but choose a versioned ledger only in this generated copy.
+    # R171 hook을 재사용하되 버전이 지정된 ledger는 이 생성 사본에서만 선택한다.
     mixed=attribution_overlay(out,binding,mixed)
     mixed=replace(mixed,' const started=performance.now();','')
     mixed=replace(mixed,"async function evidenceFetch(app,route,method='GET',body,selectedId=0){","async function evidenceFetch(app,route,method='GET',body,selectedId=0){\n const started=performance.now();")
@@ -302,7 +302,7 @@ def mandatory_overlay(out,binding,mixed):
   try{process.stdout.write(failureTrace.client(row));}catch(error){failureTrace.fail('ledger-client-write',failureId);if(!failureError)throw error;}
  }if(selectedClientFailure){failureTrace.fail('ledger-selected-client');if(!failureError)throw selectedClientFailure;}}
 """+mixed[end:]
-    # Observe fetch abort before the existing HTTP helper sanitizes its exception.
+    # 기존 HTTP helper가 예외를 정제하기 전에 fetch abort를 관측한다.
     mixed=replace(mixed,"request:diagnosticHeaders=>fetch(app.base+route,{method,redirect:'error',signal:AbortSignal.timeout(5000),headers:{...diagnosticHeaders,Cookie:app.cookie,...(failureId?",
         "request:async diagnosticHeaders=>{try{return await fetch(app.base+route,{method,redirect:'error',signal:(failureSignal=AbortSignal.timeout(5000)),headers:{...diagnosticHeaders,Cookie:app.cookie,...(failureId?")
     mixed=replace(mixed,"body:method==='POST'?JSON.stringify(body??{}):undefined})});",
@@ -319,14 +319,14 @@ def mandatory_overlay(out,binding,mixed):
         "const all=await settleLedgerBatch(failureTrace,routes.map((route,i)=>()=>evidenceFetch(app,route,'GET',undefined,selection(selectedBatch,i))));")
     mixed=replace(mixed,"const created=await Promise.all([0,1].map(()=>evidenceFetch(app,'/ops/api/recordings/search/evidence?'+query,'POST')));",
         "const created=await settleLedgerBatch(failureTrace,[0,1].map(()=>()=>evidenceFetch(app,'/ops/api/recordings/search/evidence?'+query,'POST')));")
-    # sample already validates native metrics and FD receipts; reuse it, no extra collection.
-    # Stops remain owned and bounded. Preserve final mandatory records after sticky failures.
+    # sample이 이미 native metrics·FD receipt를 검증하므로 재사용하고 추가 수집하지 않는다.
+    # 중지는 계속 소유권과 시간 제한을 지키며 누적 실패 뒤에도 최종 필수 기록을 보존한다.
     mixed=replace(mixed,"try{final.failureAttribution=failureTrace.complete();}catch{final.failureAttribution={status:'incomplete',firstFailure:failureTrace.failure(),requests:failureTrace.snapshot()};failed++;final.failed=failed;}",
         "final.failureAttribution=failureTrace.report({cleanupComplete:final.processesClosed===true&&final.udpClosed===true&&processes.every(app=>app.result?.normalShutdownPass===true)});if(final.failureAttribution.status!=='captured'){failed++;final.failed=failed;}")
     return mixed
 
 def limited_overlay(mixed):
-    # Dedicated generated opt-in only. No change to the original mixed driver.
+    # 전용 생성 opt-in이며 원래 mixed driver는 바꾸지 않는다.
     mixed="import {assertLimitedSearchCapacity,limitedSearchSchedule,runLimitedSearch,limitedPreparationStart} from "+json.dumps(str(SCRIPTS/'recording_accumulated_cost.mjs'))+";\n"+mixed
     mixed=replace(mixed,"const stateDiagnose=performanceDiagnose", "const limitedDiagnose=args.length===1&&args[0]==='--limited-search-diagnostic';\nif(limitedDiagnose)assertLimitedSearchCapacity();\nlet limitedSchedule=null;\nconst stateDiagnose=performanceDiagnose")
     mixed=replace(mixed,"memoryObservationMode(performanceDiagnose?['--state-diagnostic']:args)","memoryObservationMode(limitedDiagnose?['--frame-diagnostic']:performanceDiagnose?['--state-diagnostic']:args)")
@@ -338,7 +338,7 @@ def limited_overlay(mixed):
     start=mixed.index('  aLoad=new MixedALoad(')
     end=mixed.index('  }catch(error){failed++;',start)
     original=mixed[start:end]
-    # Reuse the exact existing query construction, refreshed on every batch.
+    # 기존 query 생성식을 그대로 재사용하고 batch마다 새로 만든다.
     route_begin=mixed.index(' const query=new URLSearchParams(',mixed.index('async function evidenceLoad('))
     route_end=mixed.index('\n const selectedBatch=',route_begin)
     routes=mixed[route_begin:route_end]
@@ -356,7 +356,7 @@ def limited_overlay(mixed):
   }else{
 """.replace('ROUTES',routes)+original+'  }\n'
     mixed=mixed[:start]+limited+mixed[end:]
-    # Limited requests are not part of the historical selected 15-request set.
+    # Limited 요청은 과거에 선택한 15개 요청 집합에 포함되지 않는다.
     mixed=replace(mixed,"if(!selectedId&&method==='GET'", "if(!limitedDiagnose&&!selectedId&&method==='GET'")
     mixed=replace(mixed,'if(performanceDiagnose){try{selectedBound=',"if(limitedDiagnose){final.limitedSearch=limitedSchedule?.report({cleanupComplete:final.processesClosed===true&&final.udpClosed===true})??{status:'INCOMPLETE',firstFailure:{code:'limited-not-started'}};if(final.limitedSearch.status!=='BOUNDED')failed++;final.failed=failed;latencyPassed=failed===0;final.mode='limited-search-diagnostic';final.frameDiagnosticPass=false;}if(performanceDiagnose){try{selectedBound=")
     return mixed
@@ -369,7 +369,7 @@ def isolated_build_root(root):
     return b
 
 def isolated_build_plan(root, reference=None):
-    # Plan only: CMake and the compiler are never invoked by this function.
+    # 계획만 생성하며 이 함수에서 CMake·compiler를 호출하지 않는다.
     b=isolated_build_root(root);reference=Path(reference or REPO/'build-gst-onnx')
     values={};generator=None
     for line in (reference/'CMakeCache.txt').read_text().splitlines():
@@ -446,7 +446,7 @@ def verify_isolated_link(plan, mapping, symbols):
     for key in ['RecordingApplicationService6Search','ReadHttpRequest']:
         if len([l for l in symbols.splitlines() if key in l and ' T ' in l])!=1:raise ValueError('isolated-duplicate-symbol')
 
-# Limited-only helper artifacts. No compiler or executable is launched here.
+# Limited 전용 helper artifact다. 여기서는 compiler나 실행 파일을 시작하지 않는다.
 HELPER_NAMES=('normalize','process-metrics','review-seed')
 HELPER_FILES=(*HELPER_NAMES,'catalog-instrumented.cpp')
 def helper_owned(p, directory=False):
@@ -508,10 +508,10 @@ def helper_inputs(approved):
 
 def helper_plan(work,approved,cflags):
     h,b=helper_inputs(approved);out=work/'helpers'
-    # The wrapper's archive token and entire suffix are retained, in the same order.
+    # wrapper의 archive token과 뒤따르는 모든 인수를 같은 순서로 유지한다.
     link=shlex.split((b/'CMakeFiles/media_server.dir/link.txt').read_text())
     idx=link.index('libmedia_server_runtime.a');libs=[str(b/'libmedia_server_runtime.a'),*link[idx+1:]]
-    # Relative linker inputs would depend on the old build cwd; never silently resolve them differently.
+    # 상대 linker 입력은 과거 build 작업 디렉터리에 의존하므로 다른 경로로 조용히 해석하지 않는다.
     if any(not v.startswith(('-','/')) for v in libs):raise ValueError('helper-relative-link-input')
     common=[h['compiler'],'-std=c++17','-Wall','-Wextra','-Werror','-pthread','-I'+str(REPO/'include')]
     definitions=['-DMEDIA_SERVER_USE_GSTREAMER=1','-DMEDIA_SERVER_USE_OPENSSL=1','-DMEDIA_SERVER_USE_SQLITE3=1','-DMEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND=1']
@@ -531,11 +531,11 @@ def helper_stage(stage,root,approved,save):
     elif stage=='helper-plan':
         plan=helper_plan(work,approved,shlex.split((evidence/'helper-flags.stdout.txt').read_text()))
         (work/'helpers').mkdir(mode=0o700)
-        # Store the original instrumentation program; run it under the same supervisor.
+        # 원래 계측 프로그램을 저장하고 같은 supervisor 아래에서 실행한다.
         script=work/'instrument.mjs'
         script.write_text(plan.pop('instrumentSource'));script.chmod(0o600)
         plan['instrument']=[h['node'],'--input-type=module','-e',script.read_text(),str(REPO),str(work/'helpers/catalog-instrumented.cpp')]
-        # -e has argv[1] as the first argument; preserve the original stdin program's argv[2:] contract.
+        # -e에서는 argv[1]이 첫 인수다. 원래 stdin 프로그램의 argv[2:] 계약을 유지한다.
         plan['instrument'].insert(-2,'-')
         save('helper-plan.json',plan)
     elif stage=='helper-verify':
@@ -546,7 +546,7 @@ def helper_stage(stage,root,approved,save):
             p=out/n;s=helper_owned(p);p.chmod(0o700 if n in HELPER_NAMES else 0o600)
             entries[n]={'bytes':s.st_size,'sha256':sha(p),'mode':oct(p.stat().st_mode&0o777),'uid':s.st_uid,'links':s.st_nlink,
                         **(helper_macho(p) if n in HELPER_NAMES else {})}
-        # Rename, not duplicate large outputs: artifact+work+evidence stay in the same 512MiB root.
+        # 큰 출력은 복제하지 않고 이름을 바꾼다. artifact·work·evidence는 같은 512MiB root 안에 둔다.
         destination=root/'artifacts'
         if destination.exists():raise ValueError('helper-artifacts-exist')
         out.rename(destination)
@@ -580,7 +580,7 @@ def install_limited_helpers(manifest_path,expected_sha,destination):
         if Path(n).is_absolute() or '..' in Path(n).parts or sha(REPO/n)!=h:raise ValueError('helper-source-sha')
     for n,h in record['inputs'].items():
         if sha(Path(n))!=h:raise ValueError('helper-input-sha')
-    # Check every input first. No fallback to a compiler and no helper execution.
+    # 먼저 모든 입력을 확인한다. compiler fallback이나 helper 실행은 하지 않는다.
     for n,e in record['files'].items():
         p=root/n;s=helper_owned(p)
         if s.st_size!=e['bytes'] or sha(p)!=e['sha256'] or oct(s.st_mode&0o777)!=e['mode']:raise ValueError('helper-artifact-sha')
@@ -595,8 +595,8 @@ def install_limited_helpers(manifest_path,expected_sha,destination):
         (destination/n).chmod(int(e['mode'],8));helper_owned(destination/n)
         if sha(destination/n)!=e['sha256']:raise ValueError('helper-copy-readback')
 
-# Limited build-only bridge. Each invocation is itself supervised by runBounded;
-# this dispatcher never invokes CMake/compiler/linker or a product executable.
+# Limited build-only bridge다. 각 호출은 runBounded의 감독을 받으며
+# 이 dispatcher가 CMake·compiler·linker·제품 실행 파일을 호출하지 않는다.
 def isolated_supervision_stage(stage, root):
     root=Path(root);work=root/'work';b=work/'build';evidence=root/'evidence'
     isolated_build_root(b)
@@ -626,8 +626,8 @@ def isolated_supervision_stage(stage, root):
         helper_stage(stage,root,approved,save)
     elif stage=='plan':
         plan=isolated_build_plan(b)
-        # Preserve the reference flags. Output/launcher overrides outside the
-        # owned tree need separate review, never silently rewrite them.
+        # 기준 flag를 유지한다. 소유 tree 밖으로 출력·launcher를 덮어쓰는 변경은
+        # 별도 검토가 필요하며 조용히 다시 쓰지 않는다.
         for arg in plan['commands'][0]:
             if arg.startswith('-D') and '=' in arg:
                 key,value=arg[2:].split('=',1);key=key.split(':')[0]
@@ -675,7 +675,7 @@ def build(parent):
     for key in ['RecordingApplicationService6Search','ReadHttpRequest']:
         assert len([l for l in symbols.splitlines() if key in l and ' T ' in l])==1
     (parent/'build.json').write_text(json.dumps({'sources':binding,'commands':commands,'probeSha':sha(out/'recording_http_cost_probe.h'),'binarySha':sha(parent/'media_server'),'mapSha':sha(parent/'link.map'),'uniqueSymbols':True},indent=2)+'\n')
-    # Preserve the common Http152 source; the selected header is confined to this owned copy.
+    # 공통 Http152 source를 보존하며 선택한 header는 이 소유 사본에만 적용한다.
     native=(SCRIPTS/'recording_accumulated_http_smoke.cpp').read_text()
     native=replace(native,'+"Connection: close\\r\\n"','+(id==10?"X-R154-ID: 1\\r\\n":"")+"Connection: close\\r\\n"')
     native=replace(native,'return {wire.substr(end+4),ms};','''if(id==10)std::cout<<"[R165-client] {\\\"id\\\":1,\\\"loss\\\":false,\\\"status\\\":"<<status<<",\\\"outcome\\\":\\\"ok\\\",\\\"phase\\\":\\\"complete\\\",\\\"bytes\\\":"<<wire.size()<<",\\\"totalElapsedMs\\\":"<<static_cast<long long>(ms+0.5)<<"}\\n";return {wire.substr(end+4),ms};''')

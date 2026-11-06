@@ -1,4 +1,4 @@
-// R155: actual ReadHttpRequest and HeaderValue, socketpair only; no server/model.
+// 파일 용도: R155의 실제 ReadHttpRequest·HeaderValue를 socketpair만으로 검사하며 server·model은 시작하지 않는다.
 #include "recording_http_cost_probe.h"
 #include "webrtc_http_server_detail.h"
 #include <sys/socket.h>

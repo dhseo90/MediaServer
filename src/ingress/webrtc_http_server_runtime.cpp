@@ -441,8 +441,8 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                     request_opt ? std::string_view(request_opt->method) : std::string_view{},
                     request_opt ? std::string_view(request_opt->path) : std::string_view{}, accepted_at);
                 site_diagnostic.Emit(SiteOperationsRequestDiagnostic::Phase::Parsed);
-                // Validation copy only: bounded, opt-in request/authorization correlation.
-                // No credentials, usernames, URLs, query text or public response changes.
+                // 검증용 사본에서만 선택적으로 제한된 요청·권한 상관관계를 관측한다.
+                // 인증 자료·사용자명·URL·query 원문을 포함하지 않으며 공개 응답을 바꾸지 않는다.
                 static const bool smoke_enabled=[] {const char* p=std::getenv("MEDIA_SERVER_VERIFY_MULTIFINALIZE_BLOCKERS");return p&&std::strcmp(p,"1")==0;}();
                 std::string smoke_id=smoke_enabled&&request_opt?HeaderValue(*request_opt,"X-Media-Search-Request-Id"):std::string{};
                 if(smoke_id.size()>64||smoke_id.compare(0,4,"mfb-")!=0||
@@ -5279,13 +5279,13 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                     search_http.SendEnd(sent);
                     site_diagnostic.Emit(SiteOperationsRequestDiagnostic::Phase::SendEnd, sent);
                 }
-                // Drain is the recording transport's lifetime boundary. Release the
-                // body after the encoded send buffer has gone, before notifying Drain.
-                // Removing Flight still precedes close, so shutdown cannot target a
-                // reused descriptor. Other retained readers own independent tickets.
+                // Drain은 녹화 transport의 수명 경계다. 인코딩된 송신 buffer가 사라진 뒤
+                // Drain에 알리기 전에 body를 해제한다.
+                // Flight 제거는 여전히 close보다 먼저이므로 shutdown이 재사용된 descriptor를
+                // 대상으로 삼을 수 없다. 남아 있는 다른 reader는 독립적인 ticket을 소유한다.
                 search_http.End();
                 response = HttpResponse{};
-                // No Impl access may remain after the recording drain notification.
+                // 녹화 drain 알림 뒤에는 Impl에 접근하는 작업이 남아 있으면 안 된다.
                 active_connection_guard.Finish();
                 recording_flight.reset();
                 close(client_fd);

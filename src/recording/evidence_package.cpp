@@ -66,9 +66,9 @@ std::string EvidenceJsonQuote(const std::string& value) {
     return out + '"';
 }
 std::size_t EvidencePackageWorkspaceBytes(std::string_view json) {
-    // manifest -> snapshot -> referenced observation -> observation/locator/time:
-    // eight owning raw/captured/array layers, plus canonical replay's three buffers.
-    // The largest supported array object is the nested referenced observation.
+    // manifest에서 snapshot, 참조 observation, observation·locator·time으로 이어지는 구조다.
+    // raw·captured·array 소유 계층 8개와 canonical replay buffer 3개를 계산한다.
+    // 지원하는 array 객체 중 가장 큰 것은 중첩된 참조 observation이다.
     const auto element=std::max({sizeof(EvidenceReferenceV1),sizeof(EvidenceAssetV1),
         sizeof(EvidenceFrameV1),sizeof(EvidenceObservationSnapshotV2),sizeof(ReferencedObservationV1)});
     return ingress::StrictJsonWorkspaceBytes(json,11,element,false);

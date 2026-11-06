@@ -1,4 +1,4 @@
-// 제품 decoder 호출 없이 opt-in 최초 bus 진단의 정제·형식·실패 전달을 확인한다.
+// 파일 용도: 제품 decoder 호출 없이 opt-in 최초 bus 진단의 정제·형식·실패 전달을 검사한다.
 #include "../../src/recording/visual_frame_decoder.cpp"
 #include <iostream>
 int main(){
@@ -30,7 +30,7 @@ int main(){
     }
     {
         recording::DecodeTrace trace(-1,0,0,5000,&error);trace.succeeded=true;trace.closing=true;
-        // Exhaust public success sampling; private cleanup errors must still be saved.
+        // 공개 성공 sample 한도를 소진해도 비공개 cleanup 오류는 계속 보존해야 한다.
         for(int i=0;i<5;++i)trace.SuccessSample();
         const std::string large(3000,'x');auto* problem=g_error_new_literal(GST_STREAM_ERROR,GST_STREAM_ERROR_DECODE,large.c_str());
         auto* message=gst_message_new_error(GST_OBJECT(element),problem,large.c_str());g_error_free(problem);

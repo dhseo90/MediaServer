@@ -1,4 +1,4 @@
-import copy,unittest
+import copy,unittest  # 파일 용도: 공개 검색 결과의 fresh·재생·seek 조건과 정확한 worker·generation 결속 판정을 검증한다.
 from recording_degraded_http_qualification import visual_response,public_fresh,exact_public_fresh
 class Oracle(unittest.TestCase):
  def setUp(self):

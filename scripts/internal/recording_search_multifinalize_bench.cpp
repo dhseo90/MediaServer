@@ -1,4 +1,4 @@
-// R184-P01: same binary, bounded A/B/B/A, no HTTP or product server.
+// 파일 용도: R184-P01의 동일 binary에서 한도가 있는 A/B/B/A를 비교하며 HTTP·제품 server는 시작하지 않는다.
 #define RECORDING_MULTIFINALIZE_NO_MAIN
 #include "recording_search_multifinalize_smoke.cpp"
 namespace {

@@ -415,7 +415,7 @@ bool RecordingCatalog::StoreSourceEntryLocked(SourceBindingEntry value,std::stri
     if(completed_history_){std::string bytes;
         if(!SerializeRecordingCatalogSourceSummary({value.id,value.channel,value.source,value.generation,value.track,value.order,value.sample_count,value.latest_mutation_id},&bytes,error)||
            !completed_history_->Put("source-binding",value.id,bytes,error))return false;}
-    // Resolve the key before by-value assignment moves value.id.
+    // 값 전달 대입이 value.id를 move하기 전에 key를 확정한다.
     auto& destination=source_bindings_[value.id];
     destination=std::move(value);return true;
 }
@@ -495,7 +495,7 @@ bool RecordingCatalog::BuildGenerationScratchLocked(std::unique_ptr<RecordingCat
     const auto failed=[&](){journal_.FinishGenerationRecovery(session,false,nullptr);return false;};
     try {
         auto scratch=std::make_unique<RecordingCatalog>(journal_,options_);auto& p=session->projection;
-        // Only unpublished PREPARED recovery requests a prefix. It cannot publish a live Catalog.
+        // 공개 전 PREPARED 복구만 prefix를 요청하며 실행 중인 Catalog를 공개할 수 없다.
         if(recovery_cut){
             if(deferred||options_.enable_generation_writes||*recovery_cut<p.manifest.cut_ordinal||
                *recovery_cut-p.manifest.cut_ordinal>session->count){Fail(error,"checkpoint recovery cut unavailable");return failed();}
@@ -948,7 +948,7 @@ bool RecordingCatalog::CheckpointGenerationLocked(std::string* error) {
     if(fixed.finish){std::string detail;if(!fixed.finish(&detail)){
         journal_.PoisonGeneration(this);if(error)*error+="; fixed view cleanup: "+detail;ok=false;
     }}
-    // Before publication this is the candidate; after the swap this is the retired scratch.
+    // 공개 전에는 candidate이며 교환 뒤에는 퇴역한 scratch가 된다.
     std::string cleanup;if(!plan->Finish(&cleanup)){journal_.PoisonGeneration(this);if(error)*error+="; checkpoint scratch cleanup: "+cleanup;ok=false;}
     if(!ok&&!journal_.OwnsCatalog(this))derived_job_state_authoritative_=false;
     return ok;
@@ -1584,8 +1584,8 @@ bool RecordingCatalog::SnapshotStatusImpl(RecordingCatalogStatusSnapshot* result
         recording::latency::Lock lock(mu_,recording::latency::Source::Catalog,__LINE__,std::try_to_lock,__func__);
         if(lock.owns_lock()){
             if(include_capacity)return BuildStatusSnapshotLocked(result,error);
-            // Only the visual Collect caller uses this token-only path. Its
-            // following fused scan performs all capacity/retention validation.
+            // Visual Collect 호출자만 이 token-only 경로를 사용한다.
+            // 이어지는 통합 scan에서 모든 capacity·retention 검증을 수행한다.
             if(!opened_||!derived_job_state_authoritative_||!CanReadLocked(error))return Fail(error,"recording status snapshot 미확인");
             if(error)error->clear();
             return true;
@@ -1728,8 +1728,8 @@ void RecordingCatalog::NoteSearchMutationLocked(const RecordingMutationV1& mutat
         auto& entry=log.entries[log.next];
         if(log.count==log.entries.size())log.floor=entry.revision;else ++log.count;
         entry={};entry.revision=source_snapshot_revision_;entry.structural=!observation;
-        // Only successful bound finalization proves a previously absent V2 ID.
-        // This is an ordering hint, never permission to omit current raw reads.
+        // binding이 있는 성공한 finalization만 이전에 없던 V2 ID를 입증한다.
+        // 이는 순서 힌트이며 현재 raw 읽기를 생략할 권한을 주지 않는다.
         entry.new_bound_segment=mutation.mutation_type==RecordingMutationType::SegmentV2BoundFinalized;
         if(channel.size()<=128)std::memcpy(entry.channel,channel.data(),channel.size());
         if(retention&&!channel.empty()&&!mutation.entity_id.empty()&&
@@ -1984,8 +1984,8 @@ bool RecordingCatalog::ApplyMutationLocked(const RecordingMutationV1& mutation,
             const auto tombstone_json = ObjectField(mutation.payload_json, "tombstone");
             RecordingTombstoneV1 tombstone;
             ok = tombstone_json && ParseRecordingTombstoneV1(*tombstone_json, &tombstone, error);
-            // Legacy tombstone channel is not an authority for the affected segment.
-            // Preserve its accepted cross-entity semantics with global structural invalidation.
+            // legacy tombstone의 channel은 영향을 받는 segment의 권한 근거가 아니다.
+            // 전역 구조 무효화로 기존에 허용한 cross-entity 의미를 유지한다.
             // 기존 V1 tombstone이 V2 삭제 뒤에 오는 이력도 수용해 왔다. 이 특수 경계는
             // full 공존 snapshot과 동일하게 복원하여 cut 위치로 호환 상태가 달라지지 않게 한다.
             RecordingTombstoneV2 restored;
@@ -2160,8 +2160,8 @@ bool RecordingCatalog::PoisonGenerationLocked(std::string* error) {
     if(error&&error->empty())*error="B durable 이후 실패: 새 owner strict Open 필요";
     return false;
 }
-// Auto rotation can release the Catalog lock. Runtime-only admission must be
-// checked again; replay intentionally retains its historical application rules.
+// 자동 회전은 Catalog lock을 해제할 수 있어 runtime 전용 admission을 다시
+// 확인해야 한다. replay는 의도적으로 과거 적용 규칙을 유지한다.
 bool RecordingCatalog::RevalidateRotatedMutationLocked(const RecordingMutationV1& m,std::string* error,bool* deletion_protected) {
     if(!CanWriteLocked(error))return false;
     const auto protected_id=[&](bool pin){
@@ -2589,8 +2589,8 @@ bool RecordingCatalog::FinalizeBoundSegmentV2(const RecordingSegmentV2& s,const 
 bool RecordingCatalog::RecoverBoundSegmentV2(const RecordingSegmentV2& s,const RecordingSourceBindingV1& b,
                                              const std::string& path,bool* inserted,std::string* error) {
     recording::latency::Lock lock(mu_,recording::latency::Source::Catalog,__LINE__,false,__func__);
-    // Recovery has a different provenance from the live Writer. Clear both
-    // before and after, including duplicate/no-op and exceptional completion.
+    // 복구의 provenance는 실행 중인 Writer와 다르다. 중복·무변경·예외 종료까지 포함해
+    // 실행 전후에 모두 지운다.
     struct Barrier {SearchInvalidations* log;~Barrier(){if(log)log->Barrier();}} barrier{search_invalidations_.get()};
     if(barrier.log)barrier.log->Barrier();
     return CommitBoundLocked(s,b,path,true,inserted,error);
@@ -2632,9 +2632,9 @@ bool RecordingCatalog::MaterializeSourceBinding(const SourceBindingEntry& entry,
     const auto* binding_field=payload.Find("sourceBinding");
     const auto* binding_json=binding_field&&binding_field->type==ingress::StrictJsonType::Object?&binding_field->raw:nullptr;
     const auto path=ingress::StrictJsonStringField(payload,"mediaRelpath");
-    // The authenticated envelope must still be parsed strictly in full. Its segment
-    // may reuse the already validated original only on exact canonical byte equality.
-    // Noncanonical but valid encodings retain the original parser path.
+    // 인증된 envelope 전체는 여전히 strict 파싱해야 한다. 그 segment는 canonical
+    // 바이트가 정확히 같을 때만 이미 검증한 원본을 재사용할 수 있다.
+    // canonical 형식이 아니지만 유효한 인코딩은 원래 parser 경로를 유지한다.
     const auto canonical=SerializeRecordingSegmentV2(original);
     if(!segment_json||!binding_json||!path)return Fail(error,"source binding 상세 재획득 거부");
     const bool exact=!canonical.empty()&&*segment_json==canonical;
@@ -2836,9 +2836,9 @@ bool RecordingCatalog::CaptureVisualSourceKeys(const std::set<std::string>& chan
     if(full_status_validation){
         if(!derived_job_state_authoritative_)return Fail(error,"recording status snapshot 미확인");
         VisualSourceScan scan{channels,keys,unsupported};
-        // Use the same authenticated private cut/current rebase as retention.
-        // No mutable Catalog row survives the unlock; keys are committed only
-        // after the complete current raw and lifecycle validation succeeds.
+        // retention과 동일한 인증된 비공개 cut·현재 rebase를 사용한다.
+        // unlock을 넘어 mutable Catalog row를 보유하지 않으며 현재 raw와 lifecycle 전체
+        // 검증이 성공한 뒤에만 key를 확정한다.
         struct RetentionSnapshot checked;
         {recording::latency::Lock::Unlocked outside(lock);
             checked=RetentionSnapshotPrepared(RetentionSnapshotSelection::All,{}, {},&scan);}
@@ -2846,8 +2846,8 @@ bool RecordingCatalog::CaptureVisualSourceKeys(const std::set<std::string>& chan
         *output=std::move(keys);*legacy=std::move(unsupported);if(error)error->clear();return true;
     }
     for(const auto& [id,row]:segments_)if(row.lifecycle==RecordingLifecycle::Finalized&&channels.count(row.channel_id)&&!segments_v2_.count(id))++unsupported[row.channel_id];
-    // Same authenticated scan as finalized-ID discovery, retaining only the
-    // existing sort keys. No second per-ID metadata walk or full DTO snapshot.
+    // finalized ID 검색과 동일한 인증 scan을 쓰며 기존 정렬 key만 보관한다.
+    // ID별 metadata를 다시 순회하거나 전체 DTO snapshot을 만들지 않는다.
     const bool retired=completed_history_?completed_history_->Count("retired-v2")!=0:!retired_v2_.empty();
     const bool tombstones=!tombstones_.empty(),v2_tombstones=!tombstones_v2_.empty(),states=!states_v2_.empty();
     for(const auto& [id,row]:segments_v2_){
@@ -2855,8 +2855,8 @@ bool RecordingCatalog::CaptureVisualSourceKeys(const std::set<std::string>& chan
         if((retired&&RetiredLocked(id).has_value())||(tombstones&&tombstones_.count(id))||(v2_tombstones&&tombstones_v2_.count(id)))continue;
         if(states){const auto state=states_v2_.find(id);if(state!=states_v2_.end()&&state->second.lifecycle!=RecordingLifecycle::Finalized)continue;}
         if(keys.size()>=100000)return Fail(error,"visual-index-capacity");
-        // Covers geometrically growing vector storage (including relocation)
-        // and owned strings; the ticket outlives its key through sort/collection.
+        // 재배치를 포함해 기하급수적으로 증가하는 vector 저장 공간과 소유 문자열을
+        // 계산한다. ticket은 정렬·수집 중 자기 key보다 오래 유지된다.
         auto memory=search_residency_->ReserveOwned(4*sizeof(VisualSourceKey)+2*(id.size()+row.channel_id.size()+row.media_epoch_id.size())+256);
         if(!memory)return Fail(error,"recording-resource-unavailable");
         VisualSourceKey key;key.memory=std::move(*memory);key.channel=row.channel_id;key.epoch=row.media_epoch_id;key.start=row.media_start_pts;key.id=id;
@@ -2875,8 +2875,8 @@ bool RecordingCatalog::ReadVisualSource(const VisualSourceKey& key,RecordingSegm
     RecordingSegmentV2 current=row->second;
     const bool active=EffectiveLifecycleV2Locked(key.id,true)==RecordingLifecycle::Finalized;
     SourceBindingReadContext context;SourceBindingHandle value;
-    // Preserve FindSourceBinding collection semantics: unavailable binding is
-    // unsupported. Collect retains its existing final status validation.
+    // FindSourceBinding의 수집 의미를 유지한다. binding을 사용할 수 없으면 미지원이다.
+    // Collect는 기존 최종 상태 검증을 유지한다.
     if(active)value=ReadSourceBindingLocked(key.id,&context,nullptr,&current);
     *segment=std::move(current);*binding=std::move(value);*finalized=active;if(error)error->clear();return true;
 } catch(const CatalogHistoryError& failure){return Fail(error,failure.what());}
@@ -2895,8 +2895,8 @@ RecordingCatalog::SourceBindingHandle RecordingCatalog::ReadSourceBindingForMedi
     if(!ValidateMediaLocked(segment,location,nullptr))return {};
     bool continuous_cut=false;
     auto binding=ReadSourceBindingLocked(segment.segment_id,context,error,&segment,&continuous_cut,nullptr,&location);
-    // Source authentication can release mu_ even on a parsed cache hit.
-    // Preserve the post-I/O media/path check in the reacquired current cut.
+    // source 인증은 파싱 cache에 hit해도 mu_를 해제할 수 있다.
+    // 다시 획득한 현재 cut에서 I/O 뒤 media·path 검사를 유지한다.
     if(binding&&!continuous_cut&&!ValidateMediaLocked(segment,location,nullptr))return {};
     return binding;
 } catch(const CatalogHistoryError& failure) { Fail(error,failure.what());return {}; }
@@ -2918,13 +2918,13 @@ RecordingCatalog::SourceBindingHandle RecordingCatalog::ReadSourceBindingLocked(
     std::string local_error;if(!error)error=&local_error;error->clear();
     if((validated_location&&!validated_media)||!context||(context->owner&&context->owner!=this)||!opened_||!derived_job_state_authoritative_||
        (!validated_media&&generation_backend_&&!CanReadLocked(error)))return {};
-    // private caller holds mu_ and ValidateMediaLocked just compared the exact
-    // current row/lifecycle/path. Keep that same-cut value rather than cold-read,
-    // parse and validate it again. Never reused across a lock or file-I/O boundary.
+    // 비공개 호출자가 mu_를 보유하며 ValidateMediaLocked가 방금 정확한 현재 row·
+    // lifecycle·path를 비교했다. cold read·파싱·검증을 반복하는 대신 같은 cut의 값을
+    // 유지한다. lock이나 파일 I/O 경계를 넘어 재사용하지 않는다.
     const auto original=validated_media?segments_v2_.end():segments_v2_.find(id);
     if(!validated_media&&(original==segments_v2_.end()||EffectiveLifecycleV2Locked(id,true)!=RecordingLifecycle::Finalized))return {};
-    // The private caller's immutable row remains alive through this call, including
-    // Journal I/O unlock. Only the non-media caller needs an owned cold-row copy.
+    // 비공개 호출자의 불변 row는 Journal I/O unlock을 포함해 이 호출 내내 살아 있다.
+    // media를 사용하지 않는 호출자에게만 소유한 cold-row 사본이 필요하다.
     std::optional<RecordingSegmentV2> owned_current;
     if(!validated_media)owned_current=original->second;
     const auto& current=validated_media?*validated_media:*owned_current;
@@ -2946,12 +2946,12 @@ RecordingCatalog::SourceBindingHandle RecordingCatalog::ReadSourceBindingLocked(
         bool acquired=false;
         const auto acquire=[&]{return journal_.AcquireSourceMutationForRead(this,entry.mutation,&cold,&envelope,&envelope_identity,error);};
         {
-            // The context owns immutable parsed/envelope values. Even a hit must
-            // authenticate current physical raw, but need not hold Catalog during I/O.
-            // No same-cut promise survives this unlock; current membership follows.
+            // context가 불변 parsed·envelope 값을 소유한다. hit여도 현재 물리 raw를
+            // 인증해야 하지만 I/O 중 Catalog를 보유할 필요는 없다.
+            // unlock 뒤에는 같은 cut이라는 보장이 없으며 이후 현재 membership을 확인한다.
             auto* owner=recording::latency::Lock::Owner(mu_);if(!owner)return failed();
-            // Owned entry/current/link survive mutation and checkpoint. Journal
-            // releases its own lock before Catalog is reacquired (no inversion).
+            // 소유한 entry·current·link는 mutation과 checkpoint 동안 유지된다. Journal은
+            // Catalog를 다시 획득하기 전에 자기 lock을 해제하므로 lock 순서 역전이 없다.
             recording::latency::Lock::Unlocked unlocked(*owner);
 #if MEDIA_SERVER_RECORDING_GENERATION_TESTING
             const auto hook=source_binding_acquire_hook_;if(hook)hook();
@@ -2982,8 +2982,8 @@ RecordingCatalog::SourceBindingHandle RecordingCatalog::ReadSourceBindingLocked(
                  envelope->mutation_type==context->envelope->mutation_type&&envelope->occurred_at_ms==context->envelope->occurred_at_ms&&
                  envelope->payload_json==context->envelope->payload_json);
             if(same){
-                // Authentication and SourceEntry checks precede the full current
-                // media/path validation. No Catalog unlock follows this check.
+                // 인증과 SourceEntry 검사 뒤에 전체 현재 media·path 검증을 수행한다.
+                // 이 검증 이후에는 Catalog를 unlock하지 않는다.
                 if(validated_location&&!ValidateMediaLocked(current,*validated_location,nullptr))return {};
                 context->cold=std::move(cold);
                 if(validation_only)*validation_only=true;
@@ -2992,17 +2992,17 @@ RecordingCatalog::SourceBindingHandle RecordingCatalog::ReadSourceBindingLocked(
                 return context->binding;
             }
         }
-        // A compact seek table belongs only to its originally validated identity.
-        // A changed binding may never be materialized into an old native table.
+        // compact seek table은 처음 검증한 identity에만 속한다.
+        // 변경된 binding을 과거 native table에 materialize하면 안 된다.
         if(validation_only){Fail(error,"source binding current source changed");return {};}
         if(!envelope)return failed();
-        // The verified envelope and exact row are owned values, not references into
-        // mutable scratch. Only their expensive strict parsing/copy accounting is
-        // outside mu_; both current authority and original bytes are checked again.
+        // 검증한 envelope와 정확한 row는 소유한 값이며 mutable scratch의 참조가 아니다.
+        // 비용이 큰 strict 파싱·복사 비용 계산만 mu_ 밖에서 수행하며
+        // 현재 authority와 원본 바이트를 모두 다시 확인한다.
         auto* owner=recording::latency::Lock::Owner(mu_);
         if(!owner)return failed();
-        // Existing owner limit also admits concurrent parser work, including
-        // nested strict-JSON objects, array growth and output/context ownership.
+        // 기존 owner 한도에 중첩 strict-JSON 객체·배열 증가·출력·context 소유권을 포함한
+        // 동시 parser 작업 비용도 반영해 허용한다.
         auto work=search_residency_->ReserveOwned(ingress::StrictJsonWorkspaceBytes(envelope->payload_json,16,
             std::max({sizeof(RecordingSourceSampleV1),sizeof(RecordingFileSampleEvidenceV1),sizeof(RecordingSegmentV2)}),true));
         if(!work){Fail(error,"recording-resource-unavailable");return {};}
@@ -3057,7 +3057,7 @@ RecordingCatalog::SourceBindingHandle RecordingCatalog::ReadSourceBindingLocked(
                a.occurred_at_ms!=b.occurred_at_ms||a.payload_json!=b.payload_json)return failed();
             next.envelope=std::move(verified);
         }
-        // Keep benign media changes separate from authenticated-source corruption.
+        // 허용 가능한 media 변경과 인증된 source의 손상을 구분한다.
         if(validated_location&&!ValidateMediaLocked(current,*validated_location,nullptr))return {};
         *context=std::move(next);
         if(continuous_cut)*continuous_cut=validated_location!=nullptr;
@@ -3076,7 +3076,7 @@ std::optional<RecordingSourceBindingV1> RecordingCatalog::FindSourceBinding(cons
     SourceBindingReadContext context;
     const auto found=ReadSourceBinding(id,&context,nullptr);
     if(!found)return std::nullopt;
-    // Value-return API copy belongs to the caller, outside the shared lock.
+    // 값 반환 API의 사본은 호출자 소유이며 공유 lock 밖에서 복사한다.
     return *found;
 } catch(const CatalogHistoryError&) { return std::nullopt; }
 bool RecordingCatalog::ResolveOriginalSample(const std::string& channel,const std::string& source,
@@ -3577,7 +3577,7 @@ bool RecordingCatalog::PutEventLink(const EventRecordingLinkV1& link, std::strin
     mutation.entity_id = link.link_id;
     RecordingOwnedText encoded;
     if(!SerializeEventRecordingLinkOwned(link,search_residency_,kRecordingCatalogSnapshotMaxBytes,&encoded,error))return false;
-    // The envelope and serializer reservation coexist through durable append/apply.
+    // durable append·apply가 끝날 때까지 envelope와 serializer reservation이 함께 존재한다.
     auto envelope=search_residency_->ReserveOwned(encoded.text.size()+75);
     if(!envelope)throw RecordingResourceUnavailable();
     mutation.payload_json = "{\"link\":" + encoded.text + "}";
@@ -4347,9 +4347,9 @@ std::vector<std::string> RecordingCatalog::FinalizedSegmentIdsForStartup() const
     std::vector<std::string> result;
     if(generation_backend_&&!CanReadLocked(nullptr))return result;
     for(const auto& [id,segment]:segments_)if(segment.lifecycle==RecordingLifecycle::Finalized)result.push_back(id);
-    // Same authenticated, locked cut as the row iterator. An existing row need
-    // not be fetched again to prove membership. Empty namespaces are complete
-    // current-cut facts, not cache misses; nonempty ones retain exact lookup.
+    // row iterator와 동일한 인증된 lock 안의 cut이다. 기존 row의 membership을
+    // 입증하려고 다시 가져올 필요가 없다. 빈 namespace는 cache miss가 아닌 현재 cut의
+    // 완전한 사실이며 비어 있지 않은 namespace는 정확한 조회를 유지한다.
     const bool retired=completed_history_?completed_history_->Count("retired-v2")!=0:!retired_v2_.empty();
     const bool tombstones=!tombstones_.empty(),v2_tombstones=!tombstones_v2_.empty(),states=!states_v2_.empty();
     for(const auto& [id,segment]:segments_v2_) {
@@ -4387,8 +4387,8 @@ RetentionSnapshot RecordingCatalog::RetentionSnapshotLocked(RetentionSnapshotSel
 
 RetentionSnapshot RecordingCatalog::RetentionCandidatesFromCut(RetentionSnapshotSelection selection,const std::string& selected_id,std::array<std::uint64_t,4>* diagnostic,VisualSourceScan* visual) const try {
     struct RetentionSnapshot snapshot;
-    // Only active result slots, not historical identity/receipt rows. Typed cold
-    // rows carry their own tickets; paths/reasons receive a separate ticket.
+    // 현재 활성 결과 slot만 포함하며 과거 identity·receipt row는 포함하지 않는다.
+    // typed cold row는 자기 ticket을 가지며 path·reason에는 별도 ticket을 부여한다.
     const auto count=selection==RetentionSnapshotSelection::Candidate?2:segments_.size()+segments_v2_.size()+1024;
     if(count>SIZE_MAX/(2*sizeof(RetentionCandidate)))throw RecordingResourceUnavailable();
     auto memory=search_residency_->ReserveOwned(2*sizeof(RetentionCandidate)*count,SearchModelResidency::Category::Unattributed,SearchModelResidency::Site::RetentionSlots);
@@ -4409,10 +4409,10 @@ RetentionSnapshot RecordingCatalog::RetentionCandidatesFromCut(RetentionSnapshot
         candidate.auxiliary_memory=std::move(*charge);
         candidate.media_path=options_.media_root/std::filesystem::path(relative);
     };
-    // These cardinalities belong to the already authenticated current Catalog
-    // cut: either the caller holds mu_, or this is its private immutable clone.
-    // No mutation can invalidate namespace emptiness within this scan.
-    // Nonempty namespaces still use the original exact cold lookup.
+    // 이 개수는 이미 인증한 현재 Catalog cut에 속한다. 호출자가 mu_를 보유하거나
+    // 해당 호출자의 비공개 불변 clone인 경우다.
+    // 이 scan 동안 mutation이 namespace의 빈 상태를 무효화할 수 없다.
+    // 비어 있지 않은 namespace는 기존의 정확한 cold lookup을 계속 사용한다.
     const bool has_retired=completed_history_?completed_history_->Count("retired-v2")!=0:!retired_v2_.empty();
     const bool has_tombstones=!tombstones_.empty(),has_v2_tombstones=!tombstones_v2_.empty();
     const bool has_states=!states_v2_.empty(),has_reasons=!deletion_reasons_.empty();
@@ -4431,8 +4431,8 @@ RetentionSnapshot RecordingCatalog::RetentionCandidatesFromCut(RetentionSnapshot
         const auto lifecycle=lifecycle_in_cut(id);
         if(diagnostic){(*diagnostic)[2]+=recording::latency::Now()-lifecycle_begin;++(*diagnostic)[3];}
         if(visual&&lifecycle==RecordingLifecycle::Finalized&&visual->channels.count(v.channel_id)){
-            // Capture before path filtering: a finalized missing-path row still
-            // belongs to the visual source key set and is rejected by its reader.
+            // path filtering 전에 capture한다. finalized 상태에서 path가 없는 row도
+            // visual source key 집합에 속하며 reader가 거부한다.
             if(visual->keys.size()>=100000)throw CatalogHistoryError("visual-index-capacity");
             auto charge=search_residency_->ReserveOwned(4*sizeof(VisualSourceKey)+2*(id.size()+v.channel_id.size()+v.media_epoch_id.size())+256);
             if(!charge)throw RecordingResourceUnavailable();
@@ -4456,8 +4456,8 @@ RetentionSnapshot RecordingCatalog::RetentionCandidatesFromCut(RetentionSnapshot
     if(selection==RetentionSnapshotSelection::Candidate){
         const auto row=segments_v2_.find(selected_id);if(row!=segments_v2_.end())add_v2(row->first,row->second);
     }else if(selection==RetentionSnapshotSelection::Pending){
-        // Every V2 pending transition is represented by states_v2_ in this same
-        // locked authoritative cut. Absence here is not a cache miss.
+        // 모든 V2 pending 전이는 동일한 lock 안의 권한 있는 cut에서 states_v2_로 표현된다.
+        // 여기에 없다는 사실은 cache miss가 아니다.
         states_v2_.ForEachEntry([&](const auto& id,const auto& state){
             if(state.lifecycle!=RecordingLifecycle::DeletionPending)return true;
             const auto row=segments_v2_.find(id);
@@ -4465,17 +4465,17 @@ RetentionSnapshot RecordingCatalog::RetentionCandidatesFromCut(RetentionSnapshot
             return add_v2(row->first,row->second);
         });
     }else segments_v2_.ForEachEntry(add_v2);
-    // Retention* sites: counts[0/1] are inclusive segment/path traversal ns;
-    // counts[2/3] are nested lifecycle ns / visited V2 candidates. These
-    // values are separate from the normal thread-local counts (authority checks
-    // also increment those). Nested SnapshotStatus keeps the original counters.
+    // Retention* 지점에서 counts[0/1]은 하위 구간을 포함한 segment·path 순회 ns다.
+    // counts[2/3]은 중첩 lifecycle ns와 방문한 V2 후보 수다. 이 값은 일반 thread-local
+    // counter와 별개이며 authority 검사도 일반 counter를 증가시킨다.
+    // 중첩 SnapshotStatus는 원래 counter를 유지한다.
     if(cost_trace)(*diagnostic)[0]=recording::latency::Now()-segment_begin;
     const auto path_begin=cost_trace?recording::latency::Now():0;
     if(join_paths&&!snapshot.candidates.empty()){
-        // Both authenticated namespaces are ordered by ID+'/' in the same locked
-        // Catalog cut. Reuse the caller's existing result vector: no second
-        // history/cache, nested index cursor or per-row root lookup is needed.
-        // Candidate/Pending still perform the exact lookup used before deletion.
+        // 인증된 두 namespace는 같은 lock 안의 Catalog cut에서 ID+'/' 순서로 정렬된다.
+        // 호출자의 기존 결과 vector를 재사용하므로 두 번째 history·cache나 중첩 index
+        // cursor, row별 root 조회는 필요하지 않다.
+        // Candidate/Pending은 삭제 전에 사용하던 정확한 조회를 계속 수행한다.
         std::size_t next=0;
         const auto key_less=[](const std::string& a,const std::string& b){
             const auto common=std::min(a.size(),b.size());
@@ -4545,8 +4545,8 @@ void RecordingCatalog::RetentionReadState::Note(const std::string& id) noexcept 
     std::memcpy(changed[count++].data(),id.data(),id.size());
 }
 void RecordingCatalog::NoteRetentionChangeLocked(const char* kind,const std::string& id) noexcept {
-    // The actual projection writes supply keys (including derived-job outputs),
-    // not a guessed channel or an unrelated global revision.
+    // key는 실제 projection write가 제공하며 derived-job 출력도 포함한다.
+    // 추정한 channel이나 무관한 전역 revision을 사용하지 않는다.
     if(std::strcmp(kind,"segment-v1")&&std::strcmp(kind,"segment-v2")&&
        std::strcmp(kind,"state-v2")&&std::strcmp(kind,"tombstone-v1")&&
        std::strcmp(kind,"tombstone-v2")&&std::strcmp(kind,"retired-v2")&&
@@ -4576,8 +4576,8 @@ RetentionSnapshot RecordingCatalog::RetentionSnapshotPrepared(RetentionSnapshotS
         {
             recording::latency::Lock lock(mu_,recording::latency::Source::Catalog,__LINE__,false,"RetentionCapture");
             if(!completed_history_){
-                // Legacy has no private cursor: acquire the admission owner
-                // outside Catalog, then read the current legacy state.
+                // legacy에는 비공개 cursor가 없다. Catalog 밖에서 admission owner를 획득한 뒤
+                // 현재 legacy state를 읽는다.
                 if(before_current){recording::latency::Lock::Unlocked unlocked(lock);
                     if(!before_current(&first))throw CatalogHistoryError(first);}
                 std::array<std::uint64_t,4> cost{};
@@ -4609,13 +4609,13 @@ RetentionSnapshot RecordingCatalog::RetentionSnapshotPrepared(RetentionSnapshotS
 #if MEDIA_SERVER_RECORDING_GENERATION_TESTING
         if(retention_prepared_hook_){auto hook=retention_prepared_hook_;hook();}
 #endif
-        // No mutable iterator crosses mu_. The private scratch holds a byte copy
-        // and the in-process authenticated root. Descendant coverage is checked
-        // by the same complete cursors/joins as the locked implementation.
+        // mutable iterator는 mu_ 경계를 넘지 않는다. 비공개 scratch가 바이트 사본과
+        // process 내부에서 인증한 root를 보유한다. 하위 대상 coverage는 lock 안의 구현과
+        // 동일한 완전한 cursor·join으로 확인한다.
         result=frozen->RetentionCandidatesFromCut(selection,id,nullptr,visual);
         if(!result.authoritative)throw CatalogHistoryError(result.error);
-        // The private bytes are owned; the coordinator acquires its decision
-        // lock here, before current authentication and changed-ID rebasing.
+        // 비공개 바이트는 소유한 값이다. coordinator는 현재 인증과 changed-ID rebase 전에
+        // 여기서 decision lock을 획득한다.
         if(before_current&&!before_current(&first))throw CatalogHistoryError(first);
         {
             recording::latency::Lock lock(mu_,recording::latency::Source::Catalog,__LINE__,false,"RetentionCurrent");
@@ -4625,12 +4625,12 @@ RetentionSnapshot RecordingCatalog::RetentionSnapshotPrepared(RetentionSnapshotS
                 throw CatalogHistoryError(first);
             }
             if(!read->complete)throw RecordingResourceUnavailable();
-            // All committed relevant writes during the private scan are folded
-            // into the result. No full scan retry; reservations and runtime holds
-            // are read only now, under this same current Catalog cut.
-            // Keep removed key tickets until the old vector capacity is gone.
-            // Remove every old changed key before inserting any current one, so
-            // a full key set can replace/delete rows without a transient 100001.
+            // 비공개 scan 중 확정된 모든 관련 write를 결과에 반영한다. 전체 scan을 재시도하지
+            // 않으며 reservation과 runtime hold는 이제 동일한 현재 Catalog cut 안에서만
+            // 읽는다.
+            // 제거한 key의 ticket은 과거 vector 저장 공간이 사라질 때까지 유지한다.
+            // 현재 key를 넣기 전에 변경된 과거 key를 모두 제거하므로 가득 찬 key 집합에서도
+            // 일시적으로 100001개가 되지 않고 row를 교체·삭제할 수 있다.
             SearchModelResidency::Reservation replaced_memory;
             std::vector<VisualSourceKey> replaced_keys;
             struct KeyBufferGuard {
@@ -4658,9 +4658,9 @@ RetentionSnapshot RecordingCatalog::RetentionSnapshotPrepared(RetentionSnapshotS
                         result.candidates.push_back(std::move(candidate));
             }
             if(visual){
-                // Legacy counts have no per-ID output slot. Recount at the final
-                // cut, including missing paths and excluding current V2 aliases.
-                // This does not replace the full private/current authentication.
+                // legacy 개수에는 ID별 출력 slot이 없다. 최종 cut에서 path가 없는 항목을 포함하고
+                // 현재 V2 alias를 제외해 다시 센다.
+                // 이 작업은 전체 비공개·현재 인증을 대체하지 않는다.
                 visual->legacy.clear();
                 segments_.ForEachEntry([&](const auto& key,const auto& row){
                     if(row.lifecycle==RecordingLifecycle::Finalized&&visual->channels.count(row.channel_id)&&!segments_v2_.count(key))
@@ -4675,8 +4675,8 @@ RetentionSnapshot RecordingCatalog::RetentionSnapshotPrepared(RetentionSnapshotS
                 };
                 std::sort(visual->keys.begin(),visual->keys.end(),key_less);
                 if(!replaced_keys.empty()){
-                    // Existing per-key tickets cover old/new vector relocation;
-                    // removed tickets remain alive through the old buffer free.
+                    // 기존 key별 ticket이 과거·현재 vector 재배치 비용을 반영한다.
+                    // 제거한 ticket은 과거 buffer를 해제할 때까지 살아 있다.
                     std::vector<VisualSourceKey> compact;compact.reserve(visual->keys.size());
                     for(auto& key:visual->keys)compact.push_back(std::move(key));
                     visual->keys.swap(compact);
@@ -4692,8 +4692,8 @@ RetentionSnapshot RecordingCatalog::RetentionSnapshotPrepared(RetentionSnapshotS
             result.durable_reservations=std::move(reservations.durable_reservations);
             detach();
         }
-        // Preserve the previous public enumeration order: V2 then V1, each by
-        // authenticated namespace key ID+'/'. No second row vector is built.
+        // 기존 공개 열거 순서를 유지한다. V2 다음 V1이며 각각 인증된 namespace key
+        // ID+'/' 순서다. 두 번째 row vector를 만들지 않는다.
         std::sort(result.candidates.begin(),result.candidates.end(),[](const auto& a,const auto& b){
             if(bool(a.segment_v2)!=bool(b.segment_v2))return bool(a.segment_v2);
             const auto& x=a.Id();const auto& y=b.Id();const auto common=std::min(x.size(),y.size());

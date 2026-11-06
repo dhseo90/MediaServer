@@ -1,11 +1,11 @@
 """R157 literal test-only additions. Product locking/SQL/return order is unchanged."""
-from recording_http_cost_overlay import replace
+from recording_http_cost_overlay import replace  # 파일 용도: 제품 잠금·SQL·반환 순서를 유지하는 R157 테스트 전용 계측 사본을 생성한다.
 
 def section(s,start,end,fn):
  a=s.index(start);b=s.index(end,a);return s[:a]+fn(s[a:b])+s[b:]
 
 def catalog(s):
- # Constructor and body scopes deliberately do not claim raw mutex timing.
+ # 생성자·body scope만으로 raw mutex 시간을 측정했다고 주장하지 않는다.
  names=['FindSegmentV2ById','AcquireMediaWithContext','ValidateMediaWithContext','FindSegmentById','IsDeletedSegmentId','ListEventLinks','AdjustHoldCount']
  for name in names:
   a=s.index('RecordingCatalog::'+name+'(');b=s.index('\n}',a)
@@ -59,7 +59,7 @@ def catalog(s):
  return section(s,'bool RecordingCatalog::UpdateGenerationHoldsLocked','bool RecordingCatalog::Open(',generation)
 
 def read(s):
- # Inside R156 wrappers: API elapsed includes original lock RAII destruction.
+ # R156 wrapper 내부에서 측정한 API 경과 시간에는 원래 lock RAII 소멸이 포함된다.
  for expr,stage,count in [('catalog_.IsDeletedSegmentId(segment_id)','DeletedAPI',2),('catalog_.FindSegmentById(segment_id)','V1API',1),('catalog_.FindSegmentV2ById(segment_id)','V2API',1),('catalog_.AcquireMediaWithContext(channel_id,segment_id,&current,&location,&error,context)','AcquireAPI',1),('catalog_.ValidateMediaWithContext(current,location,context)','ValidateAPI',1)]:
   a=s.index('std::unique_ptr<ResolvedRecordingMedia> RecordingReadService::ResolveMediaWithContext(');b=s.index('\nstd::uint64_t RecordingReadService::TracePreparationStarted',a)
   f=replace(s[a:b],expr,'r157::BoolApi(r157::'+stage+',[&]{return '+expr+';})',count);s=s[:a]+f+s[b:]

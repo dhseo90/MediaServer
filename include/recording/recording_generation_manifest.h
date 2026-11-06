@@ -69,7 +69,7 @@ bool ReadRecordingGenerationManifestForOpen(const std::filesystem::path& root,
 // snapshot/identity/evidence 불변 파일의 bytes를 독립 검증해 읽는다. active는 허용하지 않는다.
 // 호출자는 immutable 조건과 managed lease를 유지해야 한다. 파일 쓰기/삭제/제품 Open 연결 없음.
 // descriptor 1GiB 상한과 caller admission을 읽기 전에 적용하며 실패 output은 불변이다.
-// Callback receives bounded chunks into an unpublished candidate. Only true seals the full hash/binding.
+// Callback은 미공개 후보에 제한된 chunk를 받으며 함수의 true 반환만 전체 hash·결속 검증 완료를 뜻한다.
 bool VisitVerifiedRecordingGenerationImmutable(const std::filesystem::path&,const RecordingGenerationFile&,
     std::uint64_t,const RecordingGenerationByteSink&,std::string*);
 bool ReadVerifiedRecordingGenerationImmutable(const std::filesystem::path& root,

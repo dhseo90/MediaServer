@@ -1,4 +1,4 @@
-// R131: 실제 generation/cold 원본의 요청 내 재사용. 기존 writer fixture만 재사용한다.
+// 파일 용도: R131의 실제 generation·cold 원본을 요청 안에서 재사용하는 경로를 검사하며 기존 writer fixture만 재사용한다.
 #define main RetryWriterFixtureMain
 #include "recording_managed_writer_smoke.cpp"
 #undef main
@@ -43,9 +43,9 @@ struct RecordingSearchRetryTestProbe {
  static std::string SharedSpan(SearchSourceBatch& b,const std::string& fault) {
   if(fault=="instance")++b.catalog_instance;
   for(auto& [id,span]:b.segment_spans_)if(span.shared_count){
-   // Earlier cases leave corrupt/pending rows in this shared fixture. This
-   // case must perform a real Finalized -> Corrupt transition, never a no-op
-   // or a rejected transition selected by unordered_map iteration order.
+   // 앞선 case가 공유 fixture에 corrupt·pending row를 남긴다. 이 case는 실제
+   // Finalized → Corrupt 전이를 수행해야 하며 unordered_map 순회 순서에 따라
+   // 무변경이나 거부된 전이를 선택하면 안 된다.
    if((fault=="lifecycle"||fault=="pending"||fault=="retired")&&span.lifecycle!=RecordingLifecycle::Finalized)continue;
    if(fault=="digest")span.digest[0]^=1;
    if(fault=="size")++span.raw_bytes;
@@ -98,7 +98,7 @@ int main(int argc,char** argv){
  const auto need=[&](bool ok,const char* name){if(!ok)throw std::runtime_error(name);++passed;std::cout<<"[pass] "<<name<<std::endl;};
  try{
 #ifdef RECORDING_SEARCH_TESTING
-  // Synthetic clocks test retention, not HTTP latency or client cancellation.
+  // 합성 clock은 retention을 검사하며 HTTP 지연이나 client 취소를 검사하지 않는다.
   {
    using Budget=SearchDiagnostic::DetailBudget;
    Budget budget;
@@ -226,7 +226,7 @@ int main(int argc,char** argv){
     need(reader.Refresh({"9101"},{},&oracle,&error,limits,false)&&std::none_of(oracle->documents().begin(),oracle->documents().end(),[&](const auto& d){return d.segment_id==gone;}),"fresh source excludes deleted requested-channel mappings");
     oracle.reset();result.reset();base.reset();need(owner->used()==0,"scope publication all model and preparation owners returned");
 
-    // Actual cause: retention rebase succeeds, then Finalize invalidates Build.
+    // 실제 원인은 retention rebase 성공 뒤 Finalize가 Build를 무효화하는 것이다.
     write("rebase-retry-seed-a","9101");write("rebase-retry-seed-b","9101");
     need(reader.Refresh({"9101"},{},&base,&error,limits,false),"rebase retry immutable baseline");
     const auto retained=std::vector<SearchDocument>(base->documents().begin(),base->documents().end());
@@ -321,8 +321,8 @@ int main(int argc,char** argv){
   };
 
 #ifdef RECORDING_SEARCH_TESTING
-  // Reuse the actual managed Writer fixture. This switch selects only this
-  // focused boundary; the normal retry suite also executes it.
+  // 실제 managed Writer fixture를 재사용한다. 이 switch는 해당 focused 경계만
+  // 선택하며 일반 retry suite에서도 같은 경계를 실행한다.
   for(unsigned round=0;round<4;++round){
    const bool publication=round==1||round==2;search_membership_test_enabled=publication;
    std::shared_ptr<SearchModelResidency> owner,reopened_owner;std::shared_ptr<RecordingScratchResidency> scratch,reopened_scratch;
@@ -411,8 +411,8 @@ int main(int argc,char** argv){
        <<" pairMs="<<pair_ms<<" rawRows="<<rows[0]+rows[1]<<" builds="<<builds[0]+builds[1]
        <<" ownerPeakBeforeFaults="<<owner->peak()<<" scratchPeakBeforeFaults="<<scratch->peak().disk_bytes
        <<" scratchFdPeakBeforeFaults="<<scratch->peak().file_descriptors<<std::endl;
-     // Existing complete-round OS observer, sampled after the timed pair. This
-     // is a current sample, not a claimed peak during every Capture instruction.
+     // 기존 complete-round OS observer로 시간 측정 쌍의 실행 뒤에 sample을 얻는다.
+     // 현재 sample일 뿐 Capture의 모든 명령 동안 관측한 peak라고 주장하지 않는다.
      const auto observed=recording_metrics::Collect(getpid());std::uintmax_t named=0;
      for(const auto& file:std::filesystem::recursive_directory_iterator(std::filesystem::path(argv[1])/("publication-"+std::to_string(round))))
       if(file.is_regular_file())named+=file.file_size();
@@ -420,8 +420,8 @@ int main(int argc,char** argv){
        <<" rss="<<observed.rss<<" fd="<<observed.fds<<" anonymousAllocated="<<observed.anonymousAllocated
        <<" anonymousFiles="<<observed.anonymousFiles<<" measured="<<observed.anonymousMeasured<<" fixtureNamedFileBytes="<<named<<std::endl;
     }
-    // The service appended one additional row; align the private test source
-    // by a strict refresh before testing exactly one-change error boundaries.
+    // service가 row 하나를 추가했다. 정확히 한 번 변경한 오류 경계를 검사하기 전에
+    // strict refresh로 비공개 test source를 맞춘다.
     need(r.Refresh({"publication"},{},&next,&error,{},false),"publication private boundary source realigned strictly");
     if(publication){
      const auto new_id=next->documents().back().segment_id;auto segment=c.FindSegmentV2ById(new_id);auto binding=c.FindSourceBinding(new_id);auto path=c.FindSegmentMediaLocation(new_id);bool inserted=true;
@@ -453,8 +453,8 @@ int main(int argc,char** argv){
     try{r.Refresh({"publication"},next,&preserved,&error,{},false);}catch(const std::runtime_error& e){consumer=std::string(e.what())=="publication-consumer";}
     search_after_capture_test={};need(consumer&&preserved==next,"publication consumer failure preserves old output and does not poison original");
 
-    // Writer metadata may have grown since owner_before; compare immediate retry
-    // ownership below, not a falsely exact pre-Writer memory equality.
+    // owner_before 이후 Writer metadata가 증가했을 수 있다. 아래에서는 retry 직전·직후의
+    // 소유권을 비교하며 Writer 이전 메모리와 정확히 같다고 잘못 가정하지 않는다.
     (void)owner_before;
     need(r.Refresh({"publication"},next,&preserved,&error,{},false),"publication Writer and Search remain available after consumer exception");
     if(publication){
@@ -481,8 +481,8 @@ int main(int argc,char** argv){
       "publication other channel does not create erroneous rejection or leak membership");
 
     if(publication){
-     // Physical byte damage in a private fixture: changed detection timing is
-     // intentional only for an old, unaccessed Raw. A later strict read must fail.
+     // 비공개 fixture의 실제 바이트 손상이다. 오래되고 접근하지 않은 Raw에만 의도적으로
+     // 탐지 시점을 달리하며 이후 strict read는 반드시 실패해야 한다.
      std::shared_ptr<const RecordingSearchModel> trusted;
      need(r.Refresh({"publication"},{},&trusted,&error,{},false),"publication corruption boundary starts with full authentication");
      append("before-latent-damage");
@@ -628,8 +628,8 @@ int main(int argc,char** argv){
   search_outside_raw_cut_test={};
   need(!catalog.ValidateSearchSource(old_cut,&error)&&error=="search-source-changed",
     "R132 real detached lifecycle change rejects old currentness");
-  // Resource failure in optional detached processing must retry strictly, once,
-  // after releasing the cut. It must not publish partially moved documents.
+  // 선택적 분리 처리의 자원 실패는 cut을 해제한 뒤 strict 방식으로 한 번만 재시도해야
+  // 한다. 일부만 move한 document를 공개하면 안 된다.
   unsigned refused=0;
   search_outside_raw_cut_test=[&]{++refused;throw RecordingResourceUnavailable();};
   SearchSourceBatch fallback;
@@ -639,8 +639,8 @@ int main(int argc,char** argv){
   SearchSourceBatch fallback_oracle;
   need(catalog.CaptureSearchSource({"channel-1"},nullptr,&fallback_oracle,&error,{},false)&&same(fallback.delta.upserts,fallback_oracle.delta.upserts),
     "R132 optional cut failure preserves exact full source result");
-  // R167 retains the full authenticated capture, including old rows. Only the
-  // final ordering work can use the previous immutable model.
+  // R167은 과거 row까지 포함한 전체 인증 capture를 유지한다.
+  // 마지막 순서 정리 작업에만 이전 불변 model을 사용할 수 있다.
   std::shared_ptr<const RecordingSearchModel> append_base,appended,full_oracle;
   need(reader.Refresh({"channel-1"},{},&append_base,&error,{},false),"R167 actual immutable base");
   write("r167-add");SearchSourceBatch append_capture;
@@ -652,8 +652,8 @@ int main(int argc,char** argv){
   std::cout<<"[append-order-work] fullSort="<<search_order_work_test[0]<<" addedSort="<<search_order_work_test[1]<<" merged="<<search_order_work_test[2]<<'\n';
   need(reader.Refresh({"channel-1"},{},&full_oracle,&error,{},false)&&same(appended->documents(),full_oracle->documents()),
        "R167 actual append ordering equals strict full source");
-  // Same current raw, prior model, limits and query order; one short AB/BA
-  // pair. Timing is complete authenticated Refresh, not a synthetic Build.
+  // 현재 raw·이전 model·한도·query 순서를 동일하게 두고 짧은 AB/BA 쌍 하나를 실행한다.
+  // 시간은 전체 인증 Refresh에 대해 측정하며 합성 Build 시간이 아니다.
   std::array<std::size_t,4> strict_work{},shared_work{};
   for(const bool sharing:{false,true,true,false}) {
     search_projection_reuse_test_enabled=sharing;search_projection_work_test={};
@@ -714,9 +714,9 @@ int main(int argc,char** argv){
        "R167 lifecycle fallback equals strict full source");
   need(same(saved_documents,saved_append->documents()),
        "R167 held prior model retains pre-mutation lifecycle");
-  // STATE45-SEARCH-SOURCE-01: actual retention invalidation and ownership.
-  // Compare optional projection reuse with an independent strict capture.
-  // Counts report work, not a claim that a retry/build optimization is present.
+  // STATE45-SEARCH-SOURCE-01: 실제 retention 무효화와 소유권을 검사한다.
+  // 선택적 projection 재사용을 독립적인 strict capture와 비교한다.
+  // counter는 작업량을 보고하며 retry·build 최적화가 존재함을 입증하지 않는다.
   const auto retention_base=appended;
   const auto doomed=std::find_if(retention_base->documents().begin(),retention_base->documents().end(),
     [](const auto& d){return d.unavailable_reason=="media-not-checked";});
@@ -776,8 +776,8 @@ int main(int argc,char** argv){
        "retention prior immutable source remains unchanged");
   search_projection_reuse_test_enabled=true;
   for(const bool delta:{false,true}) {
-    // Deterministic real Retention mutations at each existing capture boundary.
-    // Preserve the original three-attempt assertion in the baseline arm.
+    // 기존 각 capture 경계에서 결정적으로 실제 Retention mutation을 수행한다.
+    // baseline 쪽에서는 원래 세 번 시도한다는 assertion을 유지한다.
     search_retention_delta_test_enabled=delta;search_retention_delta_work_test={};
     std::shared_ptr<const RecordingSearchModel> race_source;
     need(reader.Refresh({"channel-1"},{},&race_source,&error,{},false),"retention race current source");
@@ -843,7 +843,7 @@ int main(int argc,char** argv){
     resources("released");
   }
   need(RecordingSearchRetryTestProbe::InvalidationBytes()==144,"retention metadata keeps existing fixed invalidation entry bytes");
-  // Same actual Writer/Generation fixture; no alternate source implementation.
+  // 동일한 실제 Writer/Generation fixture를 쓰며 대체 source 구현은 없다.
   write("delta-cases-a");write("delta-cases-b");
   for(const std::string mode:{"deleted","checkpoint","during-apply","post-build","bad-alloc","budget","floor","mismatch"}) {
     auto owner=std::make_shared<SearchModelResidency>();const SearchModelLimits limits{100000,64*1024*1024,owner};
@@ -925,8 +925,8 @@ int main(int argc,char** argv){
     std::cout<<"[delta-boundary] segments="<<count<<" longIdentity="<<long_identity<<" accepted="<<ok<<'\n';
     need(reader.Refresh({channel},{},&rejected,&error,{},false),"delta bound refusal preserves ordinary full recapture");
   }
-  // Actual durable identical-state mutations exercise duplicate identities and
-  // the existing ring's overwrite boundary, without fabricating revision rows.
+  // 실제 durable 동일 상태 mutation으로 중복 identity와 기존 ring 덮어쓰기 경계를
+  // 검사하며 revision row를 만들어내지 않는다.
   for(const unsigned records:{1024U,1025U}) {
     auto owner=std::make_shared<SearchModelResidency>();const SearchModelLimits limits{100000,64*1024*1024,owner};
     std::shared_ptr<const RecordingSearchModel> held,result,oracle;
@@ -948,7 +948,7 @@ int main(int argc,char** argv){
     std::cout<<"[delta-ring] records="<<records<<" revision="<<revision<<" floor="<<ring[0]<<" current="<<ring[1]<<" accepted="<<ok<<'\n';
     held.reset();result.reset();oracle.reset();need(owner->used()==0,"delta ring final source owners returned");
   }
-  // A real snapshot retains non-contiguous payload after both source owners go.
+  // 실제 snapshot이 두 source 소유자 소멸 뒤에도 비연속 payload를 유지한다.
   {
     auto owner=std::make_shared<SearchModelResidency>();std::shared_ptr<const RecordingSearchModel> base,child;
     need(reader.Refresh({"channel-1"},{},&base,&error,{100000,64*1024*1024,owner},false),"R169 snapshot ownership base");
@@ -989,8 +989,8 @@ int main(int argc,char** argv){
     std::cout<<"[projection-residency] peak="<<owner->peak()<<" final="<<owner->used()<<" limit="<<owner->limit()<<'\n';
   }
 
-  // Error boundaries use the actual consumed shared retry, not a copied DTO
-  // fixture. An invalid optional span must take the strict current raw path.
+  // 오류 경계는 실제 소비된 공유 retry로 검사하며 복사한 DTO fixture를 쓰지 않는다.
+  // 잘못된 선택적 span은 strict current raw 경로를 따라야 한다.
   for(const bool post_build:{false,true})
   for(const std::string fault:{"digest","size","range","lifecycle","pending","retired","checkpoint","build-refusal","exception","consumer","resource","capacity","scope","owner","instance"}) {
     auto owner=std::make_shared<SearchModelResidency>();auto foreign=std::make_shared<SearchModelResidency>();
@@ -1049,16 +1049,16 @@ int main(int argc,char** argv){
     base.reset();result.reset();oracle.reset();
     need(owner->used()==0&&foreign->used()==0,"shared retry boundary returns every model batch and span reservation");
   }
-  // Optional bounded scaling of the existing Writer fixture, never a product input.
+  // 기존 Writer fixture의 선택적·제한된 규모 확장이며 제품 입력이 아니다.
   unsigned preparation_cycles=64;
   if(const char* scale=std::getenv("MEDIA_SERVER_NATIVE_PREPARATION_CYCLES")) {
     const std::string value(scale);
     if(value!="110"&&value!="125"&&value!="150")throw std::runtime_error("unsupported native preparation scale");
     preparation_cycles=static_cast<unsigned>(std::stoul(value));
   }
-  // Same real Writer input and cold segments in each AB/BA case. Two
-  // finalizations invalidate the first request's captures; a second request
-  // for the identical scope waits on the unchanged preparation mutex.
+  // 각 AB/BA case는 같은 실제 Writer 입력과 cold segment를 사용한다. 두 번의
+  // finalization이 첫 요청의 capture를 무효화하며 동일한 scope의 두 번째 요청은
+  // 변경 없는 preparation mutex에서 대기한다.
   std::array<std::uint64_t,4> preparation_decodes{};
   for(unsigned round=0;round<4;++round) {
     const bool reuse=round==1||round==2;
@@ -1080,9 +1080,9 @@ int main(int argc,char** argv){
       RecordingReadService media(current);
       std::array<unsigned,2> captures{},builds{};std::array<int,2> status{};
       std::array<std::uint64_t,2> decodes{},raws{};std::array<double,2> elapsed{};
-      // Existing bounded CaptureCost records, copied after Capture releases its
-      // Catalog lock. Emit only after both requests finish; the bounded copy is
-      // still part of the measured Preparation interval.
+      // 기존의 제한된 CaptureCost 기록을 Capture가 Catalog lock을 해제한 뒤 복사한다.
+      // 두 요청이 모두 끝난 뒤에만 출력하며 제한된 복사 작업도
+      // 측정하는 Preparation 구간에 포함한다.
       std::array<std::array<SearchDiagnostic::Capture,6>,2> capture_costs{};
       std::array<unsigned,2> capture_counts{},diagnostic_ids{};
       {
@@ -1097,9 +1097,9 @@ int main(int argc,char** argv){
         const auto request=[&](unsigned client) {
           try {
             SearchDiagnostic::HttpRequest request_id("native-capture-"+std::to_string(round)+"-"+std::to_string(client));
-            // This A/B isolates strict Capture retry-span reuse. New threads
-            // must explicitly disable the separate membership optimization;
-            // multiple Finalizes no longer disable it implicitly.
+            // 이 A/B는 strict Capture의 retry-span 재사용만 분리한다. 새 thread는 별도의
+            // membership 최적화를 명시적으로 꺼야 하며 여러 Finalize가 발생했다는 이유만으로
+            // 그 최적화가 자동으로 꺼지지는 않는다.
             search_membership_test_enabled=false;
             search_retry_projection_test_enabled=reuse;search_projection_work_test={};
             const auto before=latency::segment_decode_cost[0];

@@ -1,4 +1,4 @@
-import copy,json,unittest
+import copy,json,unittest  # 파일 용도: 녹화 HTTP currentness의 metric·검사 순서·최종 결속과 오류 거부를 검증한다.
 import recording_http_currentness as c
 import recording_http_cost_run as run
 class Currentness(unittest.TestCase):

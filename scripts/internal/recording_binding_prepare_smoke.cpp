@@ -1,4 +1,4 @@
-// Actual retained-source corpus: fused preparation preserves the prior call-site oracle.
+// 파일 용도: 실제 retained-source corpus로 결합된 준비가 이전 호출 지점의 판정 기준을 보존하는지 검사한다.
 #include "recording/recording_contracts.h"
 #include <fstream>
 #include <chrono>
@@ -29,7 +29,7 @@ int main(int argc,char**argv){try{if(argc!=2)return 2;std::ifstream f(argv[1]);s
  auto invalid=first.first;auto pos=invalid.find("\"ordinal\":");Need(pos!=std::string::npos);auto end=invalid.find_first_of(",}",pos);invalid.replace(pos,end-pos,"\"ordinal\":0");Compare(invalid,first.second,false);
  invalid=first.first;pos=invalid.find("\"file_evidence\"");Need(pos!=std::string::npos);invalid.replace(pos,15,"\"unknown_field\"");Compare(invalid,first.second,false);
  binding.file_evidence.reset();Compare(SerializeRecordingSourceBindingV1(binding),first.second,true);
- // Before/after alternate order, three fixed passes; no best-run selection.
+ // 변경 전·후 순서를 교대로 세 번 고정 실행하며 가장 좋은 실행을 선택하지 않는다.
  using C=std::chrono::steady_clock;
  for(int run=0;run<3;++run){long long old_ns=0,new_ns=0;for(const auto& row:rows){auto measure=[&](bool fused){RecordingSourceBindingV1 out;auto t=C::now();Need(fused?ParseRecordingSourceBindingForSegment(row.first,row.second,&out,&error):Prior(row.first,row.second,&out,&error));return std::chrono::duration_cast<std::chrono::nanoseconds>(C::now()-t).count();};if(run%2){new_ns+=measure(true);old_ns+=measure(false);}else{old_ns+=measure(false);new_ns+=measure(true);}}
  std::cout<<"run="<<run<<" rows="<<rows.size()<<" priorMs="<<old_ns/1e6<<" fusedMs="<<new_ns/1e6<<'\n';}

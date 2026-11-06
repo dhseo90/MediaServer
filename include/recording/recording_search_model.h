@@ -112,8 +112,8 @@ public:
                       const std::string& source_instance, std::uint64_t revision,
                       std::shared_ptr<const RecordingSearchModel>* output,
                       std::string* error, SearchModelLimits limits = {});
-    // Full authenticated capture remains mandatory. The prior immutable model
-    // supplies only an optional ordering hint; any incomplete proof uses full sort.
+    // 전체 인증 capture는 계속 필수이며 이전 불변 model은 선택적인 정렬 힌트만 제공한다.
+    // 증명이 하나라도 불완전하면 전체 정렬을 수행한다.
     static bool BuildOwnedAppend(std::vector<SearchDocument>&& documents,
                       const RecordingSearchModel& base,
                       const std::string& source_instance, std::uint64_t revision,
@@ -129,8 +129,8 @@ public:
     // 행동 근거 읽기의 대상만 좁힌다. 최종 Query/페이지 판정을 대체하지 않는다.
     bool BehaviourCandidates(const RecordingSearchQuery&, RecordingSearchMatches*, std::string* error) const;
 
-    // Positions are model-local; payload need not be contiguous. No mutable
-    // reference escapes a published model.
+    // 위치는 model 내부 기준이며 payload가 연속된 저장소에 있을 필요는 없다.
+    // 공개된 model 밖으로 수정 가능한 참조가 나가지 않는다.
     class Documents {
         const RecordingSearchModel* model_;
     public:
@@ -187,7 +187,7 @@ private:
     bool QueryImpl(const RecordingSearchQuery&, RecordingSearchMatches*, std::string*, bool skip_behaviour) const;
     std::string source_instance_;
     std::uint64_t revision_{0};
-    // Issued only by Catalog to a complete unpublished source model.
+    // Catalog만 완전한 미공개 source model에 발급한다.
     std::uint64_t membership_instance_{0}, membership_epoch_{0};
     std::size_t accounted_bytes_{0};
     std::vector<SearchDocument> documents_;

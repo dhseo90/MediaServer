@@ -1,5 +1,5 @@
 import {diagnosticLines} from './recording_diagnostic_lines.mjs';
-// 숫자 진단만 수집한다. 원문을 다시 보관하거나 로그 한도를 확장하지 않는다.
+// 파일 용도: 숫자 진단의 메모리 귀속만 수집하며 원문 보관이나 로그 한도 확장은 하지 않는다.
 const prefix='[memory-attribution] ';
 export function memoryObservationMode(args){return args.length===1&&['--memory-attribution-diagnostic','--state-diagnostic'].includes(args[0]);}
 // 45분은 기존 resource seq와 1:1 대응시켜 중간 owner 누락도 실패로 남긴다.
@@ -33,8 +33,8 @@ export function validateMemoryAttribution(row,pid){
  if(row.snapshotPools.some(p=>p[9]))throw Error('memory-attribution-pool-overflow');
  return row;
 }
-// v1 remains readable without reinterpretation. v2 stores only the last 32
-// event values in state.last; sequence labels are transport integrity, not new owners.
+// v1은 재해석 없이 계속 읽을 수 있다. v2는 마지막 event 값 32개만
+// state.last에 저장하며 sequence label은 전송 무결성을 뜻하고 새 owner를 추가하지 않는다.
 export function restoreMemoryEvents(state,input){
  const version=input.schemaVersion??1;
  if(![1,2].includes(version)||state.wireVersion&&state.wireVersion!==version)throw Error('memory-event-version');

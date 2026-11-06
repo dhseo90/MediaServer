@@ -127,7 +127,7 @@ assert.equal(sha(fixture.slice(0,legacyEnd)),'8aabac3fbf39a9633900ae2b7da9458ee3
 console.log('[pass] static original R99/R114 fixture body unchanged');
 console.log(JSON.stringify({passed,failed:0,scope:'existing parent/receipt/artifact mocks + static StatePreseed retention binding; no native execution'}));
 
-// NATIVE-LIFETIME-01: only VM/mocks; no native binary, compiler or subprocess.
+// NATIVE-LIFETIME-01: VM·mock만 사용하며 native binary·compiler·subprocess는 실행하지 않는다.
 const {memoryAttributionCollector,collectMemoryAttribution,finishMemoryAttribution}=await import('./recording_memory_attribution.mjs');
 const {completeFdObservation}=await import('./recording_foundation_observer.mjs');
 const lifeContext=vm.createContext({crypto,Buffer,path,performance,Date});
@@ -179,7 +179,7 @@ async function lifetimeParentCase(fault,mode='--lifetime-observe'){
   child.stderr.emit('data',Buffer.from('[recording-resource] '+JSON.stringify(r)+'\n'+(fault==='memory missing'?'':'[memory-attribution] '+JSON.stringify(a)+'\n')));
  }
  function send(){if(closed)return;const phase=phases[index],phaseIndex=index;
-  // Delay only a retained boundary pair; the callback keeps its original phase.
+  // 보존 대상 경계 쌍만 지연시키고 callback은 원래 phase를 유지한다.
   const delayed=fault==='pipe order'&&historyNames.slice(0,-1).includes(phase);
   const memory=()=>{if(phase==='released'){emitMemory('before-Finish');if(fault!=='Finish missing')emitMemory('after-Finish');}else emitMemory(phaseIndex===0?'opened':'sample');};
   if(!delayed)memory();
@@ -211,7 +211,7 @@ async function lifetimeParentCase(fault,mode='--lifetime-observe'){
   retentionPhases:lifeContext.retentionPhases,historyBoundary:lifeContext.historyBoundary,historyBudget:lifeContext.historyBudget};
  if(historyMode&&fault==='budget')context.performance={now:()=>index>=1?50000:0};
  if(historyMode&&fault==='late budget')context.performance={now:()=>index>=4?160000:0};
- // The predicate's FD dependency remains the actual collector contract.
+ // 판정 함수의 FD 의존성은 실제 collector 계약을 그대로 사용한다.
  lifeContext.completeFdObservation=completeFdObservation;
  vm.createContext(context);vm.runInContext(actual,context);
  let result,error;try{result=await vm.runInContext(`run('${mode}','/live',${mode==='--lifetime-reopen'||mode==='--retention-reopen'||mode==='--retention-history-reopen'},1000,{})`,context);}catch(e){error=e;}
@@ -232,7 +232,7 @@ check('final failure summary preserves primary, artifact and cleanup errors',()=
  assert.equal(context.first,failure);assert.equal(context.summary.error,'workspace-variable-cap');assert.equal(context.summary.artifactError,'artifact-failed');assert.equal(context.summary.cleanupError,'cleanup-denied');assert.equal(context.summary.failedProcess.pid,701);
 });
 
-// Native source checks are wiring evidence, NOT compilation/RAII/FD execution.
+// Native source 검사는 연결 근거이며 compilation·RAII·FD 실행의 증거가 아니다.
 const native=fixture.slice(fixture.indexOf('// NATIVE-LIFETIME-01:'));
 const helper=fs.readFileSync(new URL('./recording_managed_writer_smoke.cpp',import.meta.url),'utf8');
 check('old complete R114 and StatePreseed fixture unchanged',()=>assert.equal(sha(fixture.slice(0,fixture.indexOf('\n// NATIVE-LIFETIME-01:'))),'1fcf21b4e5253f99a9f0fe0398f4c5578c8bb2e01d87fa93f1609c6779668ec6'));
@@ -245,7 +245,7 @@ check('existing supervisor 240 seconds and registered group cleanup',()=>{assert
 check('new scope cannot promote product/rotation/history',()=>{for(const x of ['retention-deletion','history-stability','automatic-rotation','http-concurrency','heap-peak','sqlite-vm','search-performance','product-mixed'])assert(source.includes("'"+x+"'"));assert(source.includes('delete summary.cyclicRecoveryPass'));assert(!source.includes('memoryP0Pass=true'));});
 console.log(JSON.stringify({passed,failed:0,scope:'legacy and Native lifetime actual-parent VM mocks + static wiring; no build/native/product execution'}));
 
-// NATIVE-RETENTION-01 independent synthetic ledger/Journal, never a native PASS.
+// NATIVE-RETENTION-01: 독립적인 합성 ledger·Journal 검사이며 native PASS를 부여하지 않는다.
 const retentionContext=vm.createContext({crypto,Buffer,performance});
 vm.runInContext(source.slice(source.indexOf('function validateRetention('),source.indexOf('async function run(')),retentionContext);
 const retentionSource={runtimeSha256:'9'.repeat(64)},N=706,S=65536,cut=2000;
@@ -285,13 +285,28 @@ async function retentionSequenceCase(fault){let now=0,copies=0;const calls=[];co
 for(const fault of [null,'first failure','deadline','cleanup','owner','baseline','copy','outer deadline','recovery','receipt'])await retentionSequenceCase(fault);
 for(const mode of ['--retention-live','--retention-reopen'])await lifetimeParentCase(null,mode);
 for(const fault of ['baseline','pid','identity change','FD incomplete','memory missing','allocator','loss','final owner','Finish missing','space','space log','native log','artifact','cleanup-after-space'])await lifetimeParentCase(fault,'--retention-live');
-retCheck('old complete fixture including NativeLifetime unchanged',()=>assert.equal(sha(fixture.slice(0,fixture.indexOf('\n// NATIVE-RETENTION-01:'))),'7c9059e5e8a23387e08bfcf7ebb6cf355456826ba7fb28e0a0f74e32c2988bbb'));
+// CC-SUC01~04: 과거 불변 fixture와 주석만 바꾼 현행 fixture를 각각 결속한다.
+const lifetimeHistorical=fs.readFileSync(new URL('../../test/fixtures/recording_mixed_generation_lifetime_v1.h.txt',import.meta.url),'utf8');
+retCheck('old complete fixture including NativeLifetime unchanged',()=>assert.equal(sha(lifetimeHistorical),'7c9059e5e8a23387e08bfcf7ebb6cf355456826ba7fb28e0a0f74e32c2988bbb'));
+const lifetimeCurrent=fixture.slice(0,fixture.indexOf('\n// NATIVE-RETENTION-01:'));
+const lifetimeCommentEdits=[[301, "// NATIVE-LIFETIME-01: bounded ownership only; no retention/automatic-rotation claim.", "// NATIVE-LIFETIME-01: 제한된 소유권만 검사하며 retention·자동 회전을 입증하지 않는다."], [357, "    // Fresh authority, not the deliberately retained historical DTO.", "    // 의도적으로 보존한 과거 DTO 대신 최신 authority를 조회한다."], [370, "// Only live public handles and weak references are observed; no diagnostic owner is manufactured.", "// 살아 있는 공개 handle과 weak reference만 관측하며 진단용 소유자를 만들지 않는다."]];
+function assertLifetimeCommentSuccessor(current,historical=lifetimeHistorical){
+ assert.equal(sha(historical),'7c9059e5e8a23387e08bfcf7ebb6cf355456826ba7fb28e0a0f74e32c2988bbb','historical NativeLifetime bytes');
+ assert.equal(sha(current),'fa82f9d87b16d931191e2b97d3e79d1f2aa11add68b245c95f3f920b51edda5e','current NativeLifetime comment successor');
+ const lines=current.split('\n');
+ for(const [line,before,after] of lifetimeCommentEdits){assert.equal(lines[line-1],after);lines[line-1]=before;}
+ assert.equal(lines.join('\n'),historical,'exactly three reviewed comment lines; all other bytes preserved');
+}
+retCheck('CC-SUC01 current comment successor preserves historical fixture',()=>assertLifetimeCommentSuccessor(lifetimeCurrent));
+retCheck('CC-SUC02 current fixture drift rejected',()=>assert.throws(()=>assertLifetimeCommentSuccessor(lifetimeCurrent+'\n')));
+retCheck('CC-SUC03 historical fixture drift rejected',()=>assert.throws(()=>assertLifetimeCommentSuccessor(lifetimeCurrent,lifetimeHistorical+'\n')));
+retCheck('CC-SUC04 historical bytes cannot replace current successor',()=>assert.throws(()=>assertLifetimeCommentSuccessor(lifetimeHistorical)));
 const retNative=fixture.slice(fixture.indexOf('// NATIVE-RETENTION-01:'));
 retCheck('normal APIs and authoritative deletion',()=>{for(const token of ['ReadRecordingGenerationActive','ReserveRecordingOrder','FinalizeBoundSegmentV2','VerifyRecordingFileEvidenceFd','SnapshotLocationsV2','ParseRecordingTombstoneV2','errno==ENOENT','callback_error','reader.ResolveMedia','writer.Stop()','protected_ids[2]','row.pinned=i==1'])assert(retNative.includes(token),token);assert(!retNative.includes('.Replay('));assert(!retNative.includes('IsDeletedSegmentId'));assert.equal((retNative.match(/RetentionCoordinator retention\(/g)||[]).length,1);assert(retNative.indexOf('RetentionCoordinator retention(')<retNative.indexOf('for(unsigned cycle=1;cycle<=cycles;'));assert(retNative.includes('const unsigned cycles=window?8U:2U;'));});
 retCheck('dedicated mode same limits and no closed-scope rerun',()=>{assert(source.includes("'--native-retention'],root/'retention-supervisor.log',240"));assert(source.includes("execute('--retention-live',180000)"));assert(source.includes("execute('--retention-reopen',15000)"));assert(source.includes('4*1024**2'));assert(!retNative.includes('NativeLifetime('));assert(!retNative.includes('StatePreseed('));});
 console.log(JSON.stringify({passed,failed:0,scope:'legacy151 + retention receipts/actual-parent VM/sequence/static wiring; no native/product execution'}));
 
-// Bind the claimed final cut to actual manifest bytes, not just their hash.
+// 최종 cut 주장을 hash만이 아니라 실제 manifest 바이트에 결속한다.
 const retManifest={storeId:'store-retention',generation:6,cutOrdinal:2010};
 let manifestFault=null;
 retentionContext.lifetimeRead=(_dir,name)=>{
@@ -304,7 +319,7 @@ retCheck('actual manifest bound',()=>retentionContext.retentionArtifacts('/owned
 for(const [key,value] of [['storeId','foreign'],['generation',7],['cutOrdinal',2011]]){manifestFault={[key]:value};retCheck('reject actual manifest '+key,()=>assert.throws(()=>retentionContext.retentionArtifacts('/owned',retentionSource),/retention-artifact-manifest/));}
 console.log(JSON.stringify({passed,failed:0,scope:'retention manifest/source binding plus previous focused contracts; no native/product execution'}));
 
-// NATIVE-RETENTION-HISTORY-01: independent fixed-size input, eight cycles, no subprocess.
+// NATIVE-RETENTION-HISTORY-01: 고정 크기 독립 입력으로 여덟 cycle을 검사하며 subprocess는 없다.
 const historyNames=['baseline','cycle-one','cycle-two','cycle-three','cycle-four','cycle-five','cycle-six','cycle-seven','cycle-eight','final'];
 const historyFixtures=[];let growingRows=[];
 for(let index=0;index<10;index++){
@@ -343,7 +358,7 @@ const observedHistory=Object.fromEntries(historyFixtures.map(f=>[f.receipt.phase
 const liveHistory={pid:701,startIdentity:'linux:1',processGroupAbsent:true,historyBoundaries:boundRows};
 historyCheck('complete coverage',()=>retentionContext.validateHistoryCoverage(liveHistory,observedHistory));
 for(const [label,mutate] of [['fewer than8',r=>r.historyBoundaries.pop()],['duplicate cycle',r=>r.historyBoundaries[3]=r.historyBoundaries[2]],['PID mixed',r=>r.historyBoundaries[3].pid=702],['OS identity mixed',r=>r.historyBoundaries[3].startIdentity='linux:2'],['ACK reused',r=>r.historyBoundaries[3].sampleIndex=1],['receipt unbound',r=>r.historyBoundaries[3].receiptSha256=sha('other')]])historyCheck('coverage rejects '+label,()=>{const r=structuredClone(liveHistory);mutate(r);assert.throws(()=>retentionContext.validateHistoryCoverage(r,observedHistory),/history-coverage/);});
-// Actual sequence consumer must reject partial live evidence before any copy/reopen.
+// 실제 sequence 소비자는 copy·reopen 전에 불완전한 live evidence를 거부해야 한다.
 for(const incomplete of [false,true]){
  const calls=[];let copies=0;
  const live={...structuredClone(liveHistory),code:0,signal:null,owner:{status:'captured'},attribution:{finalOwnerZero:true}};

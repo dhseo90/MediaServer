@@ -105,8 +105,8 @@ public:
     }
 };
 
-// R118: block only the expensive snapshot, never the source or reservation callback.
-// A first failure still releases the latch and joins both tasks.
+// R118: 비용이 큰 snapshot만 멈추며 source·reservation callback은 멈추지 않는다.
+// 첫 실패가 발생해도 latch를 해제하고 두 작업을 모두 join한다.
 void ReservationProgressDuringSnapshot(bool event) {
     FakeStore store;std::atomic<unsigned> calls{0};std::atomic<bool> armed{false};
     std::atomic<std::uint64_t> physical{event?1000ULL:100ULL};
@@ -142,7 +142,7 @@ void SharedPeriodicSnapshot() {
     std::string error;coordinator.UpdateChannelPolicy("a",Policy(1000,100),&error);
     coordinator.UpdateChannelPolicy("b",Policy(1000,100),&error);
     coordinator.RunPeriodic(10);
-    // Pending + one shared candidate cut + two independent authority rechecks.
+    // Pending·공유 후보 cut 하나·독립적인 권위 재검사 둘을 합한 수다.
     Expect(snapshots==4,"R118 periodic two channels share one candidate scan, retain two authority checks");
 }
 

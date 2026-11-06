@@ -1,5 +1,5 @@
 """R160 fail-closed arithmetic; UNKNOWN is not zero or a measured overflow."""
-import json
+import json  # 파일 용도: R160 trace 예산 산술을 검증하며 UNKNOWN을 0이나 측정된 overflow로 취급하지 않는다.
 FIELDS='k o s l m t r b a e n w h x y'.split()
 RECORDS=16384
 BYTES=2097152

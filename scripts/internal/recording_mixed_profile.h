@@ -1,4 +1,4 @@
-// 고정 R114 시험 입력과 gst-qtmux-1.28.1-default-v1의 계산된 envelope. 제품 상한이 아니다.
+// 파일 용도: 고정 R114 시험 입력과 gst-qtmux-1.28.1-default-v1의 계산된 envelope를 정의한다. 제품 상한이 아니다.
 #pragma once
 #include <cstdint>
 namespace recording_mixed_fixture {

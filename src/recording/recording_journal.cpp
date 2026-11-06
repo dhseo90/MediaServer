@@ -440,8 +440,8 @@ bool ExpandArchive(const std::string& json,const ingress::StrictJsonObjectDocume
         return Fail(error,"압축 원장 복원 오류");
     const auto actual=crc32(crc32(0,Z_NULL,0),reinterpret_cast<const Bytef*>(logical.data()),static_cast<uInt>(logical.size()));
     if(actual!=static_cast<uLong>(*checksum))return Fail(error,"압축 원장 무결성 오류");
-    // Decode the immutable logical bytes once. The same strict envelope parser
-    // rejects nested archive schemas before expansion, then validates all payloads.
+    // 불변 logical 바이트를 한 번 decode한다. 동일한 strict envelope parser가 확장 전에
+    // 중첩 archive schema를 거부한 뒤 모든 payload를 검증한다.
     RecordingMutationV1 expanded;
     if(!ParseMutationEnvelope(logical,&expanded,error,false)||!expanded.physical_json.empty()||
        (expanded.mutation_type!=RecordingMutationType::SegmentV2BoundFinalized&&
@@ -648,7 +648,7 @@ struct OrderHistoryIndex {
         (void)error;
 #if MEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND && MEDIA_SERVER_USE_OPENSSL && !defined(_WIN32)
         if(disk){
-            // All five IDs use the existing <=128-byte escape-free grammar; this DTO is < 1KiB.
+            // ID 다섯 개 모두 기존 128바이트 이하 escape 불필요 문법을 사용하며 이 DTO는 1KiB 미만이다.
             const auto bytes=std::to_string(time)+"\n{\"schema\":\"media-server.recording-order.v1\",\"storeId\":\""+value.store_id+
                 "\",\"requestId\":\""+value.request_id+"\",\"segmentId\":\""+value.segment_id+"\",\"channelId\":\""+value.channel_id+
                 "\",\"sequence\":"+std::to_string(value.sequence)+"}";
@@ -993,13 +993,13 @@ std::string RawHash(std::string_view text) {
     (void)text;return {};
 #endif
 }
-// Unlike the archive receipt identity, a source-read cache comparison binds
-// every SameOwnedEnvelope field, including the actual schema and enum value.
+// archive receipt identity와 달리 source-read cache 비교는 실제 schema·enum 값을 포함한
+// SameOwnedEnvelope의 모든 필드를 결속한다.
 [[maybe_unused]] std::string SourceReadEnvelopeIdentity(const RecordingMutationV1& mutation) {
 #if MEDIA_SERVER_USE_OPENSSL
-    // Private ephemeral proof, never a persisted identity. Hash every exact
-    // envelope field with a length prefix; avoid escaping/copying the already
-    // authenticated payload into another full JSON representation.
+    // 영속 identity가 아닌 비공개 임시 증명이다. 정확한 각 envelope 필드에 길이 prefix를
+    // 붙여 hash를 계산하며 이미 인증된 payload를 또 다른 전체 JSON 표현으로
+    // escape하거나 복사하지 않는다.
     std::unique_ptr<EVP_MD_CTX,decltype(&EVP_MD_CTX_free)> hash(EVP_MD_CTX_new(),EVP_MD_CTX_free);
     if(!hash||EVP_DigestInit_ex(hash.get(),EVP_sha256(),nullptr)!=1)return {};
     const auto type=std::to_string(static_cast<int>(mutation.mutation_type));
@@ -1047,8 +1047,8 @@ std::string GenerationIdentityKey(const RecordingJournalGenerationState& state,
 std::shared_ptr<RecordingGenerationMutationRef> MakeOwnedGenerationRef(
     const RecordingJournalGenerationState& state,const RecordingJournalGenerationState::Identity& identity,
     const std::string& id,const std::shared_ptr<SearchModelResidency>& owner) {
-    // Identity concatenation: two uint64 decimal fields, three separators and
-    // validated source entity/digest. Reserve before string/combined-block creation.
+    // identity 결합은 uint64 십진수 필드 둘·구분자 셋·검증된 source entity·digest로 구성된다.
+    // 문자열·결합 block을 만들기 전에 예약한다.
     const auto key_bytes=identity.historical?identity.first.value().first_row.entity_id.size()+identity.first.value().first_row.identity.size()+43:identity.digest.size();
     if(id.size()>SIZE_MAX-key_bytes||id.size()+key_bytes>(SIZE_MAX-sizeof(RecordingGenerationMutationRef)-256)/2)
         throw RecordingResourceUnavailable();
@@ -1978,7 +1978,7 @@ bool GenerationFirstMetadata(const RecordingJournalGenerationState& state,const 
     RecordingIdentityFirstAcceptance result;result.mutation_id=id;result.first_global_ordinal=active.global_ordinal;result.occurrences=1;
     auto& row=result.first_row;row.mutation_id=id;row.type=mutation.mutation_type;row.entity_id=mutation.entity_id;
     row.occurred_at_ms=mutation.occurred_at_ms;row.global_ordinal=active.global_ordinal;
-    // Reuse the digest verified at append/Open; metadata lookup must not reserialize the envelope.
+    // append·Open에서 검증한 digest를 재사용하며 metadata 조회에서 envelope를 다시 직렬화하지 않는다.
     const auto prefix=MutationIdentityKey(mutation.entity_id,mutation.occurred_at_ms,{});
     if(indexed.digest.size()!=prefix.size()+64||indexed.digest.compare(0,prefix.size(),prefix)!=0)
         return Fail(error,"B first active digest binding mismatch");
@@ -1988,8 +1988,8 @@ bool GenerationFirstMetadata(const RecordingJournalGenerationState& state,const 
         if(!ParseRecordingOrderReservationV1(mutation.payload_json,&order,error))return false;
         row.reservation=std::move(order);
     }
-    // active_file records Open's prefix; it is deliberately not offered as a sealed
-    // archive capability after append. Only metadata and the original link API escape.
+    // active_file은 Open의 prefix를 기록하며 append 이후 봉인된 archive capability로
+    // 제공하지 않는다. metadata와 원래 link API만 외부로 전달한다.
     *output=std::move(result);return true;
 }
 }
@@ -2000,8 +2000,8 @@ bool RecordingJournal::FindGenerationFirst(const std::string& id,
     if(owner_pid_!=::getpid()||!output)return Fail(error,"B first output/PID rejected");
     std::lock_guard lock(mu_);
     if(!generation_state_||!CheckManagedStateLocked(error))return false;
-    // An invalid public key cannot exist in the admitted original namespace. Do not
-    // pass it to the authenticated index and poison valid storage on user input.
+    // 잘못된 공개 key는 허용된 원본 namespace에 존재할 수 없다. 사용자 입력을 인증 index로
+    // 전달하여 정상 저장소를 오염 상태로 만들지 않는다.
     if(!ValidateOpaqueId(id,nullptr)){output->reset();if(error)error->clear();return true;}
     try {
         const auto& state=*generation_state_;const auto found=state.identities.find(id);
@@ -2113,8 +2113,8 @@ bool RecordingJournal::AcquireMutationLinkWithProof(const RecordingMutationLink&
             const auto& location=found->second;
             latency::JournalSubcost cold_cost(3);
             RecordingMutationV1 value;
-            // Compact proofs release their full typed payload. Current raw reads and
-            // identity serialization therefore own transient admission separately.
+            // compact proof는 전체 typed payload를 해제하므로 현재 raw 읽기와 identity 직렬화는
+            // 임시 작업 허용량을 별도로 소유한다.
             const auto source_identity=[&](const RecordingMutationV1& mutation,std::string* digest){
                 std::size_t bytes=0;
                 for(const auto* field:{&mutation.schema,&mutation.mutation_id,&mutation.entity_id,&mutation.payload_json}){
@@ -2194,9 +2194,9 @@ bool RecordingJournal::AcquireMutationLinkWithProof(const RecordingMutationLink&
                     }catch(...){prepared.reset();} // 선택적 증명 할당/FD 실패는 기존 strict 경로로 처리한다.
                 }
                 {
-                // Strict reconstruction has its own temporary read admission.
-                // Two row-sized buffers plus the existing 64 KiB manifest admission
-                // and 64 KiB sequential hash buffer remain in the shared owner domain.
+                // strict 재구성은 자체 임시 읽기 허용량을 가진다.
+                // row 크기의 buffer 둘과 기존 manifest 허용량 64KiB·순차 hash buffer 64KiB는
+                // 공유 owner domain 안에 유지한다.
                 const auto length=row.length;
                 if(length>(SIZE_MAX-131072)/2)return Fail(error,"recording-resource-unavailable");
                 auto work=memory_->ReserveOwned(2*static_cast<std::size_t>(length)+131072,SearchModelResidency::Category::Unattributed,SearchModelResidency::Site::JournalProof);
@@ -2205,16 +2205,16 @@ bool RecordingJournal::AcquireMutationLinkWithProof(const RecordingMutationLink&
                 const auto manifest=state.active.manifest;
                 const auto attachment=catalog_attachment_;
                 const auto root=managed_root_;const auto row_limit=generation_limits_.cold_row_bytes;
-                // Shadow the live-generation references for every use across unlock.
+                // unlock을 가로지르는 모든 사용에서는 live-generation 참조를 아래 지역 참조로 가린다.
                 const auto& row=accepted.first_row;const auto& archive=accepted.first_archive;
                 struct stat archive_binding{};
                 if(parent.value<0||!GenerationStat(parent.value,archive.name,&archive_binding)){
                     poisoned_=true;return Fail(error,"B read initial archive binding failed");
                 }
                 std::string raw;bool read=false;
-                // Immutable archives are never modified by append/checkpoint. The
-                // existing full-file hash and root/file checks still run; mu_ no
-                // longer serializes unrelated durable writes behind that I/O.
+                // append·checkpoint는 불변 archive를 수정하지 않는다. 기존 전체 파일 hash와 root·file
+                // 검사를 계속 수행하며 이 I/O 때문에 무관한 영속 쓰기를 mu_ 뒤에서
+                // 직렬화하지 않게 한다.
                 {
                     struct Unlocked {std::unique_lock<std::mutex>& lock;
                         explicit Unlocked(std::unique_lock<std::mutex>& l):lock(l){lock.unlock();}
@@ -2229,8 +2229,8 @@ bool RecordingJournal::AcquireMutationLinkWithProof(const RecordingMutationLink&
                     if(generation_cold_after_io_)generation_cold_after_io_();
 #endif
                 }
-                // Finish/detach is a normal loss of this read authority, not an
-                // instruction to poison another session or publish stale data.
+                // Finish·detach는 이 읽기 권위를 정상적으로 잃는 경우이며 다른 session을 오염 상태로
+                // 만들거나 오래된 data를 공개하라는 지시가 아니다.
                 if(!generation_state_||generation_state_->link_epoch!=ref.epoch||
                    catalog_attachment_!=attachment||(proof&&catalog_owner_!=owner)||
                    !CheckManagedStateLocked(error))return Fail(error,"B read current authority changed");
@@ -3114,7 +3114,7 @@ bool RecordingJournal::PrepareGenerationCheckpoint(const void* owner,
         plan->chain.checkpoint_archive_bytes=pending.archives->Bytes();
         plan->chain.checkpoint_archive_allocated=pending.archives->Bytes(true);
         AccountGenerationScratchLocked(plan->chain.history,plan->chain.checkpoint_archive_bytes,plan->chain.checkpoint_archive_allocated);
-        // Product consumers visit the sealed history directly; never rematerialize all first/order DTOs.
+        // 제품 소비자는 봉인된 history를 직접 순회하며 전체 first·order DTO를 다시 구체화하지 않는다.
         pending.identities.SetHistory(plan->chain.history);
         *output=std::move(plan);if(error)error->clear();return true;
     }catch(...){return Fail(error,"B checkpoint prepare 자원 실패");}
@@ -3131,7 +3131,7 @@ bool RecordingJournal::ValidateCheckpointRecoverySuffix(const RecordingGeneratio
     if(!generation_state_||!CheckManagedStateLocked(error))return false;
     const auto& state=*generation_state_;const auto old_cut=state.active.manifest.cut_ordinal;
     if(target.cut_ordinal<old_cut||target.cut_ordinal-old_cut>state.active.rows.size())return Fail(error,"checkpoint recovery suffix cut invalid");
-    // Historical empty-active checkpoints keep their original recovery path.
+    // 과거의 active가 빈 checkpoint는 기존 복구 경로를 유지한다.
     if(target.evidence.empty())return target.active.size==0&&target.cut_ordinal-old_cut==state.active.rows.size();
     if(target.evidence.size()!=1||target.evidence.front().name!="evidence-"+std::to_string(target.generation)+"-0.jsonl")
         return Fail(error,"checkpoint recovery prefix descriptor invalid");
@@ -3160,7 +3160,7 @@ bool RecordingJournal::StageGenerationCheckpoint(const std::shared_ptr<Recording
     const RecordingGenerationByteProducer& snapshot,std::string* error) try {
     RecordingScratchResidency::Scope scratch_scope(ScratchOwner());
 #if MEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND && MEDIA_SERVER_USE_OPENSSL && !defined(_WIN32)
-    // Exactly one private plan owner; no live Journal data is read outside mu_.
+    // 비공개 plan 소유자는 정확히 하나이며 mu_ 밖에서는 live Journal data를 읽지 않는다.
     if(!plan||!plan->state||plan->consumed||!plan->state->transaction||!snapshot)return Fail(error,"B private snapshot stage unavailable");
     return plan->state->transaction->WriteComponentStream("snapshot-"+std::to_string(plan->generation)+".jsonl",
         generation_limits_.snapshot_bytes,snapshot,&plan->state->staged_snapshot,error);
@@ -3201,7 +3201,7 @@ bool RecordingJournal::PublishGenerationCheckpoint(const void* owner,const std::
         for(const auto& name:{"active-"+std::to_string(plan->generation)+".jsonl",std::string(".recording-generation.stage")}){
             if(preflight_root.value<0||::fstatat(preflight_root.value,name.c_str(),&collision,AT_SYMLINK_NOFOLLOW)==0||errno!=ENOENT)return Fail(error,"B checkpoint preparation collision preserved");
         }
-        // Revalidate K's bytes against the immutable prefix descriptor. F is held by both owner locks.
+        // 불변 prefix descriptor와 K 바이트를 다시 대조하며 F는 양쪽 owner 잠금으로 유지한다.
         std::unique_ptr<EVP_MD_CTX,decltype(&EVP_MD_CTX_free)> prefix_hash(EVP_MD_CTX_new(),EVP_MD_CTX_free);
         if(!prefix_hash||EVP_DigestInit_ex(prefix_hash.get(),EVP_sha256(),nullptr)!=1)return false;
         std::uint64_t prefix_end=0;

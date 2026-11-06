@@ -1,5 +1,5 @@
-// R165 continuation: reuse preserved small V2/HTTP focused; no accumulated workload.
-// Included Http152 is a generated owned copy with correlation header 1 only for request 10.
+// 파일 용도: R165 후속 검사로 보존된 소규모 V2·HTTP focused 검사를 재사용하며 누적 workload는 실행하지 않는다.
+// 포함한 Http152는 생성된 소유 사본이며 request 10에만 correlation header 1을 사용한다.
 #define RECORDING_ACCUMULATED_NO_MAIN
 #include "recording_accumulated_http_smoke.cpp"
 int main(int argc,char** argv){

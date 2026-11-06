@@ -63,7 +63,7 @@ void VisualIndexWorker::ObserveMemory() const {
     if(!memory_diagnostic::Enabled())return;
     std::uint64_t generation=0,docs=0,bytes=0,retired_bytes=0,refs=0,retired_refs=0;
     {std::lock_guard lock(mutex_);generation=status_.generation;if(current_){docs=current_->documents().size();bytes=current_->logical_bytes();refs=current_.use_count();}
-        // This handle dies before unlocking the worker; no diagnostic reader retained.
+        // worker의 lock을 해제하기 전에 이 handle을 소멸시키며 진단 reader를 유지하지 않는다.
         if(const auto previous=retired_.lock()){retired_bytes=previous->logical_bytes();retired_refs=previous.use_count()-1;}}
     auto& s=memory_diagnostic::Data();std::lock_guard lock(s.mutex);s.visualGeneration=generation;s.visualDocs=docs;s.visualBytes=bytes;s.retiredBytes=retired_bytes;s.visualReferences=refs;s.retiredReferences=retired_refs;s.visualCapturedNs=memory_diagnostic::Now();
 }

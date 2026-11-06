@@ -54,8 +54,8 @@ public:
                 throw Failure("history index create/budget invalid");
             resources_=resources?std::move(resources):RecordingScratchResidency::Current();
             if(!resources_)resources_=RecordingScratchResidency::Default(directory);
-            // Reserve before opening either FD or growing the anonymous file. Work
-            // allowance covers the bounded depth/node/key/value buffers for this index.
+            // 어느 FD든 열거나 익명 파일을 확장하기 전에 예약한다. 작업 허용량은 이 index의
+            // 깊이·node·key·value buffer의 제한된 크기를 포괄한다.
             auto ticket=resources_->Reserve({resources_->DiskCharge(disk_budget),2,kWorkingBytes});
             if(!ticket)throw RecordingResourceUnavailable();
             reservation_=std::move(*ticket);
@@ -109,7 +109,7 @@ public:
             const bool closed=Close(&cleanup);return Fail(error,first+(closed?"":"; cleanup: "+cleanup));
         }
     }
-    // Caller serializes source mutation. The process trust root is copied, never read from the header.
+    // 호출자가 source 변경을 직렬화한다. process 신뢰 root는 복사하며 header에서 읽지 않는다.
     bool CopyFrom(RecordingHistoryIndex& source,std::string* error) {
         try {
             Check();if(ordered_||source.ordered_||sequential_||source.sequential_||build_||source.build_||this==&source||rows_||root_.offset||size_!=kNodeBytes)
@@ -129,12 +129,12 @@ public:
 #if defined(MEDIA_SERVER_RECORDING_GENERATION_TESTING) && defined(RECORDING_HISTORY_OWNER_DIAGNOSTIC)
             if(probe_owner_event)probe_owner_event("copy",this,fd_,&source,__FILE__,__LINE__,__func__);
 #endif
-            // Descendant paths/values remain authenticated by Get/Visit; fstat is not a content proof.
+            // 하위 경로·값은 Get·Visit에서 계속 인증하며 fstat는 내용 증명이 아니다.
             return Healthy(error);
         }catch(const RecordingResourceUnavailable& e){if(error)*error=e.what();return false;}
         catch(const std::exception& e){return Fail(error,e.what());}
     }
-    // Explicit caller admission for a growing derived namespace; no implicit Put fallback.
+    // 확장하는 파생 namespace는 호출자가 명시적으로 허용하며 암묵적 Put fallback은 없다.
     bool ReserveRows(std::uint64_t rows,std::string* error) {
         try {
             Check();const auto wanted=BytesForRows(rows);
@@ -149,9 +149,9 @@ public:
         }catch(const RecordingResourceUnavailable& e){if(error)*error=e.what();return false;}
         catch(const std::exception& e){return Fail(error,e.what());}
     }
-    // Only a private empty build may defer node overwrites. No original/history reader uses it.
-    // Fixed checkpoint capture only: ordered append, authenticated complete traversal, no lookup.
-    // Reuses the anonymous FD, fixed slots, admission and explicit Close. Never a history authority.
+    // 비공개 빈 build만 node 덮어쓰기를 지연할 수 있으며 원본·history reader는 사용하지 않는다.
+    // 고정 checkpoint capture 전용으로 정순 append·인증된 전체 순회를 수행하고 lookup은 없다.
+    // 익명 FD·고정 slot·허용 검사·명시적 Close를 재사용하며 history 권위 근거가 될 수 없다.
     bool BeginSequentialBuild(std::string* error) {
         try {Check();if(ordered_||rows_||root_.offset||build_||visiting_||sequential_)throw Failure("sequential capture requires empty private index");
             sequential_=true;return true;}catch(const std::exception& e){return Fail(error,e.what());}
@@ -202,7 +202,7 @@ public:
             return Lookup::Absent;
         }catch(const std::exception& e){Fail(error,e.what());return Lookup::Error;}
     }
-    // overwrite=falseは同じkeyも拒否。retry同等性は上位の原本契約で判定する。
+    // overwrite=false이면 같은 key도 거부하며 retry 동등성은 상위 원본 계약에서 판단한다.
     bool Put(const std::string& key,const std::string& value,bool overwrite,std::string* error) {
         try {
             Check();if(visiting_||(build_&&overwrite))throw Failure("history mutation during visit/buffered overwrite");Key(key);if(value.size()>kValueBytes)throw Failure("history index row admission");
@@ -244,8 +244,8 @@ public:
             return true;
         }catch(const std::exception& e){return Fail(error,e.what());}
     }
-    // Authenticated half-open range: visited boundary nodes prove pruned subtrees are outside.
-    // Caller retains its independently maintained namespace coverage count.
+    // 인증된 반개구간이며 방문한 경계 node가 생략된 하위 tree의 범위 밖 위치를 증명한다.
+    // 호출자는 독립적으로 관리하는 namespace 전체 범위 개수를 유지한다.
     bool VisitRange(const std::string& begin,const std::string& end,const Visitor& visitor,std::string* error) {
         try {
             Check();Key(begin);Key(end);if(ordered_||sequential_||build_||begin>=end||!visitor||visiting_)throw Failure("history range invalid");
@@ -277,7 +277,7 @@ public:
                     if(unlinkat(directory_fd_,name_.c_str(),0)){ok=false;reservation_.PreserveDisk();}
                 }else {ok=false;reservation_.PreserveDisk();}
             }
-            // close EINTR may already have released the descriptor. Never retry its number.
+            // close의 EINTR은 descriptor를 이미 해제했을 수 있으므로 해당 번호로 재시도하지 않는다.
             const int fd=fd_;fd_=-1;const int closed=close(fd);
             if(closed){ok=false;reservation_.PreserveDisk();reservation_.PreserveFd();}
 #if defined(MEDIA_SERVER_RECORDING_GENERATION_TESTING) && defined(RECORDING_HISTORY_OWNER_DIAGNOSTIC)
@@ -438,9 +438,9 @@ private:
         if(balance< -1){auto child=Read(n.right);if(Height(child.right)<Height(child.left))n.right=Right(child,n.right);return Left(n,ref);}
         return Save(n,ref);
     }
-    // The HTTP caller can already occupy most of a native worker stack. Keep
-    // ancestors in the existing admitted work allowance, not one C++ frame per
-    // tree level. Only this operation owns the path; no reader or cache retains it.
+    // HTTP 호출자가 native worker stack 대부분을 이미 점유할 수 있다. tree 깊이마다
+    // C++ frame을 만들지 않고 조상 정보를 기존에 허용된 작업 공간에 보관한다.
+    // 이 연산만 경로를 소유하며 reader나 cache는 보유하지 않는다.
     Ref Insert(Ref ref,const std::string& key,const std::string& value,bool overwrite,bool* inserted) {
         struct Frame {Node node;Ref ref;bool left{false};};
         using Path=std::array<Frame,kDepth>;
@@ -461,7 +461,7 @@ private:
             frame.node=std::move(n);
         }
         if(ref.offset&&!overwrite)throw Failure("history index duplicate key");
-        // Preserve the original inline/fixed-slot representation and write order.
+        // 기존 inline·고정 slot 표현과 쓰기 순서를 유지한다.
         if(!n.value_offset&&value.size()>kInlineBytes){std::array<unsigned char,kValueBytes> slot{};n.value_offset=Append(slot.data(),slot.size());}
         if(n.value_offset)WriteBytes(n.value_offset,value.data(),value.size());
         else {n.inline_value.fill(0);std::copy(value.begin(),value.end(),n.inline_value.begin());}
@@ -521,7 +521,7 @@ private:
                node.height!=1||node.value_offset!=start||(!key.empty()&&node.key<=key))throw Failure("sequential capture chain/order mismatch");
             const auto value=Value(node);if(!visitor(node.key,value,error))return false;prior=ref;key=node.key;
         }
-        // Consumer is private and unpublished until this final process-root check succeeds.
+        // 소비자는 이 마지막 process root 검사 성공 전까지 비공개 상태를 유지한다.
         if(prior.offset!=root_.offset||prior.hash!=root_.hash||key!=sequence_key_)throw Failure("sequential capture root mismatch");
         Check();if(error)error->clear();return true;
     }

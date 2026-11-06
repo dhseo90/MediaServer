@@ -1,4 +1,4 @@
-// 내부 진단 전용: 제품 mutex는 그대로 두고 identity의 수명과 유한 용량을 검증한다.
+// 파일 용도: 내부 진단 전용으로 제품 mutex를 유지하며 identity 수명과 유한 용량을 검증한다.
 #define RECORDING_LATENCY_TRACE_TEST 1
 #include "recording/recording_latency_trace.h"
 #include <cassert>
@@ -32,7 +32,7 @@ int main(int argc,char** argv){
     }else if(mode=="reuse-buffered"){
         alignas(Owner) unsigned char storage[sizeof(Owner)];L::local.request=7;
         for(unsigned i=0;i<2;++i){auto* owner=new(storage) Owner;Record(*owner,false);owner->~Owner();assert(L::mutex_registry.active==0);}
-        // Retained fast events outlive both mutex objects; no pointer is read.
+        // 보유한 fast event는 양쪽 mutex 객체보다 오래 살며 pointer를 읽지 않는다.
         assert(L::local.fast[0].m!=L::local.fast[1].m);L::FinishThread();L::local.request=0;
     }else if(mode=="concurrent"){
         std::atomic<unsigned> ready{0};std::atomic<bool> start{false};std::vector<std::thread> threads;

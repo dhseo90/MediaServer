@@ -101,8 +101,8 @@ check("tracked scripts are classified and referenced", () => {
     const references = [];
     for (const [candidate, text] of texts.entries()) {
       if (candidate === file) continue;
-      // file contains basename: the full-path test cannot add a match.
-      // Only existence is consumed below; stop after the first non-self witness.
+      // 파일에 basename이 있으므로 전체 경로 검사로 추가 일치를 찾을 수 없다.
+      // 아래에서는 존재 여부만 소비하므로 자기 자신이 아닌 첫 참조를 찾으면 중단한다.
       if (text.includes(basename)) {
         references.push(candidate);
         break;

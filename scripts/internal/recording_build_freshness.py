@@ -4,7 +4,7 @@
 mtime 기반 정상 빌드 그래프 검증이며 변조된 timestamp에 대한 서명 증명이 아니다.
 컴파일러 depfile을 임의 실행하지 않고 해석한다. 제품/빌드 파일은 수정하지 않는다.
 """
-import argparse
+import argparse  # 파일 용도: CMake Makefile·compiler depfile의 현재 입력 시각을 읽어 제품 산출물의 freshness를 검증한다.
 import hashlib
 import json
 import os
@@ -40,8 +40,8 @@ def text(path):
 
 
 def regular_mtime(path):
-    # Follow symlinks as file() does, but sample type and time together. Every
-    # edge still reads current metadata; no path, stat, or content-hash cache.
+    # file()과 같이 symlink를 따라가되 파일 종류와 시각을 함께 읽는다. 모든 의존 간선에서
+    # 현재 metadata를 다시 읽으며 경로·stat·내용 hash를 cache하지 않는다.
     try:
         current = Path(path).stat()
     except OSError as error:
@@ -101,8 +101,8 @@ def cmake_list(value, key):
     matches = re.findall(r'(?m)^set\(' + re.escape(key) + r'\s+(.*?)\)', value, re.S)
     require(len(matches) == 1, 'missing/duplicate-cmake-field: ' + key)
     body = matches[0].strip()
-    # CMake generated quoted list subset. Reject expansion/list separators or escapes
-    # we cannot prove, rather than silently dropping dependencies.
+    # CMake가 생성한 따옴표 목록의 부분 문법만 해석한다. 검증할 수 없는 확장·목록 구분자·escape는
+    # 의존성을 조용히 누락하는 대신 거부한다.
     tokens = re.findall(r'"([^"\\;$]*)"', body)
     require(re.sub(r'"[^"\\;$]*"', '', body).strip() == '',
             'unsupported-cmake-list: ' + key)
@@ -138,7 +138,7 @@ def check(repo, build, expected_product=None, expected_runtime=None, *, reposito
     generated = [resolve(build, p) for p in cmake_list(config, 'CMAKE_MAKEFILE_OUTPUTS')]
     require({resolve(build, 'Makefile'), resolve(build, 'CMakeFiles/cmake.check_cache')} <= set(generated),
             'missing-generation-output')
-    # cmake.check_cache is the completion witness; all outputs must exist.
+    # cmake.check_cache가 완료를 증명하며 모든 출력 파일이 존재해야 한다.
     stamp = resolve(build, 'CMakeFiles/cmake.check_cache')
     older(config_path, stamp)
     configuration_inputs = {resolve(build, p) for p in cmake_list(config, 'CMAKE_MAKEFILE_DEPENDS')}
@@ -146,8 +146,8 @@ def check(repo, build, expected_product=None, expected_runtime=None, *, reposito
             'missing-configuration-input')
     for p in configuration_inputs:
         older(p, stamp)
-    # Optional caller-owned inventory of the inputs read by this very check.
-    # No persistent hash/stat cache, second depfile walk, or skipped freshness edge.
+    # 이번 검사에서 실제로 읽은 입력 목록을 호출자가 선택적으로 소유한다.
+    # 영속 hash·stat cache, 두 번째 depfile 순회, freshness 간선 생략은 없다.
     all_inputs = set(configuration_inputs)
     targets = ('media_server_runtime', 'media_server')
     infos = {resolve(build, p) for p in cmake_list(config, 'CMAKE_DEPEND_INFO_FILES')}
@@ -166,7 +166,7 @@ def check(repo, build, expected_product=None, expected_runtime=None, *, reposito
                 'compiler-flags-mismatch')
         for key in ('CXX_DEFINES', 'CXX_INCLUDES', 'CXX_FLAGS'):
             make_assignment(flags, key)
-        # Configuration switch must agree with generated feature definitions.
+        # 설정 스위치는 생성된 기능 정의와 일치해야 한다.
         definitions = shlex.split(make_assignment(flags, 'CXX_DEFINES'))
         for key in ('MEDIA_SERVER_USE_GSTREAMER', 'MEDIA_SERVER_USE_ONNXRUNTIME',
                     'MEDIA_SERVER_USE_SIGLIP2', 'MEDIA_SERVER_ENABLE_YOUTUBE_SOURCE'):
@@ -190,8 +190,8 @@ def check(repo, build, expected_product=None, expected_runtime=None, *, reposito
             require(resolve(build, lhs) == obj, 'depfile-target-mismatch')
             inputs = {resolve(build, n) for n in names}
             require(source in inputs, 'depfile-source-missing')
-            # Depfiles can be emitted just after the object. Do not compare their
-            # own timestamps to object mtime; compare every real input instead.
+            # depfile은 object 직후에 생성될 수 있으므로 depfile 자체 시각을 object mtime과
+            # 비교하지 않고 실제 입력 각각의 시각을 비교한다.
             for p in inputs | {file(flags_path), file(info_path), file(make_path), compiler}:
                 older(p, obj)
             require('$(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS)' in make and
@@ -248,7 +248,7 @@ def check(repo, build, expected_product=None, expected_runtime=None, *, reposito
             require(artifacts['media_server_runtime'] in link_inputs, 'runtime-link-missing')
         require(output == file(build / ('libmedia_server_runtime.a' if target == 'media_server_runtime'
                                         else 'media_server')), 'unexpected-artifact')
-        # Cross-check generated target prerequisites against parsed link inputs.
+        # 생성된 target 선행 조건과 해석한 link 입력을 교차 확인한다.
         prerequisites = set()
         for line in make.splitlines():
             if line.startswith(output.name + ':'):
@@ -269,7 +269,7 @@ def check(repo, build, expected_product=None, expected_runtime=None, *, reposito
         if expected is not None:
             require(re.fullmatch('[0-9a-f]{64}', expected) is not None and
                     summaries[target]['artifactSha256'] == expected, 'binary-hash-mismatch: ' + target)
-    # Publish only after all target checks pass. The default CLI result is unchanged.
+    # 모든 target 검사를 통과한 뒤에만 공개하며 기본 CLI 결과는 유지한다.
     if repository_inputs is not None:
         repository_inputs.update(p for p in all_inputs if p.is_relative_to(repo) and not p.is_relative_to(build))
     return {'schema': 'media-server.build-freshness.v1', 'status': 'PASS_TARGET_AWARE_PREFLIGHT',

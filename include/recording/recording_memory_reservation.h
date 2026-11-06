@@ -15,7 +15,7 @@ public: RecordingResourceUnavailable():std::runtime_error("recording-resource-un
 class SearchModelResidency {
 public:
     using Category=memory_diagnostic::Category;
-    // Diagnostic source labels are orthogonal to the unchanged admission categories.
+    // 진단 source label은 기존 입력 허용 category와 독립적으로 구분한다.
     enum class Site : unsigned { Unspecified, JournalIdentity, JournalProof, HistoryRaw,
         HistoryVisitor, RetentionSlots, RetentionAuxiliary, CatalogSummary,
         GenerationRead, GenerationParse, GenerationCopy, GenerationCleanup, EvidenceImage, EvidencePackage, EvidenceResponse, Count };
@@ -69,13 +69,13 @@ private:
     };
     std::shared_ptr<State> state_;
 public:
-    // Value owners place this member BEFORE charged storage: copy reserves before
-    // copying bytes and destruction releases after storage. Move transfers charge.
-    // A shared value shares one Reservation, while a deep copy copies Reservation.
+    // 값 소유자는 과금할 저장소보다 이 member를 먼저 선언해 바이트 복사 전에 예약한다.
+    // 소멸 시 저장소 해제 뒤에 예약을 풀며 move는 과금 소유권을 이전한다.
+    // 공유 값은 Reservation 하나를 공유하고 deep copy는 Reservation도 복사한다.
     class Reservation {
         friend class SearchModelResidency;
-        // Aliasing shared_ptr keeps the original two-word handle and one-word size.
-        // Category metadata lives in the existing shared domain, not each charged value.
+        // aliasing shared_ptr로 기존 두 word handle과 한 word 크기 필드를 유지한다.
+        // category metadata는 각 과금 값이 아니라 기존 공유 domain에 둔다.
         std::shared_ptr<TicketState> state_;
         std::size_t bytes_{0};
         Reservation(std::shared_ptr<TicketState> s,std::size_t n):state_(std::move(s)),bytes_(n){}
@@ -97,7 +97,7 @@ public:
                 else if(state_->category!=Category::Unattributed&&c==Category::Unattributed)owner->UnknownDelta(state_->site,bytes_,true);}
             state_=std::shared_ptr<TicketState>(state_,&owner->kinds[unsigned(c)][unsigned(state_->site)]);
         }
-        // Caller owns this ticket exclusively. The sum stays charged throughout.
+        // 호출자가 이 ticket을 독점 소유하며 분할하는 동안에도 합계 과금은 유지된다.
         Reservation Split(std::size_t n) {
             if(n>bytes_)throw std::logic_error("reservation split exceeds owner");
             if(state_){auto* owner=state_->owner;auto lock=owner->Guard();if(owner->diagnostic){++owner->category_tickets[unsigned(state_->category)];++owner->sites[unsigned(state_->site)].tickets;++owner->sites[unsigned(state_->site)].splits;}}
@@ -120,8 +120,8 @@ public:
     std::size_t limit()const{return state_->limit;}
     std::size_t rejected()const{return state_->rejected.load();}
 };
-// The charge base is initialized before Fields and destroyed after it. No JSON
-// field is added. Deep copy acquires a separate ticket before copying storage.
+// 과금 base는 Fields보다 먼저 초기화되고 나중에 소멸하며 JSON 필드는 추가하지 않는다.
+// deep copy는 저장소를 복사하기 전에 별도 ticket을 획득한다.
 struct RecordingMemoryCharge { SearchModelResidency::Reservation memory; };
 template<class Fields>
 struct RecordingMemoryValue : RecordingMemoryCharge, Fields {

@@ -1,4 +1,4 @@
-import test from 'node:test';
+import test from 'node:test';  // 파일 용도: 녹화 누적 비용·출력·정리 계약을 독립 fixture로 검사하며 개별 실행 경계는 각 case를 따른다.
 import assert from 'node:assert/strict';
 import {selection,aSelection,costCollector,checkpointSearchPerformanceReport,createOfficialObservationEvidence,verifyOfficialObservationEvidence,officialObservationKinds,officialObservationLimits,preserveOfficialHttpError,verifyOfficialHttpErrorEvidence,officialHttpBodyLimits,createOfficialRemainingEvidence,verifyOfficialRemainingEvidence,officialRemainingLimits} from './recording_accumulated_cost.mjs';
 import {spawn,spawnSync} from 'node:child_process';
@@ -8,12 +8,40 @@ import path from 'node:path';
 import vm from 'node:vm';
 import crypto from 'node:crypto';
 import {once} from 'node:events';
+import {gunzipSync} from 'node:zlib';
 import {resourceTraceCollector,collectResourceTrace,currentResourceTrace} from './recording_resource_trace.mjs';
 import {freezeCurrentWorkspace,measureCurrentWorkspace,measureCurrentRootStable,workspaceBounds,admitWorkspaceSnapshot,createWorkspaceFailureCapture} from './recording_current_observer.mjs';
 
+
+// CC-SUC05~09: 과거 원본의 기존 기대값과 현행 producer의 별도 결속을 함께 검사한다.
+const producerDigest=bytes=>crypto.createHash('sha256').update(bytes).digest('hex');
+const producerHistoryRaw=fs.readFileSync(new URL('../../test/fixtures/recording_producers_historical_v1.json.gz',import.meta.url));
+assert.equal(producerDigest(producerHistoryRaw),'157399552f6c83de2dd5aca554c7d96990993be6ffff6e4b0330b22e20d4ab67');
+const producerHistory=JSON.parse(gunzipSync(producerHistoryRaw,{maxOutputLength:2*1024*1024}));
+assert.equal(producerHistory.schema,'media-server.historical-producers.v1');
+const producerSuccessorRaw=fs.readFileSync(new URL('../../test/fixtures/recording_comment_successor_v1.json',import.meta.url));
+assert.equal(producerDigest(producerSuccessorRaw),'0bb14af972b185d9b2389e2ee8e7fd2c5d4871730d9580e95e602b4ebc7b2091');
+const producerSuccessor=JSON.parse(producerSuccessorRaw);
+assert.equal(producerSuccessor.schema,'media-server.comment-producer-successor.v1');
+assert.equal(Object.keys(producerSuccessor.files).length,23);
+assert.deepEqual(Object.keys(producerHistory.files).sort(),Object.keys(producerSuccessor.files).sort());
+function assertProducerCommentSuccessor(file,current,historical){
+ const entry=producerSuccessor.files[file];
+ assert(entry&&Object.hasOwn(producerSuccessor.files,file)&&!path.isAbsolute(file)&&!file.split('/').includes('..'),'known current producer');
+ assert.equal(producerDigest(historical),entry.historicalSha256,file+' historical producer bytes');
+ assert.equal(producerDigest(current),entry.currentSha256,file+' current producer bytes');
+ assert.equal(current.length,entry.currentBytes,file+' current producer size');
+ return historical;
+}
+function historicalProducerBytes(file){
+ assert(Object.hasOwn(producerSuccessor.files,file),'known current producer');
+ const st=fs.lstatSync(file);assert(st.isFile()&&!st.isSymbolicLink(),'regular current producer');
+ return assertProducerCommentSuccessor(file,fs.readFileSync(file),Buffer.from(producerHistory.files[file]));
+}
+
 // S03-REPLAY-INPUT-F01: 외부 자료 검사는 명시 opt-in이다. 일반 Mock/Gate와 별개.
-// parent: S03_PARENT_OUTPUT_REPLAY=1 + S03_PARENT_OUTPUT_EVIDENCE (parent.log/diagnostic/report.json).
-// closeout: S03_CLOSEOUT_REPLAY=1 + MEDIA_SERVER_S03_RUNNER_CANDIDATE,
+// parent 재생: S03_PARENT_OUTPUT_REPLAY=1과 S03_PARENT_OUTPUT_EVIDENCE의 parent.log·diagnostic·report.json을 사용한다.
+// closeout 재생: S03_CLOSEOUT_REPLAY=1과 MEDIA_SERVER_S03_RUNNER_CANDIDATE를 지정한다.
 // MEDIA_SERVER_S03_RUNNER_SHA256, MEDIA_SERVER_S03_FINALIZER (검토한 절대 경로/고정 SHA).
 // Runner main()은 호출하지 않는다. 이미 소비한 패키지도 읽기 전용 Replay 가능하며 Claim은 불변이다.
 const replayFlags={parent:'S03_PARENT_OUTPUT_REPLAY',closeout:'S03_CLOSEOUT_REPLAY'};
@@ -70,7 +98,7 @@ test('external replay inputs: explicit selection and required paths fail closed'
  }finally{fs.rmSync(root,{recursive:true});assert(!fs.existsSync(root));}
 });
 
-// S03-REVIEW-PUBLICATION-F01: synthetic files; no product/helper/HTTP execution.
+// S03-REVIEW-PUBLICATION-F01: 합성 파일만 사용하며 제품·helper·HTTP를 실행하지 않는다.
 function reviewPublicationCase(run,{top='recordings',directory='va-reviews',data=Buffer.from('MSVAR03\n{"synthetic":true}')}={}){
  const root=fs.mkdtempSync('/private/tmp/media-server-review-focused-');fs.chmodSync(root,0o700);
  const dir=path.join(root,top,directory);fs.mkdirSync(dir,{recursive:true,mode:0o700});
@@ -83,7 +111,7 @@ for(const entry of ['pending','final'])for(const top of ['recordings','recording
  let completed=false,pendingReads=0;
  const measured=measureCurrentRootStable(root,{...options,lstat:file=>{
   const st=fs.lstatSync(file);
-  // Force final-first observation without changing the physical pair.
+  // 물리적 파일 쌍은 그대로 두고 final을 먼저 관측하도록 강제한다.
   if(file===pending&&entry==='final'&&++pendingReads===1)return Object.assign(Object.create(st),{nlink:1});
   if(!completed&&((entry==='pending'&&file===final)||(entry==='final'&&file===pending&&pendingReads===2))){fs.unlinkSync(pending);completed=true;}
   return st;
@@ -126,7 +154,7 @@ test('review publication: product publication and bounded retry contract binding
  assert.equal(workspaceCap,469762048);assert.equal(workspaceReserve,6291456);
 });
 
-// S03-WORKSPACE-LIFETIME-F01: real file accounting with synthetic files only.
+// S03-WORKSPACE-LIFETIME-F01: 합성 파일만으로 실제 파일 사용량을 집계한다.
 const workspaceCap=448*1024*1024,workspaceReserve=6*1024*1024;
 function workspaceCase(run){
  const parent=fs.mkdtempSync('/private/tmp/media-server-workspace-focused-');fs.chmodSync(parent,0o700);
@@ -144,7 +172,7 @@ test('official workspace: evidence reservation counted once, not allocated or a 
  assert.equal(evidence,138575808);assert.equal(partial,432177088);
  assert.equal(workspaceCap-partial-workspaceReserve,31293504);
  assert.equal(66+7+65,138);
- // This is a partial envelope. Native/index/DB and seed helper are not free.
+ // 일부 자원만 포괄하며 native·index·DB·seed helper의 비용이 0이라는 뜻은 아니다.
  assert(partial+workspaceReserve<workspaceCap);
  assert(partial+workspaceReserve+32*1024*1024>=workspaceCap);
 });
@@ -163,7 +191,7 @@ test('official workspace: actual fixed variable categories, both channels and at
  const measured=measureCurrentWorkspace(root,baseline),sum=rows.reduce((n,r)=>n+r[1],0);
  assert.equal(measured.fixedBytes,55);assert.equal(measured.variableBytes,sum);assert.equal(measured.copyBytes,0);
  for(const [kind,bytes] of Object.entries(expected))assert.equal(measured.categories[kind].bytes,bytes,kind);
- // Final and pending index/generation coexist until actual unlink/rename.
+ // 실제 unlink·rename 전까지 final과 pending index·generation이 함께 존재한다.
  const pending=path.join(root,rows[9][0]);assert.equal(measureCurrentWorkspace(root,baseline).variableBytes,sum);
  fs.unlinkSync(pending);assert(!fs.existsSync(pending));assert.equal(measureCurrentWorkspace(root,baseline).variableBytes,sum-149);
  fs.appendFileSync(path.join(root,'normalize'),'changed');assert.throws(()=>measureCurrentWorkspace(root,baseline),/workspace-fixed-changed/);
@@ -174,7 +202,7 @@ test('official workspace: strict variable copy combined edges and closeout admis
   const r=workspaceBounds(F+v,F,c,C);assert.equal(r.combinedBytes,F+v+c);assert(r.combinedBytes<F+2*C);
  }
  for(const [v,c] of [[C,0],[C+1,0],[0,C],[C-1,C+1],[C,C]])assert.throws(()=>workspaceBounds(F+v,F,c,C),/workspace-(variable|copy)-cap/);
- // Combined equality is unreachable after both strict component checks pass.
+ // 두 구성 요소의 엄격한 한도 검사를 모두 통과하면 합산값이 상한과 같은 경우는 불가능하다.
  assert.equal(workspaceBounds(F+C-1,F,C-1,C).combinedCapBytes,F+2*C);
  const input={storage:{totalBytes:F+C-R-1,copyBytes:0},baseline:{fixedBytes:F,capBytes:C},additionalBytes:R};
  assert.equal(admitWorkspaceSnapshot(input,sink).variableBytes,C-1);
@@ -200,7 +228,7 @@ test('official workspace: generated live scan includes parent once, reserves wit
  let r=storage();assert.equal(r.totalBytes,55+17+13);assert.equal(r.variableBytes,30);assert.equal(r.copyBytes,0);
  assert.equal(calls.filter(x=>x.additionalBytes===workspaceReserve).length,1);
  assert.equal(admitWorkspaceSnapshot({storage:r,baseline,additionalBytes:workspaceReserve+7},sink).variableBytes,30+workspaceReserve+7);
- // Sparse synthetic file reaches the live reserve boundary; no native writer.
+ // 희소 합성 파일로 live 예약 경계에 도달하며 native writer는 사용하지 않는다.
  const p=put('tmp/growth',workspaceCap-workspaceReserve-30);
  assert.throws(()=>storage(),/workspace-variable-cap/);fs.unlinkSync(p);
  assert.equal(storage().variableBytes,30);
@@ -213,7 +241,7 @@ test('official workspace: generated sample status reserve, old modes and copy pa
  assert(s.includes('const stateDiagnose=performanceDiagnose||'));assert(s.includes('const diagnose=memoryDiagnose||contentionDiagnose||stateDiagnose||'));
  assert(s.includes('if(!diagnose){const before=await snapshot();'));
  for(const token of ['stateDiagnose?1800000','stateDiagnose?1870000','aLoad.start(begin,2700000)','nextEvidence+=15000','AbortSignal.timeout(5000)','<=2000','<=5000'])assert(s.includes(token),token);
- // No new stdout producer or evidence/Report format is introduced by reservation.
+ // 예약으로 새로운 stdout producer나 Evidence·Report 형식을 도입하지 않는다.
  assert.equal((s.match(/official-live-closeout-reserve/g)||[]).length,1);
  assert(!s.includes("console.log('[official-live-closeout-reserve]"));
 });
@@ -223,8 +251,8 @@ test('official workspace: native file producers use owned recording tree and rea
  const a=read('src/ingress/va_review_application_service.cpp');assert(a.includes('root/"evidence-packages"'));assert(a.includes('root/"va-reviews"'));
  assert(read('src/recording/recording_catalog.cpp').includes('options_.media_root/"recording-generation-catalog.sqlite3"'));
  assert(read('src/recording/visual_index_store.cpp').includes('kMaxFile = 96ULL*1024*1024'));assert(read('src/recording/visual_index_store.cpp').includes('".visual-software-pending.v1"'));
- // The Evidence store is NOT a 64MiB store: its real larger cap is covered by
- // total Workspace observation, not silently placed inside the Review budget.
+ // Evidence store는 64MiB store가 아니며 실제의 더 큰 한도는
+ // 전체 Workspace 관측에 포함한다. 이를 Review 예산 안에 조용히 포함하지 않는다.
  assert(read('include/recording/evidence_package_store.h').includes('store_bytes{2ULL*1024*1024*1024}'));
  assert(read('include/recording/va_review_store.h').includes('bytes{64ULL*1024*1024}'));
 });
@@ -280,7 +308,7 @@ for(const mode of ['reserve-boundary','original-copy-atomic','cleanup-release','
  finally{fs.rmSync(root,{recursive:true});assert(!fs.existsSync(root));}
 });
 
-// S03-PARENT-OUTPUT-F01: only generated output fragments run, never the Driver.
+// S03-PARENT-OUTPUT-F01: 생성된 출력 조각만 실행하며 Driver는 실행하지 않는다.
 function parentOutputGenerated(official,run){
  const root=fs.mkdtempSync('/private/tmp/media-server-parent-output-mock-');fs.chmodSync(root,0o700);
  try{
@@ -310,7 +338,7 @@ test('official parent output: complete artifact replaces only duplicate final st
   const reference=JSON.parse(logs[0].slice('[official-report-artifact] '.length));
   assert.deepEqual(reference,{file:'report.json',bytes:saved.length,sha256:crypto.createHash('sha256').update(saved).digest('hex')});
   assert.equal(receipt.sha256,reference.sha256);assert(!logs[0].includes('경고 원문'));
-  // 1048576 is the existing storage bound; ten byte digits overbound it.
+  // 1048576은 기존 저장 한도이며 십진수 10자리로 그보다 넉넉한 상한을 잡는다.
   assert(Buffer.byteLength(logs[0]+'\n')<=148);
  });
 });
@@ -356,14 +384,14 @@ replayTest('parent','official parent output: real prefix classification and uniq
  assert.equal(report.resources.sampleCount,112);assert(!Object.hasOwn(report.resources.groups[0],'points'));
  assert(parsed['[current-observation]'][0].activeHistory);assert(parsed['[visual-query-observation]'][0].usedIndex);
  assert(!Object.hasOwn(report.evidenceLoad,'usedIndex'));assert(!Object.hasOwn(report.evidenceLoad,'items'));
- // Shape-combination counterexample, NOT a projection or an actual 30-minute run.
- // Omit memory, startup, shutdown, all requests and all A/error lines entirely.
+ // 형태 조합의 반례이며 projection이나 실제 30분 실행이 아니다.
+ // memory·startup·shutdown·전체 request·모든 A 및 오류 행을 전부 생략한다.
  const envelope=360*classes['[current-observation]'].maxBytes+242*classes['[visual-query-observation]'].maxBytes+360*classes['[root-storage]'].maxBytes;
  assert(envelope>2097152);assert.equal(1800000/15000+1,121);assert.equal(121*2,242);
  console.log(JSON.stringify({scope:'parent-output-replay',classes,shapeCombinationBytes:envelope,cap:2097152,verdict:'HISTORICAL_STDOUT_COUNTEREXAMPLE',meaning:'observed record shapes combined with schedule counts; not a proved maximum or runtime prediction'}));
 });
 
-// MEDIA-012-LEDGER-CAPACITY-F01. Run only /^ledger capacity regression:/.
+// MEDIA-012-LEDGER-CAPACITY-F01: /^ledger capacity regression:/에 맞는 검사만 실행한다.
 replayTest('parent','official observation evidence: four producers round trip all preserved complete rows',async({root:evidence})=>{
  const raw=fs.readFileSync(path.join(evidence,'parent.log'));assert.equal(crypto.createHash('sha256').update(raw).digest('hex'),'2d6cd76d328e8bee6b16b85c439a6a07f85df515d7fc616bfda3c781030f611c');
  const records=[];let partial=0;
@@ -405,7 +433,7 @@ for(const mode of ['missing','duplicate','order','altered','extra','manifest-cou
    const lines=fs.readFileSync(file,'utf8').trimEnd().split('\n').map(JSON.parse);
    if(mode==='duplicate')lines[1][0]=1;if(mode==='order')lines.reverse();if(mode==='altered')lines[0][2].pid=999;
    const bytes=Buffer.from(lines.map(x=>JSON.stringify(x)).join('\n')+'\n');fs.writeFileSync(file,bytes);
-   // Even with per-file hashes recomputed, sequence/whole-stream digest must catch it.
+   // 파일별 hash를 다시 계산해도 sequence·전체 stream digest가 변경을 잡아야 한다.
    m.files[0].bytes=bytes.length;m.files[0].sha256=crypto.createHash('sha256').update(bytes).digest('hex');fs.writeFileSync(manifest,JSON.stringify(m));
   }
   assert.throws(()=>verifyOfficialObservationEvidence(dir));
@@ -486,7 +514,7 @@ test('official observation evidence: 30 minute plan keeps separate static and ru
  assert.deepEqual(l,{chunkBytes:1048576,chunks:64,metadataBytes:32768,records:32000});
  assert.equal(1800000/15000+1,121);assert.equal(121*4,484);
  assert.equal(l.chunks*l.chunkBytes+2*l.metadataBytes,67174400);assert(l.chunks*l.chunkBytes+2*l.metadataBytes+6291456<448*1048576);
- // This proves storage caps, NOT remaining product workspace or other stdout maxima.
+ // 저장 한도를 증명하며 남은 제품 Workspace나 다른 stdout 최댓값을 증명하지 않는다.
  const source=fs.readFileSync('scripts/internal/v450_recording_a_mixed.mjs','utf8');
  assert(source.includes('maxBytes:4*1024*1024'));assert(source.includes('body:response.bytes.toString()'));
  const failure=JSON.stringify({method:'GET',route:'/synthetic',status:500,body:'x'.repeat(2097152)})+'\n';
@@ -494,7 +522,7 @@ test('official observation evidence: 30 minute plan keeps separate static and ru
  console.log(JSON.stringify({scope:'observation-capacity',sidecarCapBytes:67174400,sidecarFiles:66,standaloneWithinWorkspace:true,fullWorkspaceFit:'UNPROVEN',parentStdoutFit:'BLOCKED: retained HTTP failure body can exceed 2MiB',officialRunner:'BLOCKED'}));
 });
 
-// S03-HTTP-ERROR-EVIDENCE-F01: synthetic bytes only; no network/product invocation.
+// S03-HTTP-ERROR-EVIDENCE-F01: 합성 바이트만 사용하며 network·제품을 호출하지 않는다.
 const httpOptions=(bytes,extra={})=>({bytes,status:503,requestId:'control-42',method:'GET',route:'/health',admit:()=>{},...extra});
 for(const [label,body] of [['empty',Buffer.alloc(0)],['binary',Buffer.from([0,255,254,10,13,34,92,0])],['chunk',Buffer.alloc(1048575,97)],['max',Buffer.alloc(4194304,0)]])test('official http evidence: '+label+' raw byte reconstruction',async()=>{
  await compactArtifactCase((a,dir)=>{
@@ -568,7 +596,7 @@ test('official http evidence: independent item caps, workspace reservation and f
   preserveOfficialHttpError(a,httpOptions(Buffer.alloc(4194304)));assert.equal(verifyOfficialObservationEvidence(dir).records,1);assert.equal(verifyOfficialHttpErrorEvidence(dir).receipt.chunks.length,5);
  });
  const writer=fs.readFileSync('scripts/internal/va_review_test_artifacts.mjs','utf8');assert(writer.includes("fs.openSync(file,'wx',0o600)"));assert(!/owned\.size\s*[><=]/.test(writer));
- // 64 is observation chunk scope, not a global Writer file cap. Final manifest has a byte cap.
+ // 64는 관측 chunk의 범위이며 전역 Writer 파일 한도가 아니다. 최종 manifest에는 바이트 한도가 있다.
  const manifest=Array.from({length:64},(_,i)=>'a'.repeat(64)+'  diagnostic/s03-observation-'+String(i).padStart(4,'0')+'.jsonl\n').join('')+
  Array.from({length:5},(_,i)=>'b'.repeat(64)+'  diagnostic/s03-http-body-'+i+'.bin\n').join('');assert(Buffer.byteLength(manifest)<32768);
 });
@@ -577,11 +605,11 @@ test('official http evidence: full parent output stays blocked by other complete
  assert(src.includes("currentSources:detail.currentSources"));
  const body=JSON.stringify({error:'unrecognized',message:'x'.repeat(2097152)});assert(Buffer.byteLength(body)<4194304);
  const emitted='[evidence-create-responses] '+JSON.stringify([{status:503,elapsedMs:1,body:JSON.parse(body)}])+'\n';assert(Buffer.byteLength(emitted)>2097152);
- // Printed before existing semantic assertion rejects the unexpected body. This is a failure-path counterexample, not a valid server fixture.
+ // 기존 의미 assertion이 예상 밖 body를 거부하기 전에 출력한다. 실패 경로 반례이며 유효한 서버 fixture가 아니다.
  console.log(JSON.stringify({scope:'http-evidence-capacity',httpBytes:4259840,observationAndHttpBytes:71434240,files:73,parentCap:2097152,failureCounterexampleBytes:Buffer.byteLength(emitted),normalBound:null,failureStaticFit:'BLOCKED',fullWorkspace:'BLOCKED_UNPROVEN'}));
 });
 
-// S03-REMAINING-OUTPUT-F01: actual framed writer and generated call sites, no HTTP.
+// S03-REMAINING-OUTPUT-F01: 실제 framed writer와 생성된 호출 지점을 사용하며 HTTP는 실행하지 않는다.
 const remainingMeta=(i=1)=>({requestId:'response-'+i,method:'POST',route:'/ops/api/recordings/search/evidence',status:201,activeA:{jobId:'job-1'},mandatoryRequestId:null});
 test('official remaining: binary UTF8 JSON max raw and previous oversized output round trip',async()=>{
  await compactArtifactCase((a,dir)=>{
@@ -673,7 +701,7 @@ test('official remaining: outer fixed workspace consumer keeps its bounded origi
 test('official remaining: normal generated driver stdout budget has explicit remaining terms',async()=>{
  const {mixedRecordingProfile}=await import('./recording_longrun_progress.mjs');
  const fixture=Buffer.byteLength('[fixture-profile] '+JSON.stringify(mixedRecordingProfile('continuous-r114'))+'\n');assert(fixture<=1024);
- // Artifact root is a real macOS filesystem path (PC_PATH_MAX=1024 in preflight); allow4096 with prefix. No per-response diagnostic text remains in parent stdout.
+ // artifact root는 실제 macOS 경로이며 preflight PC_PATH_MAX는 1024다. prefix를 포함해 4096까지 허용하며 parent stdout에는 응답별 진단 텍스트가 남지 않는다.
  const terms={ledger:249528,fixture:1024,artifactPath:4096,fixedWorkspace:16384,observations:512,remaining:512,report:148};
  const total=Object.values(terms).reduce((a,b)=>a+b,0);assert.equal(total,272204);assert.equal(2097152-total,1824948);
  const source=parentOutputGenerated(true,s=>s);assert(source.includes('Buffer.byteLength(text)+1>16384'));assert(source.includes("if(!performanceDiagnose)console.log(JSON.stringify(final))"));
@@ -681,12 +709,12 @@ test('official remaining: normal generated driver stdout budget has explicit rem
 });
 test('official remaining: total reserved evidence and known product quotas do not establish workspace fit',()=>{
  const remaining=64*1048575+32768,old=71434240;assert.equal(remaining,67141568);assert.equal(old+remaining,138575808);assert.equal(73+65,138);
- // Include established two-channel108MiB and A64MiB ceilings, but do not invent an Evidence/DB/Journal/Index maximum or claim joint runtime attainment.
+ // 기존 두 channel의 108MiB와 A의 64MiB 상한을 포함하되 Evidence·DB·Journal·Index 최댓값을 만들거나 runtime에서 동시 달성을 주장하지 않는다.
  const envelope=old+remaining+(216+64)*1048576;assert.equal(envelope,432177088);assert(envelope<448*1048576);
  console.log(JSON.stringify({scope:'remaining-capacity',remainingBytes:remaining,allNewEvidenceBytes:old+remaining,newFiles:138,variableCap:469762048,quotaEnvelopeBytes:envelope,workspace:'BLOCKED; maxima not jointly qualified',driverParentKnownLedgerBytes:249528,allParentNormalBound:null,terminal:'BLOCKED'}));
 });
 
-// Independent wire oracle; C++ format expansion below is STATIC, never native execution.
+// 독립 wire 판정 기준이며 아래 C++ format 확장은 정적 검사로 native를 실행하지 않는다.
 const capacityBinding={
  'scripts/internal/recording_http_cost_probe.h':'ad1eca0c1710c7605d1c0e9f8277ed2f77c92d50ba774f58ac5b9988ef6724b5',
  'scripts/internal/recording_accumulated_cost.mjs':'d4ceef8febef32f90862af5e8c190c9a41054de9ca688d48150d2cd7442ce277',
@@ -718,14 +746,14 @@ function capacityPrintf(format,args){let i=0;const out=format.replace(/%(?:llu|l
 
 capacityTest('source binding, schedule and bounded vocabularies',a=>{
  for(const [file,sha] of Object.entries(capacityBinding)){
-  const bytes=fs.readFileSync(file);a.equal(crypto.createHash('sha256').update(bytes).digest('hex'),sha,file+' requires bound review on drift');
+  const bytes=historicalProducerBytes(file);a.equal(crypto.createHash('sha256').update(bytes).digest('hex'),sha,file+' requires bound review on drift');
   a.notEqual(crypto.createHash('sha256').update(Buffer.concat([bytes,Buffer.from('\n')])).digest('hex'),sha);
  }
  const driver=fs.readFileSync('scripts/internal/v450_recording_a_mixed.mjs','utf8'),generator=fs.readFileSync('scripts/internal/recording_accumulated_cost.py','utf8');
  a.match(driver,/while\(performance.now\(\)-begin<duration\)/);a.match(driver,/nextEvidence=begin/);a.match(driver,/if\(performance.now\(\)<nextEvidence\)return;nextEvidence\+=15000/);
  a.match(generator,/'stateDiagnose\?2700000','stateDiagnose\?1800000'/);
  a.match(driver,/const routes=\[0,1\]\.map/);a.match(driver,/concat\(\[0,1\]\.map/);
- // At most 120 starts before the boundary and one loop admitted before it which crosses it.
+ // 경계 이전 시작은 최대 120번이며 경계 전에 허용된 loop 한 번이 경계를 넘을 수 있다.
  const batches=1800000/15000+1,ids=Array.from({length:batches*4},(_,i)=>i+1),structured=ids.filter(id=>id%4===1||id%4===2);
  a.equal(batches,121);a.equal(ids.length,484);a.equal(structured.length,242);a.equal(ids.length-structured.length,242);
  a.equal(ids.reduce((n,id)=>n+3-String(id).length,0),108);a.equal(structured.reduce((n,id)=>n+3-String(id).length,0),55);
@@ -756,7 +784,7 @@ capacityTest('C++ format STATIC expansion matches independent wire schema',a=>{
  }
  const detail=capacityDetail(484),text=capacityPrintf(fmt('[R171-detail]'),[detail.pid,detail.id])+detail.captures.map((r,i)=>capacityPrintf(fmt('%s[%u,%u,%u,'),[i?',':'',...r.map(String)])).join('')+'],"phases":['+detail.phases.map((r,i)=>capacityPrintf(fmt('%s["%s",'),[i?',':'',...r])).join('')+']}\n';
  a.equal(text,capacityWire('detail',detail));a.equal(capacityBytes(text),4978);a.equal(detail.captures[0].length,21);
- // This is a width envelope, not a claim that all fields attain their maxima together.
+ // 각 필드 폭의 상한이며 모든 필드가 동시에 최댓값에 도달한다고 주장하지 않는다.
  const header=fs.readFileSync('scripts/internal/recording_http_cost_probe.h','utf8');
  a.match(header,/if\(ordinal>DetailCap\)return "detail-cap"/);a.match(header,/MandatoryLedger\)return/);
  a.match(header,/i<=d.attempt&&i<3/);a.match(header,/LedgerMandatoryCap=384\*1024,LedgerDetailCap=128\*1024/);
@@ -779,7 +807,7 @@ capacityTest('independent byte arithmetic, ID digits and reserved totals',a=>{
  a.deepEqual([393024-mandatory,262144-clients,131072-detail,524288-combined],[60109,12616,11600,71709]);
  const formats=capacityCppFormats(),loss=capacityPrintf(formats.find(s=>s.startsWith('[R154-loss] {')),[4294967295,capacityU64]),fallback=formats.find(s=>s==='[R154-loss] output-failure\n');
  a.equal(capacityBytes(loss),58);a.equal(capacityBytes(fallback),27);a.ok(capacityBytes(loss)+capacityBytes(fallback)<=192);
- console.log(JSON.stringify({scope:'ledger-capacity-bounds',mandatory,client:clients,detail,combined,sourceBinding:capacityBinding,cpp:'STATIC_ONLY',full30minCapacity:'BLOCKED'}));
+ console.log(JSON.stringify({scope:'ledger-capacity-bounds',mandatory,client:clients,detail,combined,historicalSourceBinding:capacityBinding,sourceBinding:Object.fromEntries(Object.keys(capacityBinding).map(file=>[file,producerSuccessor.files[file].currentSha256])),cpp:'STATIC_ONLY',full30minCapacity:'BLOCKED'}));
 });
 
 capacityTest('actual JS start and terminal UTF-8 bytes for 484 requests',a=>{
@@ -791,7 +819,7 @@ capacityTest('actual JS start and terminal UTF-8 bytes for 484 requests',a=>{
   a.ok(capacityBytes(start)<= (kind==='structured'?255:251));a.ok(capacityBytes(end)<=263);bytes+=capacityBytes(start)+capacityBytes(end);
  }
  a.equal(bytes,249528);a.equal(c.report({cleanupComplete:true}).bytes.client,bytes);
- // Missing server records stay INCOMPLETE even when all client bytes fit.
+ // client 바이트가 모두 한도에 들어와도 server record가 없으면 INCOMPLETE를 유지한다.
  a.equal(c.report({cleanupComplete:true}).status,'incomplete');
 });
 
@@ -811,7 +839,7 @@ capacityTest('actual JS failure branches and fail-closed capacity',a=>{
  const tooLong=ledger();a.throws(()=>tooLong.bindProcess({...ledgerProcess,startIdentity:'macos:'+'9'.repeat(89)+':9'},{pid:5001,seq:1}),/ledger-process-identity/);
  const overflow=ledger();lstart(overflow,1);a.throws(()=>overflow.client(lc(1,{padding:'x'.repeat(512)})),/ledger-client-cap/);
  const mandatory=ledger();lstart(mandatory,1);mandatory.append(Buffer.from('[R171-server] '+'x'.repeat(16384)+'\n'),1,5001);a.equal(mandatory.failure().code,'diagnostic-wire-cap');
- // Deliberately invalid extra fields exercise aggregate guards, not the producer bound.
+ // 의도적으로 잘못된 추가 필드로 aggregate guard를 검사하며 producer 상한을 검사하는 입력은 아니다.
  const serverCap=ledger();for(let id=1;id<=320;id++)lstart(serverCap,id);
  for(let id=1;id<=320;id++)serverCap.append(fw('search',lq(id,0,{padding:'x'.repeat(1000)})),1,5001);
  a.equal(serverCap.failure().code,'ledger-server-cap');
@@ -963,7 +991,7 @@ test('actual generated search mode keeps workload, old gates, environment and ea
   }
   for(const text of ['aLoad.start(begin,2700000)','stateDiagnose?1800000','stateDiagnose?1870000','if(!performanceDiagnose&&!aLoad.active&&selectedTrace.ready','app.completionTrace.append(chunk','selectedTrace.append(chunk','const bound=selectedTrace.complete();selectedBound=bound;','stateDiagnosticPass:false','final.searchPerformance.status'])assert(generated.includes(text),text);
   assert(generated.indexOf('if(performanceDiagnose)assertSearchPerformanceCapacity();')<generated.indexOf('const artifacts='));
-  // No requests, sources, authentication, writer, collector or cleanup implementation changes.
+  // request·source·인증·writer·collector·cleanup 구현은 변경하지 않는다.
   for(const [begin,end] of [['async function evidenceLoad(app){','async function launch('],['function environment(','async function request(']]){
    const actual=generated.slice(generated.indexOf(begin),generated.indexOf(end,generated.indexOf(begin)));
    if(begin.startsWith('async function evidenceLoad')){const before=original.slice(original.indexOf(begin),original.indexOf(end,original.indexOf(begin)));assert.equal(actual,before.replace("const all=await Promise.all(routes.map(route=>evidenceFetch(app,route)));","const selectedBatch=selectedBatchOrdinal++;const all=await Promise.all(routes.map((route,i)=>evidenceFetch(app,route,'GET',undefined,selection(selectedBatch,i))));"));}
@@ -1042,7 +1070,7 @@ test('R171 live collector rejects invalid ID and signals owned child before cont
 import {mandatoryRequestLedger,settleLedgerBatch} from './recording_accumulated_cost.mjs';
 const ledgerProcess={pid:5001,startIdentity:'linux:42',valid:true,error:null};
 function ledger(){const c=mandatoryRequestLedger();c.bindProcess(ledgerProcess,{pid:5001,seq:1});return c;}
-// S03-LEDGER-RESOURCE-ZERO-F01: actual collector, synthetic native identity; no process launch.
+// S03-LEDGER-RESOURCE-ZERO-F01: 실제 collector와 합성 native identity를 사용하며 process를 시작하지 않는다.
 test('ledger resource zero: opened sample binds unchanged and progresses',()=>{
  const state=resourceTraceCollector(5001),c=mandatoryRequestLedger();
  const row={pid:5001,seq:0,phase:'opened',elapsedMs:12,ram:1189540,ramPeak:2057915,ramLimit:671088640,ramRejected:0,scratchDisk:73728,scratchDiskPeak:90112,scratchDiskLimit:161901191168,scratchFd:4,scratchFdPeak:6,scratchFdLimit:1048572,scratchRam:1188864,preservedDisk:0,preservedFd:0,readerCleanupHealthy:true};
@@ -1109,7 +1137,7 @@ function ledgerFinish(c,id,{kind='structured',ordinal=0,searchExtra={},clientExt
 }
 for(const count of [23,24,25,160])test(`ledger v2 detail boundary ${count} preserves all mandatory terminals`,()=>{
  const c=ledger();for(let id=1;id<=count;id++)lstart(c,id);
- // Reverse completions exercise non-ID-ordered detail selection.
+ // 역순 완료로 ID 순서와 다른 detail 선택을 검사한다.
  for(let id=count;id>=1;id--)ledgerFinish(c,id,{ordinal:count-id+1});
  const r=c.report({cleanupComplete:true});assert.equal(r.status,'captured');assert.equal(r.requests.length,count);
  assert.equal(r.detail.eligible,count);assert.equal(r.detail.records,Math.min(24,count));assert.equal(r.detail.omittedCap,Math.max(0,count-24));
@@ -1235,7 +1263,7 @@ test('ledger generated opt-in links actual sample, all four requests and unchang
  }finally{fs.rmSync(root,{recursive:true});assert(!fs.existsSync(root));}
 });
 
-// Limited profile: virtual clocks only, no server/build/network.
+// 제한 profile은 가상 clock만 사용하며 server·build·network는 실행하지 않는다.
 function limitedClock(){let time=0;return {set:t=>{time=t;},now:()=>time,s:limitedSearchSchedule({startedAt:0,now:()=>time})};}
 test('limited exact interval and independent hard deadline',()=>{
  const {s,set}=limitedClock();s.begin();for(let i=0;i<4;i++)s.request();s.settled(true);
@@ -1914,7 +1942,7 @@ for(const kind of ['symlink','hardlink','destination'])test('map chunks unsafe '
  assert.throws(()=>preserveLargeLinkMap(a),/LINK_MAP_UNSAFE_PATH/);
 }));
 
-// Limited Helper-only: all child operations are injected receipts; never compile/run helpers.
+// 제한 Helper-only 검사는 모든 자식 연산에 receipt를 주입하며 helper를 컴파일·실행하지 않는다.
 function helperBindingMock(options={}){
  const root=fs.mkdtempSync('/private/tmp/media-server-helper-binding-mock-');fs.chmodSync(root,0o700);
  let tick=0;const calls=[],e=path.join(root,'evidence'),w=path.join(root,'work'),a=path.join(root,'artifacts');
@@ -2116,8 +2144,8 @@ test('helper evidence external symlink input requires approved resolution and ex
   assert.throws(()=>verifyLimitedHelperExternalInputs({[alias]:h},{[alias]:file}),/input-path/);
  }finally{fs.rmSync(r,{recursive:true});}
 });
-// Exercise the actual prepared runner's finally block with only injected reads/writes;
-// no runner invocation, child process, compiler, or native executable.
+// 준비된 실제 runner의 finally block을 읽기·쓰기 주입만으로 검사한다.
+// runner·자식 process·compiler·native 실행 파일은 호출하지 않는다.
 const evidenceRunner=process.env.MEDIA_SERVER_HELPER_EVIDENCE_RUNNER;
 for(const kind of ['early','write-failure','last-null','success','artifact','cleanup'])test('helper evidence prepared finalization '+kind,{skip:!evidenceRunner},async()=>{
  const text=fs.readFileSync(evidenceRunner,'utf8');
@@ -2135,7 +2163,7 @@ for(const kind of ['early','write-failure','last-null','success','artifact','cle
   write:(name,data)=>{if(kind==='write-failure'&&name==='result.json')throw Error('WRITE_FAILED');files.set(name,data);},
   exclusive:(p,data)=>{files.set(path.basename(p),data);},need:(v,c)=>{if(!v)throw Error(c);},now:()=> 'mock-time',
   process:mockProcess,console:{log:()=>{},error:(...v)=>failures.push(v)}};
- // fail closes over the same firstFailure variable as the original block.
+ // fail은 원래 block과 같은 firstFailure 변수를 closure로 참조한다.
  const code=observe+"\nfunction fail(e){firstFailure??={stage,code:e.message};}\n"+tail+'\nreturn {firstFailure,postflightErrors,packageSnapshots};';
  const result=await new (Object.getPrototypeOf(async function(){}).constructor)(...Object.keys(bindings),code)(...Object.values(bindings));
  if(kind==='early'||kind==='write-failure')assert.equal(result.firstFailure.code,'ELOOP');
@@ -2152,7 +2180,7 @@ test('helper evidence fixed budget and ordinary capacity guards remain unchanged
  const src=fs.readFileSync('scripts/internal/recording_accumulated_cost.mjs','utf8');assert(src.includes('buildLimits.output-result.outputBytes'));assert(src.includes('rssCap:buildLimits.rss,diskCap:buildLimits.disk'));
 });
 
-// One-shot recovery package tests: no compiler, native Helper, or runner invocation.
+// 단회 복구 패키지 검사이며 compiler·native Helper·runner를 호출하지 않는다.
 const recoveryPackage=process.env.MEDIA_SERVER_HELPER_RECOVERY_PACKAGE;
 const recoveryCheck=recoveryPackage?await import('file://'+path.join(recoveryPackage,'artifact-check.mjs')):null;
 const recoveryTest=(name,fn)=>test('helper postflight '+name,{skip:!recoveryPackage},fn);
@@ -2250,8 +2278,8 @@ recoveryTest('recovery uses existing bounded supervision and no build or native 
  assert.throws(assertLimitedSearchCapacity,/LIMITED_CAPACITY_BLOCKED/);assert.throws(assertSearchPerformanceCapacity,/CAPACITY_UNPROVEN/);
 });
 
-// Limited preparation only: virtual clocks/processes; no native collector,
-// Helper, server, compiler or HTTP request is executed by these tests.
+// 제한 준비 검사는 가상 clock·process만 사용하며 native collector·Helper·server·compiler나
+// HTTP 요청을 실행하지 않는다.
 import {limitedPreparationStart} from './recording_accumulated_cost.mjs';
 test('limited preparation shared origin includes preparation and rejects missing/future/expired clocks',()=>{
  const origin='1000000000000';
@@ -2432,7 +2460,7 @@ test('limited preparation preserves output workspace and build limits; cannot ma
  assert(guard.includes('seconds:180'));assert(guard.includes('output:2097152'));
 });
 
-// S03-OFFICIAL-INTEGRATION-F01: final artifact representation, not ledger wire sizing.
+// S03-OFFICIAL-INTEGRATION-F01: 최종 artifact 표현을 검사하며 ledger wire 크기 산정과 구분한다.
 function officialCompactLedger(boundary,count=484){
  const c=mandatoryRequestLedger(),pid=boundary?2147483647:5001,identity=boundary?capacityIdentity:'macos:1792673776:277918';
  c.bindProcess({valid:true,error:null,pid,startIdentity:identity},{pid,seq:1000});
@@ -2458,8 +2486,8 @@ for(const profile of ['ordinary','schema boundary','with A boundary'])test('offi
  const boundary=profile!=='ordinary';
  const {createReviewTestArtifacts}=await import('./va_review_test_artifacts.mjs');
  const ledgerReport=officialCompactLedger(boundary),pid=boundary?2147483647:5001;
- // This is a strict subset of the real report: samples/summary/Evidence/A are NOT
- // added. If this subset exceeds the cap, the full pretty report cannot fit.
+ // 실제 report의 일부만 포함하며 sample·summary·Evidence·A는 추가하지 않는다.
+ // 이 부분만으로 한도를 넘으면 전체 pretty report도 한도에 들어갈 수 없다.
  const parent=fs.mkdtempSync('/private/tmp/media-server-s03-report-mock-');fs.chmodSync(parent,0o700);
  const dir=path.join(parent,'diagnostic'),a=createReviewTestArtifacts(process.cwd(),{MEDIA_SERVER_TEST_ARTIFACT_ROOT:parent,MEDIA_SERVER_TEST_OUTPUT_DIR:dir});
  try{
@@ -2501,7 +2529,7 @@ for(const profile of ['ordinary','schema boundary','with A boundary'])test('offi
  }
 });
 
-// S03-REPORT-COMPACT-F01: preserve inspectable mock bytes, never a runtime receipt.
+// S03-REPORT-COMPACT-F01: 검토 가능한 mock 바이트를 보존하며 runtime receipt로 사용하지 않는다.
 function preserveCompactCase(name,{pretty,compact,receipt,result}){
  const root=process.env.MEDIA_SERVER_S03_REPORT_EVIDENCE;if(!root)return;
  const s=fs.lstatSync(root);assert(s.isDirectory()&&!s.isSymbolicLink()&&s.uid===process.getuid()&&(s.mode&511)===448);
@@ -2586,7 +2614,7 @@ async function exerciseFullReportProfiles(profiles,transform=report=>report){
   const f=performanceFixture();assert.equal(f.trace.client.length,15);assert.equal(f.completion[0].status,'captured');
   for(const profile of profiles)await compactArtifactCase((a,dir)=>{
    const boundary=profile!=='ordinary-full',bad=profile==='incomplete-full',count=boundary?484:60,batches=count/4;
-   // Both sizes use the real collector. These are samples, NOT upper bounds.
+   // 두 크기 모두 실제 collector를 사용하지만 sample일 뿐 상한은 아니다.
    const ledgerReport=officialCompactLedger(boundary,count);
    if(bad){ledgerReport.status='incomplete';ledgerReport.firstFailure={code:'ledger-missing-client',id:1,detectedMs:1};Object.assign(ledgerReport.requests[0].client,{status:null,outcome:'timeout',phase:'body',headerReceived:false});Object.assign(ledgerReport.requests[1].client,{status:null,outcome:'cancelled',phase:'header',headerReceived:false});}
    const pid=5001,progress=new CurrentLongrunProgress(0,['9101','9201'],undefined,{observeActiveHistory:true});
@@ -2621,7 +2649,7 @@ async function exerciseFullReportProfiles(profiles,transform=report=>report){
    const result={profile,allExistingTopLevelFields:Object.keys(saved),prettyBytes:pretty.length,compactBytes:compact.length,limit:1048576,remaining:1048576-compact.length,capacityVerdict:'FULL_REPORT_UNPROVEN',scope:'complete actual generated schema with synthetic values; variable-field maxima not proven',r154RecordsConsumed:15,completionInput:bad?'incomplete':'captured',rawOwnerMemoryAndCompletion:'existing product/parent logs, not extra report fields'};
    console.log(JSON.stringify(result));preserveCompactCase(profile,{pretty,compact,receipt:{sha256:crypto.createHash('sha256').update(compact).digest('hex')},result});
   });
-  // Exact missing bounds: do not invent small-value maxima or truncate them.
+  // 누락된 정확한 상한을 남기며 작은 관측값으로 최댓값을 만들거나 잘라내지 않는다.
   const aSource=fs.readFileSync('scripts/internal/v450_recording_a_load.mjs','utf8');
   assert(aSource.includes('slot.error=error.message'));assert(aSource.includes('snapshotId:found.snapshotId,hitId:hit.id'));
   assert(original.includes('state:state.state,error:state.error,channels:state.channels.map'));
@@ -2632,13 +2660,13 @@ async function exerciseFullReportProfiles(profiles,transform=report=>report){
 }
 test('official compact report: generated full schema, bounded samples and unproven variable fields',()=>exerciseFullReportProfiles(['ordinary-full','boundary-full','incomplete-full']));
 
-// S03-REPORT-PRODUCERS-F01. Production bounds, not average observed strings.
+// S03-REPORT-PRODUCERS-F01: 관측 문자열의 평균이 아닌 제품 상한을 검사한다.
 const producerFloat=-1.2345678901234567e+308;
 const producerBytes=v=>Buffer.byteLength(JSON.stringify(v));
 const inflateReportNumbers=v=>typeof v==='number'?producerFloat:Array.isArray(v)?v.map(inflateReportNumbers):v&&typeof v==='object'?Object.fromEntries(Object.entries(v).map(([k,x])=>[k,inflateReportNumbers(x)])):v;
 function producerAEnvelope(){
  const row={slot:44,state:'completed',elapsedMs:producerFloat,label:'main-44',packageId:'ep-'+'a'.repeat(64),snapshotId:'a'.repeat(32),
-  // Observation ID <=128 bytes, Key adds 4, prefix adds 3; optional range adds <=48.
+  // Observation ID는 최대 128바이트이며 Key는 4, prefix는 3, 선택 range는 최대 48바이트를 더한다.
   hitId:'o2:128:'+'a'.repeat(128)+':range:'+'9'.repeat(20)+':'+'9'.repeat(20),draftId:'ad-'+'a'.repeat(64),revision:'a'.repeat(64),
   preparedAt:producerFloat,pid:2147483647,jobId:'vj-'+'a'.repeat(32)+'-'+'9'.repeat(20),admittedAt:producerFloat,lastState:'completed',
   reviewId:'vr-'+'a'.repeat(64),completedAt:producerFloat,jobElapsedMs:producerFloat,resultHash:'a'.repeat(64)};
@@ -2669,7 +2697,7 @@ const reportProducerBinding={
  "src/ingress/a_record_review_application_service.cpp": "3abf45e7f5ca47b6d7866e3a1ae15feb2fe750a44d39f9ae3dad211f0b3ea91b"
 };
 test('official report producers: bound production identifiers, states and receive/escape limits',()=>{
- for(const [file,sha] of Object.entries(reportProducerBinding))assert.equal(crypto.createHash('sha256').update(fs.readFileSync(file)).digest('hex'),sha,file+' producer bound must be reviewed on drift');
+ for(const [file,sha] of Object.entries(reportProducerBinding))assert.equal(crypto.createHash('sha256').update(historicalProducerBytes(file)).digest('hex'),sha,file+' producer bound must be reviewed on drift');
  const read=f=>fs.readFileSync(f,'utf8');
  assert.match(read('src/recording/evidence_package_store.cpp'),/id.size\(\)==67.*id.rfind\("ep-",0\)==0/);
  assert.match(read('src/recording/va_review_store.cpp'),/id.size\(\)==67.*id.rfind\("vr-",0\)==0/);
@@ -2690,7 +2718,7 @@ test('official report producers: bound production identifiers, states and receiv
  assert.match(read('scripts/internal/va_review_smoke.cpp'),/if\(channel\[0\]=='1'\)/);
  const row=producerAEnvelope().completed[0];assert.equal(row.packageId.length,67);assert.equal(row.reviewId.length,67);assert.equal(row.snapshotId.length,32);assert.equal(row.revision.length,64);assert.equal(row.jobId.length,56);assert.equal(row.hitId.length,183);
  assert.equal(producerAEnvelope().immutableFiles.length,93);assert.equal(producerVisualEnvelope().length,121);
- // Mock parser acceptance is not claimed: current Harness JSON.parse alone does not validate these lengths.
+ // 현재 Harness의 JSON.parse만으로 이 길이를 검증하지 못하므로 mock parser 수락을 입증했다고 주장하지 않는다.
  assert(!/^ep-[a-f0-9]{64}$/.test('ep-'+'a'.repeat(65)));
  assert.equal(producerBytes('\u0001'.repeat(128)),128*6+2);assert.equal(producerBytes('한'.repeat(128)),128*3+2);
  assert(!['starting','stopped','indexing','ready','degraded','unavailable'].includes('x'.repeat(4096)));
@@ -2700,23 +2728,23 @@ test('official report producers: bound production identifiers, states and receiv
 test('official report producers: complete normal report conservative bound',async()=>{
  await exerciseFullReportProfiles(['producer-full'],report=>{
   const a=producerAEnvelope();Object.assign(report.aLoad,a);report.evidenceLoad.visualIndexObservations=producerVisualEnvelope();
-  // Calculate a separate over-approximation. Do not mutate recorded verdicts/counters into a real execution claim.
+  // 별도의 보수적 상한을 계산하며 기록된 판정·counter를 실제 실행 주장으로 변조하지 않는다.
   const envelope=inflateReportNumbers(structuredClone(report)),ledger=envelope.failureAttribution;delete envelope.failureAttribution;
   envelope.aLoad=inflateReportNumbers(report.aLoad);envelope.evidenceLoad.searchLatencyMs=Array(484).fill(producerFloat);envelope.evidenceLoad.createLatencyMs=Array(242).fill(producerFloat);
   for(const c of Object.values(envelope.phase.channels)){c.store='a'.repeat(128);c.order='9'.repeat(20);}
   for(const g of envelope.resources.groups)g.startIdentity=capacityIdentity;
   const h=envelope.activeHistory;h.coverage={status:'COMPLETE_DRAINED_PREFIX',issues:[],consumedRows:producerFloat,drain:{mutationCount:producerFloat,generation:'9'.repeat(20),rotations:producerFloat,busy:false,backlog:false,partialBytes:0,drainStartedAt:producerFloat,drainCompletedAt:producerFloat}};
   for(const c of Object.values(h.channels)){for(const key of ['observedFinalized','finalized','pending','deleted','finalizedAfterFirstDeleted'])c[key].bytes='9'.repeat(25);for(const key of ['firstPendingObservedAt','firstDeletedObservedAt','lastTransitionObservedAt'])c[key]=producerFloat;}
-  // Native path bound is <=4096 bytes; JSON escape can cost six bytes per path byte.
+  // native 경로 한도는 4096바이트이며 JSON escape는 경로 한 바이트당 최대 6바이트가 필요하다.
   envelope.artifactRoot='\u0001'.repeat(4096);envelope.footprintState='partially-or-not-measured';
   h.coverage.issues=['PREFIX_COUNT_RANGE','DRAIN_RECEIPT_MISSING','DRAIN_RECEIPT_INVALID','PREFIX_COUNT_MISMATCH','DRAIN_REGRESSION','DRAIN_FAILED','NO_DRAIN_RECEIPT','OBSERVER_BUSY','PREFIX_BACKLOG','PARTIAL_TAIL','GENERATION_UNOBSERVED','UNMATCHED_STATE_ROW','MUTATION_REJECTED'];
   for(const c of Object.values(h.channels))c.deletionObservation='NO_DELETION_OBSERVED';
   delete ledger.requests;ledger.firstFailure=null;ledger.detail.firstOmission={id:484,ordinal:242,reason:'detail-byte-budget'};
-  // Existing wire bounds reused verbatim. Optional detail payload is NOT copied into Report.
+  // 기존 wire 한도를 그대로 재사용하며 선택 detail payload는 Report로 복사하지 않는다.
   const mandatoryWire=332915,clientWire=249528;
   const extra={client:null,server:null,search:null,detail:{captured:true},state:'supervisor-incomplete',clientTerminalMissing:false,serverTerminalMissing:false,searchTerminalMissing:false,
    serverSearchLatencyMs:producerFloat,retry:producerFloat,preparationWaitNs:producerFloat,preparationHoldNs:producerFloat,searchObservation:'not-instrumented',terminalMissing:false};
-  // Includes redundant braces/null placeholders and retained wire prefixes: conservative, not an attainable combination.
+  // 중복 중괄호·null 자리·보유 wire prefix까지 포함한 보수적 상한이며 실제로 동시에 달성 가능한 조합을 뜻하지 않는다.
   const perRequestExtra=producerBytes(extra),headerBytes=producerBytes(ledger),envelopeBytes=producerBytes(envelope)+1;
   const upper=mandatoryWire+clientWire+484*perRequestExtra+headerBytes+envelopeBytes+32;
   assert.equal(report.failureAttribution.requests.length,484);assert(upper<1048576,JSON.stringify({upper,perRequestExtra,headerBytes,envelopeBytes}));
@@ -2755,7 +2783,7 @@ test('official report producers: storage rejection preserves first error and sep
  });
 });
 
-// S03-OFFICIAL-CLOSEOUT-F01. Synthetic supervisor only; never launch a product.
+// S03-OFFICIAL-CLOSEOUT-F01: 합성 supervisor만 사용하며 제품은 시작하지 않는다.
 replayTest('closeout','official closeout integration: guarded profile and immutable implementation binding',({runner:officialRunner,finalizer:officialFinalizer})=>{
  const parent=fs.mkdtempSync('/private/tmp/media-server-official-guard-');
  try{
@@ -2895,7 +2923,7 @@ except ValueError:pass
  }finally{fs.rmSync(root,{recursive:true});}
 });
 
-// S03-PARENT-DRAIN-F01: synthetic pipes/children only; never invoke a Terminal package.
+// S03-PARENT-DRAIN-F01: 합성 pipe·자식만 사용하며 Terminal 패키지를 호출하지 않는다.
 const officialDrainMock=String.raw`
 import sys,os,json,hashlib,signal,io,importlib.util
 from pathlib import Path
@@ -3019,3 +3047,25 @@ for(const mode of ['profile-conflict','normal','exit1','diagnostic-tail','deadli
  }finally{fs.rmSync(root,{recursive:true});assert(!fs.existsSync(root));}
 });
 }
+
+
+test('CC-SUC05 historical and current producer identities are separately bound',()=>{
+ const names=new Set([...Object.keys(capacityBinding),...Object.keys(reportProducerBinding),'scripts/internal/recording_accumulated_http_smoke.cpp']);
+ assert.deepEqual([...names].sort(),Object.keys(producerSuccessor.files).sort());
+ for(const name of names)historicalProducerBytes(name);
+});
+test('CC-SUC06 current producer mutation rejected',()=>{
+ const file='scripts/internal/recording_accumulated_cost.mjs';
+ assert.throws(()=>assertProducerCommentSuccessor(file,Buffer.concat([fs.readFileSync(file),Buffer.from('\n')]),Buffer.from(producerHistory.files[file])),/current producer bytes/);
+});
+test('CC-SUC07 historical producer mutation rejected',()=>{
+ const file='scripts/internal/recording_accumulated_cost.mjs';
+ assert.throws(()=>assertProducerCommentSuccessor(file,fs.readFileSync(file),Buffer.from(producerHistory.files[file]+'\n')),/historical producer bytes/);
+});
+test('CC-SUC08 historical and current producers cannot substitute each other',()=>{
+ const file='scripts/internal/recording_accumulated_cost.mjs';
+ assert.throws(()=>assertProducerCommentSuccessor(file,Buffer.from(producerHistory.files[file]),Buffer.from(producerHistory.files[file])),/current producer bytes/);
+});
+test('CC-SUC09 unknown producer path rejected before file access',()=>{
+ for(const name of ['../outside','/tmp/outside','toString','unregistered.cpp'])assert.throws(()=>historicalProducerBytes(name),/known current producer/);
+});

@@ -1,5 +1,5 @@
 """합성 계약 단위 검사. 실제 제품 Evidence로 사용하지 않는다."""
-import copy
+import copy  # 파일 용도: 합성 입력으로 State45 v2 결속 계약을 검사하며 실제 제품 Evidence로 사용하지 않는다.
 import json
 import tempfile
 import unittest

@@ -1,4 +1,4 @@
-import assert from 'node:assert/strict';
+import assert from 'node:assert/strict';  // 파일 용도: completion 수집기의 스트림 결합·누락·손실·종료 판정 계약을 검증한다.
 import fs from 'node:fs';
 import path from 'node:path';
 import os from 'node:os';
@@ -16,7 +16,7 @@ const good=a+b+end(2,Buffer.byteLength(a+b));
 const verdict=(text)=>{const c=completionCollection();c.append(Buffer.from(text));return c.finish();};
 assert.equal(verdict('\n'+good+'\n').status,'captured');
 for(let at=0;at<=Buffer.byteLength(good);++at){const c=completionCollection(),buf=Buffer.from(good);c.append(buf.subarray(0,at));c.append(buf.subarray(at));assert.equal(c.finish().status,'captured');}
-// Cross-stream delivery can arrive after stderr receipt; final aggregate reconciles both streams.
+// stderr receipt 뒤에 다른 스트림의 데이터가 도착해도 최종 집계에서 두 스트림을 대조한다.
 const multi=completionCollection();multi.append(b+end(2,Buffer.byteLength(a+b)),'stderr');multi.append(a,'stdout');assert.equal(multi.finish().status,'captured');
 const negatives=[a,good+end(2,Buffer.byteLength(a+b)),good+a,a+end(2,Buffer.byteLength(a)),a+end(1,1),a+end(1,Buffer.byteLength(a),{lost:true}),a+end(1,Buffer.byteLength(a),{writeError:true}),a+end(1,Buffer.byteLength(a),{complete:false}),
  line('[recording-completion]',{...completion,event:14,begin:'0',end:'0',request:0,n:1,x:0,y:0}),line('[recording-evidence]',{lost:true}),
@@ -66,7 +66,7 @@ for(const [latency,completionFlag] of [['0','1'],['1','0']])for(const mode of ['
 for(const flag of ['0','','true','01','1 ']){
  const off=spawnSync(binary,['normal'],{env:{...process.env,MEDIA_SERVER_VERIFY_RECORDING_LATENCY_TRACE:'0',MEDIA_SERVER_VERIFY_RECORDING_COMPLETION_TRACE:flag},encoding:'utf8',timeout:10000});assert.equal(off.status,0);assert.equal(off.stdout+off.stderr,'');
 }
-// Optional rebuilt-runtime binding: actual Evidence producer, no header test sink.
+// 재빌드한 runtime 결속은 선택 사항이며, 헤더 테스트 sink 대신 실제 Evidence 생성자를 사용한다.
 if(process.env.COMPLETION_LINKED_BINARY){
  for(const [latency,flag] of [['0','0'],['0','1'],['1','0']])for(const mode of ['normal','abnormal','missing']){
   const r=spawnSync(process.env.COMPLETION_LINKED_BINARY,[mode],{env:{...process.env,MEDIA_SERVER_VERIFY_RECORDING_LATENCY_TRACE:latency,MEDIA_SERVER_VERIFY_RECORDING_COMPLETION_TRACE:flag},encoding:'utf8',timeout:10000,maxBuffer:3*1024*1024});

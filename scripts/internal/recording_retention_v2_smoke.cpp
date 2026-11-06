@@ -277,7 +277,7 @@ int main(int argc,char** argv) {
             std::size_t snapshots=0,unlinks=0;bool acquired=false;
             RetentionCoordinator coordinator(race.catalog,[&]{
                 auto snapshot=race.catalog.RetentionSnapshot();
-                // RecoverPending, admission Plan, then Apply: acquire after the fixed Plan.
+                // RecoverPending·admission Plan·Apply 순서이며 고정된 Plan 이후 hold를 획득한다.
                 if(++snapshots==3){Require(race.catalog.AdjustHoldCount("planned-first",1,&race.error),race.error);acquired=true;}
                 return snapshot;
             },[](auto* bytes,auto*){*bytes=100000000;return true;},[&](const auto& path,auto* error){
@@ -328,8 +328,8 @@ int main(int argc,char** argv) {
             Require(race.catalog.AdjustHoldCount("first",-1,&race.error),race.error);
             if(failure_case==0)Require(race.catalog.AdjustHoldCount("second",-1,&race.error),race.error);
         }
-        // R97: the first capacity-only plan selects A, never B/C. The synchronous
-        // snapshot-provider latch acquires a real Catalog hold after Plan, before deletion.
+        // R97: 최초 capacity-only plan은 A만 선택하고 B·C는 선택하지 않는다. 동기 snapshot-provider
+        // latch가 Plan 이후 삭제 전에 실제 Catalog hold를 획득한다.
         for (bool successive : {false,true}) {
             Store race(root/(successive?"replacement-successive":"replacement-single"));
             const auto a=race.Add("a");race.Add("b");race.Add("c");race.Add("event",false,false,RecordingRetentionClass::Event);

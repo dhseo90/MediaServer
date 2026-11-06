@@ -1,7 +1,7 @@
 #include "recording_http_observation.h"
 #include "recording_public_fresh_oracle.h"
 #include "recording/evidence_package.h"
-// R107: exact closed original copy, real HTTP and actual source/writer/index consumers.
+// 파일 용도: R107의 정확히 닫힌 원본 사본으로 실제 HTTP와 source·writer·index 소비자를 검사한다.
 #define main ManagedInputFixtureMain
 #include "recording_managed_writer_smoke.cpp"
 #undef main
@@ -86,8 +86,8 @@ struct ExplicitFinish {
 #ifndef RECORDING_DEGRADED_HTTP_NO_MAIN
 int main(int argc,char** argv){
  if((argc!=3&&argc!=4)||!RecordingWriterTestIsolation(argv[1]))return 2;
- // R111 diagnostic A/B only vary foreground HTTP concurrency. Default C keeps
- // all four clients; background writers, indexing and retention stay identical.
+ // R111 진단 A/B는 foreground HTTP 동시성만 바꾼다. 기본 C는 client 네 개를 모두
+ // 유지하며 background writer·indexing·retention은 동일하게 둔다.
  const std::string mode=argc==4?argv[3]:"parallel";
  const bool source_mode=mode=="source-parallel"||mode=="source-small";
  if(!source_mode&&mode!="single"&&mode!="visual-pair"&&mode!="parallel")return 2;

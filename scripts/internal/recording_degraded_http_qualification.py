@@ -1,4 +1,4 @@
-import json,math,re,subprocess
+import json,math,re,subprocess  # 파일 용도: 직접 HTTP fixture의 검색·media 응답과 phase별 결과를 기존 계약으로 판정한다.
 from urllib.parse import parse_qs,urlsplit
 
 def visual_response(body, channels, start=None, end=None, exact_count=None):

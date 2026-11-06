@@ -7,7 +7,7 @@
 #endif
 
 namespace recording::completion {
-// Completion shares the existing wire budget, not the global lock-trace switch.
+// Completion은 기존 wire 예산을 공유하며 전역 lock-trace 스위치를 사용하지 않는다.
 inline bool Enabled() noexcept {
     static const bool explicit_enabled=[] {
         const char* p=std::getenv("MEDIA_SERVER_VERIFY_RECORDING_COMPLETION_TRACE");

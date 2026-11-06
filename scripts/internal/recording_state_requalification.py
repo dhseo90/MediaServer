@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """별도 제안 계약. 공식 결속기에서 import하지 않으며 State45 실행 권한을 반환하지 않는다."""
-import hashlib
+import hashlib  # 파일 용도: State45 재적격성 제안 계약을 검사하며 공식 실행 권한을 반환하지 않는다.
 import json
 import os
 from pathlib import Path

@@ -1,5 +1,5 @@
 """R156 fixed numeric schema. Inclusive parents are never added to children."""
-import json
+import json  # 파일 용도: R156 고정 숫자 schema를 검증하며 중첩 부모 시간을 자식 시간에 더하지 않는다.
 STAGES=['ResponseAdmission','JsonInitialization','AvailabilityKey','AvailabilityCache','MediaResolve','FallbackResolve','DeletedState','ItemSerialization','ResponseTail','AuthorizationRecheck','JsonTake','DeletedIdCheck','SegmentLookup','EventLinkLookup','MediaHoldAcquire','ContainedMediaOpen','PhysicalInspection','MediaCurrentValidation','MediaObjectRelease']
 COUNTERS=['Positions','Items','AvailabilityCalls','InvalidKeys','CacheHits','CacheMisses','UniqueKeys','ResolveCalls','ResolveOK','ResolveFail','PreferredChecks','FallbackChecks','FallbackOK','FallbackFail','DeletedQueries','ResponseBytes','V1Rows','V2Rows']
 PREFIX='[R156-currentness] '
@@ -36,7 +36,7 @@ def validate(r):
         for n in (b,e,budget,state,timeout):num(n)
         if not last<=b<=e<=r['end'] or budget!=5000 or state>2 or timeout>1:raise ValueError('currentness inspection bounds')
         last=e
-    # ReadService boundaries are nested inside MediaResolve. Release excludes member destruction.
+    # ReadService 경계는 MediaResolve 안에 중첩되며 Release는 member 소멸 시간을 제외한다.
     inner=['DeletedIdCheck','SegmentLookup','EventLinkLookup','MediaHoldAcquire','ContainedMediaOpen','PhysicalInspection','MediaCurrentValidation','MediaObjectRelease']
     if sum(m[k][1] for k in inner)>m['MediaResolve'][1]:raise ValueError('currentness media nesting')
     if m['DeletedState'][1]>m['ItemSerialization'][1]:raise ValueError('currentness item nesting')

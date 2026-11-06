@@ -52,7 +52,7 @@ private:
     memory_diagnostic::EventCursor event_cursor_;
     bool enabled_,valid_;Sink sink_;std::uint64_t sequence_{0};
     Clock::time_point start_{Clock::now()},last_{start_};
-    // Observer keeps only owner counter objects alive; no Catalog/reader/value reference.
+    // Observer는 owner 카운터 객체만 유지하며 Catalog·reader·value를 참조하지 않는다.
     std::shared_ptr<SearchModelResidency> memory_;std::shared_ptr<RecordingScratchResidency> scratch_;
 };
 }

@@ -1,4 +1,4 @@
-// 기존 confirmed seed의 단일 finalized 기대값을 그대로 사용하는 격리 진입점.
+// 파일 용도: 기존 confirmed seed의 단일 finalized 기대값을 유지하는 격리 seed 진입점을 제공한다.
 #define main ReviewFixtureMain
 #include "va_review_smoke.cpp"
 #undef main

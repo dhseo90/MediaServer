@@ -75,8 +75,8 @@ struct HistoryOwnerDiagnostic {
 };
 }
 #endif
-// Only the opt-in focused build redirects EVP_Digest. Product headers expose
-// neither counters nor digest injection. Every normal call still reaches EVP.
+// opt-in focused build만 EVP_Digest를 전환한다. 제품 header는 counter나 digest 주입을
+// 노출하지 않으며 모든 정상 호출은 계속 EVP에 도달한다.
 #if defined(RECORDING_RETAINED_DIGEST_FOCUSED)
 #include <openssl/evp.h>
 #include <cstring>
@@ -122,8 +122,8 @@ struct RecordingGenerationRequestProofProbe {
     static void DamageRetention(RecordingCatalog& c){std::lock_guard lock(c.mu_);Need(::ftruncate(c.completed_history_->ProbeIndexFd(),0)==0);}
     static void DamageHistoryValue(int fd,const std::string& kind){
         struct stat st{};Need(fstat(fd,&st)==0);
-        // Locate a reachable media-path chunk through its actual serialized node,
-        // then alter its value only. No root/size/FD replacement is involved.
+        // 실제 직렬화 node로 도달 가능한 media-path chunk를 찾아 그 값만 바꾼다.
+        // root·크기·FD를 교체하지 않는다.
         std::array<unsigned char,512> node{};bool changed=false;
         const auto number=[](const unsigned char* p){std::uint64_t n=0;for(unsigned i=0;i<8;++i)n|=std::uint64_t(p[i])<<(8*i);return n;};
         for(off_t offset=512;offset+512<=st.st_size;++offset){
@@ -222,8 +222,8 @@ struct RecordingGenerationRequestProofProbe {
         std::lock_guard lock(c.mu_);RecordingCatalog::DerivedJobHandle job;
         try {return c.AcquireJobForReadLocked(id,&job,context,&error)&&job&&job->state==DerivedJobState::Complete;}
         catch(const std::exception&) {
-            // This private probe bypasses the public MediaV2EligibleLocked exception boundary.
-            // A cold authority failure is rejection only when both authority and lease are lost.
+            // 이 비공개 probe는 공개 MediaV2EligibleLocked 예외 경계를 거치지 않는다.
+            // cold 권위 실패는 권위와 lease를 모두 잃은 경우에만 거부로 처리한다.
             if(c.derived_job_state_authoritative_||c.journal_.HasManagedLease())throw;
             return false;
         }
@@ -281,8 +281,8 @@ void RetentionPreparedCases(const std::filesystem::path& root){
     for(const std::string mode:{"progress","hold","job","legacy-reason","delete","corrupt","new-finalized","new-pinned","other-channel","checkpoint","checkpoint-16","checkpoint-64","checkpoint-256","finish","scratch","scratch-value","resource","exception"}){
         const auto path=root/mode;std::filesystem::create_directories(path);CompleteFixture(path);
         auto journal_options=Options(path);
-        // Only the added 256-row fixture needs more than the original 100-ID test envelope.
-        // This is local input sizing; product admission and every original boundary case are unchanged.
+        // 추가된 256-row fixture만 기존 100-ID 테스트 한도보다 많은 ID가 필요하다.
+        // 지역 입력 크기 조정이며 제품 허용 기준과 기존 모든 경계 case는 그대로다.
         if(mode=="checkpoint-256")journal_options.generation_limits.identity_unique_ids=512;
         RecordingJournal owner(journal_options);Need(owner.Open(&error));auto options=ReadOptions(path);options.enable_generation_writes=true;
         RecordingCatalog catalog(owner,options);Need(catalog.Open(&error));
@@ -370,7 +370,7 @@ void RetentionPreparedCases(const std::filesystem::path& root){
 #endif
     }
 }
-// R119: a real private Catalog cut is held before admission serialization.
+// R119: admission 직렬화 전에 실제 비공개 Catalog cut을 보유한다.
 void AdmissionPreparedCases(const std::filesystem::path& root){
     for(const std::string mode:{"increase","decrease","remove","hold","completion","parallel","exception"}){
         const auto path=root/mode;std::filesystem::create_directories(path);CompleteFixture(path);
@@ -412,7 +412,7 @@ void AdmissionPreparedCases(const std::filesystem::path& root){
         Need(journal.Finish(&error));
     }
 }
-// R131: real Catalog private preparation, policy/currentness and admission progress.
+// R131: 실제 Catalog의 비공개 준비·policy·currentness·admission 진행을 검사한다.
 void PeriodicPreparedCases(const std::filesystem::path& root){
     for(const std::string mode:{"increase","decrease","remove","hold","completion","parallel","exception","unlink-failure"}){
         const auto path=root/mode;std::filesystem::create_directories(path);CompleteFixture(path);
@@ -569,7 +569,7 @@ void PreparedVisualCases(const std::filesystem::path& root){
         if(mode!="finish")Need(journal.Finish(&error));
     }
 }
-// The existing copy hook counts completed raw rows; zero is before the first selected write.
+// 기존 copy hook은 완료된 raw row를 세며 0은 첫 선택 쓰기 전을 뜻한다.
 struct SelectiveCopyFault {
     inline static thread_local std::string mode;
     inline static thread_local int source_fd=-1;
@@ -639,7 +639,7 @@ void SelectiveCutCases(){
     const std::vector<std::string> excluded={"source-binding","derived-job","job-output","job-reference","observation-v1","observation-v2","consumer-reference","referenced-observation","event-link","derived-reference-accepted"};
     const auto fd_before=OpenDescriptors();
     auto source=std::make_shared<RecordingCatalogHistoryRows>();Need(source->Create(&error));
-    // Lower-store coverage includes every supported namespace; Catalog/domain equivalence is exercised above.
+    // 하위 store 검사는 지원 namespace 전부를 포함하며 Catalog·domain 동등성은 위에서 검사한다.
     for(const auto& kind:required)Need(source->Put(kind,"required",std::string(4097,'r'),&error));
     for(const auto& kind:excluded)Need(source->Put(kind,"excluded",std::string(4097,'e'),&error));
     const auto memory=source->MemoryOwner();const auto memory_before=memory->used();
@@ -675,7 +675,7 @@ void SelectiveCutCases(){
         Check("STATE45-SELECTIVE-CUT-01",denied&&!cut.Get("observation-v2","excluded",&value,&found,&error),"excluded cut access fails explicitly, never reports false absence");
         Need(cut.Finish(&error));Need(source->Put("observation-v2","excluded",std::string(4097,'e'),&error));
     }
-    // Fail after the first copied index row, not merely at Create. The source must remain usable.
+    // Create 시점이 아니라 첫 index row 복사 뒤 실패시킨다. source는 계속 사용 가능해야 한다.
     const auto before_failure=OpenDescriptors();const auto owned=memory->used();
     RecordingCatalogHistoryRows::probe_retention_copy_step=[](std::uint64_t rows){if(rows==1)RecordingHistoryIndex::probe_fault=3;};
     RecordingCatalogHistoryRows partial;const bool copied=partial.CloneRetentionFrom(*source,&error);
@@ -854,8 +854,8 @@ void VerifiedDecodeCases(){
     const auto at=bytes.find("segment-v2/");Need(at!=std::string::npos);const char altered='X';Need(::pwrite(fd,&altered,1,static_cast<off_t>(at))==1);
     denied=false;try{(void)damaged.find(segment.segment_id);}catch(const RecordingRetainedReadError&){denied=true;}
     Check("V450-MEM101-S05",denied,"same-size scratch node damage is checked before parsed cache hit");Need(bad->Finish(&error));
-    // Other outstanding readers above intentionally remain alive. Give this
-    // zero-after-last-reader assertion its own real resource owner.
+    // 위의 다른 진행 중인 reader는 의도적으로 살아 있다. 마지막 reader 뒤 0을 확인하는
+    // 이 assertion에는 별도의 실제 resource owner를 제공한다.
     auto closing_memory=std::make_shared<SearchModelResidency>();
     auto closing_resources=RecordingScratchResidency::Discover(std::filesystem::canonical(std::filesystem::temp_directory_path()).string(),closing_memory);
     RecordingScratchResidency::Scope closing_scope(closing_resources);
@@ -885,7 +885,7 @@ void SourceReadCases(const std::filesystem::path& root){
             ProofProbe::SourceHook({});++calls;
             Need(catalog.SearchResidency()->used()>used);
             if(mode=="memory")throw RecordingResourceUnavailable();
-            // Called only after releasing Catalog mu_, with an owned envelope.
+            // Catalog mu_ 해제 뒤 소유 중인 envelope로만 호출한다.
             if(mode=="append") {RecordingOrderReservationV1 order;Need(catalog.ReserveRecordingOrder("store","during-parse","during-parse-segment","channel",&order,&error));}
             if(mode=="checkpoint")Need(catalog.Checkpoint(&error));
             if(mode=="delete")Need(catalog.RequestDeletion("segment","continuous-capacity",&error));
@@ -922,8 +922,8 @@ void SharedSourceReadCases(const std::filesystem::path& root){
         }catch(...){failure=std::current_exception();}ProofProbe::AcquireHook({});});
         struct ResumeJoin {std::promise<void>& signal;std::thread& thread;bool sent=false;void Release(){if(!sent){signal.set_value();sent=true;}}~ResumeJoin(){Release();if(thread.joinable())thread.join();}} guard{resume,reader};
         Need(ready.wait_for(std::chrono::seconds(3))==std::future_status::ready);
-        // The blocked work is source acquisition itself, not a paused product
-        // worker used to manufacture an end-to-end performance result.
+        // 멈춘 작업은 source 획득 자체이며 종단 간 성능 결과를 만들기 위해 제품 worker를
+        // 일시 정지한 것이 아니다.
         auto progress=std::async(std::launch::async,[&]{std::string detail;
             const auto original=catalog.FindSegmentV2ById("segment");RecordingOrderReservationV1 order;
             RecordingReadService search(catalog);RecordingTimelineResult timeline;
@@ -1075,7 +1075,7 @@ void ActiveProofCases(const std::filesystem::path& root){
 
 #if defined(RECORDING_RETAINED_DIGEST_FOCUSED)
 using DigestRows=RecordingRetainedRows<RecordingSegmentV2,ParseRecordingSegmentV2,SerializeRecordingSegmentV2>;
-// Same fixed V2 shape as contract smoke S10-M03; no media execution or new fixture input.
+// contract smoke S10-M03과 같은 고정 V2 형태이며 media 실행이나 신규 fixture 입력은 없다.
 RecordingSegmentV2 DigestInput(){
     RecordingSegmentV2 s;s.segment_id="s";s.source_id="source";s.channel_id="channel";s.store_id="store";
     s.order_request_id="request";s.media_epoch_id="epoch";s.order_sequence=9007199254740993LL;
@@ -1122,7 +1122,7 @@ void RetainedDigestCases(bool baseline){
      Check("V450-MEM101-S06",next->second.segment_id=="t","digest never crosses row boundary");}
     store->ForgetVerifiedSegmentDecode(segment.segment_id);
     {RetainedDigestWindow m(changed_raw);(void)rows.find(segment.segment_id);DigestReport("evicted-redecode",m,cold_calls);}
-    // Failure injection is confined to the optional cache hash, after authenticated acquisition.
+    // 실패 주입은 인증된 획득 이후의 선택적 cache hash에만 한정한다.
     store->ClearVerifiedSegmentDecodeCache();
     {RetainedDigestWindow m(changed_raw);m.fail_first=true;(void)rows.find(segment.segment_id);
      DigestReport("first-hash-fails-retry",m,baseline?2:1);
@@ -1130,7 +1130,7 @@ void RetainedDigestCases(bool baseline){
     store->ClearVerifiedSegmentDecodeCache();
     {RetainedDigestWindow m(changed_raw);m.fail_all=true;const auto row=rows.find(segment.segment_id);DigestReport("hash-unavailable-fallback",m,0);
      Check("V450-MEM101-S06",m.attempts==3&&store->ProbeDecodedBytes()==0&&row->second.channel_id=="channeL","optional hash failure preserves strict decode without cache publication");}
-    // An authenticated but noncanonical row must reach retained equality rejection.
+    // 인증됐더라도 noncanonical row는 보유 값 동등성 검사에서 거부돼야 한다.
     std::string spaced=raw;spaced.insert(1," ");RecordingSegmentV2 parsed;std::string canonical;
     Need(ParseRecordingSegmentV2Canonical(spaced,&parsed,&canonical,&error)&&canonical==raw&&canonical!=spaced);
     std::string mapping=raw;const auto at=mapping.find("\"start_pts\":0");Need(at!=std::string::npos);mapping.replace(at,13,"\"start_pts\":1");
@@ -1146,8 +1146,8 @@ void RetainedDigestCases(bool baseline){
     Check("V450-MEM101-S06",store->MemoryOwner()->used()==0,"measured store final owner release");
 }
 #else
-// Only exercises the pre-existing strict Decode fallback without OpenSSL. This
-// does not authenticate persistent storage or claim unsupported history works.
+// OpenSSL 없이 기존 strict Decode fallback만 검사한다. 영속 저장소를 인증하거나
+// 지원하지 않는 history가 동작한다고 주장하지 않는다.
 class DigestFallbackRows : public RecordingRetainedRowStore {
     std::shared_ptr<SearchModelResidency> owner_=std::make_shared<SearchModelResidency>();
 public:

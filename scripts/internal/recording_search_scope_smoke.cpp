@@ -90,8 +90,8 @@ int main(int argc,char** argv) {
         bool changed=false;
         try {
             if(captured.get_future().wait_for(std::chrono::seconds(10))!=std::future_status::ready)throw std::runtime_error("capture latch deadline");
-            // Long source preparation is held by the other thread. A prior cursor
-            // must finish before that latch is released; release before join on failure.
+            // 다른 thread가 긴 source 준비를 멈춰 두고 있다. 기존 cursor는 latch 해제 전에
+            // 완료돼야 하며 실패 시 join 전에 latch를 해제한다.
             auto cursor_request=std::async(std::launch::async,[&]{return app.Search(paging,"page-owner","page-scope",auth);});
             const bool concurrent=cursor_request.wait_for(std::chrono::seconds(2))==std::future_status::ready;
             if(!concurrent){released.set_value();thread.join();(void)cursor_request.get();throw std::runtime_error("R127 cursor blocked on source preparation");}
@@ -119,7 +119,7 @@ int main(int argc,char** argv) {
         };
         const auto after_delete=app.Search(query,"owner","scope",auth);recording::search_after_capture_test={};
         check(after_delete.status==200&&deletion_captures==1&&Field(Json(after_delete.body),"unplacedCount")==Field(Json(before.body),"unplacedCount"),"unrelated actual deletion retains selected membership without retry");
-        // Every attempt gets a new relevant candidate. Exactly the existing three attempts, no retry widening.
+        // 시도마다 새 관련 후보를 추가하며 기존과 정확히 같은 3회 시도를 유지하고 재시도 수를 늘리지 않는다.
         unsigned relevant=0;recording::search_after_capture_test=[&]{if(!store.catalog.PutObservationV2(observation("relevant-"+std::to_string(++relevant)),&error))throw std::runtime_error("fixture mutation failed");};
 #ifdef RECORDING_SEARCH_ATTRIBUTION_TESTING
         r171::Server rejected_envelope(91);rejected_envelope.handler=r154::Tick();
@@ -131,8 +131,8 @@ int main(int argc,char** argv) {
         check(relevant==3&&rejected.status==503&&rejected.body=="{\"error\":\"recording-search-unavailable\"}","related candidate additions exhaust exactly three attempts fail closed");
         const auto refreshed=app.Search(query,"owner","scope",auth);
         check(refreshed.status==200&&std::stoull(Field(Json(refreshed.body),"unplacedCount"))==std::stoull(Field(Json(before.body),"unplacedCount"))+3,"fresh search includes every related addition");
-        // R131: only a complete pre-Build rejected batch may be consumed by the
-        // same request. Real finalized media arrives between capture and validate.
+        // R131: Build 전에 거부된 완전한 batch만 같은 request에서 소비할 수 있다.
+        // capture와 validate 사이에 실제 확정 media가 도착한다.
         recording::RecordingSearchReader source_reader(store.catalog,reader);
         recording::SearchSourceBatch retry;
         std::shared_ptr<const recording::RecordingSearchModel> retried,cold;

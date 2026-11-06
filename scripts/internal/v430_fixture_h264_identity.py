@@ -149,7 +149,7 @@ def parse_sps(value):
     require(b.u(1) == 0, "sps-gaps")
     width_mbs, height_map = b.ue(1023) + 1, b.ue(1023) + 1
     require(b.u(1) == 1, "sps-progressive")
-    b.u(1)  # direct_8x8_inference_flag
+    b.u(1)  # direct_8x8_inference_flag 비트 하나를 읽는다.
     crop = [0, 0, 0, 0]
     if b.u(1):
         crop = [b.ue(16384) for _ in range(4)]

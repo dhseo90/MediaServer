@@ -1,5 +1,5 @@
 #pragma once
-// R154: only included by generated direct-fixture overlays. No product header/type changes.
+// 파일 용도: R154의 생성한 direct-fixture overlay에서만 포함하며 제품 header·type은 바꾸지 않는다.
 #include "recording_http_observation.h"
 #include <array>
 #include <atomic>
@@ -18,8 +18,8 @@ inline std::atomic<bool> loss{false};
 inline std::mutex output_mutex;
 inline std::atomic<unsigned> first_loss{0};
 inline std::atomic<bool> loss_emitted{false};
-// Fixed numeric codes, no payload/path. Counter overflow can occur under Catalog lock:
-// latch there; its Original scope emits only after the lock has been destroyed.
+// 고정 숫자 code만 쓰며 payload·path는 제외한다. Catalog lock 안에서도 counter overflow가
+// 발생할 수 있어 그곳에서 latch하고 Original scope가 lock 소멸 뒤에만 출력한다.
 inline void Latch(unsigned code){loss=true;unsigned expected=0;first_loss.compare_exchange_strong(expected,code);}
 inline void FlushLoss(){if(!loss||loss_emitted.exchange(true))return;char b[160];const int n=std::snprintf(b,sizeof(b),"[R154-loss] {\"code\":%u,\"at\":%llu}\n",first_loss.load(),(unsigned long long)Tick());std::lock_guard<std::mutex> l(output_mutex);if(n<=0||n>=int(sizeof(b))||std::fwrite(b,1,n,stderr)!=std::size_t(n)||std::fflush(stderr)){std::fputs("[R154-loss] output-failure\n",stdout);std::fflush(stdout);}}
 inline void Lose(unsigned code){Latch(code);FlushLoss();}
@@ -61,7 +61,7 @@ struct Search {
  for(unsigned i=0;i<=d.attempt&&i<3&&n>0&&n<int(sizeof(b));++i){auto& a=d.attempts[i];n+=std::snprintf(b+n,sizeof(b)-n,"%s[%llu,%llu,%llu,%llu,%s,%s]",i?",":"",(unsigned long long)a.instance,(unsigned long long)a.captured,(unsigned long long)a.documents,(unsigned long long)a.references,a.rebuild?"true":"false",a.authority?"true":"false");}
  if(n>0&&n+4<int(sizeof(b))){std::memcpy(b+n,"]}\n",3);Write(b,n+3);}else Lose(6);}
 };
-// Client owns these stamps; the server never writes them.
+// 이 timestamp는 client 소유이며 server는 값을 쓰지 않는다.
 inline std::array<std::array<U,2>,128> connects{};
 struct Client {
  unsigned id;U begin,sendBegin=0,sendEnd=0;recording_http_observation::HttpObservation& o;
@@ -70,11 +70,11 @@ struct Client {
 };
 }
 
-// R171: same owned overlay/sink, separate correlation domain. No product API trust.
+// R171: 동일한 소유 overlay·sink를 사용하되 상관관계 영역은 별개다. 제품 API를 신뢰 근거로 삼지 않는다.
 namespace r171 {
 using U=std::uint64_t;
 inline bool Enabled(){return recording::latency::SearchAttributionEnabled();}
-// Only the owned generator may enable v2; legacy R171 keeps mandatory detail loss.
+// 소유한 generator만 v2를 활성화할 수 있으며 legacy R171은 필수 상세 기록 손실 판정을 유지한다.
 #ifdef MEDIA_SERVER_VERIFY_MANDATORY_LEDGER
 inline constexpr bool MandatoryLedger=true;
 #else
@@ -92,7 +92,7 @@ inline void Write(const char* b,int n,std::size_t capacity){bool failed=n<=0||st
  {std::lock_guard<std::mutex> lock(r154::output_mutex);if(!failed){if(bytes>ByteCap-192||std::size_t(n)>ByteCap-192-bytes)failed=true;else{bytes+=n;failed=std::fwrite(b,1,n,stderr)!=std::size_t(n)||std::fflush(stderr)!=0;}}}
  if(failed)r154::Lose(172);
 }
-// Partition the unchanged 512KiB sink. Optional detail cannot consume terminal space.
+// 기존 512KiB sink를 분할하며 선택적 상세 기록이 terminal 공간을 소비하지 못하게 한다.
 inline std::size_t ledgerMandatoryBytes=0,ledgerDetailBytes=0;
 inline constexpr std::size_t LedgerMandatoryCap=384*1024,LedgerDetailCap=128*1024;
 inline bool LedgerWrite(const char* b,int n,std::size_t capacity,bool detail=false){
@@ -114,7 +114,7 @@ inline void LedgerSearch(recording::SearchDiagnostic& d,unsigned id,U begin,U en
  bool eligible=d.status>=400||end-begin>=2000000000ULL;
  for(unsigned i=0;i<d.capture_count;++i)eligible=eligible||d.captures[i].end-d.captures[i].begin>=500000000ULL;
  if(d.cost_loss||d.capture_loss||d.attempt>=3)r154::Lose(174);
- // These are same-clock phase durations, not HTTP/client clock differences.
+ // 같은 clock으로 잰 단계별 경과 시간이며 HTTP·client의 서로 다른 clock 간 차이가 아니다.
  char wait[32]="null",hold[32]="null";
  for(const char* name:{"preparation-wait","preparation-hold"}){
   U total=0;bool found=false;
@@ -137,7 +137,7 @@ inline void LedgerSearch(recording::SearchDiagnostic& d,unsigned id,U begin,U en
  char b[2048];int n=std::snprintf(b,sizeof(b),"[R171-search] {\"v\":2,\"pid\":%ld,\"id\":%u,\"begin\":%llu,\"end\":%llu,\"diagnosticStatus\":%d,\"exception\":\"%s\",\"rejections\":[%llu,%llu],\"loss\":%s,\"retry\":%u,\"waitNs\":%s,\"holdNs\":%s,\"detailEligible\":%s,\"detailOrdinal\":%u,\"detailState\":\"%s\",\"attempts\":[",(long)getpid(),id,(unsigned long long)begin,(unsigned long long)end,d.status,d.exception,(unsigned long long)d.rejection_start,(unsigned long long)(d.resources?d.resources->rejected():0),r154::loss?"true":"false",d.attempt,wait,hold,eligible?"true":"false",ordinal,state);
  for(unsigned i=0;i<=d.attempt&&i<3&&n>0&&n<int(sizeof(b));++i){const auto& a=d.attempts[i];n+=std::snprintf(b+n,sizeof(b)-n,"%s{\"stage\":\"%s\",\"reason\":\"%s\",\"captured\":%llu,\"current\":%llu,\"authority\":%s}",i?",":"",a.stage,a.reason,(unsigned long long)a.captured,(unsigned long long)a.current,a.authority?"true":"false");}
  if(n>0&&n+4<int(sizeof(b))){std::memcpy(b+n,"]}\n",3);n+=3;}else n=-1;
- // Mandatory terminal is written before the optional detail. Write errors stay fatal.
+ // 필수 terminal을 선택적 상세 기록보다 먼저 쓰며 write 오류는 계속 치명적 실패다.
  if(LedgerWrite(b,n,sizeof(b))&&std::strcmp(state,"captured")==0)LedgerWrite(detail,dn,sizeof(detail),true);
 }
 struct Server;
@@ -164,7 +164,7 @@ struct Search {
   if(n>0&&n<int(sizeof(b)))n+=std::snprintf(b+n,sizeof(b)-n,"],\"phases\":[");
   for(unsigned i=0;detail&&i<d.cost_count&&n>0&&n<int(sizeof(b));++i){const auto& c=d.costs[i];n+=std::snprintf(b+n,sizeof(b)-n,"%s[\"%s\",%llu,%llu]",i?",":"",c.name,(unsigned long long)c.begin,(unsigned long long)c.end);}
   if(n>0&&n+4<int(sizeof(b))){std::memcpy(b+n,"]}\n",3);Write(b,n+3,sizeof(b));}else r154::Lose(176);
-  // Suppress the old unselected destructor output, preserve the selected 1..15 contract.
+  // 과거의 비선택 destructor 출력은 억제하되 선택한 1..15 계약은 유지한다.
   d.id=prior_id;
  }
 };

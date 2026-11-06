@@ -213,7 +213,7 @@ void RetiredReference(const std::filesystem::path& root,bool sql,bool complete=f
 #endif
         if(phase==1)Need(c.Checkpoint(&error));
         if(phase==2){
-            // Checkpoint freezes the deletion in its verified prefix; old active is no longer its authority.
+            // checkpoint의 검증된 prefix에 삭제를 고정하며 이전 active는 더 이상 그 권위 근거가 아니다.
             RecordingGenerationManifest current;Need(ParseRecordingGenerationManifest(Read(root/"recording-generation.json"),&current,&error));
             Need(!complete||current.evidence.size()==1);
             const auto file=root/(complete?current.evidence.front().name:"evidence-1-0.jsonl");
@@ -232,8 +232,8 @@ void RetiredReference(const std::filesystem::path& root,bool sql,bool complete=f
         }
     }
 }
-// Terminal state is reached through the same durable Catalog append/apply path used by
-// the job service. The old reader deliberately outlives the resident-entry eviction.
+// job service와 같은 영속 Catalog append·apply 경로로 terminal 상태에 도달한다.
+// 이전 reader는 상주 항목 퇴출 뒤에도 의도적으로 살아 있게 한다.
 void TerminalJobHistory(const std::filesystem::path& root,bool complete,bool sql){
     auto input=complete?ReadyInput():InputValue();
     if(complete)input.job.state=DerivedJobState::Committed;
@@ -299,8 +299,8 @@ void TerminalJobHistory(const std::filesystem::path& root,bool complete,bool sql
         }
     }
 }
-// This fixture deliberately writes the old full-format rows. The product Journal/Catalog
-// Open is the consumer; the small all-DTO projection helper is never used here.
+// 이 fixture는 의도적으로 이전 전체 형식 row를 쓴다. 제품 Journal·Catalog Open이
+// 소비자이며 작은 all-DTO projection helper는 여기서 사용하지 않는다.
 void LegacyFullProjection(const std::filesystem::path& root,const std::string& variant){
     const auto input=InputValue();auto f=Active(input);
     f.snapshot.rows.erase(std::remove_if(f.snapshot.rows.begin(),f.snapshot.rows.end(),[](const auto& row){return row.kind=="derived-job"||(row.kind=="accepted-state"&&row.key=="job-mutation");}),f.snapshot.rows.end());

@@ -1,4 +1,4 @@
-// 격리된 단일 호출 진단. 원시 bus 설명은 이 전용 실행에서만 제한적으로 출력한다.
+// 파일 용도: 격리된 단일 호출에서만 원시 bus 설명을 제한적으로 출력하는 진단 진입점을 제공한다.
 #define RECORDING_FRAME_DIAGNOSTIC 1
 #include "../../src/recording/visual_frame_decoder.cpp"
 #include "recording/evidence_frame_extractor.h"

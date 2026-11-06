@@ -81,11 +81,11 @@ using RecordingSegmentV2 = RecordingMemoryValue<RecordingSegmentV2Fields>;
 bool ValidateRecordingSegmentV2(const RecordingSegmentV2& value, std::string* error);
 std::string SerializeRecordingSegmentV2(const RecordingSegmentV2& value);
 bool ParseRecordingSegmentV2(const std::string& json, RecordingSegmentV2* value, std::string* error);
-// Exact field comparison against a validated persisted row. Does not authenticate
-// raw bytes or replace validation; callers still acquire the current authenticated row.
+// 검증된 영속 row와 필드를 정확히 비교하며 raw 바이트를 인증하지는 않는다.
+// 검증을 대체하지 않으므로 호출자는 여전히 현재 인증된 row를 획득해야 한다.
 bool SameRecordingSegmentV2Content(const RecordingSegmentV2&, const RecordingSegmentV2&);
-// Returns the exact canonical bytes already produced by domain validation.
-// Neither output is published on failure. Used for authenticated cold-row comparison.
+// domain 검증 과정에서 이미 생성한 정확한 canonical 바이트를 반환한다.
+// 실패하면 두 출력 모두 공개하지 않으며 인증된 cold row 비교에 사용한다.
 bool ParseRecordingSegmentV2Canonical(const std::string& json, RecordingSegmentV2* value,
                                       std::string* canonical, std::string* error);
 
@@ -131,8 +131,8 @@ bool ValidateRecordingSourceBindingV1(const RecordingSourceBindingV1&, std::stri
 bool ValidateRecordingSourceBindingForSegment(const RecordingSourceBindingV1&, const RecordingSegmentV2&, std::string* error);
 std::string SerializeRecordingSourceBindingV1(const RecordingSourceBindingV1&);
 bool ParseRecordingSourceBindingV1(const std::string&, RecordingSourceBindingV1*, std::string* error);
-// Same strict parse + full binding/segment validation, without validating the
-// unchanged parsed binding twice. Output is published only after all checks.
+// 동일한 strict parse와 전체 binding·segment 검증을 유지한다.
+// 바뀌지 않은 parsed binding을 중복 검증하지 않으며 모든 검사 뒤에만 출력을 공개한다.
 bool ParseRecordingSourceBindingForSegment(const std::string&, const RecordingSegmentV2&,
                                           RecordingSourceBindingV1*, std::string* error);
 
@@ -227,8 +227,8 @@ using EventRecordingLinkV1 = RecordingMemoryValue<EventRecordingLinkV1Fields>;
 bool VisitEventRecordingLinkV1(const EventRecordingLinkV1&,const RecordingTextSink&,std::string*);
 bool SerializeEventRecordingLinkOwned(const EventRecordingLinkV1&,const std::shared_ptr<SearchModelResidency>&,
     std::size_t,RecordingOwnedText*,std::string*);
-// Allocation-free shape census precedes parser/vector allocation. This budget is
-// specific to EventRecordingLinkV1, including validation coverage and serializer.
+// parser·vector 할당 전에 할당 없는 형태 집계를 수행한다.
+// 이 예산은 검증 범위와 serializer를 포함한 EventRecordingLinkV1 전용이다.
 std::size_t RecordingEventLinkWorkspaceBytes(const std::string& json);
 std::size_t RecordingEventLinkRetainedBytes(const EventRecordingLinkV1& value);
 inline void BindRecordingRowMemory(EventRecordingLinkV1& value,
@@ -366,8 +366,8 @@ bool ParseRecordingTombstoneV1(const std::string& json,
                                RecordingTombstoneV1* value,
                                std::string* error);
 
-// Retained heap storage follows actual container capacities. Each nested charged
-// DTO receives its own ticket so copies of that member retain their ownership.
+// 보유 heap 저장량은 실제 container capacity를 따르며 과금되는 중첩 DTO마다 ticket을 둔다.
+// 해당 member를 복사해도 그 사본의 소유권이 유지되도록 한다.
 std::size_t RecordingRetainedBytes(const RecordingSegmentV1& value);
 std::size_t RecordingRetainedBytes(const RecordingSegmentV2& value);
 std::size_t RecordingRetainedBytes(const RecordingSegmentStateV2& value);

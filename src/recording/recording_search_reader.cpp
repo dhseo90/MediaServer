@@ -156,8 +156,8 @@ bool RecordingSearchReader::RefreshImpl(const std::vector<std::string>& channels
     // 정렬/복사 동안 발생한 원본 상태 변경도 완료 직전에 거부한다.
     if(!built) {
         if(!batch.shared_documents_.empty()) {
-            // Only optional BuildShared failure reaches this branch. Capture,
-            // authority and currentness failures above retain their own errors.
+            // 선택적 BuildShared 실패만 이 분기로 들어온다. 위의 Capture·authority·
+            // currentness 실패는 각각의 기존 오류를 유지한다.
             batch=SearchSourceBatch{};
 #ifdef RECORDING_SEARCH_TESTING
             ++search_projection_work_test[3];
@@ -166,8 +166,8 @@ bool RecordingSearchReader::RefreshImpl(const std::vector<std::string>& channels
         }
         return false;
     }
-    // Keep only the already charged reference capacity until currentness is
-    // known. No additional allocation/reservation or published model mutation.
+    // currentness가 확인될 때까지 이미 비용을 계산한 reference 용량만 유지한다.
+    // 추가 할당·reservation이나 공개된 model의 변경은 없다.
     const bool span_capacity=retry_capture&&!include_observations&&batch.rebuild&&
         next.use_count()==1&&!batch.segment_spans_.empty()&&!next->shared_documents_.empty()&&
         batch.shared_documents_.capacity()>=next->shared_documents_.size();
@@ -177,15 +177,15 @@ bool RecordingSearchReader::RefreshImpl(const std::vector<std::string>& channels
     if(search_after_build_test)search_after_build_test();
 #endif
     if(!catalog_.ValidateSearchSource(batch,error)) {
-        // Only this unpublished, exclusively owned source model can be reclaimed.
-        // No WithPlayback/event projection or published snapshot reaches here.
-        // Its old revision is never accepted: retry traverses/authenticates all
-        // current raw again and checks the current lifecycle before using spans.
+        // 아직 공개하지 않고 단독 소유한 이 source model만 회수할 수 있다.
+        // WithPlayback·event projection이나 공개 snapshot은 이 경로에 들어오지 않는다.
+        // 과거 revision은 절대 허용하지 않는다. retry는 현재 raw 전체를 다시 순회·인증하고
+        // span을 사용하기 전에 현재 lifecycle을 확인한다.
         if(retry_capture&&!include_observations&&batch.rebuild&&!next->shared_documents_.empty()&&error&&*error=="search-source-changed") {
             bool restored=span_capacity;
             const auto count=next->shared_documents_.size();std::size_t total=0;
-            // Prefix ranges reuse the existing span counts. Do not sort all
-            // Mapping documents again merely to recover segment grouping.
+            // prefix range는 기존 span 개수를 재사용한다. segment grouping 복구만을 위해
+            // 모든 Mapping 문서를 다시 정렬하지 않는다.
             if(restored)for(auto& [id,span]:batch.segment_spans_){
                 (void)id;
                 if(span.count>count-total||span.shared_count>count-total-span.count){restored=false;break;}
@@ -204,8 +204,8 @@ bool RecordingSearchReader::RefreshImpl(const std::vector<std::string>& channels
             }
             if(restored)for(auto& entry:batch.segment_spans_)entry.second.count=0;
             else {
-                // Incomplete metadata keeps the original full decode fallback.
-                // Never use a partial range or keep an extra reference array.
+                // metadata가 불완전하면 기존 전체 decode fallback을 유지한다.
+                // 부분 range를 사용하거나 추가 reference 배열을 보관하지 않는다.
                 std::vector<std::shared_ptr<const SearchDocument>>{}.swap(batch.shared_documents_);batch.sharing_memory_={};
                 batch.retry_model_=next;batch.segment_spans_.clear();
             }
@@ -214,8 +214,8 @@ bool RecordingSearchReader::RefreshImpl(const std::vector<std::string>& channels
            error&&*error=="search-source-changed"&&next.use_count()==1){
             auto owned=std::const_pointer_cast<RecordingSearchModel>(std::move(next));
             batch.delta.upserts=std::move(owned->documents_);
-            // Build sorted the vector. Restore contiguous segment groups; the
-            // next Build restores the public time/channel/ID order unchanged.
+            // Build가 vector를 정렬했다. 연속된 segment group을 복구하며 다음 Build가
+            // 공개 시간·channel·ID 순서를 기존과 동일하게 복원한다.
             std::sort(batch.delta.upserts.begin(),batch.delta.upserts.end(),[](const auto& a,const auto& b){
                 return std::tie(a.segment_id,a.id)<std::tie(b.segment_id,b.id);
             });
@@ -399,9 +399,9 @@ bool RecordingSearchReader::PreparedSource::MatchesFrame(std::int64_t pts,const 
     return found==1;
 }
 std::size_t RecordingSearchReader::PreparedSource::retained_bytes() const {
-    // Charge the owned typed row, not four hypothetical serialized copies. The
-    // compact context actually frees its duplicate canonical JSON below. Existing
-    // conservative string/allocator allowance and domain row admission remain.
+    // 가상의 직렬화 사본 네 개 대신 실제 소유한 typed row의 비용을 계산한다.
+    // compact context는 아래에서 중복 canonical JSON을 실제로 해제한다. 기존의
+    // 보수적인 문자열·allocator 여유와 도메인 row admission은 유지한다.
     const auto& row=impl_->segment;
     std::size_t dynamic=row.mappings.capacity()*sizeof(RecordingUtcMappingV1)+
         (row.video_codecs.capacity()+row.audio_codecs.capacity())*sizeof(std::string);
@@ -435,19 +435,19 @@ std::unique_ptr<RecordingSearchReader::PreparedSource> RecordingSearchReader::Pr
     auto proof=std::make_unique<PreparedSource::Impl>();proof->catalog=&catalog_;
     MediaInspectionOptions options;options.deadline=deadline;options.cancelled=cancelled;
     std::string acquisition_error;
-    // The V2 acquisition already rejects deleted/legacy/fallback/derived-link collisions.
-    // Transfer exactly its single hold into media; do not rediscover through generic ResolveMedia.
+    // V2 acquisition에서 이미 삭제·legacy·fallback·derived-link 충돌을 거부했다.
+    // 그 단일 hold를 그대로 media로 넘기며 일반 ResolveMedia로 다시 찾지 않는다.
     {latency::VisualPhase phase("prepare-media-inspect");
         proof->media=reader_.ResolveOriginalMediaV2(channel,id,&proof->segment,&proof->location,&acquisition_error,std::move(options));}
     if(!proof->media&&!acquisition_error.empty()){if(error)*error=std::move(acquisition_error);return {};}
     if(!proof->media)return fail(expired()?"seek-cancelled":"seek-unavailable-media");
-    // The owned row is immutable from this point through the last prepared
-    // reader. This replaces only a duplicate canonical row string, not source
-    // authentication or the pre/post current-media checks.
+    // 소유한 row는 여기서부터 마지막 prepared reader까지 불변이다.
+    // 이 변경은 중복 canonical row 문자열만 대체하며 source 인증이나
+    // 전후 current-media 검사를 대체하지 않는다.
     proof->context.prepared_media=&proof->segment;
     latency::VisualPhase first_binding("prepare-binding");
-    // This boundary validates the binding against the same current media row,
-    // including the full source/sample domain checks on first materialization.
+    // 이 경계는 동일한 현재 media row에 대해 binding을 검증한다.
+    // 최초 materialization에서는 전체 source·sample 도메인 검사도 수행한다.
     const auto binding=catalog_.ReadSourceBindingForMedia(proof->segment,proof->location,&proof->context,error);first_binding.End();
     if(!binding||!binding->file_evidence)return fail("seek-unavailable-file-evidence");
     latency::VisualPhase file_proof("prepare-file-proof");
@@ -474,8 +474,8 @@ std::unique_ptr<RecordingSearchReader::PreparedSource> RecordingSearchReader::Pr
         if(!NativeSeek(*proof->binding->file_evidence,original_ns,&initial,error,expired))return {};
     }
     if(!proof->context.envelope_identity.empty()){
-        // Full source/file validation has completed. Later seeks need only this
-        // exact native table; current raw authentication retains its own proof.
+        // 전체 source·file 검증이 완료됐다. 이후 seek에는 이 정확한 native table만
+        // 필요하며 현재 raw 인증은 별도의 증명을 유지한다.
         const auto& evidence=*binding->file_evidence;
         auto reservation=catalog_.SearchResidency()->ReserveOwned(sizeof(PreparedSource::Impl)+evidence.samples.size()*sizeof(PreparedSource::Impl::NativeSample),SearchModelResidency::Category::PreparedNative);
         if(!reservation)return fail("recording-resource-unavailable");
@@ -485,8 +485,8 @@ std::unique_ptr<RecordingSearchReader::PreparedSource> RecordingSearchReader::Pr
         for(const auto& sample:evidence.samples){PreparedSource::Impl::NativeSample compact{sample.ordinal,sample.original_pts_ns,sample.native_pts,sample.native_duration,{}};
             std::copy(sample.sample_sha256.begin(),sample.sample_sha256.end(),compact.sample_sha256.begin());proof->native.samples.push_back(compact);}
         proof->compact=true;proof->binding.reset();proof->context.binding.reset();
-        // Keep the exact immutable typed row already used by every media check,
-        // rather than a second canonical copy. Impl stays at this heap address.
+        // 두 번째 canonical 사본 대신 모든 media 검사에서 사용한 동일한 불변 typed row를
+        // 유지한다. Impl은 이 heap 주소에 계속 존재한다.
         proof->context.prepared_media=&proof->segment;
         auto context_memory=proof->context.memory.Split(sizeof(RecordingCatalog::SourceBindingReadContext)+8192);
         std::string{}.swap(proof->context.segment_json);

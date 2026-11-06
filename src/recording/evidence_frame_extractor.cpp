@@ -112,8 +112,8 @@ bool EvidenceFrameExtractor::ExtractMedia(const std::string& channel, const std:
     if (target < 0 || target > INT64_MAX) return Fail(error, "evidence-invalid-frame");
     const auto remaining = std::chrono::duration_cast<std::chrono::milliseconds>(deadline - std::chrono::steady_clock::now()).count();
     if (remaining <= 0 || expired()) return Fail(error, "evidence-timeout");
-    // Existing decoder geometry and zlib compressBound determine four simultaneously
-    // live image buffers (RGB, filtered rows, compressed IDAT, final PNG).
+    // 기존 decoder 크기와 zlib compressBound로 동시에 살아 있는 네 이미지 buffer의 예산을 계산한다.
+    // 대상은 RGB, 필터링된 row, 압축 IDAT, 최종 PNG다.
     constexpr std::size_t raw_max=(4096ULL*3+1)*2160;
     const auto image_budget=4096ULL*2160*3+raw_max+3*compressBound(raw_max)+64*1024;
     auto image_memory=catalog_.SearchResidency()->ReserveOwned(image_budget,recording::SearchModelResidency::Category::Unattributed,recording::SearchModelResidency::Site::EvidenceImage);

@@ -1,4 +1,4 @@
-// R141 collector regression; R140 historical observations remain in its artifact.
+// 파일 용도: R141 collector 회귀를 검증하며 R140의 역사적 관측은 원래 artifact에 보존한다.
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import {memoryAttributionCollector,collectMemoryAttribution,finishMemoryAttribution} from './recording_memory_attribution.mjs';
@@ -24,7 +24,7 @@ for(const size of [16382,16383,16384,16385,16386])for(const split of ['whole','m
  collectMemoryAttribution(s,padded.subarray(0,at));collectMemoryAttribution(s,padded.subarray(at));
  assert.equal(!s.error,size<=16383);lineBoundaries.push({wireBytes:size,split,accepted:!s.error});
 }
-// Non-ASCII valid JSON whitespace field is ignored by schema, but wire bytes remain exact.
+// 비ASCII 문자를 담은 유효 JSON의 부가 필드는 schema에서 무시하지만 전송 바이트는 정확히 센다.
 const unicode=Buffer.from(owner(0,'opened').replace('"pid":42','"note":"가😀","pid":42'));
 for(let at=0;at<=unicode.length;++at){const s=fresh();feed(s,resource(0,'opened'));collectMemoryAttribution(s,unicode.subarray(0,at));collectMemoryAttribution(s,unicode.subarray(at));assert.equal(s.error,null);}
 for(const invalid of [Buffer.from('[memory-attribution] {"x":"\xff"}\n','latin1'),Buffer.from('[memory-attribution] \xe3\x81\n','latin1')]){const s=fresh();collectMemoryAttribution(s,invalid);assert(s.error);}
@@ -40,6 +40,6 @@ const loss='[recording-completion] {"v":1,"event":14,"begin":"0","end":"0","thre
 const lost={bytes:0};let saved=0;captureBoundedProcessLog(lost,Buffer.from(loss),x=>(saved+=x.length,x.length),()=>{throw Error('unexpected stop');});assert.equal(processLogCaptureComplete(lost,saved),true);
 const slow='[recording-slow-summary] {"seen":0,"retained":0,"thresholdNs":10000000}\n';assert.equal(slowTraceSummary(loss+slow,true).status,'captured');
 const mixed=fs.readFileSync(new URL('./v450_recording_a_mixed.mjs',import.meta.url),'utf8');assert(mixed.includes('completionTrace.append'));assert(mixed.includes('completionTrace.finish'));
-// No fake deletion/generation stdout: those are journal mutations. Full budget unknown.
+// 삭제·세대 변경은 journal 변경이므로 가짜 stdout을 만들지 않으며 전체 예산은 아직 미확정이다.
 const emitter=fs.readFileSync(new URL('../../include/recording/recording_memory_diagnostic_output.h',import.meta.url),'utf8');assert(emitter.includes('std::size_t(n)>=sizeof(line)-offset'));assert(emitter.includes('complete&&sink(line,offset)'));
 console.log(JSON.stringify({status:'PASS_COLLECTOR_BOUNDARIES_NOT_READINESS',negativeCases:rejected,lineBoundaries,totalBoundaries,shortWriteStopped:true,normalSyntheticFinalOwnerZero:true,completionLossTransportAccepted:true,completionLossConsumedSeparately:true,actualDeletionExecution:false,maximumLiveModelFeasibility:'unknown',productRuns:0,longRuns:0}));

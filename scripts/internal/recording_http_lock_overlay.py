@@ -1,5 +1,5 @@
 """R159 original-Lock callsite instrumentation, no shadow header or lifetime wrapper."""
-from recording_http_cost_overlay import replace
+from recording_http_cost_overlay import replace  # 파일 용도: 원래 Lock 호출 지점에 R159 계측을 추가하며 shadow header나 수명 wrapper를 만들지 않는다.
 NAMES=['IsDeletedSegmentId','FindSegmentById','FindSegmentV2ById','ListEventLinks','AcquireMediaWithContext','ValidateMediaWithContext','AdjustHoldCount']
 def catalog(s):
  for api,name in enumerate(NAMES):

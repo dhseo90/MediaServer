@@ -1,4 +1,4 @@
-// R152: 단일 canonical store의 synthetic 입력/실제 서비스 적격성. 비용 계측 아님.
+// 파일 용도: R152의 단일 canonical store에서 synthetic 입력·실제 서비스 적격성을 검사하며 비용 계측은 하지 않는다.
 #define RECORDING_DEGRADED_HTTP_NO_MAIN
 #include "recording_degraded_http_smoke.cpp"
 #include "ingress/va_review_application_service.h"
@@ -131,7 +131,7 @@ int main(int argc,char** argv){
  struct Join152{std::thread& t;~Join152(){if(t.joinable())t.join();}} join{background};
  try {
  const auto source_end=Clock::now()+std::chrono::seconds(10);while(!started&&Clock::now()<source_end)std::this_thread::sleep_for(std::chrono::milliseconds(10));NeedHttp(started!=0,"background source started");
- // Four connected sockets are observed by the real server before simultaneous request release.
+ // 동시에 요청을 시작시키기 전에 실제 server가 연결된 socket 네 개를 관측한다.
  std::array<Socket,4> sockets;for(auto& c:sockets){c.fd=socket(AF_INET,SOCK_STREAM,0);NeedHttp(c.fd>=0,"parallel socket");sockaddr_in a{};a.sin_family=AF_INET;a.sin_port=htons(port);inet_pton(AF_INET,"127.0.0.1",&a.sin_addr);NeedHttp(!connect(c.fd,reinterpret_cast<sockaddr*>(&a),sizeof(a)),"parallel connect");}
  const auto accept_end=Clock::now()+std::chrono::seconds(1);while(RecordingHttpOwnershipProbe::Active(server)<4&&Clock::now()<accept_end)std::this_thread::sleep_for(std::chrono::milliseconds(1));NeedHttp(RecordingHttpOwnershipProbe::Active(server)>=4,"four actual accepted connections");Event152("four-accepted");
  std::promise<void> release;auto released=release.get_future().share();std::array<std::future<Response152>,4> futures;
@@ -139,7 +139,7 @@ int main(int argc,char** argv){
  try {for(unsigned i=0;i<4;++i){const int fd=sockets[i].fd;futures[i]=std::async(std::launch::async,[&,i,fd]{released.wait();return Http152(port,i<2?"/ops/api/recordings/search?"+sq:"/ops/api/recordings/visual-search?channelIds=9101,9201&text=ball&limit=20&threshold=-1",10+i,200,"",1,fd);});sockets[i].fd=-1;}}catch(const std::exception& e){Failure152(e.what());throw;}release.set_value();release_guard.done=true;std::array<Response152,4> responses;for(unsigned i=0;i<4;++i){responses[i]=futures[i].get();NeedHttp(!First152(responses[i].body).empty(),"nonempty search");}Event152("four-complete");
  const auto selected=sq+"&snapshotId="+Escape152(Text152(responses[0].body,"snapshotId"))+"&hitId="+Escape152(First152(responses[0].body));
  auto package=Http152(port,"/ops/api/recordings/search/evidence?"+selected,20,201,"{}");ReadPackage152(catalog,store,port,Text152(package.body,"id"),21);
- // Visual response carries exact channel, not the multi-channel query as a seek scope.
+ // Visual 응답은 정확한 channel을 전달하며 다중 channel query를 seek scope로 쓰지 않는다.
  StrictJsonObjectDocument vd;std::string visual_id,visual_channel;NeedHttp(ParseStrictJsonObjectDocumentObjectArray(responses[2].body,"items",&vd,[&](const auto& item){if(visual_id.empty()){visual_id=StrictJsonStringField(item,"id").value_or("");visual_channel=StrictJsonStringField(item,"channelId").value_or("");}return true;},&error),"visual selection");
  package=Http152(port,"/ops/api/recordings/visual-search/evidence?channelId="+Escape152(visual_channel)+"&hitId="+Escape152(visual_id),40,201,"{}");ReadPackage152(catalog,store,port,Text152(package.body,"id"),41);Event152("evidence-complete");
  StrictJsonObjectDocument seed;NeedHttp(ParseStrictJsonObjectDocument(a_raw,&seed,&error),"seed metadata");NeedHttp(seed.Find("startTimeMs")&&seed.Find("endTimeMs"),"seed time fields");

@@ -98,8 +98,8 @@ int main(int argc,char** argv){try{
         }
         CacheCheck(!runtime.catalog().RequestDeletion(docs[0].segment_id,"continuous-capacity",&error),"entry eviction retains separate response hold");response.reset();
         {
-            // Same selection/error order. Reacquiring an early final source must
-            // not evict another final source when a discarded candidate exists.
+            // 선택·오류 순서는 동일하다. 버린 후보가 있는 동안 앞선 최종 source를 재획득해도
+            // 다른 최종 source를 cache에서 퇴출해서는 안 된다.
             const std::vector<recording::VisualSearchHit> selected{{0,1},{1,.9},{2,.8},{1,.7}};
             Cache cache(source,{},End());for(const auto& doc:docs)Resolve(cache,doc);
             cache.FinalResults(selected,docs);Resolve(cache,docs[0]);
@@ -111,7 +111,7 @@ int main(int argc,char** argv){try{
         }
         CacheCheck(Descriptors()==baseline,"final selection borrowing releases all descriptors");
         CacheCheck(Descriptors()==baseline&&runtime.catalog().RequestDeletion(docs[0].segment_id,"continuous-capacity",&error),"entry-limit request releases FD and retention holds");
-        // Preserve an actual >8MiB legacy proof after duplicate canonical ownership is removed.
+        // 중복 canonical 소유권 제거 뒤에도 실제 8MiB 초과 legacy 증명을 유지한다.
         LegacyStorage oversized_seed(root/"oversized-seed");
         CacheCheck(oversized_seed.Open(&error),"oversized multi-sample source open");
         Seed(oversized_seed,3150,30,105000);const auto oversized_docs=Documents(oversized_seed);

@@ -1,4 +1,4 @@
-import copy,json,unittest
+import copy,json,unittest  # 파일 용도: 녹화 HTTP hold 비용 row의 범위·중첩·누락·중복과 live 오류 거부를 검증한다.
 import recording_http_hold as h
 import recording_http_cost_run as run
 class Hold(unittest.TestCase):

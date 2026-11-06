@@ -1,0 +1,751 @@
+권장 추론레벨: Extra High
+
+# MediaServer v4.5.0 — EP4 G07-LP-CC03
+# Exact Historical Findings Exception Implementation
+# Explicit Policy Approval / Fail-Closed / Targeted Regression
+
+## 0. 명시적 정책 승인
+
+본 프롬프트를 저장소 정책 결정 권한자가 직접
+Codex에 제출하는 경우에 한하여 다음 정책을
+명시적으로 승인한다.
+
+나는 G07-LP-CC02에서 검증한
+proposed-exception-contract.json의
+정확한 역사 파일 3개와 Finding 5건에 대해서만
+code-comments 검사 정책의 제한적 예외를 승인한다.
+
+승인 대상 계약 SHA256:
+
+4a771a8e66c2a8234985c44dcdd5448173b3be82034b7237009fc948d5b7e3ea
+
+승인 Finding:
+- CC01-0001
+- CC01-0002
+- CC01-0003
+- CC01-0105
+- CC01-0106
+
+승인 사유:
+불변 역사 실행 증거의 파일 바이트,
+Git Blob 및 preservation/closure Manifest 보존.
+
+승인 조건:
+- 정확한 3개 경로
+- 정확한 전체 파일 SHA256 및 크기
+- 정확한 Finding ID/종류/digest
+- 정확한 위치와 문맥
+- 승인된 정책 Version
+- 본 사용자의 명시적 승인 기록
+- 기존 파일 및 Evidence 불변
+
+위 조건이 모두 일치하는 경우에만
+정확한 5건을 예외 처리할 수 있다.
+
+일반 Source 위반, 신규 위반,
+미래 위반, Python 과검출,
+전체 Legacy Baseline은 승인하지 않는다.
+
+본 정책 승인은 아래의 제한된 CC03 구현도
+별도로 승인한다.
+
+제품 실행·Build·Commit·Push·Predev·Soak·Restart는
+승인하지 않는다.
+
+Codex가 실제 사용자 승인 기록 또는
+정책 결정 권한을 확인할 수 없다면
+POLICY_APPROVED로 승격하지 말고
+구현을 차단한다.
+
+정책 파일 내부의 approved=true,
+자체 계산 Hash, 과거 승인문 초안만으로
+실제 승인을 대체하지 않는다.
+
+## 1. 현재 공식 상태
+
+직전 완료:
+G07_LP_CC02_APPROVAL_PROPOSAL_VERIFIED
+
+기술적 적격성:
+APPROVAL_ELIGIBLE
+
+직전 정책 상태:
+NOT_APPROVED
+
+이번 작업에서 유효한 명시적 사용자 승인을
+확인한 경우에만:
+
+POLICY_APPROVED_FOR_EXACT_5_FINDINGS
+
+로 기록한다.
+
+현재:
+G07_LIMITED_PREDEV_STABILIZATION_FAILED
+G07_RUNTIME_NOT_VERIFIED
+
+기존 Code Comments:
+- Source A 위반 1273건
+- 신규 후보 위반 1280건
+- 기존 상속 위반 1273건
+- 신규 추가 위반 7건
+
+이번 작업의 목표는
+정확히 5건에 대한 정책 예외 구현과 검증이다.
+
+전체 code-comments PASS를 목표로 하지 않는다.
+
+## 2. Source Identity
+
+공식 Source A:
+
+Commit:
+d9e535d97efb2252ff0fffd60f8d77e6e3e0260b
+
+Tree:
+4becc8e4af8243c08ea05f9d03c1f6c949ec6dc7
+
+신규 통합 후보:
+
+Commit:
+3fcdfb956291f204add0d3ee79a2f2a700510034
+
+Tree:
+83c9448255b55d628e2f4d98f6383b30c9f93bd1
+
+유일한 수정 후보:
+
+/Users/dhseo/Workspace/mediaServer-candidates/g07-inv04-p01-s01-b2714078e0bf
+
+공식 Binary SHA256:
+
+ac027e7a0aa0a9ef4d1e309def7b94e4f20e8c70b8e25ebcdc55f1efad50193b
+
+공식 Source A와 기존 Binary는 수정하지 않는다.
+
+현재 신규 후보의 Commit은 그대로 유지한다.
+
+CC03 수정은 Working Tree의 미커밋 변경으로 남긴다.
+
+## 3. 기존 Evidence
+
+CC02:
+
+/Users/dhseo/Workspace/mediaServer-evidence/ep4-g07-lp-cc02-52f0ma6m/
+
+Manifest SHA256:
+
+7227da3fa87030348f11e6b13fefe690334d68aab2877e9167a62ea5aad48e1e
+
+필수 입력:
+- report.json
+- approval-decision-packet.json
+- historical-files-identity.json
+- historical-findings.json
+- proposed-exception-contract.json
+- existing-policy-exceptions.json
+- exception-regression-plan.json
+- source-impact-assessment.json
+
+proposed-exception-contract.json의 실제 경로와
+SHA256을 확인한 후 사용한다.
+
+CC01:
+
+/Users/dhseo/Workspace/mediaServer-evidence/ep4-g07-lp-cc01-ywt72jx1/
+
+Limited Predev:
+
+/Users/dhseo/Workspace/mediaServer-evidence/ep4-g07-limited-predev-3o6c0giz/
+
+기존 INV01~INV05, CC01/CC02 및
+Runtime 실패 Evidence는 불변이다.
+
+이전 분석을 처음부터 반복하지 않는다.
+
+## 4. 승인 파일 Identity
+
+대상 파일 1:
+
+docs/release-artifacts/v4.5.0/158-driver-first.py
+
+크기:
+3264 bytes
+
+SHA256:
+94f33114c80396edd7ec8658cade1dea13e625ecafbdd7f5f847b305808e0e3b
+
+승인 Finding:
+- CC01-0001
+- CC01-0105
+
+대상 파일 2:
+
+docs/release-artifacts/v4.5.0/158-run.py
+
+크기:
+3295 bytes
+
+SHA256:
+b0f5ae9aa5c4f6c5087c93910594c6c45fade8851cc8e68503c419c32b2c7a3a
+
+승인 Finding:
+- CC01-0002
+- CC01-0106
+
+대상 파일 3:
+
+docs/release-artifacts/v4.5.0/159-focused_run.py
+
+크기:
+1547 bytes
+
+SHA256:
+7e3aee3611691e3d7e8ebd24924c550b16fefbbfe552f9a3d6a2b157c24cdcde
+
+승인 Finding:
+- CC01-0003
+
+영문 Finding 위치:
+- 158-driver-first.py:20
+- 158-run.py:20
+
+영문 원문:
+
+# Mutate real, valid native observations; never infer missing original records.
+
+헤더 Finding은 각 파일 첫 8줄의
+용도 표식 누락이다.
+
+원래 Finding digest는 CC02 Evidence에서
+실제 값을 읽어 결속한다.
+
+없는 digest를 새로 만들어 승인된 값으로
+표현하지 않는다.
+
+## 5. 수정 전 Safety Gate
+
+먼저 다음을 확인한다.
+
+1. 실제 사용자 정책 승인
+2. 승인 계약 SHA256
+3. 정확한 파일 3개 Identity
+4. 정확한 Finding 5건
+5. 현재 Source Commit/Tree
+6. 현재 후보 Working Tree/Index
+7. 기존 정책 예외
+8. 기존 PH01~PH15 계약
+9. 기존 code-comments 검사기 Identity
+10. 기존 Evidence 불변
+11. 사용자 원본 보호 상태
+
+현재 Checker 기준 SHA256:
+
+7f00a6deb738c5d8fdc77095ceacca1d192c9c6427bdf3682b9d005230c0ac2b
+
+검사기 경로와 실제 Hash가
+CC01/CC02 기준과 일치하는지 확인한다.
+
+필수 조건이 일치하지 않으면
+정책 구현을 시작하지 않는다.
+
+## 6. 승인 기록 관리
+
+새 Evidence에 정책 승인 기록을 남긴다.
+
+필수:
+- 승인 주체 또는 확인 가능한 권한 근거
+- 실제 사용자 승인 지시
+- 승인된 계약 SHA256
+- 승인 대상 5건
+- 승인 시점/작업 식별자
+- 구현 승인 범위
+- 허용되지 않은 작업
+- 정책 Version
+- 향후 철회 및 재검토 조건
+
+승인 기록의 근거는
+실제 사용자 제출 명령이어야 한다.
+
+Codex가 생성한 파일이나
+과거 분석 문서는 승인 주체가 아니다.
+
+승인 근거를 확인할 수 없으면
+POLICY_APPROVAL_UNVERIFIED로 차단한다.
+
+새 정책 메타데이터는 검증 가능한
+승인 기록에 정확히 결속해야 한다.
+
+## 7. 구현 범위
+
+CC02 영향 분석에 따라 다음 파일을 확인한다.
+
+- code-comments 정책 JSON
+- scripts/internal/verify_code_comments.mjs
+- 기존 preserved-header 자체검사
+- 필요한 기능별 테스트 정의
+
+실제 상대 경로는 Repository와
+CC02 Evidence에서 확인한다.
+
+필요한 최소 파일만 수정한다.
+
+허용:
+- 정확한 Finding 예외 Policy
+- Policy Validator
+- Finding Identity 결속
+- 최소 Checker 수정
+- 양성/음성 자체검사
+- 관련 Test Fixture
+
+금지:
+- 역사 원본 3개 수정
+- 일반 Source 주석 수정
+- 전체 위반 일괄 Baseline
+- 신규 7건 면제
+- Python CC01-0578 수정
+- 검사 범위 축소
+- 기존 정책 예외 삭제
+- 제품 C++ 수정
+- 공식 Binary Build
+- 기존 Source Commit 수정
+- Git Stage/Commit/Push
+
+## 8. Fail-Closed 예외 구현
+
+예외 적용 전 다음 조건을 모두 검증한다.
+
+A. 정확한 상대 경로
+
+B. 실제 Regular File Identity
+
+C. 전체 파일 크기
+
+D. 전체 파일 SHA256
+
+E. Finding 종류
+
+F. Finding ID
+
+G. 원래 Finding Digest
+
+H. 위치 및 실제 문맥
+
+I. 지원 정책 Version
+
+J. 외부 사용자 승인 기록의 정확한 결속
+
+모든 조건이 일치할 때만
+승인된 Finding 1건을 예외 처리한다.
+
+5건을 묶어 파일 전체를 Ignore하지 않는다.
+
+특정 Finding만 예외 적용한다.
+
+기존 검사기는 나머지 Finding을
+정상적으로 모두 검출해야 한다.
+
+다음 상황은 Fail-Closed로 처리한다.
+
+- 경로 변경
+- 파일 크기 변경
+- 파일 Hash 변경
+- Finding 종류 변경
+- Finding Digest 변경
+- 위치/문맥 변경
+- 승인 기록 불일치
+- 정책 Version 불일치
+- 신규 Finding 발생
+- 승인되지 않은 파일
+- 파일 복사/이동
+- 기존 승인 Finding의 다른 파일 재사용
+
+승인 결속 실패를 단순 Warning으로
+변환하지 않는다.
+
+승인 기록만 일치하고 실제 파일이
+불일치하는 경우에도 FAIL이다.
+
+## 9. 기존 예외 계약 유지
+
+기존 예외:
+- 역사 파일 6개 헤더
+- 영문 Marker 패턴 2종
+
+기존 구현 의미를 유지한다.
+
+이번 3개 파일에 기존 예외를
+자동 확장하지 않는다.
+
+이번 예외는 새로운 정확한 5건으로
+한정한다.
+
+일반 Legacy Baseline을 도입하지 않는다.
+
+기존 PH01~PH15는 그대로 유지한다.
+
+신규 예외가 기존 예외의 판정을
+변경하지 않는지 검증한다.
+
+## 10. Finding Identity 회귀
+
+다음 조건을 검증한다.
+
+양성:
+- 정확한 3개 파일 Identity
+- 정확한 5건
+- 승인된 정책 Version
+- 승인된 Finding Digest
+
+음성:
+- 파일 Hash 변경
+- 파일 크기 변경
+- 경로 변경
+- 동일 basename의 다른 파일
+- 다른 디렉터리로 복사
+- 승인 Finding 이외의 새 위반
+- 승인 Finding 종류 변경
+- Finding 위치 변경
+- Finding 문맥 변경
+- 승인 메타데이터 위조
+- 승인 기록 누락
+- 승인 계약 Hash 불일치
+- 정책 Version 불일치
+- 다른 역사 파일
+- 일반 Source 파일
+- 미래 추가 주석
+- 신규 헤더 누락
+- 새 영문 전용 주석
+
+CC02에서 설계한 회귀:
+- 양성 4개
+- 음성 22개
+- Coverage 및 경계 3개
+
+를 기준으로 구현한다.
+
+임의로 22개를 축소하지 않는다.
+
+기존 PH01~PH15도 유지한다.
+
+모든 회귀의 실제 Command/Exit/Assertion을 기록한다.
+
+## 11. 기존 Finding 보존 검증
+
+이번 구현의 가장 중요한 결과는
+정확히 승인된 5건만 예외 처리하는 것이다.
+
+CC01에서 확보한 기존 1280건 원장을
+고정 입력 기준으로 사용한다.
+
+다음을 확인한다.
+
+- 승인 대상 5건 모두 정확히 일치
+- 승인 외 Finding 변경 없음
+- 신규 예외 적용 범위 5건
+- 다른 Finding 자동 면제 0건
+- 신규 Source 위반 7건 유지
+- CC01-0578 유지
+- 일반 상속 위반 유지
+
+현재 후보의 다른 Source 파일을 수정하지 않았다면
+예상 잔여 위반은 1275건이다.
+
+단, 예상 건수를 실제 PASS로 기록하지 않는다.
+
+실제 Checker 결과와 Finding Identity를
+비교해야 한다.
+
+새 정책/검사기 코드 자체에서
+새로운 위반이 발생한 경우도 숨기지 않는다.
+
+최종 code-comments 전체 PASS는
+이번 작업의 성공 조건이 아니다.
+
+## 12. 실제 표적 검증
+
+제품 없이 가능한 검사만 실행한다.
+
+먼저:
+- 정책 Validator 자체검사
+- Finding Identity Fixture
+- Fail-Closed 음성 검사
+- 기존 PH01~PH15
+- 신규 4/22/3 회귀
+
+를 수행한다.
+
+필수 회귀 PASS 시에만
+신규 후보의 code-comments 전체 단독 검사를
+최대 1회 수행한다.
+
+실제 실행 전 다음을 확인한다.
+
+- 제품 Spawn 0회
+- Source 수정 없는 실행
+- 기존 Checker CLI 계약
+- 고정 Node
+- 출력 파일 위치
+- Scratch Cleanup
+- 실제 Exit Code 의미
+
+전체 Checker가 승인 외 위반을 찾아
+Exit 1로 반환하는 것은 예상된 결과다.
+
+이를 전체 검사 성공으로 표현하지 않는다.
+
+CC03의 성공은 정확한 예외 적용 및
+위반 보존 검증 성공이다.
+
+전체 code-comments PASS와 구분한다.
+
+전체 Checker 실패 후 자동 재실행하지 않는다.
+
+## 13. Source 변경 상태
+
+이번 구현은 기존 신규 후보에서만 수행한다.
+
+/Users/dhseo/Workspace/mediaServer-candidates/g07-inv04-p01-s01-b2714078e0bf
+
+기준 Commit:
+3fcdfb956291f204add0d3ee79a2f2a700510034
+
+기준 Tree:
+83c9448255b55d628e2f4d98f6383b30c9f93bd1
+
+현재 Commit/Tree는 변경하지 않는다.
+
+구현 후 Working Tree에 새 미커밋 변경이
+발생하는 것은 이번 승인 범위다.
+
+Index는 clean을 유지한다.
+
+Git Stage/Commit/Push를 실행하지 않는다.
+
+현재 Commit이 존재한다고 해서
+CC03 수정까지 Freeze 완료됐다고
+주장하지 않는다.
+
+이번 수정은:
+
+CC03_UNCOMMITTED_POLICY_DELTA
+
+로 구분한다.
+
+## 14. Binary 및 기존 Evidence 영향
+
+기존 Binary SHA256:
+ac027e7a0aa0a9ef4d1e309def7b94e4f20e8c70b8e25ebcdc55f1efad50193b
+
+이번에는 Build하지 않는다.
+
+정책/검사기 변경이 제품 Build 입력에
+포함되는지 정적으로 확인한다.
+
+기존 Binary 재사용 판정을
+새 CC03 변경 후보에 자동 승계하지 않는다.
+
+기존 Native184/G06/G08 Evidence도
+기존 Source Identity 기준으로 보존한다.
+
+이번 표적 결과를 기존 Runtime PASS로
+승격하지 않는다.
+
+Limited Predev Package와
+INV05 Package도 변경하지 않는다.
+
+## 15. 보호 조건
+
+사용자 원본:
+/Users/dhseo/Workspace/mediaServer
+
+기준:
+- Branch v4.5.0
+- HEAD 5a3b7b9a0890e2a7950c644ed398092e378a5da5
+- 사용자 수정 17개
+- Index clean
+
+작업 전후:
+- 원본 Branch/HEAD
+- 기존 수정 17개 SHA256
+- 원본 Index
+- 공식 Source A Commit/Tree
+- 신규 후보 Base Commit/Tree
+- Binary Hash
+- 역사 원본 3개 Hash
+- 기존 Evidence Manifest
+
+를 확인한다.
+
+기존 Evidence를 수정하지 않는다.
+
+이번 변경 파일별 Before/After SHA256을 기록한다.
+
+## 16. 신규 Evidence
+
+Root:
+/Users/dhseo/Workspace/mediaServer-evidence/
+
+새 고유 디렉터리 사용.
+
+필수 산출물:
+- approval-verification.json
+- approved-policy-identity.json
+- historical-file-verification.json
+- exception-policy-implementation.json
+- finding-identity-verification.json
+- fail-closed-regression.json
+- ph01-ph15-regression.json
+- new-exception-regression.json
+- findings-before-after.json
+- changes.json
+- binary-impact-assessment.json
+- protection-verification.json
+- report.json
+- artifact-manifest.json
+
+승인 기록과 실제 구현 결과를 구분한다.
+
+변경된 Source 파일은 독립 Snapshot으로 보존한다.
+
+향후 수정 가능한 Worktree 파일을
+불변 Evidence Manifest에 직접 결속하지 않는다.
+
+Receipt/Manifest의 크기·SHA256을
+독립 재조회한다.
+
+최종 Manifest SHA256을 보고한다.
+
+## 17. 최종 판정
+
+명시적 승인 확인,
+정확한 3개 파일/5건 예외 구현,
+Fail-Closed 조건,
+기존 PH01~PH15,
+신규 양성 4/음성 22/경계 3,
+일반 위반 보존,
+역사 원본 및 Evidence 보호,
+신규 Receipt 검증까지 모두 PASS하면:
+
+G07_LP_CC03_EXACT_EXCEPTION_TARGETED_VERIFIED
+
+를 부여한다.
+
+이 판정은 정확한 정책 예외의
+표적 구현 검증이다.
+
+code-comments 전체 PASS가 아니다.
+
+후보의 새로운 Commit/Tree Freeze도 아니다.
+
+정책 승인 근거 확인 실패:
+
+G07_LP_CC03_APPROVAL_BLOCKED
+
+정확한 Finding 결속 실패:
+
+G07_LP_CC03_BINDING_FAILED
+
+Fail-Closed 또는 회귀 실패:
+
+G07_LP_CC03_REGRESSION_FAILED
+
+기존 Source/Evidence 보호 실패:
+
+G07_LP_CC03_PROTECTION_FAILED
+
+필수 입력 또는 구현 차단:
+
+G07_LP_CC03_BLOCKED
+
+실제 결과에 따라 판정한다.
+
+## 18. 공식 상태 보존
+
+Recorder Lifecycle GO
+Search Publication/Rebase GO
+Source A Freeze VERIFIED
+
+Native184 PASS
+HTTP H01/H02/H04/H05 VERIFIED
+G08-01~03 VERIFIED
+G06_A_RESTART_RUNTIME_VERIFIED
+
+State45 FAIL
+Currentness/Preparation HOLD
+Memory P0 HOLD
+Readiness120 HOLD
+Release HOLD
+Private DTO HOLD
+
+EP1 유지
+EP2/EP3 미착수
+
+G07_LIMITED_PREDEV_STABILIZATION_FAILED 유지.
+G07_RUNTIME_NOT_VERIFIED 유지.
+
+CC01/CC02 판정 보존.
+
+기존 code-comments 전체 FAIL은
+실제 후속 수정과 검증 전까지 유지한다.
+
+## 19. 최종 보고
+
+다음 순서로 보고한다.
+
+1. 최종 판정
+2. 실제 사용자 정책 승인 확인
+3. 승인 계약 SHA256
+4. 정책 승인 대상 3개 파일
+5. 정확한 Finding 5건
+6. 기존 역사 원본 Hash 보존
+7. 실제 수정 파일 목록
+8. 정책 Validator 구현
+9. Finding Identity 결속 방식
+10. Fail-Closed 차단 동작
+11. 기존 PH01~PH15 결과
+12. 신규 양성/음성/경계 회귀
+13. 기존 일반 위반 유지
+14. 예상 1275건과 실제 결과 비교
+15. 신규 7건 보존
+16. Python CC01-0578 보존
+17. code-comments 실제 실행 결과
+18. Source 후보 Working Tree/Index
+19. Binary 영향
+20. 기존 Evidence 보호
+21. 제품 Runtime/Build/Commit/Push 0회
+22. 신규 Evidence 경로
+23. Manifest SHA256
+24. 미입증 사항
+25. 다음 단일 EP4 이슈 하나
+
+## 20. 다음 단일 이슈
+
+CC03가 성공하면 다음은:
+
+G07-LP-CC04
+
+일반 Source code-comments 위반 수정 및
+Python 과검출 CC01-0578 보완이다.
+
+단, CC04에서는 기존 CC01의 정확한 원장을
+사용하고 전체 분석을 처음부터 반복하지 않는다.
+
+주요 조건:
+- 일반 Source 주석 실제 의미 보존
+- 새 코드 기능 변경 금지
+- Python 과검출 최소 보완
+- 전체 code-comments PASS
+- 제품 Build 입력 변경 영향 검증
+- 새로운 Source Commit/Tree 및 Freeze
+- 최종 G07 Package 재결속
+
+대규모 수정이므로 필요한 경우
+파일군별 승인 범위와 검증 단위를 구분한다.
+
+CC03에서 CC04를 자동 실행하지 않는다.
+
+CC03 실패 시 최초 실패 하나만
+다음 단일 이슈로 선정한다.
+
+이번 작업은 정확한 역사 Finding 5건의
+정책 예외 구현 및 표적 검증으로 한정한다.

@@ -1,4 +1,4 @@
-// 실제 원본 append/삭제로 이력만 증가시킨 뒤 같은 retention 후보의 비용을 비교한다.
+// 파일 용도: 실제 원본 append·삭제로 이력만 늘린 뒤 동일 retention 후보의 비용을 비교한다.
 #define main RetentionCostMediaFixtureMain
 #include "recording_file_evidence_smoke.cpp"
 #undef main

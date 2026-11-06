@@ -4,7 +4,7 @@ No user supplied allowlist, no inheritance of the old product's qualification.
 Writer/Smoke/Build must execute at the final clean HEAD. Native is reused only for
 unchanged functional bytes, with new diagnostic tests for the exact delta.
 """
-import json
+import json  # 파일 용도: 고정된 검토 제품과 제한된 진단 차이를 대조하여 v2 Recorder 후속 결속을 검증한다.
 from pathlib import Path
 import subprocess
 import sys
@@ -49,7 +49,7 @@ def validate_recorder_lineage(repo,b):
     need(len(sources)==405,'recorder-source-count')
     current=identity(repo)
     product_names={p for p in current['sources'] if p=='CMakeLists.txt' or p.startswith(('src/','include/'))}
-    # Full git product set, including any additions outside the old 405 manifest.
+    # 기존 405개 manifest 밖에 추가된 파일까지 포함한 전체 Git 제품 파일 집합이다.
     baseline_names=set(git(repo,'ls-tree','-r','--name-only',BASE,'--','CMakeLists.txt','src','include').splitlines())
     need(product_names==baseline_names,'recorder-product-file-set')
     changed=set(git(repo,'diff','--name-only',BASE,'HEAD','--','CMakeLists.txt','src','include').splitlines())
@@ -66,8 +66,8 @@ def validate_recorder_lineage(repo,b):
     native=json.loads(reuse.read_text());need(len(native['files'])==39,'recorder-native-coverage')
     for row in native['files']:
         p=Path(row['path']);bound(dict(path=str(p),sha256=row['sha256'],bytes=p.stat().st_size))
-    # Preserve exact historical Multi-Finalize/Shutdown artifacts, but not their
-    # old product qualification. New Writer/Smoke below prove final product stop.
+    # 정확한 과거 Multi-Finalize·Shutdown artifact는 보존하되 그때의 제품 적격성은
+    # 승계하지 않는다. 아래의 새 Writer·Smoke가 최종 제품의 중지를 증명한다.
     validate_fixed_lineage_artifacts(b)
     diagnostic=read(line['diagnostic'])
     need(diagnostic['schema']=='recorder-mutex-qualification-v1' and diagnostic['source']==current and

@@ -1,4 +1,4 @@
-// 실제 header의 고정 receipt/실패 상태를 격리 프로세스에서 검사한다. 서버는 시작하지 않는다.
+// 파일 용도: 실제 header의 고정 receipt·실패 상태를 격리 프로세스에서 검사하며 서버는 시작하지 않는다.
 #ifndef RECORDING_COMPLETION_LINKED
 #define RECORDING_COMPLETION_TRACE_TEST
 #else
@@ -22,7 +22,7 @@ int main(int argc,char** argv){
     const std::string mode=argv[1];
     std::mutex mutex;recording::latency::MutexIdentity mutex_identity(&mutex);{recording::latency::Lock lock(mutex,recording::latency::Source::Test,__LINE__,true);}
 #ifdef RECORDING_COMPLETION_LINKED
-    // Link the real Evidence producer from the rebuilt archive, with no test sinks.
+    // 재빌드한 archive의 실제 Evidence producer를 연결하며 test sink를 사용하지 않는다.
     if(mode!="normal"&&mode!="abnormal"&&mode!="missing")return 2;
     Composition();
     recording::EvidenceFailure failure;

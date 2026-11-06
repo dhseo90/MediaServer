@@ -8,14 +8,14 @@ ROOT_DIR="$(cd "${SCRIPT_DIR}/../.." && pwd)"
 BUILD_DIR="${MEDIA_SERVER_VERIFY_V410_RECORDING_RECORDER_BUILD_DIR:-/tmp/media_server_v410_recording_recorder-$$}"
 CXX_BIN="${CXX:-c++}"
 
-# Reject an existing/aliased root before creating anything or arming cleanup.
+# 경로 생성이나 cleanup 등록 전에 기존 root와 별칭 경로를 거부한다.
 umask 077
 BUILD_DIR="$(python3 -B - "$SCRIPT_DIR" "$BUILD_DIR" <<'PYROOT'
 import os, pathlib, sys
 sys.path.insert(0, sys.argv[1])
 from recording_native_isolation import environment
 p = pathlib.Path(sys.argv[2])
-# /tmp is a platform alias; resolve only its existing parent, never an existing target.
+# /tmp는 플랫폼 별칭이므로 기존 상위 경로만 resolve하고 이미 존재하는 대상은 resolve하지 않는다.
 if not p.is_absolute() or p.exists() or p.is_symlink():
     raise SystemExit('exclusive test root required')
 p = p.parent.resolve(strict=True) / p.name
@@ -32,7 +32,7 @@ p.mkdir(mode=0o700)
 try:
     environment(p)
 except Exception:
-    # Preserve preparation evidence; never recurse on an unvalidated root.
+    # 준비 증거를 보존하며 검증하지 않은 root를 재귀적으로 처리하지 않는다.
     raise
 print(p)
 PYROOT

@@ -105,7 +105,7 @@ int main(int argc,char** argv){
         }
         recording::RecordingReadService read(store.catalog);RecordingApplicationService app(read,store.catalog,true,{});
         auto owner=store.catalog.SearchResidency();
-        // Keep a real independent consumer alive across all transport terminations.
+        // 모든 transport 종료 경로를 거치는 동안 실제 독립 소비자를 살아 있게 유지한다.
         auto held=app.Search({{"channelIds","http-large-channel"},{"startTimeMs","1789200000000"},{"endTimeMs","1789200003000"},{"limit","200"},{"includeUnplaced","true"},{"object","person"}},"held-owner","held-scope",[](const auto&){return true;});
         std::cout<<"[prepared-response] status="<<held.status<<" bytes="<<held.body.size()<<std::endl;
         Require(held.status==200&&held.memory.bytes()>0&&held.body.size()>3*1024*1024,"independent real response owner and sufficient valid body");
@@ -135,11 +135,11 @@ int main(int argc,char** argv){
                 std::cout<<"[stop-completion-race] wireBytes="<<wire_bytes<<" active="<<RecordingHttpOwnershipProbe::Active(server)<<std::endl;
             }
             if(mode=="timeout") {
-                // Original MEM85 observation begins at POLLOUT=false, which need
-                // not mean a zero-progress send: kernels can still accept bytes.
-                // The diagnostic mode preserves that exact 12s premise. The new
-                // separate case fixes a 12s preparation followed by a 12s window;
-                // neither window is moved on later positive progress.
+                // 기존 MEM85 관측은 POLLOUT=false부터 시작하지만 kernel이 바이트를 받을 수 있으므로
+                // 이것이 반드시 송신 진행량 0을 뜻하지는 않는다.
+                // 진단 mode는 정확히 그 12초 전제를 유지한다. 별도의 새 case는 12초 준비 구간 뒤
+                // 12초 관측 구간을 고정하며 어느 구간도 이후의 양수 진행량을 근거로
+                // 이동하지 않는다.
                 const auto preparationEnd=Clock::now()+std::chrono::seconds(diagnose?0:12);
                 while(RecordingHttpOwnershipProbe::Active(server)&&Clock::now()<preparationEnd)
                     std::this_thread::sleep_for(std::chrono::milliseconds(5));

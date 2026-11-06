@@ -1,4 +1,6 @@
 // 파일 용도: REVIEW4 승인 원본은 메모리 fixture에만 두고 현재 source 위치 읽기를 검사한다.
+import { fileURLToPath } from 'node:url';
+import { loadImplementationManifest, parseFeatureRows, validateImplementationManifestEntries } from './feature_implementation_manifest_lib.mjs';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import os from 'node:os';
@@ -6,7 +8,7 @@ import path from 'node:path';
 import test from 'node:test';
 import vm from 'node:vm';
 import * as trustLibrary from './feature_semantic_review4_trust_lib.mjs';
-import { validateSemanticItem, semanticDigest, SEMANTIC_CLOSURE_SCHEMA, REVIEW3_CALL_CHAIN_SCHEMA } from './feature_semantic_evidence_lib.mjs';
+import { validateReview4CurrentSourceSuccessor, validateSemanticItem, semanticDigest, SEMANTIC_CLOSURE_SCHEMA, REVIEW3_CALL_CHAIN_SCHEMA } from './feature_semantic_evidence_lib.mjs';
 import { buildReview4SemanticObligation, buildReview4TrustBindings, parseVerifiedReview4Dispatch, review4SourceFlowDigest, sha256, REVIEW4_APPROVAL_SOURCE, REVIEW4_APPROVAL_REVIEWER_SOURCE } from './feature_semantic_review4_trust_lib.mjs';
 
 function fixture(run, options = {}) {
@@ -179,3 +181,90 @@ test('R4L23 Python heredoc condition retains non-shell branch reader', () => fix
   assert.ok(branch.includes('raise SystemExit("invalid image size")'));
   assert.ok(branch.includes(role.anchor));
 }));
+
+// 독립 검토 기록의 현행 결속만 검사하며 실제 제품·HTTP·UI를 실행하지 않는다.
+const currentRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
+const successorFile = "test/fixtures/ops174_current_source_review_v1.json";
+const successorBytes = fs.readFileSync(path.join(currentRoot, successorFile));
+const successorDecision = JSON.parse(successorBytes.toString("utf8"));
+const successorManifest = loadImplementationManifest(currentRoot);
+const successorEntry = successorManifest.items.find(item => item.id === "OPS-174");
+const successorOldProof = successorEntry.semanticEvidence.review4Proof;
+function successorFixture(run, { sourceRoot = currentRoot, temporaryParent = os.tmpdir() } = {}) {
+  const rootDir = fs.mkdtempSync(path.join(temporaryParent, "ops174-successor-"));
+  try {
+    fs.chmodSync(rootDir, 0o700);
+    const copy = file => {
+      const destination = path.join(rootDir, file);
+      fs.mkdirSync(path.dirname(destination), { recursive: true });
+      fs.copyFileSync(path.join(sourceRoot, file), destination);
+    };
+    copy(successorFile);
+    for (const input of successorDecision.currentSourceBindingFiles) copy(input.file);
+    const args = { rootDir, id: "OPS-174", historicalProof: structuredClone(successorOldProof), currentItem: structuredClone(successorDecision.currentProof) };
+    run({ rootDir, args, check: () => validateReview4CurrentSourceSuccessor(args) });
+  } finally { fs.rmSync(rootDir, { recursive: true }); assert.equal(fs.existsSync(rootDir), false); }
+}
+
+test('R4S01 actual OPS-174 entry selects independently reviewed current source', () => {
+  const rows = parseFeatureRows(fs.readFileSync(path.join(currentRoot, 'docs/project-feature-test-inventory.md'), 'utf8'));
+  const before = structuredClone(successorEntry);
+  assert.deepEqual(validateImplementationManifestEntries({ rootDir: currentRoot, rows, items: [successorEntry] }), []);
+  assert.deepEqual(successorEntry, before);
+});
+test('R4S02 historical fixtures and applied proof remain exact', () => {
+  for (const input of successorDecision.historical.immutableFixtures) assert.equal(sha256(fs.readFileSync(path.join(currentRoot, input.file))), input.sha256);
+  assert.equal(sha256(trustLibrary.stableStringify(successorOldProof)), successorDecision.historical.appliedProofSha256);
+});
+test('R4S03 missing or modified independent approval cannot select the successor', () => successorFixture(f => {
+  assert.deepEqual(f.check(), { selected: true, errors: [] });
+  const file = path.join(f.rootDir, successorFile);
+  fs.appendFileSync(file, ' ');
+  assert.match(f.check().errors.join('\n'), /artifact drift/);
+  fs.unlinkSync(file);
+  assert.deepEqual(f.check(), { selected: false, errors: [] });
+  const proof = { ...structuredClone(f.args.currentItem), trustBindings: successorOldProof.trustBindings };
+  assert.ok(trustLibrary.validateReview4TrustBindings(f.rootDir, proof, parseVerifiedReview4Dispatch(f.rootDir)).length > 0);
+}));
+test('R4S04 changed product bytes and symlink inputs are rejected', () => successorFixture(f => {
+  const file = path.join(f.rootDir, successorDecision.currentSourceBindingFiles[0].file);
+  fs.appendFileSync(file, '\n');
+  assert.match(f.check().errors.join('\n'), /source drift/);
+  fs.unlinkSync(file);
+  fs.symlinkSync(path.join(currentRoot, successorDecision.currentSourceBindingFiles[0].file), file);
+  assert.match(f.check().errors.join('\n'), /symlink rejected/);
+}));
+test('R4S05 approval is confined to OPS-174 and cannot admit another feature', () => successorFixture(f => {
+  f.args.id = 'OPS-175'; f.args.currentItem.id = 'OPS-175';
+  assert.deepEqual(f.check(), { selected: false, errors: [] });
+  const proof = { ...f.args.currentItem, trustBindings: successorOldProof.trustBindings };
+  assert.ok(trustLibrary.validateReview4TrustBindings(f.rootDir, proof, parseVerifiedReview4Dispatch(f.rootDir)).length > 0);
+}));
+test('R4S06 modified historical proof cannot inherit current approval', () => successorFixture(f => {
+  f.args.historicalProof.approval.reason += ' changed';
+  assert.match(f.check().errors.join('\n'), /predecessor proof drift/);
+}));
+test('R4S07 stale locations, old bindings and changed edges are rejected', () => successorFixture(f => {
+  const original = structuredClone(f.args.currentItem);
+  f.args.currentItem.roles.owner.line = successorOldProof.roles.owner.line;
+  assert.ok(f.check().errors.length > 0);
+  f.args.currentItem = { ...structuredClone(original), trustBindings: successorOldProof.trustBindings };
+  assert.ok(f.check().errors.length > 0);
+  f.args.currentItem = structuredClone(original); f.args.currentItem.edges[0].witness += ' changed';
+  assert.ok(f.check().errors.length > 0);
+}));
+test('R4S08 substitution with predecessor source identities is rejected', () => successorFixture(f => {
+  f.args.currentItem.trustBindings.roles.owner.trackedBlobSha256 = successorDecision.historical.originalRuntime.blobSha256;
+  assert.match(f.check().errors.join('\n'), /trustBindings drift/);
+}));
+
+test('R4S09 missing source during fixture preparation still removes its owned directory', () => {
+  const parent = fs.mkdtempSync(path.join(os.tmpdir(), 'ops174-prepare-failure-'));
+  try {
+    const sourceRoot = path.join(parent, 'source');
+    fs.mkdirSync(path.dirname(path.join(sourceRoot, successorFile)), { recursive: true });
+    fs.copyFileSync(path.join(currentRoot, successorFile), path.join(sourceRoot, successorFile));
+    assert.throws(() => successorFixture(() => assert.fail('missing source reached validation'), { sourceRoot, temporaryParent: parent }), { code: 'ENOENT' });
+    assert.deepEqual(fs.readdirSync(parent), ['source']);
+  } finally { fs.rmSync(parent, { recursive: true }); assert.equal(fs.existsSync(parent), false); }
+});

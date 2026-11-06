@@ -175,8 +175,8 @@ bool EvidencePackageBuilder::CreateImpl(bool observations,const SearchDocument& 
         return Fail(error,"evidence-invalid-request");
     const auto expired=[&]{return std::chrono::steady_clock::now()>=deadline||(cancelled&&cancelled());};
     if(expired())return Fail(error,"evidence-timeout");
-    // Existing manifest admission is 1MiB, at most 8 frames and 64KiB of
-    // observations. Reserve non-pixel construction/serialization before copying.
+    // 기존 manifest 허용 한도는 1MiB이며 frame은 최대 8개, observation은 64KiB다.
+    // 복사 전에 pixel 외 구성·직렬화에 필요한 공간을 예약한다.
     auto package_memory=catalog_.SearchResidency()->ReserveOwned(8*1024*1024,recording::SearchModelResidency::Category::Unattributed,recording::SearchModelResidency::Site::EvidencePackage);
     if(!package_memory)return Fail(error,"evidence-resource-unavailable");
     auto hit=input;

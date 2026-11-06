@@ -15,8 +15,8 @@ if(selection!==undefined&&!['--state-preseed','--native-lifetime','--native-rete
 const preseed=selection==='--state-preseed',lifetime=selection==='--native-lifetime',retentionHistory=selection==='--native-retention-history',retention=selection==='--native-retention'||retentionHistory;
 if(!root||fs.realpathSync(root)!==root||!/^\/private\/tmp\/media-server-|^\/tmp\/media-server-/.test(root))throw Error('owned-run');
 const rs=fs.lstatSync(root);if(rs.uid!==process.getuid()||(rs.mode&511)!==448)throw Error('run-owner');
-// Reuse the existing OS-level 240s supervisor, including owned detached descendants.
-// This branch is not entered by the Mock tests or any existing mode.
+// 소유한 detached 자손을 포함해 기존 OS 수준의 240초 supervisor를 재사용한다.
+// Mock 검사나 기존 mode에서는 이 분기에 진입하지 않는다.
 if(lifetime&&process.env.MEDIA_SERVER_NATIVE_LIFETIME_WORKER!==String(process.ppid)){
  const supervision=String.raw`import importlib.util,json,os,pathlib,sys
 os.umask(0o077)
@@ -96,7 +96,7 @@ function preseedArtifacts(dir){
  const r=validatePreseedReceipt(JSON.parse(bytes),JSON.parse(manifest),hash(ledger));if(r.manifestSha256!==hash(manifest))throw Error('preseed-manifest-sha');
  return {receipt:r,baselineSha256:hash(bytes),ledgerSha256:hash(ledger)};
 }
-// Native lifetime-only contracts. Existing modes keep their own phase and receipt rules.
+// Native lifetime 전용 계약이며 기존 mode는 각자의 phase·receipt 규칙을 유지한다.
 function lifetimeOwner(row,index,prior){
  const stages=['held','appended','checkpoint-held','prepared-released','reader-released','direct-released','page-released','pool-released','evidence-released','objects-released'];
  const vectors=[[1,1,1,1,1,1,0,1,1],[1,1,1,1,1,1,1,1,1],[1,1,1,1,1,1,1,1,1],[0,1,1,1,1,1,1,1,1],[0,0,1,1,1,1,1,1,1],[0,0,0,1,1,1,1,1,1],[0,0,0,0,1,1,1,1,1],[0,0,0,0,0,0,1,1,1],[0,0,0,0,0,0,1,0,1],[0,0,0,0,0,0,0,0,0]];
@@ -167,7 +167,7 @@ async function runLifetime(){
  lifetimeWrite(path.join(root,'lifetime-result.json'),JSON.stringify({source,...result})+'\n');return result;
 }
 function lifetimeGroup(event,pid){const fd=fs.openSync(path.join(root,'lifetime-groups.jsonl'),'a');try{const row=JSON.stringify({event,pid})+'\n';if(fs.writeSync(fd,row)!==Buffer.byteLength(row))throw Error('lifetime-group-write');fs.fsyncSync(fd);}finally{fs.closeSync(fd);}}
-// Separate receipt contract: baseline history never counts as observed progress.
+// 별도의 receipt 계약이며 baseline history를 관측된 진행량으로 세지 않는다.
 function validateRetention(r,prior,baseline,ledger,source,windowMode=false){
  const need=(v,c)=>{if(!v)throw Error('retention-receipt-'+c);},int=n=>Number.isSafeInteger(n)&&n>=0,hash=b=>crypto.createHash('sha256').update(b).digest('hex');
  need(r?.schema==='native-retention-v1'&&r.channel==='9101'&&r.scope===(windowMode?'synthetic-retention-eight-cycles':'synthetic-retention-two-cycles')&&r.checkpointKind==='explicit-preparation-and-final-only','contract');

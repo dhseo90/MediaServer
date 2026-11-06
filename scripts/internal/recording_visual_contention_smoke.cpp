@@ -24,8 +24,8 @@ namespace {
 using VS=ingress::VisualSearchApplicationService;
 using Clock=std::chrono::steady_clock;
 void Need101(bool ok,const std::string& why){if(!ok)throw std::runtime_error(why);}
-// Opt-in density only: immutable State snapshot supplies mapping shapes, not
-// source/file bindings. Every new row still passes the existing real file proof.
+// opt-in density 전용이며 불변 State snapshot은 mapping 형태만 제공하고 source·file
+// binding은 제공하지 않는다. 신규 row 모두 기존의 실제 file 증명을 계속 통과해야 한다.
 std::vector<recording::RecordingSegmentV2> Density101(){
  const char* path=std::getenv("MEDIA_SERVER_NATIVE_CAPTURE_SNAPSHOT");if(!path)return {};
  Need101(std::filesystem::file_size(path)<=16*1024*1024,"density-input-cap");
@@ -77,8 +77,8 @@ void Published101(VS& service,const VS::Authorize& auth,std::uint64_t initial,Cl
   Need101(ingress::ParseStrictJsonObjectDocument(status.body,&doc,&error),"publication-json");
   const auto state=ingress::StrictJsonStringField(doc,"state");Need101(state.has_value(),"publication-state");
   Need101(*state!="stopped"&&*state!="unavailable","publication-stopped-or-unavailable");
-  // A failed refresh retains the previous complete index under the existing
-  // worker contract. Preserve the first observed failure; never label it success.
+  // 기존 worker 계약에 따라 refresh 실패 시 이전의 완전한 index를 유지한다.
+  // 처음 관측한 실패를 보존하며 성공으로 표시하지 않는다.
   if(*state=="degraded"&&!reported_failure){std::cout<<"[R101-refresh-failure-observed] "<<status.body<<std::endl;reported_failure=true;}
   if((*state=="ready"||*state=="indexing")&&Generation101(status.body)>initial){std::cout<<"[R101-publication-complete] elapsedMs="<<std::chrono::duration<double,std::milli>(Clock::now()-begin).count()<<" status="<<status.body<<std::endl;return;}
   std::this_thread::sleep_for(std::chrono::milliseconds(20));
@@ -157,8 +157,8 @@ int main(int argc,char** argv){
  }
  RecordingReadService reader(catalog);ingress::RecordingApplicationService structured(reader,catalog,true,{});
 #ifdef RECORDING_SEARCH_TESTING
- // Same density and real Writer, isolated from the slow model startup.
- // A failed unpublished Build is followed by exactly two/three Refresh calls.
+ // 같은 density와 실제 Writer를 사용하며 느린 model 시작 과정과 분리한다.
+ // 공개되지 않은 Build 실패 뒤 정확히 2회 또는 3회 Refresh를 호출한다.
  if(density_rows&&std::getenv("MEDIA_SERVER_NATIVE_CAPTURE_RETRY_ONLY")){
  for(unsigned invalidations:{1U,2U}){
   auto owner=std::make_shared<SearchModelResidency>();
@@ -182,7 +182,7 @@ int main(int argc,char** argv){
    Need101(builds==invalidations+1&&retry.memory.bytes()==0,"density-post-build-count-return");
    for(unsigned i=0;i<diagnostic.capture_count;++i)std::cout<<Capture101("post-build",invalidations+1,i,diagnostic.id,diagnostic.captures[i]);
    std::cout<<"[density-post-build] attempts="<<invalidations+1<<" elapsedMs="<<elapsed<<" peak="<<owner->peak()<<" current="<<owner->used()<<" documents="<<result->documents().size()<<std::endl;
-   // Independent full source verifies ordering, identity, mapping and lifecycle.
+   // 독립적인 전체 source로 순서·identity·mapping·lifecycle을 검증한다.
    search_projection_reuse_test_enabled=false;
    Need101(source.Refresh({"9101"},{},&oracle,&error,limits,false),"density-post-build-oracle:"+error);
    search_projection_reuse_test_enabled=true;
@@ -205,8 +205,8 @@ int main(int argc,char** argv){
  Observer101("model");
  std::promise<bool> indexing_gate;const auto indexing_ready=indexing_gate.get_future().share();
  VS service(catalog,reader,options,[indexing_ready](auto* out){if(!indexing_ready.get())return false;*out={"9101","9201"};return true;});
- // The existing constructor has closed both verified temporary ONNX FDs. Its
- // worker cannot collect Catalog rows before the parent's live admission.
+ // 기존 생성자가 검증된 임시 ONNX FD 둘을 모두 닫았다. worker는 parent의
+ // live 허용 결정 전에 Catalog row를 수집할 수 없다.
  struct ReleaseIndex {std::promise<bool>& gate;bool released=false;void Release(bool accepted){if(!released){gate.set_value(accepted);released=true;}}~ReleaseIndex(){Release(false);}} release_index{indexing_gate};
  Observer101("live");release_index.Release(true);Ready101(service,auth,scale=="cycle"?600:180);
  const auto initial_generation=Generation101(service.Status(auth).body);
@@ -252,8 +252,8 @@ int main(int argc,char** argv){
   for(auto& job:jobs){const auto [visual,client,ms,status,body,costs]=job.get();std::cout<<costs;times.push_back(ms);if(status!=200)++failures;std::cout<<"[R101-request] round="<<round<<" visual="<<visual<<" client="<<client<<" ms="<<ms<<" status="<<status<<" body="<<body<<std::endl;}
  }
  if(background.joinable())background.join();if(bgerror)std::rethrow_exception(bgerror);
- // Observe actual publication before Stop cancels the worker. This consumes
- // the existing parent total budget, never a search latency or extra warmup.
+ // Stop이 worker를 취소하기 전에 실제 publication을 관측한다. 기존 parent 총예산을
+ // 소비하며 search 지연 측정이나 추가 warmup으로 취급하지 않는다.
  if(mode=="background")Published101(service,auth,initial_generation,run_begin+std::chrono::seconds(scale=="cycle"?630:180));
  std::cout<<"[R101-post-background] "<<service.Status(auth).body<<std::endl;
  if(mode=="background")Need101(writes.load()==6&&(scale!="cycle"||removed.load()>0),"actual-background-gate");

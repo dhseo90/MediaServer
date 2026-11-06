@@ -1,4 +1,4 @@
-// 기본 검사는 합성 정보, 명시 opt-in은 보존된 실측 파일을 읽는다. 제품/HTTP/미디어 생성 없음.
+// 파일 용도: 기본 합성 검사와 명시적 보존 실측 재조회를 수행하며 제품·HTTP·미디어는 생성하지 않는다.
 import vm from 'node:vm';
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -58,13 +58,13 @@ test('protected bytes and Workspace original/copy/reserve are independent',()=>{
   assert.equal(r.variableBytes,6411456);assert.equal(r.copyBytes,120000);assert.equal(r.combinedBytes,6531456);
   assert.equal(r.quotaBytes-r.reservationBytes,46137344);
 });
-// 448MiB is EACH component cap; Combined cap is fixed + 896MiB.
+// 448MiB는 각 구성 요소의 한도이며 합산 한도는 고정량 + 896MiB다.
 for(const kind of ['variable','copy','combined'])for(const delta of [-1,0,1])test(`Workspace strict ${kind} edge ${delta}`,()=>{
   const cap=448*1048576,fixed=123,reserve=6*1048576;
   const variable=kind==='variable'?cap+delta:kind==='copy'?reserve:cap-1;
   const copy=kind==='copy'?cap+delta:kind==='variable'?0:cap+delta+1;
   const input={inputBytes:0,copyBytes:0,otherVariableBytes:variable-reserve,otherCopyBytes:copy,fixedBytes:fixed};
-  // Combined -1 is already invalid: both components < cap imply Combined <= fixed+2*cap-2.
+  // 두 구성 요소가 각각 상한 미만이면 합산값은 고정량+2*상한-2 이하여서 합산 상한-1도 이미 거부 대상이다.
   if(delta<0&&kind!=='combined'){
     const r=stateInputCapacity(input),w=workspaceBounds(fixed+variable,fixed,copy,cap);
     assert.equal(r.variableBytes,w.variableBytes);assert.equal(r.copyBytes,w.copyBytes);assert.equal(r.combinedBytes,w.combinedBytes);
@@ -114,7 +114,7 @@ test('existing Driver body, duration and protection guard remain bound',()=>{
   assert(driver.includes("num-buffers=120','pattern=ball'"));assert(driver.includes("'pass=quant','quantizer=0'"));
   assert(driver.includes('stateDiagnose?2700000'));assert(driver.includes('stateDiagnose?2880000'));
   const tail=driver.slice(driver.indexOf('  }catch(error){failed++;if(error.workspaceDecision)')).replace('fixtureGenerationEvidence,processIdentityEvidencePass:','processIdentityEvidencePass:');
-  // Focused blocker output fields are additional; official duration/protection checks remain.
+  // focused blocker 출력 필드는 추가 정보이며 공식 실행 시간·보호 검사는 유지한다.
   assert.equal(sha(tail),'f08330647a8eeaa8da3aec38e5795a43132781044b81a5168245f63b3c5bdf97');
   const retention=fs.readFileSync(new URL('../../src/recording/retention_coordinator.cpp',import.meta.url),'utf8');
   assert(retention.includes('!candidate.Pinned() && candidate.hold_count == 0'));
@@ -312,11 +312,11 @@ test('qualified State binding: preserved real evidence and stale/missing assets'
       for(const [name,change] of [['graph mismatch',v=>v.graphSha256='0'.repeat(64)],
         ['target mismatch',v=>v.targets.media_server.objects++],['failed freshness',v=>v.status='FAIL']])
         reject(name,(_,a)=>change(a['freshness.json']),/state-verified-/);
-      // Actual original-byte authentication; no mutation of old Evidence or assets.
+      // 실제 원본 바이트를 인증하며 과거 Evidence나 자산은 변경하지 않는다.
       for(const patch of [{MEDIA_SERVER_STATE_VERIFIED_RESULT_SHA256:'0'.repeat(64)},
         {MEDIA_SERVER_STATE_VERIFIED_RESULT_SHA256:undefined},{MEDIA_SERVER_STATE_VERIFIED_RESULT:undefined}])
         assert.throws(()=>requireStateInputExecutable(p,{...env,...patch}));
-      // Inject asset reads only; original Model/Helper files remain untouched.
+      // 자산 읽기만 주입하며 원래 Model·Helper 파일은 변경하지 않는다.
       const read=fs.readFileSync,baseline=JSON.parse(read(path.join(env.MEDIA_SERVER_STATE_PRODUCT_SMOKE,'result.json')));
       for(const file of [path.resolve('models/v430-siglip2/preparation.json'),Object.keys(baseline.binding.dynamicLibrariesSHA256)[0],baseline.helpers.normalize.preservedPath]){
         t.mock.method(fs,'readFileSync',function(p,...args){return p===file?Buffer.from('isolated changed asset'):read.call(this,p,...args);});
@@ -379,7 +379,7 @@ test('qualified State binding: preserved real evidence and stale/missing assets'
   }finally{fs.rmSync(dir,{recursive:true});assert(!fs.existsSync(dir));}
 });
 
-// Graph digest comes from the real depfile Guard; all graph differences remain strict.
+// 실제 depfile Guard에서 graph digest를 얻으며 모든 graph 차이를 계속 엄격히 거부한다.
 const graphFixture=()=>({schema:'media-server.build-freshness.v1',status:'PASS_TARGET_AWARE_PREFLIGHT',graphSha256:'a'.repeat(64),
  targets:{media_server:{objects:1,artifactSha256:'b'.repeat(64)},media_server_runtime:{objects:2,artifactSha256:'c'.repeat(64)}}});
 test('verified current graph accepts exact authenticated target-aware evidence',()=>{
@@ -397,14 +397,14 @@ for(const [name,change] of [
  assert.throws(()=>assertVerifiedStateFreshness(actual,expected,'b'.repeat(64),'c'.repeat(64)),/state-verified-/);
 });
 
-// Direct byte boundary distinguishes modified Worktree and committed Source independently.
+// 직접 바이트 경계 검사로 수정된 Worktree와 커밋된 Source를 각각 구분한다.
 test('EP1 source bytes reject changed worktree or committed input independently',()=>{
   const bytes=Buffer.from('source'),digest=sha(bytes);
   assert.doesNotThrow(()=>assertStateSourceBytes('src/example.cpp',digest,bytes,bytes));
   assert.throws(()=>assertStateSourceBytes('src/example.cpp',digest,Buffer.from('changed'),bytes),/state-source-asset-binding/);
   assert.throws(()=>assertStateSourceBytes('include/example.h',digest,bytes,Buffer.from('changed')),/state-ep1-commit-binding/);
 });
-// Legacy branch regression uses an isolated VM, not a new real-product certification.
+// legacy 분기 회귀는 격리 VM 검사이며 새로운 실제 제품 인증이 아니다.
 test('legacy verified schema still performs its original evidence checks',()=>{
   const source=fs.readFileSync(new URL('./recording_state_input_profile.mjs',import.meta.url),'utf8');
   const body=source.slice(source.indexOf('function bindVerifiedStateProduct('),source.indexOf('export function validateQualifiedStateInput'));
@@ -425,7 +425,7 @@ test('legacy verified schema still performs its original evidence checks',()=>{
     fs:{readFileSync:file=>file===dir+'/build-binding.json'?JSON.stringify(binding):Buffer.from('source')},
     fileURLToPath:()=>'/repo/scripts/internal/profile.mjs',sha,stateHelperBytes:()=>{},STATE_BINDING_SHA,STATE_PRODUCT_SMOKE_SHA,
     assertVerifiedStateFreshness,execFileSync:cmd=>cmd==='git'?'':JSON.stringify(freshness)};
-  // Helper payload size is one byte in this synthetic fixture.
+  // 이 합성 fixture의 Helper payload 크기는 1바이트다.
   const bound=context.boundFile;context.boundFile=(file,digest)=>/\/(normalize|process-metrics|review-seed)$/.test(file)?Buffer.from('x'):bound(file,digest);
   vm.createContext(context);vm.runInContext(body.replaceAll('import.meta.url',"'file:///repo/scripts/internal/profile.mjs'")+"; selected=bindVerifiedStateProduct({MEDIA_SERVER_STATE_VERIFIED_RESULT:'/isolated/result.json',MEDIA_SERVER_STATE_VERIFIED_RESULT_SHA256:'a'.repeat(64),MEDIA_SERVER_STATE_PRODUCT_SMOKE:'/baseline'},'/isolated/media_server','/isolated/runtime.a');",context);
   assert.equal(context.selected.sha256.product,productSha);assert(calls.some(([file])=>file.endsWith('source-manifest.json')));

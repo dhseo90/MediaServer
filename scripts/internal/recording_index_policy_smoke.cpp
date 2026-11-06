@@ -1,4 +1,4 @@
-// 실제 누적 source의 같은 순서를 한 프로세스에서 정책별 한 번씩 읽는 제한 대조.
+// 파일 용도: 실제 누적 source의 동일 순서를 한 process에서 정책별로 한 번씩 읽어 제한적으로 대조한다.
 #include "recording_writer_test_isolation.h"
 #include "recording/recording_runtime_composition.h"
 #include "recording/recording_visual_source.h"

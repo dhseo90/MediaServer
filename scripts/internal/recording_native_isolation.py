@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """기존 writer/native 검사 전용 자식 환경. 제품 기본 설정을 읽거나 생성하지 않는다."""
-import os
+import os  # 파일 용도: native fixture가 소유한 격리 경로와 실행 환경을 검증한다.
 import pathlib
 import signal
 import stat

@@ -80,7 +80,7 @@ private:
         std::condition_variable cv;
         struct QueuedPacket { media::Packet packet; std::uint64_t enqueued_ns{0}; };
         std::deque<QueuedPacket> queue;
-        // Opt-in Recorder counters; fixed size, no payload history or extra lock.
+        // 선택 활성화하는 Recorder 카운터는 고정 크기이며 payload 이력이나 추가 lock을 보유하지 않는다.
         std::uint64_t enqueued{0}, dequeued{0}, payload_bytes{0}, queued_bytes{0};
         std::uint64_t max_depth{0}, max_bytes{0}, first_input_ns{0}, last_input_ns{0};
         std::uint64_t min_input_gap_ns{UINT64_MAX}, max_input_gap_ns{0};

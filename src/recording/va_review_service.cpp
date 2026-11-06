@@ -84,8 +84,8 @@ bool VaReviewService::Submit(const std::string& id,const std::string& question,c
 }
 bool VaReviewService::SubmitConfirmed(const ConfirmedAnalysisRequest& input,const std::string& owner,Authorize authorize,
     VaReviewJob* output,std::string* error) try {
-    // Count the supplied value without allocating or copying it. This also covers
-    // native callers: the HTTP draft limit is not an admission for this API.
+    // 입력값을 할당·복사하지 않고 센다. native 호출자에도 적용하며
+    // HTTP draft 한도만으로 이 API의 입력을 허용하지 않는다.
     std::size_t input_bytes=sizeof(ConfirmedAnalysisRequest)+1024;
     const auto add=[&](std::size_t count,std::size_t width=1){
         if(count>(SearchModelResidency::kDefaultBytes-input_bytes)/width)throw RecordingResourceUnavailable();
@@ -149,7 +149,7 @@ bool VaReviewService::Cancel(const std::string& id,const std::string& owner,bool
     if(task->job.state=="queued") {
         queue_.erase(std::remove(queue_.begin(),queue_.end(),task),queue_.end());
         task->job.state="cancelled";task->job.error="review-cancelled";task->authorize={};
-        // Removed from queue under the same mutex: no worker can still consume these inputs.
+        // 같은 mutex 안에서 queue에서 제거했으므로 어떤 worker도 이 입력을 계속 소비할 수 없다.
         task->question.clear();task->confirmed.reset();
     }
     if(Active(task->job))task->cancelled=true;

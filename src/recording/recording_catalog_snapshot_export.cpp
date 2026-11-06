@@ -37,8 +37,8 @@ std::string Quote(const std::string& value) {
     }
     return result + '"';
 }
-// Two complete ordinal-ordered cursors commit to the exact fields previously compared
-// per ID. Private to one locked export; never persisted or reused across a cut/owner.
+// ordinal 순서의 완전한 cursor 두 개가 기존 ID별 비교와 정확히 같은 필드를 결속한다.
+// 잠긴 export 하나에만 속하며 영속화하거나 cut·owner를 넘어 재사용하지 않는다.
 class AppliedPrefixDigest {
 public:
 #if MEDIA_SERVER_USE_OPENSSL && !defined(_WIN32)
@@ -128,8 +128,8 @@ bool RecordingCatalog::ExportGenerationValuesLocked(const std::string& store,
         if((chain.physical_rows==0)!=!chain.maximum_global_ordinal.has_value()||
            (chain.maximum_global_ordinal&&*chain.maximum_global_ordinal>=cut))return Fail(error,"snapshot identity physical ordinal/cut mismatch");
         std::uint64_t physical=0;std::size_t required_accepted=0,first_count=0;
-        // Product cross-checks the sealed candidate against the current applied prefix in one
-        // Journal cursor below. DTO/oracle callers retain their independent map checks.
+        // 제품은 아래 Journal cursor 한 번으로 봉인된 후보와 현재 적용 prefix를 교차 검사한다.
+        // DTO·oracle 호출자는 독립적인 map 검사를 유지한다.
         const bool applied_cursor=completed_history_&&chain.history;
         AppliedPrefixDigest candidate_digest,current_digest;
         if(!VisitRecordingIdentityFirst(chain,[&](const auto& entry,std::string*){
@@ -152,7 +152,7 @@ bool RecordingCatalog::ExportGenerationValuesLocked(const std::string& store,
         },error))return false;
         if(physical!=chain.physical_rows)return Fail(error,"snapshot physical count mismatch");
         for(const auto& id:mutation_ids_)if(!first(id))return Fail(error,"snapshot catalog ID missing");
-        // DTO callers retain exact order-history cross checks; product history was sealed by Journal.
+        // DTO 호출자는 정확한 order-history 교차 검사를 유지하며 제품 history는 Journal이 봉인했다.
         if(!chain.history)for(const auto& item:chain.order_history.reservations){
             const auto found=order(item.order.request_id);
             if(!found||!SameOrder(found->order,item.order)||found->occurred_at_ms!=item.occurred_at_ms)
@@ -217,7 +217,7 @@ bool RecordingCatalog::ExportGenerationValuesLocked(const std::string& store,
             if (!SerializeRecordingCatalogJobSummary(summary,&validated,error)) return false;
             add("derived-job",id,validated);return true;
         },error))return false;
-        // Catalog's applied prefix, not all Journal-parsed active rows, supplies accepted state.
+        // 수락 상태는 Journal이 parsing한 전체 active row가 아닌 Catalog의 적용 prefix에서 얻는다.
         const auto accepted=[&](const RecordingIdentityFirstAcceptance& entry,std::string*) {
             if(!RecordingSnapshotRequiresAcceptedState(entry.first_row.type)||!required_accepted||entry.first_global_ordinal>=cut)
                 return Fail(error,"snapshot accepted type/count mismatch");
@@ -233,7 +233,7 @@ bool RecordingCatalog::ExportGenerationValuesLocked(const std::string& store,
                 current_digest.Add(current);++visible_count;
                 return !RecordingSnapshotRequiresAcceptedState(current.first_row.type)||accepted(current,detail);
             },error))return false;
-            // A missing candidate or an extra candidate cannot become a successful absent lookup.
+            // 후보 누락이나 추가 후보를 정상적인 부재 조회로 취급해서는 안 된다.
             if(visible_count!=first_count||current_digest.Finish()!=candidate_digest.Finish())return Fail(error,"snapshot candidate/applied coverage mismatch");
         }else if(completed_history_){if(!VisitAcceptedLocked(accepted,error))return false;}
         else for(const auto& item:accepted_segment_state_mutations_){
@@ -270,7 +270,7 @@ bool RecordingCatalog::CaptureGenerationSnapshotViewLocked(GenerationSnapshotVie
         if(added>UINT64_MAX-chunks||!rows->ReserveRows(chunks+added,error))throw std::runtime_error("fixed snapshot scratch admission");
         for(std::size_t offset=0,part=0;offset<bytes.size();offset+=RecordingHistoryIndex::kValueBytes,++part){
             const auto ordinal=std::to_string(row_count),digits=std::to_string(part);
-            // Capture order is private; canonical kind/key ordering is done once by the outside-lock spool.
+            // capture 순서는 비공개이며 잠금 밖 spool에서 canonical kind·key 정렬을 한 번 수행한다.
             if(!rows->Put(std::string(20-ordinal.size(),'0')+ordinal+std::string(1,'\0')+std::string(20-digits.size(),'0')+digits,
                 bytes.substr(offset,RecordingHistoryIndex::kValueBytes),false,error))throw std::runtime_error("fixed snapshot write");
         }
@@ -384,8 +384,8 @@ bool RecordingCatalog::ExportFrozenGenerationValues(const RecordingIdentityChain
     }catch(...){return Fail(error,"fixed snapshot validation exception");}
 }
 
-// One validated export under the caller's Catalog lock. Scratch keys provide canonical kind/key/chunk order.
-// Only one canonical row and one fixed index value are live; no rows vector or whole snapshot string.
+// 호출자의 Catalog 잠금 안에서 검증된 export 한 번을 수행하며 scratch key가 canonical kind·key·chunk 순서를 제공한다.
+// 동시에 유지하는 값은 canonical row 하나와 고정 index 값 하나이며 row vector·전체 snapshot 문자열은 없다.
 bool RecordingCatalog::PrepareGenerationSnapshotStreamLocked(const RecordingIdentityChainResult& chain,
     std::uint64_t generation,std::uint64_t cut,GenerationSnapshotStream* output,std::string* error,const GenerationSnapshotView* frozen) const {
 #if MEDIA_SERVER_USE_OPENSSL && !defined(_WIN32)
@@ -396,8 +396,8 @@ bool RecordingCatalog::PrepareGenerationSnapshotStreamLocked(const RecordingIden
     bool ok=false;
     try {ok=[&](){
         RecordingCatalogSnapshot header;std::uint64_t chunks=0,total=0;
-        // Reserve derived storage for the actual admitted row chunks, not snapshot_bytes.
-        // ReserveRows checks overflow/free space; it neither preallocates nor changes source admission.
+        // snapshot_bytes 대신 실제 허용된 row chunk에 필요한 파생 저장소를 예약한다.
+        // ReserveRows는 overflow·여유 공간을 검사하며 사전 할당하거나 source 허용 기준을 바꾸지 않는다.
         if(!sorted->Create(std::filesystem::canonical(std::filesystem::temp_directory_path()).string(),
             RecordingHistoryIndex::BytesForRows(0),error)||!sorted->BeginBufferedBuild(error))return false;
         const auto spool=[&](const RecordingCatalogSnapshotRow& row,std::string* detail){

@@ -20,7 +20,7 @@
 #endif
 namespace recording {
 #if defined(RECORDING_FRAME_DIAGNOSTIC) && MEDIA_SERVER_USE_GSTREAMER
-// Only the isolated diagnostic TU defines this sink; never enabled in the product build.
+// 격리 진단 TU만 이 sink를 정의하며 제품 Build에서는 활성화하지 않는다.
 void RecordVisualFrameBusDiagnostic(GstMessage*, bool);
 #endif
 namespace {
@@ -89,7 +89,7 @@ struct DecodeTrace {
     std::atomic<unsigned> event_count{0},factory_count{0},needs{0},seeks{0},pads{0},samples{0};
     std::atomic<const char*> first{nullptr};std::atomic<bool> bus_seen{false},closing{false};Event bus{},first_event{};
     char bus_domain[160]{},bus_description[160]{};bool bus_description_truncated{false};
-    // Private opt-in sink is an already-open owned 0600 file, never a public log/path.
+    // 비공개 선택 실행 sink는 이미 열린 소유권 확인 0600 파일이며 공개 로그·경로가 아니다.
     int private_fd{-1};char raw_domain[160]{};char raw_message[1024]{},raw_debug[2048]{};
     bool message_truncated{false},debug_truncated{false};
     template<std::size_t N> static bool Raw(char (&out)[N],const char* in){
@@ -148,7 +148,7 @@ struct DecodeTrace {
             GError* problem=nullptr;gchar* debug=nullptr;gst_message_parse_error(message,&problem,t.private_fd>=0?&debug:nullptr);t.bus.kind="bus-error";
             if(t.private_fd>=0){Raw(t.raw_domain,problem?g_quark_to_string(problem->domain):nullptr);t.message_truncated=Raw(t.raw_message,problem?problem->message:nullptr);t.debug_truncated=Raw(t.raw_debug,debug);}g_free(debug);
             if(problem){t.bus.a=problem->domain;t.bus.b=problem->code;
-                // Existing opt-in trace only: canonical library description, never raw GError/debug.
+                // 기존 선택 실행 trace에는 표준 library 설명만 기록하고 raw GError·debug는 포함하지 않는다.
                 const bool known=problem->domain==GST_CORE_ERROR||problem->domain==GST_LIBRARY_ERROR||
                     problem->domain==GST_RESOURCE_ERROR||problem->domain==GST_STREAM_ERROR;
                 Text(t.bus_domain,known?g_quark_to_string(problem->domain):"other-domain-redacted");

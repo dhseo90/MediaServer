@@ -194,7 +194,7 @@ private:
     bool ValidatePreappend(const void* owner, const RecordingMutationV1& mutation, std::string* error);
     bool EnableGenerationWrites(const void* owner,std::string* error);
     bool PrepareGenerationCheckpoint(const void* owner,std::shared_ptr<RecordingGenerationCheckpointPlan>*,std::string* error);
-    // Caller holds Journal lock; include candidate and anonymous snapshot spool in concurrent usage.
+    // 호출자가 Journal lock을 보유하며 동시 사용량에 후보와 익명 snapshot spool을 포함한다.
     void AccountGenerationScratchLocked(const std::shared_ptr<RecordingIdentityHistory>&,std::uint64_t,std::uint64_t);
     bool ValidateCheckpointRecoverySuffix(const RecordingGenerationManifest&,std::string*) const;
     bool StageGenerationCheckpoint(const std::shared_ptr<RecordingGenerationCheckpointPlan>&,const RecordingGenerationByteProducer&,std::string*);
@@ -230,8 +230,8 @@ private:
     struct ColdReadProof;
     bool AcquireMutationLinkForRead(const void* owner,const RecordingMutationLink&,
         std::shared_ptr<ColdReadProof>*,RecordingMutationHandle*,std::string*) const;
-    // Source readers retain typed binding data, not a second full mutation payload.
-    // A proof hit may return no envelope; identity is set only after current raw authentication.
+    // Source reader는 mutation payload 전체를 중복 보관하지 않고 typed 결속 데이터만 유지한다.
+    // proof 적중 시 envelope 없이 반환할 수 있으며 현재 raw 인증 후에만 identity를 설정한다.
     bool AcquireSourceMutationForRead(const void* owner,const RecordingMutationLink&,
         std::shared_ptr<ColdReadProof>*,RecordingMutationHandle*,std::string* identity,std::string*) const;
     bool AcquireMutationLinkWithProof(const RecordingMutationLink&,RecordingMutationHandle*,std::string*,

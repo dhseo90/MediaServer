@@ -1,4 +1,4 @@
-#include "recording_http_observation.h"
+#include "recording_http_observation.h"  // 파일 용도: socketpair와 pipe로 HTTP header·수신·검증·출력의 시간 및 실패 경계를 검증한다.
 #include <thread>
 #include <future>
 #include <unistd.h>

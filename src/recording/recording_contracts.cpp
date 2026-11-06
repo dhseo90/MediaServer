@@ -223,8 +223,8 @@ bool SplitArray(const std::string& raw, std::vector<std::string>* items, std::st
     return true;
 }
 
-// The strict parser has already validated this array. Borrow one element at a
-// time; count first so typed vectors never grow through duplicate capacities.
+// strict parser가 이미 검증한 배열이다. 먼저 개수를 센 뒤 원소를 하나씩 빌려
+// 사용하므로 typed vector의 용량 확장 중 중복 저장 공간이 생기지 않는다.
 template<class Visitor>
 bool VisitArrayViews(std::string_view raw, Visitor&& visit) {
     std::size_t start=1; int depth=0; bool quoted=false, escaped=false;
@@ -564,8 +564,8 @@ bool ValidateRecordingSourceBindingV1(const RecordingSourceBindingV1& b, std::st
     ClearError(error);return true;
 }
 namespace {
-// Private relation check: caller has just validated this unchanged binding.
-// Keep segment validation and every cross-object/file/sample condition here.
+// 비공개 관계 검사이며 호출자가 방금 변경되지 않은 binding을 검증했다.
+// segment 검증과 모든 객체 간·파일·sample 조건은 여기서 유지한다.
 bool ValidateSourceBindingSegmentRelation(const RecordingSourceBindingV1& b,const RecordingSegmentV2& s,std::string* error) {
     if(!ValidateRecordingSegmentV2(s,error))return false;
     if(b.segment_id!=s.segment_id||b.source_id!=s.source_id||b.channel_id!=s.channel_id||
@@ -641,9 +641,9 @@ bool ParseSourceBinding(const std::string& json,RecordingSourceBindingV1* output
            !RequiredInteger(ed,"origin",&e.writer_origin_ns,error)||!RequiredInteger(ed,"bytes",&e.file_size_bytes,error)||
            !RequiredString(ed,"sha256",&e.file_sha256,error)||!RequiredInteger(ed,"timescale",&e.timescale,error)||
            !RequiredInteger(ed,"movie_timescale",&e.movie_timescale,error))return Fail(error,"file evidence fields 오류");
-        // The outer strict traversal has validated every tuple, including string
-        // syntax/depth. Borrow its bytes rather than copying the full samples
-        // array, each tuple and all twelve scalar strings. No view escapes here.
+        // 바깥 strict 순회가 문자열 문법·깊이를 포함한 모든 tuple을 검증했다.
+        // samples 배열 전체·각 tuple·12개 scalar 문자열을 복사하지 않고 해당 바이트를
+        // 빌려 사용한다. 이 scope 밖으로 view를 내보내지 않는다.
         const auto tupleValues=[](std::string_view raw,auto& values){
             std::size_t n=0;
             return VisitArrayViews(raw,[&](std::string_view value){if(n==values.size())return false;values[n++]=value;return true;})&&n==values.size();
@@ -659,8 +659,8 @@ bool ParseSourceBinding(const std::string& json,RecordingSourceBindingV1* output
         e.samples.reserve(sample_count);
         if(!VisitArrayViews(samples->array_view,[&](std::string_view tuple){
             RecordingFileSampleEvidenceV1 s;std::array<std::string_view,12> values;
-            // SplitArray historically requires literal array delimiters (no
-            // surrounding whitespace). Preserve that acceptance/error boundary.
+            // 기존 SplitArray는 주위 공백 없이 literal 배열 구분자가 있어야 한다.
+            // 이 입력 수용·오류 경계를 유지한다.
             if(tuple.size()<2||tuple.front()!='['||tuple.back()!=']'||!tupleValues(tuple,values)||!ParseIntegerRaw(values[0],&s.ordinal)||
                !ParseIntegerRaw(values[1],&s.original_pts_ns)||!ParseIntegerRaw(values[2],&s.original_dts_ns)||
                !ParseIntegerRaw(values[3],&s.original_duration_ns)||!ParseIntegerRaw(values[4],&s.mux_pts_ns)||
@@ -816,8 +816,8 @@ bool SameRecordingSegmentV2Content(const RecordingSegmentV2& a,const RecordingSe
 std::string SerializeRecordingSegmentV2(const RecordingSegmentV2& v) {
     std::ostringstream out;
     const auto quote=[&out](const std::string& value)->std::ostream& {
-        // Escape's legacy hex formatting uses the global numeric locale. Keep
-        // that path outside classic locale; never change the outer stream flags.
+        // Escape의 기존 16진수 형식은 전역 숫자 locale을 사용한다. 해당 경로에는
+        // classic locale을 적용하지 않으며 바깥 stream flag도 바꾸지 않는다.
         if(std::locale()!=std::locale::classic())return out<<Quote(value);
         static constexpr char hex[]="0123456789abcdef";
         out.put('"');
@@ -1356,8 +1356,8 @@ bool VisitEventRecordingLinkV1(const EventRecordingLinkV1& value,const Recording
         source->Visit(sink,true,error)&&sink(std::string_view(bytes).substr(begin+1),error);
 }
 
-// Existing bounded eager consumers retain their serialized bytes' reservation.
-// Large Open/checkpoint readers use Visit directly and never enter this adapter.
+// 기존의 제한된 eager 소비자는 직렬화 바이트의 reservation을 유지한다.
+// 대규모 Open/checkpoint reader는 Visit을 직접 사용하며 이 adapter에 진입하지 않는다.
 bool SerializeEventRecordingLinkOwned(const EventRecordingLinkV1& value,
     const std::shared_ptr<SearchModelResidency>& owner,std::size_t limit,
     RecordingOwnedText* output,std::string* error) {
@@ -1378,8 +1378,8 @@ bool SerializeEventRecordingLinkOwned(const EventRecordingLinkV1& value,
 }
 
 namespace {
-// capacity includes allocator rounding used by the supported standard libraries;
-// fixed per-allocation bookkeeping is counted even for in-object SSO storage.
+// capacity에는 지원하는 표준 라이브러리의 allocator 반올림을 포함한다.
+// 객체 내부 SSO 저장 공간에도 할당별 고정 관리 비용을 계산한다.
 std::size_t Storage(const std::string& v){return v.capacity()+1+32;}
 std::size_t Storage(const FrameLocatorV1&);
 std::size_t Storage(const RecordingUtcMappingV1&);
@@ -1431,8 +1431,8 @@ std::size_t RecordingEventLinkWorkspaceBytes(const std::string& json) {
         if(size&&count>(std::numeric_limits<std::size_t>::max()-total)/size)throw RecordingResourceUnavailable();
         total+=count*size;
     };
-    // Exact-reserve overlap/range arrays; each array element is at most one
-    // SegmentOverlap. Only value strings become DTO storage (repeated keys do not).
+    // overlap/range 배열 용량을 정확히 예약한다. 배열 원소 하나는 최대 하나의
+    // SegmentOverlap에 해당하며 값 문자열만 DTO에 저장한다. 반복된 key는 저장하지 않는다.
     std::size_t typed=sizeof(EventRecordingLinkV1)+64*1024;
     add(typed,s.array_elements,sizeof(SegmentOverlapV1));
     add(typed,s.value_string_bytes,2);add(typed,s.value_strings,32);
@@ -1441,8 +1441,8 @@ std::size_t RecordingEventLinkWorkspaceBytes(const std::string& json) {
     add(parser,s.max_live_keys,128+2*sizeof(Member));
     add(parser,s.max_live_key_bytes,2*s.max_depth+4);
     add(parser,s.top_string_bytes,3);add(parser,s.top_object_bytes,2);
-    // One borrowed array element is copied/reparsed at a time. Main strict scan
-    // also decodes at most one noncaptured string at once.
+    // 빌린 배열 원소 하나씩만 복사·재파싱한다. 주 strict 순회도 저장하지 않는
+    // 문자열을 한 번에 최대 하나씩 decode한다.
     add(parser,s.max_array_element_bytes,6);add(parser,s.largest_string_bytes,2);
     add(parser,s.array_elements,sizeof(UtcRangeV1)); // Complete/Partial coverage
     std::size_t canonical=0;

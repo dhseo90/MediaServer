@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """R154 literal, fail-closed instrumentation overlays; never rewrites tracked product sources."""
-from pathlib import Path
+from pathlib import Path  # 파일 용도: R154 진단 계측 사본을 정확한 문자열 치환으로 생성하며 추적 제품 source는 변경하지 않는다.
 import hashlib
 REPO=Path(__file__).resolve().parents[2]
 
@@ -25,7 +25,7 @@ def generate(out):
             f=replace(f,'EffectiveLifecycleV2Locked(id)!=RecordingLifecycle::Finalized','r154::Eval(r154::Lifecycle,[&]{r154::Count(r154::LifecycleChecks);if(other)r154::Count(r154::OtherLifecycle);return EffectiveLifecycleV2Locked(id);})!=RecordingLifecycle::Finalized')
             for field,arg,counter in [('channel','channel','ChannelMatches'),('source','source','SourceMatches'),('generation','generation','GenerationMatches')]:
                 f=replace(f,'handle.'+field+'!='+arg,'([&]{const bool match=handle.'+field+'=='+arg+';if(match)r154::Count(r154::'+counter+');return !match;})()',2 if field=='channel' else 1)
-            # Other-channel classification must remain a simple diagnostic comparison.
+            # 다른 channel 분류는 단순 진단 비교로 유지해야 한다.
             f=f.replace('const bool other=([&]{const bool match=handle.channel==channel;if(match)r154::Count(r154::ChannelMatches);return !match;})();','const bool other=handle.channel!=channel;')
             f=replace(f,'        SourceBindingHandle owned;','        r154::Count(r154::FullMatches);r154::Count(r154::OwnedAcquisitions);SourceBindingHandle owned;')
             f=replace(f,'AcquireSourceBindingOwnedLocked(id,&owned,error)','r154::Eval(r154::Acquire,[&]{return AcquireSourceBindingOwnedLocked(id,&owned,error);})')
@@ -61,7 +61,7 @@ def generate(out):
             s=replace(s,'site_diagnostic.Emit(SiteOperationsRequestDiagnostic::Phase::HandlerEnd);','r154_request.prepared=r154::Tick();site_diagnostic.Emit(SiteOperationsRequestDiagnostic::Phase::HandlerEnd);')
             s=replace(s,'const bool sent = SendAllObserved(client_fd, encoded, observation.get());','r154_request.sendBegin=r154::Tick();const bool sent = SendAllObserved(client_fd, encoded, observation.get());r154_request.sendEnd=r154::Tick();r154_request.sent=sent;')
             s=replace(s,'                active_connection_guard.Finish();','                r154_request.End();active_connection_guard.Finish();')
-            # Streaming routes retain original sends; explicitly unknown transmission stamps there.
+            # streaming route는 원래 송신을 유지하며 해당 경로의 전송 시각은 명시적으로 미확인 처리한다.
         else:
             s=replace(s,'HttpObservation observation{id,"r152",route,begin};','HttpObservation observation{id,"r152",route,begin};r154::Client client_probe(id,observation);')
             s=replace(s,'if(c.fd<0){c.fd=socket','if(c.fd<0){r154::connects[id-1][0]=r154::Tick();c.fd=socket')

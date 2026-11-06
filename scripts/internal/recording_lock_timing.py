@@ -1,5 +1,5 @@
 """R158 original latency Row/explicit callsite sidecar focused qualification."""
-import json
+import json  # 파일 용도: R158 원래 latency Row와 명시적인 호출 지점 sidecar의 focused 적격성을 검증한다.
 CAP=65536
 U64=2**64
 FIELDS='k o s l m t r b a e n w h x y'.split()

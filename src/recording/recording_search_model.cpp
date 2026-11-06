@@ -335,8 +335,8 @@ bool RecordingSearchModel::BuildOwnedImpl(std::vector<SearchDocument>&& document
     for (const auto& d : documents) {
         search_capacity_diagnostic.index=static_cast<std::size_t>(&d-documents.data());
         if (!Valid(d)) return Fail(error, "search-invalid-document");
-        // ID node/key, channel node/key, bucket arrays and per-channel positions.
-        // 256 includes two node/control envelopes and four pointer/index slots per document.
+        // ID node·key, channel node·key, bucket array와 channel별 위치를 반영한다.
+        // 256에는 document당 node·control 관리 영역 둘과 pointer·index slot 넷이 포함된다.
         if (d.id.capacity()>SIZE_MAX/2-1 || d.channel_id.capacity()>SIZE_MAX/2-1 ||
             !Add(256, &bytes, limits.max_bytes) ||
             !Add(2*(d.id.capacity()+1), &bytes, limits.max_bytes) ||
@@ -367,8 +367,8 @@ bool RecordingSearchModel::BuildOwnedImpl(std::vector<SearchDocument>&& document
                 return a.event_id < b.event_id;
             });
         }
-        // No authority or document work is skipped: only reuse the order of
-        // fully equal prior documents in this newly authenticated capture.
+        // 권위 확인이나 document 작업을 생략하지 않는다. 새로 인증된 capture에서 완전히
+        // 동일한 이전 document들의 순서만 재사용한다.
         const auto append_order=[&]() -> bool {
             if(!base||base->source_instance_!=source_instance||base->revision_>=revision||
                base->documents().empty()||base->documents().size()>=model->documents_.size())return false;
@@ -408,9 +408,9 @@ bool RecordingSearchModel::BuildOwnedImpl(std::vector<SearchDocument>&& document
                         ?positions[a++]:added[b++];
                     target[from]=to;
                 }
-                // target is a complete permutation of the current vector. All
-                // allocations/proofs precede this nonthrowing commit; base and
-                // snapshots remain untouched. Scratch dies before index build.
+                // target은 현재 vector 전체의 순열이다. 모든 할당·증명은 예외를 던지지 않는
+                // 이 확정 단계 전에 끝나며 base와 snapshot은 변경하지 않는다.
+                // 임시 작업 공간은 index를 구성하기 전에 소멸한다.
                 static_assert(std::is_nothrow_swappable_v<SearchDocument>);
                 for(std::size_t i=0;i<n;++i)while(target[i]!=i) {
                     const auto to=target[i];std::swap(current[i],current[to]);std::swap(target[i],target[to]);
@@ -512,8 +512,8 @@ namespace recording {
 std::optional<std::size_t> RecordingSearchModel::FindPosition(const std::string& id)const {
     const auto it=ids_.find(id);return it==ids_.end()?std::nullopt:std::optional<std::size_t>(it->second);
 }
-// Only an unpublished, exclusively owned source model is promoted. Its existing
-// payload reservation is transferred, never copied; indices keep their own lease.
+// 공개되지 않고 독점 소유 중인 source model만 승격한다. 기존 payload 예약은 복사하지
+// 않고 이전하며 index는 각각 자체 lease를 유지한다.
 void RecordingSearchModel::PromoteSourceStorage(SearchModelLimits limits) noexcept {
     if(!residency_||!residency_lease_||documents_.empty()||!shared_documents_.empty())return;
     try {
@@ -532,13 +532,13 @@ void RecordingSearchModel::PromoteSourceStorage(SearchModelLimits limits) noexce
         for(const auto& d:documents_){if(!AccountOwned(d,&payload,SIZE_MAX))return;handles.emplace_back(block,&d);}
         auto original=std::static_pointer_cast<SearchModelResidency::Reservation>(residency_lease_);
         if(payload>original->bytes())return;
-        // Two reservations, each owning a distinct allocation, move into block.
+        // 서로 다른 할당을 소유하는 예약 두 개를 block으로 이동한다.
         block->memory=original->Split(payload);
         block->overhead=charge->Split(control);
         block->documents=std::move(documents_);
         shared_documents_=std::move(handles);shared_index_memory_=std::move(*charge);
-        // Snapshot pool admission remains the full logical model charge. The
-        // optional handle/control allocation is additionally charged physically.
+        // snapshot pool 허용 검사는 전체 논리 model 과금을 유지하며 선택적인 handle·control
+        // 할당은 물리적으로 추가 과금한다.
     }catch(...){} // Optional representation; the original model remains valid.
 }
 
@@ -569,8 +569,8 @@ bool RecordingSearchModel::BuildShared(std::vector<SearchDocument>& added,
         if(count>SIZE_MAX/sizeof(std::shared_ptr<const SearchDocument>))return {};
         const auto ref_bytes=count*sizeof(std::shared_ptr<const SearchDocument>);
         const auto overhead=2*ref_bytes+control;
-        // Preserve strict admission and fall back before consuming input whenever
-        // sharing's metadata cannot fit the same envelope.
+        // 엄격한 허용 기준을 유지하며 공유 metadata가 같은 한도에 들어가지 못하면
+        // 입력을 소비하기 전에 fallback한다.
         if(logical>limits.max_bytes||overhead>limits.max_bytes-logical||old_payload<overhead)return {};
         const auto physical=logical-old_payload+overhead;
         if(limits.residency->used()>limits.residency->limit()||physical>limits.residency->limit()-limits.residency->used())return {};
@@ -622,9 +622,9 @@ bool RecordingSearchModel::BuildShared(std::vector<SearchDocument>& added,
     };
     try {if(auto model=optional()){*output=std::move(model);if(error)error->clear();return true;}}
     catch(const std::bad_alloc&){}catch(const std::length_error&){}
-    // Optional failure leaves both inputs intact. The reader releases every
-    // optional owner before a single strict recapture; no uncharged deep-copy
-    // fallback and no optional reservation can displace the strict builder.
+    // 선택적 경로 실패는 두 입력을 온전히 남긴다. reader는 strict recapture 한 번 전에
+    // 선택적 소유자를 모두 해제한다. 과금 없는 deep-copy fallback은 없으며
+    // 선택적 예약이 strict builder를 밀어내지 못하게 한다.
     return false;
 }
 } // namespace recording

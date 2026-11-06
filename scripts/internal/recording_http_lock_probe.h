@@ -1,5 +1,5 @@
 #pragma once
-// R159 callsites only; the original latency header and Lock definitions are unchanged.
+// 파일 용도: R159 호출 지점만 계측하며 원래 latency header와 Lock 정의는 유지한다.
 #include "recording_http_cost_probe.h"
 #include "recording/recording_latency_trace.h"
 namespace r159 {
@@ -15,7 +15,7 @@ struct Window {
  ~Window() noexcept {
   record.end=L::Now();active=prior;
   if(record.depth||L::local.depth||std::uncaught_exceptions()!=exceptions||!complete)r154::Latch(191);
-  // The selected Lock objects are already destroyed. Flush original buffered rows.
+  // 선택한 Lock 객체는 이미 소멸했으므로 원래 buffer에 보관한 row를 출력한다.
   L::FinishThread();r154::FlushLoss();
   for(unsigned i=0;i<record.count&&i<Cap;++i){const auto& r=record.rows[i];char b[640];const int n=std::snprintf(b,sizeof(b),"[R159-call] {\"schema\":1,\"id\":%u,\"ordinal\":%u,\"api\":%u,\"line\":%u,\"thread\":%u,\"mutex\":%u,\"identity\":%u,\"delta\":%d,\"cb\":%llu,\"ce\":%llu,\"rb\":%llu,\"re\":%llu,\"owned\":%s}\n",r.id,r.ordinal,r.api,r.line,r.thread,r.mutex,r.identity,r.delta,(unsigned long long)r.cb,(unsigned long long)r.ce,(unsigned long long)r.rb,(unsigned long long)r.re,r.owned?"true":"false");if(n>0&&n<int(sizeof(b)))r154::Write(b,n);else r154::Lose(192);}
   char b[512];const int n=std::snprintf(b,sizeof(b),"[R159-end] {\"schema\":1,\"id\":%u,\"count\":%u,\"begin\":%llu,\"end\":%llu,\"complete\":%s,\"enabled\":%s,\"slow\":%s,\"holder\":%s,\"loss\":%s}\n",record.id,record.count,(unsigned long long)record.begin,(unsigned long long)record.end,complete?"true":"false",L::Enabled()?"true":"false",L::SlowOnly()?"true":"false",L::HolderEnabled()?"true":"false",(r154::loss||L::local.loss||L::loss_emitted)?"true":"false");if(n>0&&n<int(sizeof(b)))r154::Write(b,n);else r154::Lose(192);
@@ -34,6 +34,6 @@ struct Call {
  void Acquired(bool owned)noexcept{if(row){row->ce=L::Now();row->owned=owned;row->mutex=static_cast<unsigned>(L::local.mutex);}}
  ~Call() noexcept {if(!row)return;row->re=L::Now();if(L::local.request!=row->identity||!record->depth)r154::Latch(194);else --record->depth;L::local.request=prior;}
 };
-// Declared immediately after Lock; destructor runs immediately before Lock's destructor.
+// Lock 바로 뒤에 선언하며 소멸자는 Lock 소멸자 직전에 실행된다.
 struct Release {Call& call;~Release()noexcept{if(call.row)call.row->rb=L::Now();}};
 }

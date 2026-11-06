@@ -70,7 +70,7 @@ function currentReviewPublicationActive(file,stat,lstat){
     return safe(other)&&other.size===opened.size&&[1,2].includes(other.nlink);
   }finally{fs.closeSync(fd);}
 }
-// Rejection-only, fixed shape. Never publish paths/names; diagnostic probing cannot change rejection.
+// 거부 진단 전용의 고정 형식이다. path·이름을 공개하지 않으며 진단 조회가 거부 판정을 바꾸지 못한다.
 function rootFileRejection(root,file,parts,category,stat,lstat,recordingTop){
   const kind=s=>s.isSymbolicLink()?'symlink':s.isFile()?'regular':s.isDirectory()?'directory':'other';
   const name=path.basename(file),partial=mediaPartialName.exec(name);
@@ -79,7 +79,7 @@ function rootFileRejection(root,file,parts,category,stat,lstat,recordingTop){
     extension:partial?'partial':/\.mp4$/.test(name)?'mp4':/\.webm$/.test(name)?'webm':/\.sqlite3(?:-wal|-shm|-journal)?$/.test(name)?'sqlite':/\.jsonl$/.test(name)?'jsonl':'other',
     partialPattern:!!partial,counterpart:null,generationTransactionActive:null,probeComplete:false};
   try{
-    // Only one matching counterpart is reported. Names never escape this function.
+    // 일치하는 상대 항목 하나만 보고하며 이름은 이 함수 밖으로 내보내지 않는다.
     let candidate=partial?.[1];
     if(!candidate){const dir=fs.opendirSync(path.dirname(file));try{for(let n=0;n<100000;n++){const entry=dir.readSync();if(!entry)break;if(mediaPartialName.exec(entry.name)?.[1]===name){candidate=entry.name;break;}}}finally{dir.closeSync();}}
     if(candidate){try{const s=lstat(path.join(path.dirname(file),candidate));d.counterpart={exists:true,type:kind(s),nlink:s.nlink,sameDev:s.dev===stat.dev,sameIno:s.ino===stat.ino};}catch(e){if(e.code!=='ENOENT')throw e;d.counterpart={exists:false};}}
@@ -262,8 +262,8 @@ export function measureCurrentRoot(root,{sqlitePages=false,lstat=fs.lstatSync,re
         if(current.isFile()&&!current.isSymbolicLink()&&current.nlink===1)retryMediaPublication();
         if(current.isFile()&&!current.isSymbolicLink()&&current.nlink===2&&currentMediaPublicationActive(file,current,lstat))retryMediaPublication();
       }
-      // VaReviewStore::PublishBytes publishes pending -> digest.review with link/fsync/unlink.
-      // Retry only this owned, content-bound pair; never accept/deduplicate live hardlinks.
+      // VaReviewStore::PublishBytes는 link/fsync/unlink로 pending을 digest.review로 공개한다.
+      // 소유권·내용이 결속된 이 쌍만 재시도하며 살아 있는 hardlink를 허용하거나 중복 제거하지 않는다.
       if(stat.nlink===2&&parts.length===3&&parts[0]===recordingTop&&parts[1]==='va-reviews'&&
           (parts[2]===reviewPendingName||reviewFinalName.test(parts[2]))&&currentReviewPublicationActive(file,stat,lstat))
         throw Object.assign(Error('root-review-publication'),{code:'EAGAIN'});
@@ -293,7 +293,7 @@ export function measureCurrentRootStable(root,options={}){
     if(error?.code==='EAGAIN'&&error?.message==='root-generation-transition'){
       if(generationRetries++>=31)throw Error('root-generation-transition-retry-exhausted');transientTreeRetries++;continue;
     }
-    // Media and review publications share the existing budget; no additional deadline/retries.
+    // media와 review publication은 기존 예산을 공유하며 deadline·retry를 추가하지 않는다.
     if(error?.code==='EAGAIN'&&['root-media-publication','root-review-publication'].includes(error?.message)){
       if(mediaPublicationRetries++>=31)throw Error(error.message+'-retry-exhausted');transientTreeRetries++;continue;
     }
@@ -493,7 +493,7 @@ const integer=x=>typeof x==='string'&&/^(0|[1-9]\d{0,19})$/.test(x);
 export class CurrentLongrunProgress {
   constructor(now,channels=['9101','9201'],budget=new CurrentObservationBudget(),{observeActiveHistory=false}={}){need(Number.isFinite(now)&&now>=0,'progress-clock');this.budget=budget;this.start=now;this.last=now;this.records=new Map();this.bytes=0;
     this.channels=Object.fromEntries(channels.map(id=>[id,{finalized:0,deleted:0,lastAt:now,order:'0',store:null,knownMappings:0,unknownMappings:0}]));
-    // Opt-in Harness counters only. Do not scan or duplicate the retained History Map.
+    // opt-in Harness counter만 사용하며 보관된 History Map을 순회하거나 복제하지 않는다.
     this.activeHistory=observeActiveHistory?{consumedRows:0,issues:new Set(),drain:null,channels:Object.fromEntries(channels.map(id=>[id,{
       observedFinalized:{count:0,bytes:0n},finalized:{count:0,bytes:0n},pending:{count:0,bytes:0n},deleted:{count:0,bytes:0n},
       finalizedAfterFirstDeleted:{count:0,bytes:0n},firstPendingObservedAt:null,firstDeletedObservedAt:null,lastTransitionObservedAt:null}]))}:null;
@@ -669,8 +669,8 @@ export function workspaceBounds(totalBytes,fixedBytes,copyBytes,capBytes=CURRENT
   if(combinedBytes>=combinedCapBytes)reject('workspace-combined-cap','combinedBytes < fixedBytes + 2 * capBytes',combinedBytes,combinedCapBytes);
   return {fixedBytes,variableBytes,copyBytes,totalBytes,combinedBytes,rootCapBytes,combinedCapBytes};
 }
-// One preallocated failure slot is part of variable workspace from startup. Never
-// remeasure after failure or replace the first failure with a smaller later value.
+// 미리 할당한 실패 slot 하나는 시작 시점부터 가변 workspace에 포함한다. 실패 뒤에
+// 다시 측정하거나 최초 실패를 더 작은 후속 값으로 대체하지 않는다.
 export function createWorkspaceFailureCapture(directory,{write=fs.writeSync,sync=fs.fsyncSync}={}){
   const capacity=32768,file=path.join(directory,'workspace-first-failure.json');
   const fd=fs.openSync(file,fs.constants.O_RDWR|fs.constants.O_CREAT|fs.constants.O_EXCL|fs.constants.O_NOFOLLOW,0o600);
@@ -695,8 +695,8 @@ export function createWorkspaceFailureCapture(directory,{write=fs.writeSync,sync
   },summary(){return {status:first?'failed':'no-workspace-failure',primary:first?.primary??null,
     decision:first?.decision??null,collectorDiagnostic:first?.collectorDiagnostic??null,context:first?.context??null,collectionError,capacityBytes:capacity};},close(){if(!closed){closed=true;try{identity();}catch(e){collectionError??=e.message;}try{fs.closeSync(fd);}catch(e){collectionError??=e.message;}if(collectionError)throw Error(collectionError);}}};
 }
-// Both sample and recovery use this exact admission path; product reservations
-// are observations, never subtracted from or added to actual file bytes.
+// sample과 recovery는 이 동일한 admission 경로를 사용한다. 제품 reservation은
+// 관측값이며 실제 파일 바이트에서 빼거나 더하지 않는다.
 export function workspaceAnonymousBytes(metrics,expectedPid,expectedStart=null){
   if(!metrics?.valid||!completeFdObservation(metrics)||metrics.pid!==expectedPid||!metrics.startIdentity||
     (expectedStart!==null&&metrics.startIdentity!==expectedStart)||

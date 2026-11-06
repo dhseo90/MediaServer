@@ -99,15 +99,15 @@ struct RecordingGenerationTransaction::State {
     bool stage_created=false;
     ~State(){
         if(!cleaned){if(stage_created)stage_disk.PreserveDisk();receipt_disk.PreserveDisk();receipt_temp_disk.PreserveDisk();for(auto& item:pending_disk)item.reservation.PreserveDisk();}
-        // Fd members are destroyed before their earlier-declared working ticket.
+        // Fd member는 앞서 선언된 작업용 ticket보다 먼저 소멸한다.
     }
     bool BindResources(const std::filesystem::path& path,std::string* error){
         if(resources)return true;
         auto owner=RecordingScratchResidency::Current();
         if(!owner)owner=RecordingScratchResidency::Default(std::filesystem::canonical(std::filesystem::temp_directory_path()).string());
         const auto domain=owner->DomainForDirectory(path.string());
-        // Two persistent directory FDs, bounded Directory traversal (two), writer
-        // and validation reader. Read hashes a single 64KiB block at a time.
+        // 상시 directory FD 두 개와 제한된 directory 순회용 두 개, writer·검증 reader를 예약한다.
+        // 읽기에서는 한 번에 64KiB block 하나씩 hash를 계산한다.
         auto ticket=owner->Reserve({0,6,2*65536+sizeof(State)},domain);
         if(!ticket)return Fail(error,"recording-resource-unavailable");
         working=std::move(*ticket);resources=std::move(owner);disk_domain=domain;return true;
@@ -137,8 +137,8 @@ struct RecordingGenerationTransaction::State {
         RecordingScratchResidency::Scope scope(resources);
         const auto bound=RecordingGenerationReceiptSerializationBytes(value);
         if(bound>(SIZE_MAX-65536)/4)return Fail(error,"recording-resource-unavailable");
-        // Four output capacities cover growth/concatenation plus the target and
-        // predecessor codec strings; inode validation nodes are bounded bycreated.
+        // 출력 capacity 네 개로 확장·결합과 target·predecessor codec 문자열을 포괄한다.
+        // inode 검증 node 수는 created로 제한한다.
         auto encoded=resources->Reserve({0,0,4*bound+65536},disk_domain);
         if(!encoded)return Fail(error,"recording-resource-unavailable");
         SearchModelResidency::Reservation copy_charge;
@@ -274,8 +274,8 @@ bool RecordingGenerationTransaction::WriteComponentStream(const std::string& nam
         if(error)*error=(first.empty()?"transaction created component changed":first)+"; partial preparation binding uncertain";
         return false;
     }
-    // A failed producer may have emitted a verified prefix (including zero bytes). Register only
-    // that exact prefix for the existing identity/hash checked cleanup; unknown partial writes stay preserved.
+    // 실패한 producer도 0바이트를 포함한 검증된 prefix를 출력했을 수 있다.
+    // 그 정확한 prefix만 기존 identity·hash 검증 정리에 등록하며 알 수 없는 부분 쓰기는 보존한다.
     s.live_files.push_back(actual);
     if(!produced||failed){if(error)*error=first.empty()?"transaction component producer failed":first;return false;}
     if(::fsync(fd.n)!=0||::fsync(s.stage.n)!=0)return Fail(error,"transaction component write/fsync failed; preserved");
@@ -308,7 +308,7 @@ bool RecordingGenerationTransaction::CleanupUnprepared(std::string* error){
     }
     if(::fsync(s.stage.n)!=0||!Empty(s.stage.n)||!s.Bound()||::unlinkat(s.root.n,s.stage_path.filename().c_str(),AT_REMOVEDIR)!=0||::fsync(s.root.n)!=0)return Fail(error,"transaction live cleanup durability uncertain");
     for(auto& item:s.pending_disk)item.reservation.ReleaseDisk();
-    // Metadata tickets remain beside the still-owned live_files/receipt values.
+    // metadata ticket은 여전히 소유 중인 live_files·receipt 값 곁에 유지한다.
     s.cleaned=true;s.stage_disk={};s.receipt_disk={};s.receipt_temp_disk={};
     if(error)error->clear();
     return true;

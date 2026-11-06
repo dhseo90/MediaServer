@@ -33,7 +33,7 @@ private:
         RecordingLifecycle lifecycle{RecordingLifecycle::Unknown};
         std::size_t shared_begin=0,shared_count=0;
     };
-    // A single HTTP retry owns this evidence, never a published/cache model.
+    // 이 근거는 한 HTTP 재시도가 소유하며 공개되거나 캐시된 model에 보관하지 않는다.
     std::map<std::string,SegmentSpan> segment_spans_;
     const SearchModelResidency* residency_=nullptr;
     std::size_t max_documents_=0,max_bytes_=0,reused_segments_=0;

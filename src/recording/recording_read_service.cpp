@@ -411,7 +411,7 @@ std::unique_ptr<ResolvedRecordingMedia> RecordingReadService::ResolveOriginalMed
     const auto expired=[&]{return std::chrono::steady_clock::now()>=options.deadline||(options.cancelled&&options.cancelled());};
     if(!output||!output_location||expired()||!ValidateOpaqueId(id,nullptr))return {};
     auto media=std::unique_ptr<ResolvedRecordingMedia>(new ResolvedRecordingMedia);
-    // Allocate/copy before acquisition: after acquisition ownership installation cannot throw.
+    // 획득 전에 할당·복사를 마쳐 획득 후 소유권 설정에서 예외가 발생하지 않게 한다.
     media->segment_id_=id;
     RecordingSegmentV2 current;std::pair<std::filesystem::path,std::filesystem::path> location;
     if(!catalog_.AcquireMediaV2(channel,id,&current,&location,acquisition_error))return {};

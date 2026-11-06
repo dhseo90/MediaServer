@@ -8,7 +8,7 @@ const types=['segment_finalized','event_link_created','observation_put','observa
 export function observationCompleted({enabled,final,failed,error,processesClosed}) {
   return enabled===true&&!!final&&failed===0&&!error&&processesClosed===true;
 }
-// R102 fixed diagnostic shape. Never retain arbitrary collector strings/payloads.
+// R102의 고정 진단 형태이며 임의의 collector 문자열·payload는 보유하지 않는다.
 export function fdObservation(value){
   if(!value||value.scope!=='complete-round-sequential-v1'||typeof value.complete!=='boolean'||
     !(value.startIdentity===null||/^(macos:\d+:\d+|linux:\d+)$/.test(value.startIdentity??''))||

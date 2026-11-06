@@ -38,8 +38,8 @@ export function prepareRefresh(root, candidate) {
         const lines = source.split(/\r?\n/);
         const anchors = lines.flatMap((text, index) => text.trim() === role.anchor.trim() ? [index + 1] : []);
         const oldMatches = anchors.filter(line => sha256(context(lines, line)) === role.contextSha256);
-        // Valid old context remains governed by the existing resolver, including
-        // its approved enclosing-body rule. Do not refresh it speculatively.
+        // 유효한 과거 context에는 승인된 enclosing-body 규칙을 포함한 기존 resolver가 계속 적용된다.
+        // 추측을 근거로 context를 갱신하지 않는다.
         if (oldMatches.length) continue;
         assert(anchors.length === 1, `${item.id}.${roleName}: missing or ambiguous current anchor`);
         const line = anchors[0];

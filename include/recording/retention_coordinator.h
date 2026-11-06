@@ -53,8 +53,8 @@ struct RetentionSnapshot {
     std::string error{};
 };
 
-// Internal reads retain the same Catalog authority, but do not materialize
-// unrelated candidates when the consumer only needs pending work or one row.
+// 내부 읽기는 동일한 Catalog 권한을 유지하며 필요한 항목만 구체화한다.
+// 소비자가 pending 작업이나 row 하나만 요구할 때 무관한 후보를 구체화하지 않는다.
 enum class RetentionSnapshotSelection { All, Authority, Pending, Candidate, Channel };
 
 struct RetentionPolicy {
@@ -214,8 +214,8 @@ private:
     std::mutex apply_mu_;
     std::mutex admission_mu_;
     std::mutex periodic_mu_; // One bounded private periodic preparation.
-    // New admissions stay serialized; progress/completion do not wait for a
-    // Catalog snapshot/retention plan. Only reservation maps use this short lock.
+    // 신규 허용은 직렬화하지만 진행·완료는 Catalog snapshot·retention 계획을 기다리지 않는다.
+    // 이 짧은 lock은 reservation map에만 사용한다.
     std::mutex reservation_mu_;
     mutable std::mutex mu_;
     std::unordered_map<std::string, RetentionPolicy> policies_;

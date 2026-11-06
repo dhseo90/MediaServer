@@ -1,4 +1,4 @@
-#include "recording/shutdown_diagnostic.h"
+#include "recording/shutdown_diagnostic.h"  // 파일 용도: 종료 probe의 signal 전 무출력과 signal 후 범위·카운터 정리를 격리 검증한다.
 #include <csignal>
 #include <chrono>
 #include <iostream>

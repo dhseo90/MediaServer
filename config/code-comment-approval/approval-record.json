@@ -1,0 +1,43 @@
+{
+  "schema": "media-server.exact-comment-approval.v1",
+  "task": "G07-LP-CC03",
+  "status": "POLICY_APPROVED_FOR_EXACT_5_FINDINGS",
+  "authority": "현재 사용자: 본인 명의로 저장소 정책 결정 권한을 전제하고 명시 승인문을 직접 제출한 요청 주체",
+  "authorityBasis": "실제 user-role 요청으로 첨부를 작업 지시로 제출했고 본문에서 나는 ... 승인한다 및 제한 구현 승인을 명시했다. 프로젝트 AGENTS의 사용자 명시 승인 규칙에 따라 직접 사용자 승인을 수락한다. Git 작성자, 과거 초안, JSON approved=true로 권한을 추정하지 않음. 별도 조직 IAM 신원 인증을 수행했다는 주장은 하지 않음.",
+  "requestFile": "/Users/dhseo/Workspace/mediaServer-evidence/ep4-g07-lp-cc03-h611gqu4/user-approval.txt",
+  "requestSha256": "5c9fe856732c03578262e26b0252aca3e3839bfe8e8bc5ab3a36e5300ce346e4",
+  "originalAttachment": "/Users/dhseo/.codex/attachments/dde5b2e3-4df4-4578-9f10-c946d8d9a374/붙여넣은 텍스트.txt",
+  "observedAtUtc": "2026-11-06T11:43:01.579813+00:00",
+  "userSubmissionTimestamp": "별도 제공되지 않음; observedAtUtc는 기록 시각",
+  "contractSha256": "4a771a8e66c2a8234985c44dcdd5448173b3be82034b7237009fc948d5b7e3ea",
+  "contractPath": "/Users/dhseo/Workspace/mediaServer-evidence/ep4-g07-lp-cc02-52f0ma6m/proposed-exception-contract.json",
+  "findingIds": [
+    "CC01-0001",
+    "CC01-0002",
+    "CC01-0003",
+    "CC01-0105",
+    "CC01-0106"
+  ],
+  "policyVersion": "media-server.exact-preserved-findings.v1",
+  "implementationPaths": [
+    "config/code_comment_policy.json",
+    "scripts/internal/verify_code_comments.mjs",
+    "scripts/internal/recording_preserved_header.test.mjs",
+    "docs/project-feature-test-inventory.md"
+  ],
+  "permitted": "지정 후보 Working Tree의 정확5건 예외·검증 구현 및 표적 회귀, 통과 후 후보 전체 checker 최대1회",
+  "forbidden": [
+    "historical file edits",
+    "ordinary comment edits",
+    "CC01-0578 fix",
+    "stage",
+    "commit",
+    "push",
+    "build",
+    "product",
+    "predev",
+    "soak",
+    "restart"
+  ],
+  "withdrawal": "명시 철회 또는 file/path/finding/version/scope/용도 변경은 재검토·새 승인 전 적용 중단"
+}

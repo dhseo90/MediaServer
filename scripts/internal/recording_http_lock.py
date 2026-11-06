@@ -1,5 +1,5 @@
 """R159 exact selected-call/Row qualifier; all timestamps are latency::Now ns."""
-import json
+import json  # 파일 용도: R159의 선택 호출과 원래 latency Row를 결속하고 동일 clock의 시간 경계를 검증한다.
 from recording_lock_timing import FIELDS,number
 from recording_http_lock_overlay import NAMES
 BASE=1000000
@@ -62,7 +62,7 @@ class Collector:
    if hold is not None:
     h=hold[i]
     if counts!=[m[0] for m in h['metrics'][:7]] or len(cs)!=h['metrics'][7][0]:raise ValueError('API/Lock count mismatch')
-    # Duration comparison only: hold uses Tick epoch; no cross-epoch timestamp subtraction.
+    # hold는 Tick epoch를 쓰므로 지속 시간만 비교하며 서로 다른 epoch의 timestamp를 빼지 않는다.
     if sum(c['re']-c['cb'] for c in cs)>sum(m[1] for m in h['metrics'][:7]):raise ValueError('API duration bound')
    output[i]={'calls':len(cs),'apiCounts':dict(zip(NAMES,counts)),'sumsNs':sums,'details':details,'terminal':end}
   for n,r in enumerate(self.rows):

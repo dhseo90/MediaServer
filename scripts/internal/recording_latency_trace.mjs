@@ -34,7 +34,7 @@ export function preserveLatencyEvidence(file,value){
   const dir=fs.openSync(path.dirname(file),'r');try{fs.fsyncSync(dir);}finally{fs.closeSync(dir);}
 }
 
-// Diagnostic sample windows are explicit; unsampled time is never attributed.
+// 진단 sample 구간을 명시하며 sampling하지 않은 시간에는 비용을 귀속하지 않는다.
 export function catalogHolderSummary(text,required=true,expectedRequests=null,expectedBasis=null) {
  const rows=[];let end=null,code=null,counterBasis='binding,cold-link,rows,bytes';
  try {

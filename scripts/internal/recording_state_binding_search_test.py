@@ -1,5 +1,5 @@
 """Synthetic routing/guards only; actual artifact positive/negative is separate."""
-import copy
+import copy  # 파일 용도: 합성 입력으로 Search 결속의 분기·guard를 검사하며 실제 artifact 검증과 구분한다.
 import hashlib
 import json
 from pathlib import Path

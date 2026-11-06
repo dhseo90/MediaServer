@@ -1,5 +1,5 @@
 """R157 fixed numeric schema. Catalog lock/Journal mutex times remain unknown."""
-import json
+import json  # 파일 용도: R157 고정 숫자 schema를 검증하며 Catalog lock·Journal mutex의 미확인 시간은 미확인으로 유지한다.
 PREFIX='[R157-hold] '
 STAGES='DeletedAPI V1API V2API LinksAPI AcquireAPI ValidateAPI ReleaseAPI LockConstruction OwnedBody AcquireInit Eligibility EligibilityCanRead EligibilityLifecycle EventProtection LocationLookup SegmentCopy ValidateBody ContentCompare PlusHold PlusRead PlusLifecycle PlusLookup PlusRange PlusGeneration PlusPrecheck PlusBegin PlusPrepare PlusBindStep PlusCommitAuthority PlusCommit PlusRollback PlusLegacy PlusMap MinusHold MinusRead MinusLifecycle MinusLookup MinusRange MinusGeneration MinusPrecheck MinusBegin MinusPrepare MinusBindStep MinusCommitAuthority MinusCommit MinusRollback MinusLegacy MinusMap FDClose FDDiagnostic'.split()
 COUNTERS='Continuous Event OtherRetention PlusCalls MinusCalls PlusPrior PlusNext MinusPrior MinusNext PlusOK PlusFail MinusOK MinusFail GenerationPlus GenerationMinus SQLitePlus SQLiteMinus LegacyPlus LegacyMinus CloseOK CloseFail'.split()

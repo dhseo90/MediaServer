@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """R144: 제품을 시작하지 않는 독립 기대값 기반 의존성 반례."""
-import os
+import os  # 파일 용도: 제품 실행 없이 독립 기대값으로 build 의존성과 freshness의 반례를 검증한다.
 import json
 import subprocess
 from pathlib import Path
@@ -125,11 +125,11 @@ class FreshnessTest(unittest.TestCase):
     def test_repository_inputs_from_same_verified_walk(self):
         inputs = set()
         actual = check(self.f.repo, self.f.build, repository_inputs=inputs)
-        self.assertEqual(actual, self.f.run())  # Existing result/graph contract unchanged.
+        self.assertEqual(actual, self.f.run())  # 기존 결과와 의존 그래프 계약이 유지되는지 확인한다.
         self.assertEqual(inputs, {self.f.repo / 'CMakeLists.txt', self.f.header,
             self.f.app_header, self.f.shared, self.f.repo / 'src/media_server.cpp',
             self.f.repo / 'src/media_server_runtime.cpp'})
-        # A newly declared real TU edge is included, not inferred from manifest count.
+        # 새로 선언된 실제 번역 단위 의존 간선도 포함하며 manifest 개수에서 추정하지 않는다.
         p = self.f.path(self.f.app, 'unit.cpp.o.d')
         self.f.time(self.f.observer, 1)
         p.write_text(p.read_text().rstrip() + ' ' + str(self.f.observer) + '\n')
@@ -196,7 +196,7 @@ class FreshnessTest(unittest.TestCase):
         self.assertLess(wrapper.index('recording_build_freshness.py'),wrapper.index('"$observer_script/recording_current_observer_native.cpp"'))
         self.assertIn('"$observer_run/catalog-instrumented.cpp"',wrapper)
         self.assertIn('"$observer_script/recording_process_metrics.cpp"',wrapper)
-        # Once a source is a real compiler dependency, it is no longer exempt.
+        # source가 실제 compiler 의존성에 포함되면 더 이상 면제하지 않는다.
         p=self.f.path(self.f.app,'unit.cpp.o.d');p.write_text(p.read_text().rstrip()+' '+str(self.f.observer)+'\n')
         with self.assertRaisesRegex(Unverified,'stale-product-build'):self.f.run()
 

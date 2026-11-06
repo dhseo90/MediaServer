@@ -1,4 +1,4 @@
-// One actual writer publication per invocation. A bounded test latch is never used by full HTTP runs.
+// 파일 용도: 호출마다 실제 writer publication 한 번을 관측하며 제한된 테스트 latch는 전체 HTTP 실행에 사용하지 않는다.
 import fs from 'node:fs';import path from 'node:path';import assert from 'node:assert/strict';import {spawn} from 'node:child_process';
 import {measureCurrentRootStable,createWorkspaceFailureCapture} from './recording_current_observer.mjs';
 const [root,binary,mode]=process.argv.slice(2);assert(['baseline','candidate'].includes(mode));
@@ -18,7 +18,7 @@ child.stdout.on('data',b=>{output+=b;buffer+=b;if(output.length>65536){problem??
      const stat=fs.lstatSync(file);
      if(stat.isFile()&&stat.nlink===2&&/\.mp4(?:\.partial\.)?/.test(file)&&++reads===3){
       released=true;child.stdin.write('g');const start=performance.now();
-      // Wait only for the native unlink, retaining the actual pre-unlink stat for retry decision.
+      // 실제 native unlink만 기다리며 재시도 판단에 사용할 unlink 직전의 실제 stat를 보유한다.
       while(performance.now()-start<2000){try{if(fs.lstatSync(file).nlink===1)break;}catch(e){if(e.code==='ENOENT')break;throw e;}Atomics.wait(new Int32Array(new SharedArrayBuffer(4)),0,0,2);}
      }
      return stat;

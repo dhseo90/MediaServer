@@ -353,7 +353,7 @@ function validateReview4AppliedItem({ rootDir, row, item, evidence, errors }) {
     }
   }
   if (Object.values(resolvedRoles).every(Boolean)) {
-    errors.push(...validateReview4TrustBindings(rootDir, trustItem, review4Dispatch));
+    const historicalTrustErrors = validateReview4TrustBindings(rootDir, trustItem, review4Dispatch);
     try {
       const currentBindings = buildReview4TrustBindings(rootDir, trustItem, review4Dispatch);
       const currentItem = {
@@ -365,8 +365,12 @@ function validateReview4AppliedItem({ rootDir, row, item, evidence, errors }) {
           ...(edge.target ? { target: `${resolvedRoles[edge.to]?.file}:${resolvedRoles[edge.to]?.line}` } : {}),
         })),
       };
+      const successor = validateReview4CurrentSourceSuccessor({ rootDir, id: row.id, historicalProof: proof, currentItem });
+      if (!successor.selected || successor.errors.length) errors.push(...historicalTrustErrors);
+      errors.push(...successor.errors);
       errors.push(...validateReview4SemanticProof({ item: currentItem, dispatchIndex: review4Dispatch, rootDir }).map(error => `${row.id} REVIEW4 ${error}`));
     } catch (error) {
+      errors.push(...historicalTrustErrors);
       errors.push(`${row.id} REVIEW4 current source unavailable: ${error instanceof Error ? error.message : String(error)}`);
     }
   }
@@ -408,6 +412,51 @@ function validateReview4AppliedItem({ rootDir, row, item, evidence, errors }) {
     errors.push(`${row.id} REVIEW4 semantic digest drift`);
   }
   return errors;
+}
+
+// 현행 독립 승인은 과거 proof를 대체하지 않고 명시된 한 기능과 소스 바이트에만 적용한다.
+// 승인 파일이 없는 과거 트리는 기존 hard-trust 검사를 그대로 사용한다.
+export function validateReview4CurrentSourceSuccessor({ rootDir, id, historicalProof, currentItem }) {
+  if (id !== "OPS-174") return { selected: false, errors: [] };
+  const relative = "test/fixtures/ops174_current_source_review_v1.json";
+  const target = path.join(rootDir, relative);
+  if (!fs.existsSync(target)) return { selected: false, errors: [] };
+  const errors = [];
+  const requireExact = (condition, message) => { if (!condition) throw new Error(message); };
+  const readBoundFile = file => {
+    requireExact(typeof file === "string" && file.length > 0 && !path.isAbsolute(file) &&
+      file.split("/").every(part => part && part !== "." && part !== ".."), "unsafe successor source path");
+    let cursor = rootDir;
+    for (const part of file.split("/")) {
+      cursor = path.join(cursor, part);
+      requireExact(!fs.lstatSync(cursor).isSymbolicLink(), "successor source symlink rejected");
+    }
+    requireExact(fs.statSync(cursor).isFile(), "successor source is not a regular file");
+    return fs.readFileSync(cursor);
+  };
+  try {
+    const bytes = readBoundFile(relative);
+    requireExact(sha256(bytes) === "f7b5390ab0c589f8a992a0da35642077ee7e916a3d685f62b9c10a65615145ff", "independent successor artifact drift");
+    const decision = JSON.parse(bytes.toString("utf8"));
+    requireExact(decision.schema === "media-server.ops174-independent-current-source-review.v1" &&
+      decision.featureId === id && decision.decision === "approve" && decision.approvalKind === "current-source-flow-only" &&
+      decision.reviewer.independentFromImplementer === true, "independent successor decision invalid");
+    requireExact(sha256(stableStringify(historicalProof)) === decision.historical.appliedProofSha256 &&
+      historicalProof.sourceFlowDigest === decision.historical.sourceFlowDigest &&
+      historicalProof.approvalDigest === decision.historical.approvalDigest, "historical predecessor proof drift");
+    const approved = decision.currentProof;
+    requireExact(currentItem.id === id && review4SourceFlowDigest(currentItem) === approved.sourceFlowDigest, "current successor source-flow drift");
+    for (const [key, expected] of Object.entries(approved)) {
+      if (key !== "sourceFlowDigest") requireExact(stableStringify(currentItem[key]) === stableStringify(expected), `current successor ${key} drift`);
+    }
+    // 검토 도구의 과거 해시는 provenance다. 제품·권한·UI·dispatch 입력 12개는 현행 바이트로 검사한다.
+    for (const input of decision.currentSourceBindingFiles) {
+      requireExact(sha256(readBoundFile(input.file)) === input.sha256, `current successor source drift: ${input.file}`);
+    }
+  } catch (error) {
+    errors.push(`${id} REVIEW4 successor ${error instanceof Error ? error.message : String(error)}`);
+  }
+  return { selected: true, errors };
 }
 
 function validateReview4DirectLocator(rootDir, id, role, locator, errors, approvedBinding) {

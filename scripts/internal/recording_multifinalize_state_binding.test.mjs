@@ -1,4 +1,4 @@
-import test from 'node:test';import assert from 'node:assert/strict';import fs from 'node:fs';import os from 'node:os';import path from 'node:path';import crypto from 'node:crypto';import{execFileSync}from'node:child_process';import{fileURLToPath}from'node:url';
+import test from 'node:test';import assert from 'node:assert/strict';import fs from 'node:fs';import os from 'node:os';import path from 'node:path';import crypto from 'node:crypto';import{execFileSync}from'node:child_process';import{fileURLToPath}from'node:url';  // 파일 용도: 격리 fixture로 Multi-Finalize 후보의 source·evidence 결속과 오류 거부를 검증한다.
 import{MULTIFINALIZE_SCHEMA,validateCandidateIdentity,boundArtifact,verifyEvidenceManifest}from'./recording_multifinalize_state_binding.mjs';
 const repo=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../..'),sha=b=>crypto.createHash('sha256').update(b).digest('hex');
 function ownedRoot(t,prefix){
@@ -14,9 +14,9 @@ function ownedRoot(t,prefix){
 }
 function fixture(t){
   const root=ownedRoot(t,'multi-binding-negative-'),clone=path.join(root,'repo');
-  // Immutable Git objects are read through alternates; no source/evidence file
-  // hardlinks. Each checkout/index/new object is privately owned and removed
-  // after its test. Assertions do not depend on inter-test concurrency.
+  // 불변 Git 객체는 alternates로 읽으며 source·evidence 파일의 hardlink는 만들지 않는다.
+  // 각 checkout·index·신규 객체는 fixture가 독립 소유하고 테스트가 끝나면 정리한다.
+  // Assertion은 테스트 사이의 동시 실행 여부에 의존하지 않는다.
   execFileSync('git',['clone','--quiet','--shared','--no-hardlinks',repo,clone]);
   const git=args=>execFileSync('git',args,{cwd:clone,encoding:'utf8'});
   const head=git(['rev-parse','HEAD']).trim(),sources={};
@@ -29,7 +29,7 @@ function fixture(t){
   console.log('[fixture-created] '+JSON.stringify({root,head,products:Object.keys(sources).length,allocatedKiB:Number(execFileSync('du',['-sk',root],{encoding:'utf8'}).split(/\s+/)[0]),mode:'shared immutable Git objects; private checkout/index'}));
   return{root,clone,git,result:{schema:MULTIFINALIZE_SCHEMA,head,productHead:head,branch:git(['branch','--show-current']).trim(),sourceManifest:{path:file,sha256:sha(fs.readFileSync(file)),bytes:fs.statSync(file).size}},sources};
 }
-// All fixtures are independently owned local clones; original and evidence remain untouched.
+// 모든 fixture는 독립 소유한 로컬 clone이며 원본과 Evidence는 변경하지 않는다.
 test('clean HEAD exact sources accepted',t=>{const f=fixture(t);assert.deepEqual(validateCandidateIdentity(f.clone,f.result),f.sources);});
 test('dirty Worktree rejected',t=>{const f=fixture(t);fs.appendFileSync(path.join(f.clone,'CMakeLists.txt'),'\n# dirty\n');assert.throws(()=>validateCandidateIdentity(f.clone,f.result),/multi-dirty/);});
 test('staged modification rejected',t=>{const f=fixture(t);fs.appendFileSync(path.join(f.clone,'CMakeLists.txt'),'\n# staged\n');f.git(['add','--','CMakeLists.txt']);assert.throws(()=>validateCandidateIdentity(f.clone,f.result),/multi-dirty/);});

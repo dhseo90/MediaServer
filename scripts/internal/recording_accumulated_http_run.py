@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """R153 owned direct fixture: one seed + one HTTP cycle, total <=180s; no product launch."""
-import argparse
+import argparse  # 파일 용도: R153의 seed 한 번과 직접 HTTP cycle 한 번을 총 180초 안에서 실행·수집하며 제품 launcher는 시작하지 않는다.
 import hashlib
 import json
 import os
@@ -30,7 +30,7 @@ def fixed_products():
     return values
 
 def sources():
-    # Native include dependency closure is additionally retained from compiler depfiles.
+    # compiler depfile에서 native include 의존 관계 전체도 추가로 보존한다.
     names = ['recording_accumulated_http_smoke.cpp', 'recording_accumulated_seed.cpp',
              'recording_accumulated_http_run.py', 'recording_degraded_http_smoke.cpp',
              'recording_source_http_fixture.h', 'recording_native_isolation.py',
@@ -124,7 +124,7 @@ def build(parent):
             subprocess.run(cmd, stdout=f, stderr=subprocess.STDOUT, check=True, timeout=180)
     with (parent/'metrics-build.log').open('xb') as f:
         subprocess.run(['c++','-std=c++17',str(REPO/'scripts/internal/recording_process_metrics.cpp'),'-o',str(parent/'process-metrics')],stdout=f,stderr=subprocess.STDOUT,check=True,timeout=60)
-    # Read compiler-emitted escaped depfiles through the already tested freshness parser.
+    # 이미 검증한 freshness parser로 compiler가 출력한 escape 포함 depfile을 읽는다.
     from recording_build_freshness import depfile
     deps = {}
     for name in ('fixture','seed'):
@@ -148,9 +148,9 @@ def run(parent, line_callback=None):
         if digest(parent/name) != sha: raise ValueError('binary binding')
     for name, sha in binding['dependencies'].items():
         if digest(REPO/name) != sha: raise ValueError('included source binding')
-    root = parent/'run';root.mkdir(mode=0o700)  # exclusive leaf also rejects a second cycle
+    root = parent/'run';root.mkdir(mode=0o700)  # 실행 디렉터리를 배타적으로 만들어 두 번째 cycle도 거부한다.
     env = environment(root)
-    t = time.monotonic(); deadline = t+166  # reserve14s for two TERM/KILL drains within180
+    t = time.monotonic(); deadline = t+166  # 전체 180초 중 두 차례 TERM/KILL 정리에 14초를 남긴다.
     record = {'schema':'media-server.r153.execution.v1','products':fixed_products(),
               'buildBinding':binding,'seedStarts':0,'fixtureStarts':0,'productStarts':0,
               'limitSeconds':180,'logCapBytes':CAP,'firstFailure':None,'cleanupErrors':[],

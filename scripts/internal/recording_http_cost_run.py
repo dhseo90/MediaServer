@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """R154 bounded instrumented R153 fixture; product archive and sources remain immutable."""
-import argparse,importlib.util,json,os,shlex,subprocess,time
+import argparse,importlib.util,json,os,shlex,subprocess,time  # 파일 용도: 제품 archive·source를 보존하며 R153 fixture에 R154 비용 계측을 적용해 제한 실행한다.
 from pathlib import Path
 import recording_accumulated_http_run as base
 from recording_http_cost_overlay import generate
@@ -129,7 +129,7 @@ def qualify_trace(lines,events):
             for n in source[:4]:number(n)
             if any(type(v)!=bool for v in source[4:]):raise ValueError('source flags')
         for name,b,e in r['phases']:
-            # existing service diagnostic starts a few instructions before probe entry
+            # 기존 service 진단은 probe 진입보다 몇 개 명령 먼저 시작한다.
             order([b,e])
             if b>s['prepared'] or e>r['end'] or b<s['handler']:raise ValueError('phase outside request')
         if r['status']!=http[i]['status']:raise ValueError('search status')
@@ -155,7 +155,7 @@ def build(parent):
     compile([*common,'-MMD','-MF',str(parent/'fixture.d'),str(parent/'overlay/recording_accumulated_http_smoke.cpp'),*objects,archive,*libs,'-Wl,-map,'+str(parent/'fixture.map'),'-o',str(parent/'fixture')],'fixture-build')
     compile([*common,'-MMD','-MF',str(parent/'seed.d'),str(REPO/'scripts/internal/recording_accumulated_seed.cpp'),archive,*libs,'-o',str(parent/'seed')],'seed-build')
     compile([link[0],'-std=c++17',str(REPO/'scripts/internal/recording_process_metrics.cpp'),'-o',str(parent/'process-metrics')],'metrics-build')
-    # Reuse real native V2 ownership fixture; add exact original-reference counter expectations.
+    # 실제 native V2 소유권 fixture를 재사용하고 정확한 원본 참조 counter 기대값을 추가한다.
     native=(REPO/'scripts/internal/recording_accumulated_media_smoke.cpp').read_text()
     anchor='  const auto holds=[&]'
     assert native.count(anchor)==1

@@ -1,4 +1,4 @@
-// R184: actual managed Writer and Native Search; isolated fixtures only.
+// 파일 용도: R184의 실제 managed Writer·Native Search를 격리된 fixture에서만 검사한다.
 #define main MultiWriterFixtureMain
 #include "recording_managed_writer_smoke.cpp"
 #undef main
@@ -136,7 +136,7 @@ struct Fixture {
     auto other=f.Refresh({"b"});Need(c.MarkSegmentCorrupt(other->documents().front().segment_id,"container-invalid",&f.error),"R184 other-channel unsupported after build");
    } else f.Append(mode=="other-before-publish"?"b":"a");
   };
-  // Avoid recursive hook while locating the unrelated victim.
+  // 무관한 피해 항목을 찾는 동안 hook이 재귀 호출되지 않게 한다.
   std::string other_id;if(mode=="other-unsupported"){
    auto hook=std::move(search_after_build_test);search_after_build_test={};other_id=f.Refresh({"b"})->documents().front().segment_id;
    search_after_build_test=[&]{injected=true;Need(c.MarkSegmentCorrupt(other_id,"container-invalid",&f.error),"R184 other-channel unsupported after build");};

@@ -349,7 +349,7 @@ std::size_t SharedStream::TotalDroppedPacketCount() const {
 
 void SharedStream::ReportRecorder(const std::shared_ptr<SubscriberState>& state) {
     if(!recording::latency::SubcostEnabled()||state->role!=SubscriberRole::Recorder)return;
-    // Called only after join, outside queue/map locks; all counter writers stopped.
+    // join이 끝나 카운터를 쓰는 작업이 모두 멈춘 뒤 queue·map lock 밖에서만 호출한다.
     std::fprintf(stderr,"[recorder-cost] enqueued=%llu dequeued=%llu dropped=%zu payloadBytes=%llu maxDepth=%llu maxBytes=%llu firstNs=%llu lastNs=%llu minInputGapNs=%llu maxInputGapNs=%llu queueWaitNs=%llu maxQueueWaitNs=%llu callbackNs=%llu maxCallbackNs=%llu firstDepth64Ns=%llu firstDropNs=%llu maxCallbackBeginNs=%llu maxCallbackOrdinal=%llu\n",
         (unsigned long long)state->enqueued,(unsigned long long)state->dequeued,state->dropped_packets,
         (unsigned long long)state->payload_bytes,(unsigned long long)state->max_depth,(unsigned long long)state->max_bytes,
@@ -397,7 +397,7 @@ void SharedStream::WorkerLoop(const std::shared_ptr<SubscriberState>& state) {
             std::lock_guard lock(state->mu); state->callback_failed=true;
         }
         if(begin){const auto cost=recording::latency::Now()-begin;
-            // Only this worker writes callback counters; final report follows join.
+            // 이 worker만 callback 카운터를 갱신하며 최종 보고는 join 뒤에 수행한다.
             state->callback_ns+=cost;if(cost>state->max_callback_ns){state->max_callback_ns=cost;state->max_callback_begin_ns=begin;state->max_callback_ordinal=packet.observation?packet.observation->ordinal:0;}}
     }
     try { if(state->on_drained) state->on_drained(); }

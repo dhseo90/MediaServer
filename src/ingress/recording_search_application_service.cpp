@@ -51,7 +51,7 @@ struct RecordingApplicationService::SearchState {
     }
 };
 namespace {
-// Record only fixed timestamps under the service mutex; emit at request exit after unlock.
+// service mutex 안에서는 고정 timestamp만 기록하고 lock을 푼 뒤 요청 종료 시 출력한다.
 struct SearchLock {
     const char* name;const char* held_name;std::uint64_t before,acquired;std::unique_lock<std::mutex> lock;
     SearchLock(std::mutex& mutex,const char* value,const char* held="service-hold"):name(value),held_name(held),before(recording::SearchDiagnostic::Tick()),lock(mutex){acquired=recording::SearchDiagnostic::Tick();}
@@ -101,8 +101,8 @@ bool Parse(const Query& raw,bool seek,recording::RecordingSearchQuery* out){
 bool Authorized(const recording::RecordingSearchQuery& q,const RecordingApplicationService::ChannelAuthorizer& authorize){
     return authorize&&std::all_of(q.channels.begin(),q.channels.end(),[&](const auto& c){return authorize(c);});
 }
-// One admitted output buffer. Quoting/list emission does not first construct an
-// unbounded field or item temporary and then check the 4MiB response boundary.
+// 허용된 출력 buffer 하나를 사용하며 quote·list 출력 전에 무제한 임시 필드·항목을 만들지 않는다.
+// 임시 값을 먼저 만든 뒤 4MiB 응답 경계를 검사하는 방식이 아니다.
 class SearchJson {
     static constexpr std::size_t cap=4*1024*1024;
     std::string value_;
@@ -184,8 +184,8 @@ ApplicationServiceResult RecordingApplicationService::Search(const Query& raw,co
             }
             if(!prepared){recording::latency::VisualPhase phase("structured-retries-exhausted");return Failure(error);}
         }
-        // Existing 4MiB JSON admission: original body + growth/field temporary +
-        // wire body coexist. Reserve before serialization; move to transport owner.
+        // 기존 4MiB JSON 허용 범위에서 원래 body·확장 또는 필드 임시 값·wire body가 공존한다.
+        // 직렬화 전에 예약하고 transport 소유자에게 이동한다.
         recording::SearchDiagnostic::Stage("currentness-json");
         recording::SearchDiagnostic::Phase response_cost("CurrentnessJson");
         auto response_memory=catalog_.SearchResidency()->ReserveOwned(4ULL*4*1024*1024,recording::SearchModelResidency::Category::Response);
@@ -200,9 +200,9 @@ ApplicationServiceResult RecordingApplicationService::Search(const Query& raw,co
         json.Raw("{\"schema\":\"media-server.recording-search.v1\",\"snapshotId\":").Text(page.snapshot_id)
             .Raw(",\"nextCursor\":");
         if(page.next_cursor.empty())json.Raw("null");else json.Text(page.next_cursor);
-        // The snapshot binds membership, not the present integrity of every old Raw.
-        // No background scanner is scheduled by this bounded vertical. Actual
-        // returned media still takes the existing per-item checks below.
+        // snapshot은 구성원 목록을 결속하며 모든 과거 Raw의 현재 무결성을 보증하지 않는다.
+        // 이 제한된 처리 경로는 background scanner를 예약하지 않는다.
+        // 실제 반환하는 media는 아래의 기존 항목별 검사를 계속 거친다.
         json.Raw(",\"integrity\":{\"membership\":\"authenticated\",\"coverage\":\"snapshot\",\"unaccessedRaw\":\"not-revalidated-for-response\",\"background\":\"not-scheduled\",\"media\":\"per-item-current-check\"}");
         json.Raw(",\"knownCount\":").Raw(std::to_string(page.known_count))
             .Raw(",\"unplacedCount\":").Raw(std::to_string(page.unplaced_count)).Raw(",\"items\":[");

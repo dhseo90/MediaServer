@@ -572,8 +572,8 @@ public:
 };
 #if MEDIA_SERVER_USE_OPENSSL && !defined(_WIN32)
 namespace {
-// Process-local authenticated scratch only. Original JSON parsing/validation is unchanged.
-// Fixed field framing avoids reparsing the same nested JSON on every cold checkpoint lookup.
+// process 내부의 인증된 작업 공간 전용이며 원본 JSON parsing·검증은 바꾸지 않는다.
+// 고정 필드 framing으로 cold checkpoint 조회마다 동일한 중첩 JSON을 다시 parsing하지 않는다.
 std::string FirstBytes(const RecordingIdentityFirstAcceptance& first) {
     const auto& row=first.first_row;const auto& archive=first.first_archive;
     std::string out="F1";
@@ -629,7 +629,7 @@ bool CheckFirst(RecordingIdentityHistory& history,const RecordingIdentityFirstAc
     return true;
 }
 std::string ScratchDirectory() {
-    // This is a separate capability. Create validates the opened directory; source root is never used.
+    // 별도 capability이며 Create가 열린 directory를 검증한다. source root는 사용하지 않는다.
     return std::filesystem::canonical(std::filesystem::temp_directory_path()).string();
 }
 bool FinishFailure(const RecordingIdentityHistoryHandle& history,std::string* error,RecordingIdentityHistoryHandle* receipt) {
@@ -661,7 +661,7 @@ bool BuildRecordingIdentityHistory(const std::filesystem::path& root,const std::
             if(history_build_fault==2&&!history->index.Put(OrdinalKey(entry.first_global_ordinal),"wrong-first-id",true,error))return FinishFailure(history,error,output);
 #endif
         }
-        // Both namespaces are compared to the already validated original, before negative lookup publication.
+        // 부재 조회 결과를 공개하기 전에 두 namespace를 이미 검증한 원본과 비교한다.
         for(const auto& entry:first){
             if(!CheckFirst(*history,entry,error)||entry.occurrences>UINT64_MAX-history->physical)
                 return FinishFailure(history,error,output);
@@ -785,8 +785,8 @@ bool FindRecordingIdentityFirst(const RecordingIdentityChainResult& chain,const 
 }
 #if MEDIA_SERVER_ENABLE_RECORDING_GENERATION_BACKEND && MEDIA_SERVER_USE_OPENSSL && !defined(_WIN32)
 namespace {
-// The original canonical JSON object has two arrays on one line. Decode one bounded
-// object at a time; whole-array StrictJson parsing would recreate the full shard.
+// 원본 canonical JSON 객체는 한 줄에 array 두 개를 가진다. 전체 array를 StrictJson으로
+// parsing하면 전체 shard를 다시 만들므로 크기가 제한된 객체 하나씩 decode한다.
 class IdentityStreamParser {
 public:
     RecordingIdentityShard header;

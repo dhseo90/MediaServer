@@ -5711,3 +5711,127 @@ R192-FIXTURE-FINAL: 2026-10-31 후속 승인. 정상9201과 실패/재시도9101
 
 
 R144-BINDING-FIXTURE: 기존 Node 결속 전체 집합의 Clean/Dirty/Stage/HEAD/제품바이트/Manifest/Schema 거부를 유지한다. 각 Fixture의 checkout/index는 별도 파일이고 읽기 전용 Git object alternates만 공유하며, 소유한 임시 root를 각 테스트 뒤 반환한다. Memory 환경 설정은 기존 memoryObserve 또는 blockerMode에서만 attribution=1, 둘 다 false면 미설정이어야 한다. 기존 collector 오류·용량·stale 경계와 opt-in SKIP 의미는 유지한다. State45/Memory P0 합격과는 별도인 단기 도구 검증이다.
+
+
+## G07-LP-CC03 정확한 역사 Finding 예외 사전등록
+
+사용자의 명시 승인 계약 `4a771a8e66c2a8234985c44dcdd5448173b3be82034b7237009fc948d5b7e3ea`에 한정한다. 역사 원본3개는 바이트를 보존하고 CC01-0001/0002/0003/0105/0106만 조건부 처리한다. 일반 위반과 CC01-0578은 유지한다. 이 절은 정의이며 실행 결과는 별도 Evidence에 기록한다.
+
+`node scripts/internal/recording_preserved_header.test.mjs`는 기존 PH01~PH15 assertion을 유지한다. `--exact-findings`는 아래29개를 추가 검증한다. 실제 verifier를 소유 fixture에서 실행하고 승인 원본은 읽기만 한다. P04/C02는 고정1280 원장에 실제 validator를 적용하는 VM 검사이고 C03은 독립 Source hash 진입조건 합성 검사다. 이들은 실제 G07 Runtime을 대체하지 않는다.
+
+| 기능 ID | 입력·정상/오류/경계 기대값 | 안정화 | 30분 | 120분 | UI |
+| --- | --- | --- | --- | --- | --- |
+| CC02-P01 | 정확3개파일·전체hash·승인된5finding·신뢰된승인기록 → 5개만승인처리; 원시finding과적용목록보존 | 제품 없는 표적 | 비대체 | 비대체 | 비대상 |
+| CC02-P02 | 동일fixture에일반Source의실제영문/헤더위반추가 → 5개승인처리되더라도일반위반Exit1 | 제품 없는 표적 | 비대체 | 비대체 | 비대상 |
+| CC02-P03 | 기존exact6/marker2종과새5개병행 → 기존허용/거부계약유지; 새예외와중복적용0 | 제품 없는 표적 | 비대체 | 비대체 | 비대상 |
+| CC02-P04 | 현재후보일반위반과별도Python과검출그대로존재 → 향후승인5개만처리될때잔여1275 FAIL; 전체PASS금지 | 제품 없는 표적 | 비대체 | 비대체 | 비대상 |
+| CC02-N01 | 승인파일한바이트변경 → hash불일치,새block예외0,원위반+binding error Exit1 | 제품 없는 표적 | 비대체 | 비대체 | 비대상 |
+| CC02-N02 | 동일파일명다른내용 → 전체hash불일치Exit1 | 제품 없는 표적 | 비대체 | 비대체 | 비대상 |
+| CC02-N03 | 동일bytes다른경로로이동 → 등록경로없음/새경로미등록; Exit1 | 제품 없는 표적 | 비대체 | 비대체 | 비대상 |
+| CC02-N04 | 승인파일에새English주석추가 → hash불일치+원검사새finding; Exit1 | 제품 없는 표적 | 비대체 | 비대체 | 비대상 |
+| CC02-N05 | 승인finding삭제후다른위반추가 → stale approved set/hash불일치; Exit1 | 제품 없는 표적 | 비대체 | 비대체 | 비대상 |
+| CC02-N06 | 예외entry를다른file에복사 → 승인scope digest불일치; Exit1 | 제품 없는 표적 | 비대체 | 비대체 | 비대상 |
+| CC02-N07 | 미등록역사파일헤더누락 → 기존FAIL,예외없음 | 제품 없는 표적 | 비대체 | 비대체 | 비대상 |
+| CC02-N08 | 일반Source를새예외대상으로변조 → 승인scope불일치/역사범위위반; Exit1 | 제품 없는 표적 | 비대체 | 비대체 | 비대상 |
+| CC02-N09 | 다른일반file신규English주석 → 기존FAIL유지 | 제품 없는 표적 | 비대체 | 비대체 | 비대상 |
+| CC02-N10 | 다른file신규용도표식누락 → 기존FAIL유지 | 제품 없는 표적 | 비대체 | 비대체 | 비대상 |
+| CC02-N11 | approved=true/authority/ref위조 → 자기신고를승인으로인정하지않고신뢰된receipt/scope digest불일치; Exit1 | 제품 없는 표적 | 비대체 | 비대체 | 비대상 |
+| CC02-N12 | metadata내용과그자체hash동시변경 → verifier고정anchor와불일치; Exit1 | 제품 없는 표적 | 비대체 | 비대체 | 비대상 |
+| CC02-N13 | 지원하지않는policy/exception version → 정책오류,예외0,Exit1 | 제품 없는 표적 | 비대체 | 비대체 | 비대상 |
+| CC02-N14 | wrong originalFindingId 또는identity digest → 정확tuple/digest불일치; Exit1 | 제품 없는 표적 | 비대체 | 비대체 | 비대상 |
+| CC02-N15 | findingtype header↔English변경 → 승인종류불일치; Exit1 | 제품 없는 표적 | 비대체 | 비대체 | 비대상 |
+| CC02-N16 | 동일문구다른line또는문맥 → 위치/rawbytes/hash불일치; Exit1 | 제품 없는 표적 | 비대체 | 비대체 | 비대상 |
+| CC02-N17 | 추가Header예외·6번째finding삽입 → 3파일5finding set/anchor불일치; Exit1 | 제품 없는 표적 | 비대체 | 비대체 | 비대상 |
+| CC02-N18 | leaf/ancestor symlink, 경로이탈, 비정규경로 → identity검증거부; Exit1 | 제품 없는 표적 | 비대체 | 비대체 | 비대상 |
+| CC02-N19 | 중복/누락entry·잘못된타입·unknown critical field → strict schema/set검증실패; Exit1 | 제품 없는 표적 | 비대체 | 비대체 | 비대상 |
+| CC02-N20 | 승인record누락/철회/다른proposal digest → 예외비활성화,기존FAIL; Exit1 | 제품 없는 표적 | 비대체 | 비대체 | 비대상 |
+| CC02-N21 | 헤더를정상추가하여정책위반을없애려는보존file변경 → 바이트불변계약실패는독립적으로Exit1 | 제품 없는 표적 | 비대체 | 비대체 | 비대상 |
+| CC02-N22 | 동일basename, 동일bytes의다른file → 원래3경로외에는예외없음; 해당finding FAIL | 제품 없는 표적 | 비대체 | 비대체 | 비대상 |
+| CC02-C01 | 검사대상집합과rawfinding전후비교 → 기존1586대상/확장자/exclude/원규칙유지; 승인5개이외finding완전동일 | 제품 없는 표적 | 비대체 | 비대체 | 비대상 |
+| CC02-C02 | 예외오류중원래검사결과수집 → 유효정책하에서는fail-fast로다른finding소실금지; malformedJSON은명시정책오류로닫음 | 제품 없는 표적 | 비대체 | 비대체 | 비대상 |
+| CC02-C03 | Source/Manifest admission에정책+verifier를동시변조한후제시 → 기존승인Source/packagehash불일치로진입차단; checker자체만으로이공격방어PASS주장금지 | 제품 없는 표적 | 비대체 | 비대체 | 비대상 |
+
+모든필수 회귀 통과 후에만 고정 Node로 후보 `verify_code_comments.mjs` 전체검사를 최대1회 수행한다. 예상 Exit1과잔여1275는 전체PASS가 아니다. 실제Finding identity를 CC01 원장과대조한다. 제품/Build/Predev/Commit은 실행하지 않는다. fixture는새Evidence의 TMPDIR 아래에만 만들고 자식정상반환·소유root부재를 확인한다. 외부승인기록/원장/기준Source는 hash결속된불변Evidence 의존성이며 새로운SourceFreeze/패키지승계는별도작업이다.
+
+
+## CC-DEV 기존 주석 정책의 개발 단계 Feedback
+
+파일 작성·수정 직후와 Commit 전에는 `./server.sh verify-code-comments --files <저장소 상대 경로>...`로 해당 파일을 검사한다. 무인자 명령과 개발 브랜치 Push/PR CI는 기존 전체 Source 검사를 유지한다. 파일 선택 PASS는 전체 Source PASS가 아니며, 승인된 역사 5건과 기존 보존 헤더의 결속은 선택 검사에서도 항상 검증한다. 새 언어·문체 규칙 또는 예외를 추가하지 않는다.
+
+제품 없는 `node scripts/internal/recording_preserved_header.test.mjs --selected-files`의 사전 기대값:
+
+| 기능 ID | 정상·오류·경계 기대값 | 검증 영역 |
+| --- | --- | --- |
+| CC-DEV01~03 | 정상 선택 파일 Exit0·선택 범위 표시, 같은 파일 영문 주석/용도 누락 각각 Exit1 | 표적 정적; Runtime·30분·120분·UI 비대체 |
+| CC-DEV04 | 선택하지 않은 위반은 선택 결과에 포함하지 않고 무인자 전체 검사는 Exit1 | 표적 정적; 전체 검사 유지 |
+| CC-DEV05~10 | 빈 목록·절대 경로·상위 경로 이탈·누락 파일·심링크·비대상 파일은 Exit2 | 표적 정적; 입력 오류 |
+| CC-DEV11~12 | 선택 Python 구문 오류 Exit1, 중복 경로는 한 번만 검사하고 역사 5건 결속 유지 | 표적 정적; 구문·중복 경계 |
+| CC-DEV13 | 선택 파일이 정상이더라도 역사 파일 바이트 변경은 Exit1 | 표적 정적; 보호 경계 |
+
+기존 `verify-ci-local-gate-parity`는 Preflight의 모든 개발 브랜치 Push 연결과 위 회귀 명령을 확인하며 main 전용 Push로 되돌린 음성 fixture를 거부한다. 기존 PH01~PH15, CC03 29개, CC04 Python 15개 및 전체 Inventory 검사는 별도로 유지한다.
+
+
+CC-DEV의 CI 이식성: `config/code-comment-approval/`은 승인 기록과 요청문의 정확한 원본 바이트를 보존한다. 기록 안의 과거 절대 경로는 출처이며 실행 의존성이 아니다. 검사기는 정책의 정규 상대 경로와 같은 디렉터리의 요청문을 읽고 기존 고정 SHA256을 검증한다. 누락·변조·심링크는 외부 경로로 우회하지 않고 실패한다. 승인 범위는 기존 5건 그대로다.
+
+CC03 회귀의 독립 기대값은 `test/fixtures/code-comment-policy/`에 보존한다. 1280건 원장은 무손실 gzip으로 보관하고 해제한 전체 바이트의 기존 SHA256을 확인한다. 과거 검사기·정책과 CC01-0578 원문도 실행하지 않는 고정 입력이다. CC02-P01은 상대 경로의 실제 검사를, CC02-N20은 기존 누락·철회·계약 변조와 함께 요청문 누락·변조·심링크 및 비정규 상대 경로 거부를 검증한다. PH15·CC03 29·Python15·선택13 회귀를 개발 브랜치 Push CI에 함께 연결한다. 이 자료는 새 승인이나 새 Runtime PASS가 아니다.
+
+
+CC-DEV Python 지시문 분류: Python COMMENT 토큰 중 명시한 오류 코드 목록이 있는 `noqa: CODE`와 `type: ignore[code]`만 도구 문법으로 분리한다. 파일 전체를 제외하거나 정책의 경로·Finding 예외를 늘리지 않는다. `#`로 구분한 후행 설명은 기존 한글 설명 규칙으로 검사한다. 문법이 맞지 않는 입력·설명 앞의 텍스트·범위 없는 전체 억제는 기존 판정을 유지한다. 원본 8개 파일의 지시문 17건과 물리적 위치는 변경하지 않는다.
+
+근거는 [Ruff의 행 단위 문법](https://docs.astral.sh/ruff/linter/#line-level), [Python typing 지시문](https://typing.python.org/en/latest/spec/directives.html#type-ignore-comments), [mypy 오류 코드 문법](https://mypy.readthedocs.io/en/stable/error_codes.html#silencing-errors-based-on-error-codes)이다. 실제 프로젝트에서 도구가 실행되었다는 근거는 없으며 해당 소비 결과는 UNPROVEN이다. 이번 검증은 언어 정책의 문법 오인 제거와 원본 바이트 보존에 한정한다.
+
+최신 RELEASE COMPLETION 요청의 정확한 문법 분류 승인에 따라 CC04-PY12는 명시된 `noqa: BLE001`의 언어 정책 오탐 제거를 기대한다. 이전 PY12의 FAIL 기대와 그 실행 Evidence는 보존하며 이전 15개 계약이 모두 그대로라는 표현을 사용하지 않는다. 나머지 PY01~15의 문자열·실제 주석·구문 오류·파서 부재 기대값은 그대로다. 제품 없는 `--python-comments` 회귀는 아래 경계를 추가한 30개다.
+
+| 기능 ID | 정상·오류·경계 기대값 | 검증 영역 |
+| --- | --- | --- |
+| PY16~19 | 코드가 지정된 type ignore 및 noqa 코드 목록을 설명으로 오인하지 않음 | 표적 정적; Runtime·30분·120분·UI 비대체 |
+| PY20~23 | 두 지시문의 후행 영문 설명 Exit1, 한글 설명 Exit0 | 표적 정적 |
+| PY24~28 | 잘못된 코드 문법·빈/미완성 목록·선행/후행 영문 설명은 Exit1 | 표적 정적 |
+| PY29~30 | 범위 없는 전체 억제를 새 언어 정책 예외로 만들지 않음, Exit1 | 표적 정적 |
+
+
+## CC-SUC 주석 변경본의 별도 Source/Fixture 결속
+
+기존 역사 Source·Fixture·고정 기대 해시와 Evidence는 원본 바이트로 유지한다. 주석 수정본은 별도 버전으로 검증하며 과거 제품 Runtime 판정을 승계하지 않는다. 다음 내부 검사는 안정화의 표적 정적·합성 검사이며 제품 실행·30분·120분·UI를 대신하지 않는다.
+
+| 기능 ID | 정상·오류·경계 계약 | 실행 |
+| --- | --- | --- |
+| CC-SUC01 | 과거 NativeLifetime prefix를 기존 SHA로 검증하고 현행 prefix를 별도 SHA로 결속한다. 검토한 주석 3줄만 역변환하면 과거 전체 prefix와 바이트가 같아야 한다. 기존 StatePreseed·Retention 기능 검사는 유지한다. | `node scripts/internal/recording_mixed_generation_check.test.mjs` |
+| CC-SUC02 | 현행 prefix에 임의 바이트를 추가하면 거부한다. | 위와 같음 |
+| CC-SUC03 | 보존된 과거 prefix에 임의 바이트를 추가하면 거부한다. | 위와 같음 |
+| CC-SUC04 | 과거 prefix를 현행 수정본 대신 제공하면 거부한다. | 위와 같음 |
+
+`test/fixtures/recording_mixed_generation_lifetime_v1.h.txt`는 과거 검사에서 결속한 prefix의 정확한 원본 바이트다. 실행 소스가 아니며 기존 불변 해시 Assertion의 입력으로 보존한다. 현행 실행 fixture는 `scripts/internal/recording_mixed_generation_fixture.h`이고 검토한 차이는 301·357·370행의 설명 주석뿐이다. 새 기능·진단·Deadline 예외를 추가하지 않는다.
+
+
+주석 수정본의 producer 결속은 과거 파일 23개의 정확한 바이트를 `recording_producers_historical_v1.json.gz`에 무손실 보존하고 `recording_comment_successor_v1.json`에 과거·제품 기준 Commit·현행 파일 해시를 구분한다. 과거부터 제품 기준 Commit까지 이미 존재하던 기능 변경을 주석 변경으로 분류하지 않는다. 기존 capacity/report 기대 해시는 과거 원본에 그대로 적용하고, 현재 파일은 별도 해시와 기존 vocabulary·format·산술·실제 JS collector 조건을 모두 통과해야 한다. 두 fixture 자체의 SHA도 검사 코드에 고정한다. Runtime 용량·Build·장시간 판정은 부여하지 않는다.
+
+| 기능 ID | 정상·오류·경계 계약 | 실행 |
+| --- | --- | --- |
+| CC-SUC05 | 기존 capacity/report/R153 대상 23개와 manifest 집합이 정확히 같고 과거·현재 바이트를 각각 검증한다. | 아래 Node 표적 실행 |
+| CC-SUC06~07 | 현재 파일 또는 과거 원본에 1바이트를 추가하면 각각 거부한다. | 위와 같음 |
+| CC-SUC08~09 | 과거 바이트를 현재 파일 대신 쓰거나 미등록·상위·절대 경로를 요청하면 거부한다. | 위와 같음 |
+| CC-SUC10 | 기존 R153 해시 Assertion은 과거 원본에 유지하며 현행 fixture는 별도로 결속한다. | 아래 R153 표적 실행 |
+| CC-SUC11~12 | 현재 R153 또는 과거 원본에 임의 바이트를 추가하면 거부한다. 기존 HTTP 비용·손실·경계 Assertion은 유지한다. | 위와 같음 |
+
+Node 표적 실행: `node --test --test-name-pattern='ledger capacity regression|official report producers: bound|CC-SUC0[5-9]' scripts/internal/recording_accumulated_cost.test.mjs`.
+
+R153 표적 실행: `python3 -B scripts/internal/recording_http_cost_run.test.py Contract.test_r153_unchanged Contract.test_r153_current_comment_successor Contract.test_r153_current_drift_rejected Contract.test_r153_historical_drift_rejected`. 전체 파일의 과거 제품 해시·R155 실제 child/fixture 검사는 별도 자산과 소유 root를 요구하며 이 4개 사례의 성공으로 전체 파일 PASS를 대신하지 않는다.
+
+## OPS-174 현행 독립 Source 승인 결속
+
+과거 REVIEW4 approval/proof/envelope는 원본 바이트로 보존한다. 별도 `ops174_current_source_review_v1.json`은 독립적으로 검토한 OPS-174 현행 소스 흐름만 승인한다. 기존 역할 해석·과거 digest·현행 semantic edge 검사는 유지하고, exact predecessor/current proof 및 제품·dispatch 12개 입력의 바이트를 대조한다. 다른 기능의 승인이나 제품 Runtime·UI·장시간 PASS가 아니다.
+
+제품 없는 명령: `node --test scripts/internal/verify_review4_locator_resolution.test.mjs`. 기존 R4L 검사는 유지하며 아래 케이스를 추가한다. 이 내부 승인 소비자 변경은 안정화의 정적 사전검사에 해당하고 30분/120분/UI 실행을 대신하지 않는다.
+
+| ID | 정상·오류·경계 기대값 |
+| --- | --- |
+| R4S01 | 실제 기능 목록의 OPS-174 entry가 신규 독립 승인으로 검증되고 과거 entry 객체는 변경되지 않는다. |
+| R4S02 | 과거 fixture 4개와 applied proof가 원래 바이트/digest를 유지한다. |
+| R4S03 | 승인 원본 변조·누락은 successor를 허용하지 않고 기존 hard-trust 실패를 유지한다. |
+| R4S04 | 제품 바이트 변조와 symlink 입력을 거부한다. |
+| R4S05 | OPS-174 승인을 다른 기능에 적용하지 않으며 기존 불일치는 거부한다. |
+| R4S06 | 과거 proof 변조를 거부한다. |
+| R4S07 | stale 위치·과거 binding 대입·edge 변조를 거부한다. |
+| R4S08 | 과거 source identity를 현행 결속으로 대입하면 거부한다. |
+| R4S09 | 소스 입력 누락으로 fixture 준비가 실패해도 생성한 임시 디렉터리는 제거되고 원래 오류를 전파한다. |

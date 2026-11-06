@@ -177,7 +177,7 @@ async function evidenceLoad(app){
  }
  mixed.cycles++;console.log('[mixed-cycle-progress] '+JSON.stringify({elapsedMs:observationStart===null?null:performance.now()-observationStart,searchClients:mixed.searchSuccessByClient,evidenceCreated:mixed.createSuccess,visualCreated:mixed.visualCreated}));await verifySavedEvidence(app);console.log('[evidence-load] '+JSON.stringify({cycles:mixed.cycles,searchSuccess:mixed.searchSuccess,createSuccess:mixed.createSuccess,createBusy:mixed.createBusy,retainedChecks:mixed.retainedChecks,deletedSourceObserved:mixed.deletedSourceObserved}));
 }
-// R184-B: focused cases using the existing authenticated product fixture.
+// R184-B: 기존 인증된 제품 fixture를 사용하는 focused case다.
 let blockerResults={...(qualification?{qualification}:{}),scope:'three blockers only; no State45/startup-suite claim',requests:[],auth:null,retention:null};
 let blockerSequence=0;
 async function bfetch(app,label,route,{cookie=app.cookie,method='GET',body,range}={}) {
@@ -233,14 +233,14 @@ async function runBlockers(stun){
  await bdisable(first);const stable=await bpage(first,'before-restart-stable',query);bexact(stable,'before-restart');const media=stable.items.find(x=>x.playable).playbackUrl;
  await bauth(first,'before-restart',route,media);const staleCookies=[...auth.cookies];await bmetrics(first,'before-restart-stop');await stop(first);
  const second=await launch(stun,false);
- // launch intentionally reauthenticates only admin, matching the previous harness.
+ // launch는 이전 harness와 동일하게 의도적으로 admin만 다시 인증한다.
  const oldOwner=await bfetch(second,'after-restart-stale-owner',route,{cookie:staleCookies[0]});
  const oldOperator=await bfetch(second,'after-restart-stale-operator',route,{cookie:staleCookies[1]});
  check(oldOwner.status===401&&oldOperator.status===401,'R184-B restarted process rejects old sessions401');
  await blogin(second,1);await blogin(second,2);await bauth(second,'after-restart-fresh',route,media);
  blockerResults.auth={classification:'AUTH_FIXTURE_OR_RESTART_STATE_MISMATCH',secondary:'AUTH_TEST_HARNESS_DEFECT missing status before assertion',staleOwnerStatus:oldOwner.status,staleOperatorStatus:oldOperator.status,freshOperatorStatus:403};
  const recovered=await bpage(second,'restart-strict',query);bexact(recovered,'after-restart');check(new Set(stable.items.map(x=>x.segmentId)).size===new Set(recovered.items.map(x=>x.segmentId)).size,'R184-B stable recovered membership');
- // Keep an actual old snapshot and verify current per-item media after retention.
+ // 실제 과거 snapshot을 유지하고 retention 뒤 현재 항목별 media를 검증한다.
  const one=new URLSearchParams(query);one.set('limit','50');const oldPage=await bfetch(second,'old-snapshot-prime','/ops/api/recordings/search?'+one);check(oldPage.status===200&&oldPage.json.nextCursor,'R184-B old snapshot cursor exists');
  const visualBefore=await bvisual(second,'visual-before-retention','9101');const visualCandidates=new Set(visualBefore.items.map(x=>x.playbackUrl.split('/').at(-1)));
  const candidates=[...progress.records.values()].filter(x=>x.channel==='9101'&&x.state==='finalized'&&visualCandidates.has(x.id));check(candidates.length>=2,'R184-B actual Visual deletion candidates');
@@ -248,7 +248,7 @@ async function runBlockers(stun){
  const registry=await request(second,'GET','/ops/api/sources'),body=source('9101');body.recording=nextRecordingSettings(registry,'9101',true,fixtureProfile.name);body.recording.continuousMaxBytes=64*1024*1024+65536;
  const policy=await request(second,'PUT','/ops/api/sources/9101',body);check(policy.source.recording.continuousMaxBytes===body.recording.continuousMaxBytes,'R184-B bounded capacity retention setting');
  let victim;await until(async()=>{await drain(performance.now());victim=candidates.find(x=>progress.records.get(x.id)?.state==='deleted');return victim;},10000);
- // Restore original profile and stop before exact membership comparison; no Catalog/file edits.
+ // 원래 profile을 복구하고 중지한 뒤 정확한 구성원을 비교하며 Catalog·파일을 편집하지 않는다.
  await bdisable(second);const deleted=await bfetch(second,'retention-deleted-media','/ops/api/recordings/media/'+victim.id,{range:'bytes=0-31'});check(deleted.status===404,'R184-B durable deleted media404');
  const live=await bfetch(second,'retention-surviving-media',survivor.playbackUrl,{range:'bytes=0-31'});check(live.status===206&&live.bytes===32,'R184-B surviving media206');
  const after=await bpage(second,'after-delete-strict',query);bexact(after,'after-delete');check(!after.items.some(x=>x.segmentId===victim.id),'R184-B latest excludes deleted');

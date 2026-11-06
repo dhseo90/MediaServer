@@ -1,4 +1,4 @@
-// P1 opt-in test diagnostics: fixed 8192 records, no product lock or file I/O on producer paths.
+// 파일 용도: P1 선택 활성화 테스트 진단을 8192개 고정 record에 기록하며 producer 경로에서 제품 lock·파일 I/O를 사용하지 않는다.
 #pragma once
 #include <array>
 #include <algorithm>

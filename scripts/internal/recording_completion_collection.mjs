@@ -1,4 +1,4 @@
-// completion/evidence 공통 유한 수집 receipt. 제품 업무 결과와 별도 판정한다.
+// 파일 용도: completion·evidence의 공통 유한 수집 receipt를 검사하며 제품 업무 결과와 별도로 판정한다.
 import {diagnosticLines} from './recording_diagnostic_lines.mjs';
 import {validateCompletionRow} from './recording_completion_trace.mjs';
 const completion='[recording-completion] ', evidence='[recording-evidence] ', terminal='[recording-completion-end] ', late='[recording-completion-after-end] ';

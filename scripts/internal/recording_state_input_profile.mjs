@@ -1,5 +1,5 @@
 import {bindMultifinalizeStateProduct,MULTIFINALIZE_SCHEMA} from './recording_multifinalize_state_binding.mjs';
-// State 입력 후보 전용. 입력 Decode와 실제 Writer Segment 적격성은 서로 다른 증거다.
+// 파일 용도: State 입력 후보를 결속하며 입력 Decode와 실제 Writer Segment 적격성을 별도 증거로 취급한다.
 import assert from 'node:assert/strict';
 import crypto from 'node:crypto';
 import fs from 'node:fs';
@@ -171,7 +171,7 @@ function bindEP1StateProduct(env,product,runtime,result,directory,digest){
   need(entries.length===403&&sha(JSON.stringify(Object.fromEntries(entries)))===binding.sourceManifestSha256,'state-ep1-source-manifest');
   const committedPaths=execFileSync('git',['ls-tree','-r','--name-only','HEAD','--','CMakeLists.txt','src','include'],{cwd:repo,encoding:'utf8'}).trim().split('\n').sort();
   assert.deepEqual(entries.map(([p])=>p),committedPaths,'state-ep1-source-coverage');
-  // cat-file --batch reads immutable HEAD blobs without 403 child processes or a checkout.
+  // cat-file --batch로 불변 HEAD blob을 읽어 자식 process 403개나 checkout을 만들지 않는다.
   const blobs=execFileSync('git',['cat-file','--batch'],{cwd:repo,input:entries.map(([p])=>`HEAD:${p}\n`).join(''),maxBuffer:32*1024*1024});
   let offset=0;
   for(const [relative,expected] of entries){
@@ -197,8 +197,8 @@ function bindEP1StateProduct(env,product,runtime,result,directory,digest){
   assert.deepEqual(binding.dynamicLibrarySha256,baseline.binding.dynamicLibrariesSHA256,'state-ep1-library-binding');
   for(const [file,expected] of Object.entries(baseline.binding.dynamicLibrariesSHA256))
     need(sha(fs.readFileSync(file))===expected,'state-source-asset-binding:'+path.basename(file));
-  // 403 tracked inputs exclude the vendored SentencePiece header/library. Their historical
-  // hashes are anchored by the fixed Model manifest, not inferred from today's files.
+  // 추적 입력 403개에는 외부 SentencePiece header·library가 포함되지 않는다. 그 과거 hash는
+  // 고정 Model manifest에 결속되며 현재 파일로 추정하지 않는다.
   const preparation='models/v430-siglip2/preparation.json';need(hash(models[preparation]),'state-ep1-model-preparation');
   const dependency=JSON.parse(boundFile(path.join(repo,preparation),models[preparation])).sentencepiece_cpp;
   const external={};
@@ -206,7 +206,7 @@ function bindEP1StateProduct(env,product,runtime,result,directory,digest){
     const rows=dependency?.artifacts?.filter(a=>a.file===relative);need(rows?.length===1,'state-ep1-vendor-binding');
     const name='third_party/v430-embedding/'+relative;boundFile(path.join(repo,name),rows[0].sha256);external[name]=rows[0].sha256;
   }
-  // Reuse the existing Guard/parser for real TU dependencies; no alternate freshness policy.
+  // 실제 번역 단위 의존성에 기존 Guard·parser를 재사용하며 별도 freshness 정책을 만들지 않는다.
   const checked=JSON.parse(execFileSync('python3',['-B','-c',`
 import sys,json
 from pathlib import Path

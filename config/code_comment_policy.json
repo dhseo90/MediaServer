@@ -83,5 +83,116 @@
     {
       "pattern": "^OPS_RENDERER_BYTE_BASELINE_(BEGIN|END)$"
     }
-  ]
+  ],
+  "exactPreservedFindings": {
+    "version": "media-server.exact-preserved-findings.v1",
+    "contractSha256": "4a771a8e66c2a8234985c44dcdd5448173b3be82034b7237009fc948d5b7e3ea",
+    "approvalRecord": {
+      "path": "config/code-comment-approval/approval-record.json",
+      "sha256": "84eb37232adfcd967dcacfc48ad2c83eac6aa141a1816add6345e8fb07e41b52"
+    },
+    "findings": [
+      {
+        "path": "docs/release-artifacts/v4.5.0/158-driver-first.py",
+        "fileSha256": "94f33114c80396edd7ec8658cade1dea13e625ecafbdd7f5f847b305808e0e3b",
+        "fileBytes": 3264,
+        "findingType": "missing-header",
+        "originalFindingId": "CC01-0001",
+        "originalFindingIdentitySha256": "84742ae801b5d8cf8a1b33e64c8d65c9c33c82ada524c67416c1d9a3634c4a9c",
+        "location": {
+          "kind": "header-window",
+          "firstLine": 1,
+          "lastLine": 8,
+          "requiredState": "configured marker absent",
+          "originalFindingLine": null,
+          "firstEightLines": [
+            "from pathlib import Path",
+            "import os,sys,json,subprocess,time,signal,hashlib,copy",
+            "root=Path(__file__).parent;repo=Path('<REPO>');sys.path.insert(0,str(repo/'scripts/internal'));import recording_lock_timing as q",
+            "cases=[('normal','normal',1,0,0,True),('holder','normal',1,1,0,True),('disabled','normal',0,1,0,True),('aggregate','aggregate',1,0,0,True),('slow','slow',1,0,1,True),('lost-output','lost-output',1,0,0,False),('cap','cap',1,0,0,False),('byte-cap','byte-cap',1,0,0,False)]",
+            "results=[]",
+            "for name,mode,enabled,holder,slow,expect in cases:",
+            " env={k:v for k,v in os.environ.items() if not k.startswith('MEDIA_SERVER_')};env.update(MEDIA_SERVER_VERIFY_RECORDING_LATENCY_TRACE=str(enabled),MEDIA_SERVER_VERIFY_CATALOG_HOLDER_TRACE=str(holder),MEDIA_SERVER_VERIFY_RECORDING_LATENCY_SLOW_ONLY=str(slow))",
+            " t=time.monotonic();p=subprocess.Popen([str(root/'focused'),mode],cwd=root,env=env,stdout=subprocess.PIPE,stderr=subprocess.PIPE,start_new_session=True)"
+          ]
+        }
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/158-run.py",
+        "fileSha256": "b0f5ae9aa5c4f6c5087c93910594c6c45fade8851cc8e68503c419c32b2c7a3a",
+        "fileBytes": 3295,
+        "findingType": "missing-header",
+        "originalFindingId": "CC01-0002",
+        "originalFindingIdentitySha256": "d9d4ffa355218b302c4fca2652ecbf6b7fadbbbdce4cb6a52c1b691a8eaee516",
+        "location": {
+          "kind": "header-window",
+          "firstLine": 1,
+          "lastLine": 8,
+          "requiredState": "configured marker absent",
+          "originalFindingLine": null,
+          "firstEightLines": [
+            "from pathlib import Path",
+            "import os,sys,json,subprocess,time,signal,hashlib,copy",
+            "root=Path(__file__).parent;repo=Path('<REPO>');sys.path.insert(0,str(repo/'scripts/internal'));import recording_lock_timing as q",
+            "cases=[('normal','normal',1,0,0,True),('holder','normal',1,1,0,True),('disabled','normal',0,1,0,True),('aggregate','aggregate',1,0,0,True),('slow','slow',1,0,1,True),('lost-output','lost-output',1,0,0,False),('cap','cap',1,0,0,False),('byte-cap','byte-cap',1,0,0,False)]",
+            "results=[]",
+            "for name,mode,enabled,holder,slow,expect in cases:",
+            " env={k:v for k,v in os.environ.items() if not k.startswith('MEDIA_SERVER_')};env.update(MEDIA_SERVER_VERIFY_RECORDING_LATENCY_TRACE=str(enabled),MEDIA_SERVER_VERIFY_CATALOG_HOLDER_TRACE=str(holder),MEDIA_SERVER_VERIFY_RECORDING_LATENCY_SLOW_ONLY=str(slow))",
+            " t=time.monotonic();p=subprocess.Popen([str(root/'focused'),mode],cwd=root,env=env,stdout=subprocess.PIPE,stderr=subprocess.PIPE,start_new_session=True)"
+          ]
+        }
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/159-focused_run.py",
+        "fileSha256": "7e3aee3611691e3d7e8ebd24924c550b16fefbbfe552f9a3d6a2b157c24cdcde",
+        "fileBytes": 1547,
+        "findingType": "missing-header",
+        "originalFindingId": "CC01-0003",
+        "originalFindingIdentitySha256": "036ba44221b43c40bd47f54f3badad4c2e65a0d1693a13ca601a891e01fe1a0c",
+        "location": {
+          "kind": "header-window",
+          "firstLine": 1,
+          "lastLine": 8,
+          "requiredState": "configured marker absent",
+          "originalFindingLine": null,
+          "firstEightLines": [
+            "from pathlib import Path",
+            "import subprocess,sys,os,json,time,signal",
+            "sys.path.insert(0,str(Path.cwd()/'scripts/internal'))",
+            "from recording_native_isolation import environment",
+            "root=Path(__file__).parent;records=[]",
+            "cases=[('callsite',root/'callsite',[]),('ordinal-cap',root/'callsite',['overflow']),('catalog-native',root/'candidate/currentness-focused',None),('media-native',root/'candidate/focused',None)]",
+            "for mode in ['upper','lower','mixed','missing','empty','text','zero','range','duplicate','variant','conflict','reuse']:cases.append(('parser-'+mode,root/'candidate/parser',[mode]))",
+            "for name,binary,args in cases:"
+          ]
+        }
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/158-driver-first.py",
+        "fileSha256": "94f33114c80396edd7ec8658cade1dea13e625ecafbdd7f5f847b305808e0e3b",
+        "fileBytes": 3264,
+        "findingType": "english-only-comment",
+        "originalFindingId": "CC01-0105",
+        "originalFindingIdentitySha256": "9abb7dcbd815ff1dfaf3b71ed920c2bfbd78086dc39d6af19da8487d608fed94",
+        "location": {
+          "kind": "line",
+          "line": 20,
+          "rawLine": "# Mutate real, valid native observations; never infer missing original records."
+        }
+      },
+      {
+        "path": "docs/release-artifacts/v4.5.0/158-run.py",
+        "fileSha256": "b0f5ae9aa5c4f6c5087c93910594c6c45fade8851cc8e68503c419c32b2c7a3a",
+        "fileBytes": 3295,
+        "findingType": "english-only-comment",
+        "originalFindingId": "CC01-0106",
+        "originalFindingIdentitySha256": "6363641e2e4faa98c9121e50365126525250c325c06cbe9aec68ad4bd1a35f52",
+        "location": {
+          "kind": "line",
+          "line": 20,
+          "rawLine": "# Mutate real, valid native observations; never infer missing original records."
+        }
+      }
+    ]
+  }
 }

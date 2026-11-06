@@ -73,7 +73,7 @@ int main(int argc,char**argv){try{
     Check(holds()==1,"R105 single prepared source owns exactly one hold");
     {auto second=source.Prepare(docs.front(),&error,{},deadline);Check(bool(second)&&holds()==2,"R105 concurrent source ownership adds exactly one hold");}
     Check(holds()==1,"R105 second source release preserves first reader");
-    // R119: initial proof + exact seek share the final current check; later reuse still revalidates.
+    // R119: 최초 증명과 정확한 seek는 마지막 현재성 검사를 공유하며 이후 재사용에도 다시 검증한다.
     {recording::SearchSeekTarget initial;initial.seconds=42;
         auto combined=source.PrepareResolved(docs.front(),&initial,&error,{},deadline);
         Check(bool(combined)&&holds()==2&&initial.seconds<.04,"R119 combined exact first seek and single hold");

@@ -404,7 +404,7 @@ int MixedTransitions(const std::filesystem::path& root,const std::filesystem::pa
 }
 int main(int argc,char** argv) {
     if(argc==3&&(std::string(argv[2])=="--lifetime-prepare"||std::string(argv[2])=="--lifetime-observe"||std::string(argv[2])=="--lifetime-reopen")){
-        // isolation removes MEDIA_SERVER_*; set before the first diagnostic/owner.
+        // isolation이 MEDIA_SERVER_*를 제거하므로 첫 진단·owner 생성 전에 설정한다.
         if(setenv("MEDIA_SERVER_VERIFY_MEMORY_ATTRIBUTION","1",1)||setenv("MEDIA_SERVER_VERIFY_MEMORY_COMPACT","1",1))return 1;
         gst_init(nullptr,nullptr);
         try{const std::filesystem::path root(argv[1]);const std::string mode(argv[2]);Encoded input;
@@ -670,8 +670,8 @@ int main(int argc,char** argv) {
             if(valid&&kind=="drift")valid=segments[0].mappings.size()==1&&segments[0].mappings[0].uncertainty_ns.value_or(0)>=7901000;
             Check(valid,"WR08 media observation quality "+kind);
         }
-        // R97: real writer attempts under a legitimate hold shortage, then the
-        // same writer resumes at the next keyframe after the owning hold releases.
+        // R97: 정상적인 hold로 공간이 부족한 동안 실제 writer가 쓰기를 시도한 뒤 해당 hold가
+        // 해제되면 같은 writer가 다음 keyframe에서 재개한다.
         {
             const auto input=Encode(true,20);Store s(root/"retention-recovery");
             if(!Run(s,input,100000))throw std::runtime_error("R97 writer seed");
