@@ -414,10 +414,10 @@ function validateReview4AppliedItem({ rootDir, row, item, evidence, errors }) {
   return errors;
 }
 
-// 현행 독립 승인은 과거 proof를 대체하지 않고 명시된 한 기능과 소스 바이트에만 적용한다.
+// 현행 독립 승인은 과거 proof를 대체하지 않고 각 기록에 명시된 기능과 소스 바이트에만 적용한다.
 // 승인 파일이 없는 과거 트리는 기존 hard-trust 검사를 그대로 사용한다.
 export function validateReview4CurrentSourceSuccessor({ rootDir, id, historicalProof, currentItem }) {
-  if (id !== "OPS-174") return { selected: false, errors: [] };
+  if (id !== "OPS-174") return validateCi296CurrentSourceSuccessor({ rootDir, id, historicalProof, currentItem });
   const relative = "test/fixtures/ops174_current_source_review_v1.json";
   const target = path.join(rootDir, relative);
   if (!fs.existsSync(target)) return { selected: false, errors: [] };
@@ -457,6 +457,69 @@ export function validateReview4CurrentSourceSuccessor({ rootDir, id, historicalP
     errors.push(`${id} REVIEW4 successor ${error instanceof Error ? error.message : String(error)}`);
   }
   return { selected: true, errors };
+}
+
+// 독립 검토가 지정한 296개 현행 proof만 선택한다. 과거 승인과 다른 항목은 갱신하지 않는다.
+const CI296_SUCCESSOR_FILE = "test/fixtures/ci296_current_source_review_v1.json";
+const CI296_SUCCESSOR_SHA256 = "1adacc667ba5ffcb60ea223b169aef68011e370f1543d3331f001c6dccace297";
+function requireCi296(condition, message) { if (!condition) throw new Error(message); }
+function readCi296BoundFile(rootDir, file) {
+  requireCi296(typeof rootDir === "string" && rootDir.length > 0, "explicit source root required");
+  requireCi296(typeof file === "string" && file.length > 0 && !path.isAbsolute(file) &&
+    file.split("/").every(part => part && part !== "." && part !== ".."), "unsafe successor source path");
+  let cursor = rootDir;
+  for (const part of file.split("/")) {
+    cursor = path.join(cursor, part);
+    requireCi296(!fs.lstatSync(cursor).isSymbolicLink(), "successor source symlink rejected");
+  }
+  requireCi296(fs.statSync(cursor).isFile(), "successor source is not a regular file");
+  return fs.readFileSync(cursor);
+}
+function readCi296Successor(rootDir) {
+  if (!rootDir || !fs.existsSync(path.join(rootDir, CI296_SUCCESSOR_FILE))) return null;
+  const bytes = readCi296BoundFile(rootDir, CI296_SUCCESSOR_FILE);
+  requireCi296(sha256(bytes) === CI296_SUCCESSOR_SHA256, "independent successor artifact drift");
+  const review = JSON.parse(bytes.toString("utf8"));
+  requireCi296(review.schema === "media-server.ci296-independent-current-source-review.v1" && review.decision === "approve" &&
+    review.approvalKind === "current-source-flow-and-exact-inventory-transition-only" &&
+    review.reviewer.independentFromImplementer === true && review.features.length === 296 &&
+    new Set(review.features.map(item => item.id)).size === 296, "independent successor decision invalid");
+  return review;
+}
+function validateCi296CurrentSourceSuccessor({ rootDir, id, historicalProof, currentItem }) {
+  try {
+    const review = readCi296Successor(rootDir);
+    const approved = review?.features.find(item => item.id === id);
+    if (!approved) return { selected: false, errors: [] };
+    requireCi296(approved.decision === "approve" && approved.approvalKind === "current-source-flow-only",
+      "independent feature decision invalid");
+    requireCi296(sha256(stableStringify(historicalProof)) === approved.historical.appliedProofSha256 &&
+      historicalProof.sourceFlowDigest === approved.historical.sourceFlowDigest &&
+      historicalProof.approvalDigest === approved.historical.approvalDigest, "historical predecessor proof drift");
+    requireCi296(currentItem.id === id && sha256(stableStringify(currentItem)) === approved.current.proofStableSha256 &&
+      review4SourceFlowDigest(currentItem) === approved.current.sourceFlowDigest, "current successor proof drift");
+    for (const input of review.currentSourceBindingFiles) {
+      requireCi296(sha256(readCi296BoundFile(rootDir, input.file)) === input.sha256,
+        `current successor source drift: ${input.file}`);
+    }
+    return { selected: true, errors: [] };
+  } catch (error) {
+    return { selected: true, errors: [`${id} REVIEW4 successor ${error instanceof Error ? error.message : String(error)}`] };
+  }
+}
+
+// 전체 문서 hash의 정확한 승인 전이만 인정한다. 기능 행·원본 manifest 검사도 유지한다.
+export function validateReview4InventorySuccessor({ rootDir, inventoryText, rows, manifest }) {
+  try {
+    const review = readCi296Successor(rootDir);
+    const approved = review?.inventoryTransition;
+    if (!approved || approved.decision !== "approve" ||
+        approved.approvalKind !== "exact-inventory-document-successor-only") return false;
+    return manifest.inventorySha256 === approved.historicalSha256 &&
+      sha256(inventoryText) === approved.currentSha256 && rows.length === approved.rowCount &&
+      sha256(stableStringify(rows)) === approved.parsedRowsStableSha256 &&
+      sha256(readCi296BoundFile(rootDir, "test/fixtures/project_feature_implementation_evidence.json")) === approved.manifestSha256;
+  } catch { return false; }
 }
 
 function validateReview4DirectLocator(rootDir, id, role, locator, errors, approvedBinding) {

@@ -228,7 +228,7 @@ function runNegativeFixtures({ rootDir, inventoryText, rows, manifest, baselineV
     const unchanged = new Set(manifest.items);
     const changedItems = copy.items.filter(item => !unchanged.has(item));
     const errors = [
-      ...validateImplementationManifestStructure({ inventoryText, rows, manifest: copy }),
+      ...validateImplementationManifestStructure({ rootDir, inventoryText, rows, manifest: copy }),
       ...validateImplementationManifestEntries({ rootDir, rows, items: changedItems }),
     ];
     return {

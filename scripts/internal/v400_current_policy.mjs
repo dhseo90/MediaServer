@@ -58,7 +58,7 @@ function dispatch(read, names) {
 // 소스 전체 파일 hash를 갱신해서 승인을 만들어내지 않는다.
 export function validatePolicyBoundSources({rootDir, inventoryText, manifest}) {
   const rows = parseFeatureRows(inventoryText);
-  const errors = validateImplementationManifestStructure({inventoryText, rows, manifest});
+  const errors = validateImplementationManifestStructure({rootDir, inventoryText, rows, manifest});
   if (errors.length) return errors;
   errors.push(...validateReview4AppliedManifest({rows, manifest}));
   for (const id of boundIds) {

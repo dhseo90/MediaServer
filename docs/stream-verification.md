@@ -392,6 +392,23 @@ manifest 검증은 정상 입력의 **전체 986개**를 먼저 검사한다. �
 | MANIFEST-SPLIT-03 | 전체 검사와 집합+모든 항목 검사 합성 일치. 불완전 fixture의 실패 유지 |
 | MANIFEST-SPLIT-04 | 변경된 항목의 실제 오류 검출과 원본 입력 불변 |
 
+296개 HTTP 관련 기능의 현행 source 승인은 `ci296_current_source_review_v1.json`의
+독립 검토로 한정한다. 기존 manifest·개별 proof·승인 원본과 OPS-174 별도 승인은 수정하지 않는다.
+새 승인 파일의 정확한 바이트, 지정한 기능 ID, 과거 proof, 현재 전체 proof 및 제품 의존 파일을
+대조하며 기존 위치·문맥·의미·반례 검사는 계속 수행한다. Inventory 문서는 명시된 두 전체 hash와
+동일한 986개 기능 행·원본 manifest에만 전이를 허용한다. 명시적 source root가 없으면 허용하지 않는다.
+이는 정적 source 결속이며 부가 정의의 구현 또는 안정화·30분·120분·UI 실행 PASS가 아니다.
+`node --test scripts/internal/verify_review4_locator_resolution.test.mjs`의 R4C 도구 자체검사는 다음과 같다.
+
+| ID | 확인 범위·기대값 |
+| --- | --- |
+| R4C01 | 정확한 296-ID와 현재 proof 선택, 미승인 기능·다른 기능 승인 전용 거부 |
+| R4C02 | 승인 파일 누락·변조·symlink가 현재 source 신뢰를 부여하지 않음 |
+| R4C03 | 과거 승인·현재 위치·edge·binding·verifier 변경 거부 |
+| R4C04 | 공통 제품 의존 파일 각각의 바이트 변경과 symlink 거부 |
+| R4C05 | Inventory의 명시 source root·전체 문서·986개 행·과거 hash 결속 |
+| R4C06 | 원본 manifest 또는 독립 승인 변경·누락 시 Inventory 전이 거부 |
+
 v400 정책 호환 명령의 현행 안전 경계는 `v400_current_policy.mjs`에서 검사한다.
 과거 완료 표·중앙 실행 원장·당시 제목·파일 개수 상한은 현행 합격 조건이 아니다.
 기존 fixture 중 현재 계약에 필요한 입력만 사용하고 과거 source/시각/선택은 덮어쓰지 않는다.

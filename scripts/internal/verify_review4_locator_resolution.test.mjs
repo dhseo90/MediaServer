@@ -8,7 +8,7 @@ import path from 'node:path';
 import test from 'node:test';
 import vm from 'node:vm';
 import * as trustLibrary from './feature_semantic_review4_trust_lib.mjs';
-import { validateReview4CurrentSourceSuccessor, validateSemanticItem, semanticDigest, SEMANTIC_CLOSURE_SCHEMA, REVIEW3_CALL_CHAIN_SCHEMA } from './feature_semantic_evidence_lib.mjs';
+import { validateReview4CurrentSourceSuccessor, validateReview4InventorySuccessor, validateSemanticItem, semanticDigest, SEMANTIC_CLOSURE_SCHEMA, REVIEW3_CALL_CHAIN_SCHEMA } from './feature_semantic_evidence_lib.mjs';
 import { buildReview4SemanticObligation, buildReview4TrustBindings, parseVerifiedReview4Dispatch, review4SourceFlowDigest, sha256, REVIEW4_APPROVAL_SOURCE, REVIEW4_APPROVAL_REVIEWER_SOURCE } from './feature_semantic_review4_trust_lib.mjs';
 
 function fixture(run, options = {}) {
@@ -268,3 +268,106 @@ test('R4S09 missing source during fixture preparation still removes its owned di
     assert.deepEqual(fs.readdirSync(parent), ['source']);
   } finally { fs.rmSync(parent, { recursive: true }); assert.equal(fs.existsSync(parent), false); }
 });
+
+// 새 승인은 실제 독립 기록의 정확한 범위·바이트에만 적용하며 제품 실행 결과가 아니다.
+const ci296File = 'test/fixtures/ci296_current_source_review_v1.json';
+const ci296Bytes = fs.readFileSync(path.join(currentRoot, ci296File));
+const ci296Decision = JSON.parse(ci296Bytes.toString('utf8'));
+const ci296Id = 'AUTH-004';
+const ci296Entry = successorManifest.items.find(item => item.id === ci296Id);
+const ci296OldProof = ci296Entry.semanticEvidence.review4Proof;
+const ci296CurrentItem = (() => {
+  const item = { id: ci296Id, status: 'source-resolved-candidate' };
+  for (const key of ['featureContractSha256', 'flowKind', 'requirement', 'evidenceMode', 'evidenceToken',
+    'sharedContract', 'semanticObligation', 'verifier', 'roles', 'edges', 'trustBindings']) {
+    item[key] = structuredClone(ci296OldProof[key]);
+  }
+  // 독립 검토가 확인한 실제 여섯 위치다. 최종 기대값은 별도 승인 proof hash로 대조한다.
+  const lines = { owner: 477, dispatch: 1304, action: 1749, state: 1804, readback: 615, verifier: 3391 };
+  for (const [role, line] of Object.entries(lines)) item.roles[role].line = line;
+  item.edges = item.edges.map(edge => ({ ...edge,
+    ...(edge.source ? { source: `${item.roles[edge.from].file}:${item.roles[edge.from].line}` } : {}),
+    ...(edge.target ? { target: `${item.roles[edge.to].file}:${item.roles[edge.to].line}` } : {}),
+  }));
+  item.trustBindings = buildReview4TrustBindings(currentRoot, item, parseVerifiedReview4Dispatch(currentRoot));
+  return item;
+})();
+function ci296Fixture(run) {
+  const rootDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ci296-successor-'));
+  try {
+    fs.chmodSync(rootDir, 0o700);
+    for (const file of [ci296File, 'test/fixtures/project_feature_implementation_evidence.json',
+      ...ci296Decision.currentSourceBindingFiles.map(input => input.file)]) {
+      const destination = path.join(rootDir, file);
+      fs.mkdirSync(path.dirname(destination), { recursive: true });
+      fs.copyFileSync(path.join(currentRoot, file), destination);
+    }
+    const args = { rootDir, id: ci296Id, historicalProof: structuredClone(ci296OldProof), currentItem: structuredClone(ci296CurrentItem) };
+    const inventoryText = fs.readFileSync(path.join(currentRoot, 'docs/project-feature-test-inventory.md'), 'utf8');
+    const inventory = { rootDir, inventoryText, rows: parseFeatureRows(inventoryText), manifest: successorManifest };
+    run({ rootDir, args, inventory, check: () => validateReview4CurrentSourceSuccessor(args),
+      inventoryCheck: () => validateReview4InventorySuccessor(inventory) });
+  } finally { fs.rmSync(rootDir, { recursive: true }); assert.equal(fs.existsSync(rootDir), false); }
+}
+test('R4C01 exact independent 296-ID set and current proof are selected', () => ci296Fixture(f => {
+  assert.equal(ci296Decision.features.length, 296);
+  assert.equal(new Set(ci296Decision.features.map(item => item.id)).size, 296);
+  assert.equal(ci296Decision.features.some(item => item.id === 'OPS-174'), false);
+  assert.equal(sha256(trustLibrary.stableStringify(ci296CurrentItem)), ci296Decision.features.find(item => item.id === ci296Id).current.proofStableSha256);
+  assert.deepEqual(f.check(), { selected: true, errors: [] });
+  f.args.id = 'OPS-999';
+  assert.deepEqual(f.check(), { selected: false, errors: [] });
+  f.args.id = ci296Decision.features.find(item => item.id !== ci296Id).id;
+  assert.match(f.check().errors.join('\n'), /predecessor proof drift/);
+}));
+test('R4C02 missing, modified or linked approval cannot grant current source trust', () => ci296Fixture(f => {
+  const file = path.join(f.rootDir, ci296File);
+  fs.appendFileSync(file, ' ');
+  assert.match(f.check().errors.join('\n'), /artifact drift/);
+  fs.unlinkSync(file);
+  assert.deepEqual(f.check(), { selected: false, errors: [] });
+  fs.symlinkSync(path.join(currentRoot, ci296File), file);
+  assert.match(f.check().errors.join('\n'), /symlink rejected/);
+}));
+test('R4C03 altered historical approval and current proof fail closed', () => ci296Fixture(f => {
+  f.args.historicalProof.approval.reason += ' changed';
+  assert.match(f.check().errors.join('\n'), /predecessor proof drift/);
+  f.args.historicalProof = structuredClone(ci296OldProof);
+  for (const mutate of [
+    item => { item.roles.owner.line += 1; },
+    item => { item.edges[0].witness += ' changed'; },
+    item => { item.trustBindings = structuredClone(ci296OldProof.trustBindings); },
+    item => { item.verifier.command = 'verify-unapproved'; },
+  ]) {
+    f.args.currentItem = structuredClone(ci296CurrentItem); mutate(f.args.currentItem);
+    assert.match(f.check().errors.join('\n'), /current successor proof drift/);
+  }
+}));
+test('R4C04 every common dependency remains bound including symlink rejection', () => ci296Fixture(f => {
+  for (const input of ci296Decision.currentSourceBindingFiles) {
+    const file = path.join(f.rootDir, input.file), bytes = fs.readFileSync(file);
+    fs.appendFileSync(file, '\n');
+    assert.match(f.check().errors.join('\n'), /source drift/);
+    fs.writeFileSync(file, bytes);
+  }
+  const file = path.join(f.rootDir, ci296Decision.currentSourceBindingFiles[0].file);
+  fs.unlinkSync(file); fs.symlinkSync(path.join(currentRoot, ci296Decision.currentSourceBindingFiles[0].file), file);
+  assert.match(f.check().errors.join('\n'), /symlink rejected/);
+}));
+test('R4C05 exact inventory successor requires explicit root, document and row identity', () => ci296Fixture(f => {
+  assert.equal(f.inventoryCheck(), true);
+  assert.equal(validateReview4InventorySuccessor({ ...f.inventory, rootDir: undefined }), false);
+  assert.equal(validateReview4InventorySuccessor({ ...f.inventory, inventoryText: f.inventory.inventoryText + '\n' }), false);
+  const rows = structuredClone(f.inventory.rows); rows[0].pass += ' changed';
+  assert.equal(validateReview4InventorySuccessor({ ...f.inventory, rows }), false);
+  assert.equal(validateReview4InventorySuccessor({ ...f.inventory, manifest: { ...successorManifest, inventorySha256: '0'.repeat(64) } }), false);
+}));
+test('R4C06 historical manifest and approval remain required for inventory transition', () => ci296Fixture(f => {
+  for (const input of ci296Decision.immutableHistoricalFiles) {
+    assert.equal(sha256(fs.readFileSync(path.join(currentRoot, input.file))), input.sha256);
+  }
+  const file = path.join(f.rootDir, 'test/fixtures/project_feature_implementation_evidence.json');
+  fs.appendFileSync(file, ' '); assert.equal(f.inventoryCheck(), false);
+  fs.copyFileSync(path.join(currentRoot, 'test/fixtures/project_feature_implementation_evidence.json'), file);
+  fs.unlinkSync(path.join(f.rootDir, ci296File)); assert.equal(f.inventoryCheck(), false);
+}));

@@ -8,6 +8,7 @@ import { execFileSync } from "node:child_process";
 import {
   SEMANTIC_CLOSURE_SCHEMA,
   summarizeSemanticClosure,
+  validateReview4InventorySuccessor,
   validateSemanticItem,
 } from "./feature_semantic_evidence_lib.mjs";
 import { serializeCompactJsonArtifact } from "./json_artifact_serialization_lib.mjs";
@@ -111,7 +112,7 @@ export function generateImplementationManifest({ rootDir, inventoryText, rows, r
 }
 
 // 전체 집합 조건만 검사한다. 이것만으로 소스/구현 검증 완료를 판정하지 않는다.
-export function validateImplementationManifestStructure({ inventoryText, rows, manifest }) {
+export function validateImplementationManifestStructure({ rootDir, inventoryText, rows, manifest }) {
   const errors = [];
 
   if (manifest?.schema !== IMPLEMENTATION_MANIFEST_SCHEMA) {
@@ -133,7 +134,8 @@ export function validateImplementationManifestStructure({ inventoryText, rows, m
   if (manifest.items.length !== EXPECTED_FEATURE_ROWS) {
     errors.push(`manifest item count must stay ${EXPECTED_FEATURE_ROWS}, got ${manifest.items.length}`);
   }
-  if (manifest.inventorySha256 !== sha256(inventoryText)) {
+  if (manifest.inventorySha256 !== sha256(inventoryText) &&
+      !validateReview4InventorySuccessor({ rootDir, inventoryText, rows, manifest })) {
     errors.push("inventorySha256 drift; explicitly refresh and review the manifest");
   }
 
@@ -267,7 +269,7 @@ export function validateImplementationManifestEntries({ rootDir, rows, items }) 
 }
 
 export function validateImplementationManifest({ rootDir, inventoryText, rows, manifest }) {
-  const errors = validateImplementationManifestStructure({ inventoryText, rows, manifest });
+  const errors = validateImplementationManifestStructure({ rootDir, inventoryText, rows, manifest });
   if (!Array.isArray(manifest?.items)) return { ok: false, errors, summary: emptySummary(rows) };
   errors.push(...validateImplementationManifestEntries({ rootDir, rows, items: manifest.items }));
   return {
